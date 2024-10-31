@@ -5,6 +5,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.modelwrappers.WrappedItemStack;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.LazyInit;
@@ -65,63 +66,8 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.VAR_INT.write(this, val);
     }
 
-    public Object readItemStack() {
-        return ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
-                .withType(NMS.getItemStackClass()).withTarget(getSerializer())
-                .invokeMethod(null, 0);
-    }
-
-    public ItemStack readBukkitItemStack() {
-        return Converters.getMirrorItemStackConverter().convertDelegate(readItemStack());
-    }
-
-    public Object readItemStackWithFilter(boolean withMeta, Material... required) {
-        short itemId = readShort();
-        if (itemId < 0) {
-            return null;
-        }
-        byte amount = readByte();
-        short damage = -1;
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
-            damage = readShort();
-        }
-
-        Object item = ItemReflection.getItemFromId(itemId);
-        if (item == null) {
-            return null;
-        }
-        Material material = ItemReflection.getMaterialFromItem(item);
-        // do type filter
-        if (required.length > 0) {
-            boolean found = false;
-            for (Material req : required) {
-                if (req.equals(material)) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                return null;
-            }
-        }
-
-        Object itemStack = ItemReflection.createItemStack(item, amount, damage);
-
-        Object nbt = ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
-                .withType(NMS.getNBTTagCompoundClass()).withTarget(getSerializer())
-                .invokeMethod(null, 0);
-        if (nbt != null) {
-            ItemReflection.setItemTag(itemStack, nbt);
-            if (withMeta) {
-                ItemReflection.setItemMeta(itemStack);
-            }
-        }
-
-        return itemStack;
-    }
-
-    public ItemStack readBukkitItemStackWithFilter(boolean withMeta, Material... required) {
-        return Converters.getMirrorItemStackConverter().convertDelegate(readItemStackWithFilter(withMeta, required));
+    public WrappedItemStack readItemStack() {
+        return WrappedItemStack.read(this);
     }
 
     public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {

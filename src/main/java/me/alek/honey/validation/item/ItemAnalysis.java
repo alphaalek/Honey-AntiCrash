@@ -2,6 +2,7 @@ package me.alek.honey.validation.item;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.modelwrappers.WrappedItemStack;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ViolationKey;
 import me.alek.honey.validation.item.enums.ItemValidationFilterStrategy;
@@ -89,7 +90,7 @@ public class ItemAnalysis {
         return checkItem(player, item, nbt, context);
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt, Callback callback) {
+    public static boolean checkItem(HoneyPlayer player, WrappedItemStack item, NBTCompound nbt, Callback callback) {
         for (String ignoredPlayer : ignoredPlayers) {
             if (player.name.equalsIgnoreCase(ignoredPlayer)
                     || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {

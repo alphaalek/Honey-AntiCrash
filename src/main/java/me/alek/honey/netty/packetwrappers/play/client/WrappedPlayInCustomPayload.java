@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Types;
+import me.alek.honey.netty.modelwrappers.WrappedItemStack;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
@@ -113,7 +114,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         private final String channel;
         private final PacketDataSerializer serializer;
-        private LazyInit<ItemStack> bookChannelItemStack;
+        private LazyInit<WrappedItemStack> bookChannelItemStack;
         private Runnable release;
 
         public PayloadData(String channel, PacketDataSerializer serializer) {
@@ -123,7 +124,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
                 try {
                     PacketDataSerializer copy = makeSerializerCopy();
-                    this.bookChannelItemStack = new LazyInit<>(() -> copy.readBukkitItemStackWithFilter(true, Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")));
+                    this.bookChannelItemStack = new LazyInit<>(copy::readItemStack);
                     this.release = () -> AutoReleasable.doRelease(copy);
                 } catch (Exception ignored) {
                 }
@@ -137,7 +138,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             }
         }
 
-        public ItemStack getBookChannelItemStack() {
+        public WrappedItemStack getBookChannelItemStack() {
             return Optional.ofNullable(this.bookChannelItemStack).map(LazyInit::get).orElse(null);
         }
 

@@ -45,19 +45,33 @@ public class WrappedItemStack {
         }
     }
 
+    private static NBTCompound getNBTFromNMS(Object nmsStack) {
+        Object nbt = ReflectStructure.Provider.acquireStructure(ItemReflection.getNMSItemStackClass())
+                .withType(NMS.getNBTTagCompoundClass()).withTarget(nmsStack).readField(0);
+
+        if (nbt != null) {
+            return NBTFactory.fromDelegate(nbt, true).asCompound();
+        } else {
+            return null;
+        }
+    }
+
+    public static WrappedItemStack fromBukkit(ItemStack bukkitStack) {
+        Object nmsItem = ItemReflection.getHandleItem(bukkitStack);
+        if (nmsItem == null) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
+                return new WrappedItemStack(bukkitStack.getType(), bukkitStack.getAmount(), null);
+            } else {
+                return new WrappedItemStack(bukkitStack.getType(), bukkitStack.getAmount(), bukkitStack.getDurability(), null);
+            }
+        }
+
+        return fromNMS(nmsItem);
+    }
+
     public static WrappedItemStack fromNMS(Object stack) {
         ItemStack bukkitStack = ItemReflection.asCraftMirror(stack);
-        // get nbt from nms stack
-        Object nbt = ReflectStructure.Provider.acquireStructure(ItemReflection.getNMSItemStackClass())
-                .withType(NMS.getNBTTagCompoundClass()).withTarget(stack).readField(0);
-
-        // wrap nbt
-        NBTCompound wrappedNbt;
-        if (nbt != null) {
-            wrappedNbt = NBTFactory.fromDelegate(nbt, true).asCompound();
-        } else {
-            wrappedNbt = null;
-        }
+        NBTCompound wrappedNbt = getNBTFromNMS(stack);
 
         // create stack
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
@@ -65,6 +79,22 @@ public class WrappedItemStack {
         } else {
             return new WrappedItemStack(bukkitStack.getType(), bukkitStack.getAmount(), bukkitStack.getDurability(), wrappedNbt);
         }
+    }
+
+    public Object toNMS() {
+        ItemStack bukkitStack;
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
+            bukkitStack = new ItemStack(this.type, this.amount);
+        } else {
+            bukkitStack = new ItemStack(this.type, this.amount, this.durability);
+        }
+
+        Object nmsStack = ItemReflection.asNMSCopy(bukkitStack);
+        if (this.nbt != null) {
+            ItemReflection.setItemTag(nmsStack, this.nbt.getHandle());
+        }
+
+        return nmsStack;
     }
 
     private NBTCompound nbt;

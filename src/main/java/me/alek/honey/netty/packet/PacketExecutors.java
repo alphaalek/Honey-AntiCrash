@@ -3,6 +3,7 @@ package me.alek.honey.netty.packet;
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.modelwrappers.WrappedItemStack;
 import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.*;
@@ -62,15 +63,13 @@ public class PacketExecutors {
 
         @Override
         public Runnable getTask(PacketContainer<CP> packetContainer) {
-            ItemStack item = packetContainer.getAnyWrapped().getData().getBookChannelItemStack();
+            WrappedItemStack item = packetContainer.getAnyWrapped().getData().getBookChannelItemStack();
             if (item == null) {
                 packetContainer.getAnyWrapped().release();
                 return null;
             }
 
-            NBTCompound nbt = NBTFactory.fromItem(item, false, false);
-
-            Runnable edit = handleBookEdit(packetContainer, item, nbt);
+            Runnable edit = handleBookEdit(packetContainer, item, item.getNBT());
             return Optional.ofNullable(edit)
                 .map(r -> (Runnable) () -> {
                     packetContainer.getAnyWrapped().release();
@@ -79,9 +78,8 @@ public class PacketExecutors {
                 .orElse(null);
         }
 
-        private Runnable handleBookEdit(PacketContainer<CP> packetContainer, ItemStack item, NBTCompound nbt) {
+        private Runnable handleBookEdit(PacketContainer<CP> packetContainer, WrappedItemStack item, NBTCompound nbt) {
             Player player = packetContainer.getPlayer().bukkit;
-            ItemMeta meta = item.getItemMeta();
             switch (packetContainer.getAnyWrapped().getData().getChannel()) {
                 case "MC|BEdit":
                     if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null)) {
@@ -92,7 +90,8 @@ public class PacketExecutors {
                         break;
                     }
 
-                    stripEvents(meta);
+                    // TODO
+                    stripEvents(meta); // copy structure, THEN strip? in runnable for held item?
 
                     return () -> handleItem(player, (BookMeta) meta, (i, m) -> {
                         i.setItemMeta((ItemMeta) ReflectStructure.copyStructure(meta, m));
