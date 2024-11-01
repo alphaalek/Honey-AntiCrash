@@ -10,14 +10,15 @@ import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 
 import java.io.DataOutput;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Spliterators;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<List<Object>, ListConverter<Object, T>>implements Iterable<T> {
+public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<List<Object>, ListConverter<Object, T>> implements Iterable<T> {
 
     private ListConverter<Object, T> delegate;
     private final NBTType typeOf;
@@ -28,8 +29,17 @@ public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<
     }
 
     public NBTAbstractArray(NBTType typeOf) {
-        super(NBTType.ARRAY.create());
+        this(typeOf, new ArrayList<>());
+    }
+
+    public NBTAbstractArray(NBTType typeOf, List<?> array) {
+        super(NBTType.ARRAY.getElementBaseInvoker().invoke(new ArrayList<>(), (byte) typeOf.getTypeId()));
         this.typeOf = typeOf;
+    }
+
+    @Override
+    public void write(DataOutput output) throws IOException {
+        NBTType.ARRAY.getCodec().write(output, this);
     }
 
     @Override
@@ -54,33 +64,27 @@ public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<
     }
 
     @Override
-    public void write(DataOutput output) throws Exception {
-        output.writeByte((byte) getType().getTypeId());
-        output.writeInt(size());
-        for (final T value : getValue().getDelegatedList()) {
-            value.write(output);
-        }
-    }
-
-    @Override
     public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverter<Object, T>>> applyStructure(ApplicableConverter<List<Object>, ListConverter<Object, T>> converter) {
         return (structure) -> structure.withSpecificType(List.class, converter, false);
     }
 
-    public JavaConverter<Object, T> getConverterHandle() {
-        return delegate.getHandle();
-    }
-
+    @SuppressWarnings("unchecked")
     @Override
     public NBTArray<T> asList() {
-        if (typeOf == NBTType.ARRAY || typeOf == NBTType.COMPOUND || typeOf == NBTType.ARRAY_OF_COMPOUND || typeOf == NBTType.ARRAY_OF_ARRAY) {
+        if (typeOf == NBTType.ARRAY
+                || typeOf == NBTType.COMPOUND
+                || typeOf == NBTType.ARRAY_OF_COMPOUND
+                || typeOf == NBTType.ARRAY_OF_ARRAY) {
             return null;
         }
         return (NBTArray<T>) this;
     }
 
     public <R> NBTArray<R> asListOf(Class<R> clazz) {
-        if (typeOf == NBTType.ARRAY || typeOf == NBTType.COMPOUND || typeOf == NBTType.ARRAY_OF_COMPOUND || typeOf == NBTType.ARRAY_OF_ARRAY) {
+        if (typeOf == NBTType.ARRAY
+                || typeOf == NBTType.COMPOUND
+                || typeOf == NBTType.ARRAY_OF_COMPOUND
+                || typeOf == NBTType.ARRAY_OF_ARRAY) {
             return null;
         }
         return (NBTArray<R>) this;

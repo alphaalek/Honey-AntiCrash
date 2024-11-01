@@ -1,25 +1,25 @@
 package me.alek.honey.netty.nbt;
 
-import me.alek.honey.netty.nbt.writer.NBTWriter;
-import me.alek.honey.netty.nbt.writer.Writers;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 
 import java.io.DataOutput;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public class NBTElement<T> extends NBTBase<T, T> {
 
-    private final static Map<NBTType, NBTWriter<?>> WRITERS = new ConcurrentHashMap<>();
+    public static final NBTElement<Void> END = new NBTElement<>(NBTType.END);
 
     public NBTElement(Object base, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
         super(base, root, owner, forceCreation);
     }
 
     public NBTElement(NBTType type) {
-        super(type.create());
+        super(type.createRawDelegate());
     }
 
     public NBTElement(NBTType type, T value) {
@@ -31,63 +31,14 @@ public class NBTElement<T> extends NBTBase<T, T> {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Function<ReflectStructure<Object, ?>, ReflectStructure<T, T>> applyStructure(ApplicableConverter<T, T> converter) {
-        return (structure) -> structure.withType((Class<T>) getType().getClazz());
+        return (structure) -> structure.withType((Class<T>) getType().getDataTypeClass());
     }
 
     @Override
-    public void write(DataOutput output) throws Exception {
-        if (getType() == NBTType.END) {
-            return;
-        }
-        NBTWriter<?> writer = WRITERS.get(getType());
-        if (writer == null ){
-
-            switch (getType()) {
-                case BYTE:
-                    writer = new Writers.ByteWriter();
-                    break;
-                case SHORT:
-                    writer = new Writers.ShortWriter();
-                    break;
-                case INT:
-                    writer = new Writers.IntWriter();
-                    break;
-                case LONG:
-                    writer = new Writers.LongWriter();
-                    break;
-                case FLOAT:
-                    writer = new Writers.FloatWriter();
-                    break;
-                case DOUBLE:
-                    writer = new Writers.DoubleWriter();
-                    break;
-                case ARRAY_OF_BYTE:
-                    writer = new Writers.ByteArrayWriter();
-                    break;
-                case STRING:
-                    writer = new Writers.StringWriter();
-                    break;
-                case ARRAY_OF_INT:
-                    writer = new Writers.IntArrayWriter();
-                    break;
-                case ARRAY_OF_LONG:
-                    writer = new Writers.LongArrayWriter();
-                    break;
-            }
-            if (writer == null) {
-                return;
-            }
-            WRITERS.put(getType(), writer);
-            write(output);
-        }
-        else {
-            try {
-                ((NBTWriter<T>)writer).write(output, this);
-            } catch (ClassCastException ex) {
-                ex.printStackTrace();
-            }
-        }
+    public void write(DataOutput output) throws IOException {
+        getType().getCodec().write(output, this);
     }
 }

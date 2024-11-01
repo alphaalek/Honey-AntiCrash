@@ -10,6 +10,7 @@ import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 
 import java.io.DataOutput;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +25,11 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     public NBTCompound() {
-        super(NBTType.COMPOUND.create());
+        super(NBTType.COMPOUND.createRawDelegate());
+    }
+
+    public NBTCompound(Map<String, Object> map) {
+        super(NBTType.COMPOUND.getElementBaseInvoker().invoke(map));
     }
 
     @Override
@@ -32,15 +37,12 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
         return (structure) -> structure.withSpecificType(Map.class, converter, false);
     }
 
+    @Override
     public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, NBTBase<?, ?>>> getNBTConverter() {
         if (delegate == null) {
             delegate = Converters.getNBTCompoundConverter(getRoot(), this, forceCreateChildren);
         }
         return delegate;
-    }
-
-    public JavaConverter<Object, NBTBase<?, ?>> getConverterHandle() {
-        return delegate.getHandle();
     }
 
     public NBTBase<?, ?> remove(String key) {
@@ -104,17 +106,8 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     @Override
-    public void write(DataOutput output) throws Exception {
-        for (String key : getValue().keySet()) {
-            NBTBase<?, ?> base = getValue().getConverted(key);
-            output.writeByte((byte) getType().getTypeId());
-            if (getType() == NBTType.END) {
-                continue;
-            }
-            output.writeUTF(key);
-            base.write(output);
-        }
-        output.writeByte(0);
+    public void write(DataOutput output) throws IOException {
+        NBTType.COMPOUND.getCodec().write(output, this);
     }
 
     @SuppressWarnings("unchecked")

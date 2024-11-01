@@ -87,7 +87,12 @@ public class PacketExecutors {
                 return null;
             }
 
-            return () -> handleItem(player, item.getNBT(), false, (oldMeta, newMeta) -> {
+            return () -> handleItem(player, item, false, (oldMeta, newMeta) -> {
+                // clear data only available for signed books
+                newMeta.setAuthor(null);
+                newMeta.setTitle(null);
+                newMeta.setGeneration(null);
+
                 heldItem.setItemMeta(newMeta);
                 setItemInMainHand(player, heldItem);
             });
@@ -112,9 +117,8 @@ public class PacketExecutors {
                     return null;
                 }
             }
-            stripEvents(newBookMeta);
 
-            return () -> handleItem(player, item.getNBT(), true, (oldMeta, newMeta) -> {
+            return () -> handleItem(player, item, true, (oldMeta, newMeta) -> {
                 heldItem.setType(Material.WRITTEN_BOOK);
                 heldItem.setItemMeta(newMeta);
                 setItemInMainHand(player, heldItem);
@@ -151,7 +155,7 @@ public class PacketExecutors {
             return INVALID_BOOK_DATA.apply(bukkitPlayer);
         }
 
-        private void handleItem(Player player, NBTCompound nbt, boolean signing, BiConsumer<ItemMeta, ItemMeta> success) {
+        private void handleItem(Player player, WrappedImmutableItemStack item, boolean signing, BiConsumer<BookMeta, BookMeta> successCallback) {
             ItemStack heldItem = getItemInMainHand(player);
             if (heldItem.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
                 // can't edit or sign book, if the held item of the player is not writable book type
@@ -162,31 +166,33 @@ public class PacketExecutors {
 
             BookMeta newItemMeta;
             if (signing) {
-                newItemMeta = bookSignedMetaConstructor.invoke(nbt.getHandle());
+                newItemMeta = bookSignedMetaConstructor.invoke(item.getNBT().getHandle());
             } else {
-                newItemMeta = bookMetaConstructor.invoke(nbt.getHandle());
+                newItemMeta = bookMetaConstructor.invoke(item.getNBT().getHandle());
             }
+            stripEvents(newItemMeta);
+
             PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
                     player, player.getInventory().getHeldItemSlot(), heldItemMeta, newItemMeta, signing
             );
             Bukkit.getPluginManager().callEvent(editBookEvent);
             if (editBookEvent.isCancelled()) {
-                player.getInventory().setItem(player.getInventory().getHeldItemSlot(), heldItem);
+                setItemInMainHand(player, heldItem); // update for client
                 return;
             }
 
-            success.accept(heldItemMeta, newItemMeta);
+            successCallback.accept(heldItemMeta, newItemMeta);
         }
 
-        private void stripEvents(Object meta) {
-            List<Object> pages = ItemReflection.getPages((BookMeta) meta);
+        private void stripEvents(BookMeta meta) {
+            List<Object> pages = ItemReflection.getPages(meta);
 
             List<Object> newPages = new ArrayList<>();
             for (Object page : pages) {
                 newPages.add(stripEventsInvoker.invoke(null, page));
             }
 
-            ItemReflection.setPages((BookMeta) meta, newPages);
+            ItemReflection.setPages(meta, newPages);
         }
 
         private boolean serializeTextComponents(NBTArray<String> pages) {

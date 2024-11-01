@@ -22,27 +22,15 @@ public class WrappedImmutableItemStack {
     private static final ConstructorInvoker<ItemMeta> defaultMetaConstructor =
             Reflection.getConstructor(NMS.getCraftMetaItemClass(), NMS.getNBTTagCompoundClass());
 
-    public static WrappedImmutableItemStack read(PacketDataSerializer serializer) {
-        short itemId = serializer.readShort();
-        if (itemId < 0) {
-            return null;
-        } else if (itemId == 0) {
-            return new WrappedImmutableItemStack(); // air
-        }
-
-        byte amount = serializer.readByte();
-        short durability = -1;
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13)) {
-            durability = serializer.readShort(); // before item update
-        }
-
+    public static WrappedImmutableItemStack read(PacketDataSerializer serializer, int amount, int itemId, short durability) {
         Material type = ItemReflection.getMaterialFromId(itemId);
         if (type == null) {
-            return null;
+            return null; // no type found
         }
 
         // wrap nbt
         NBTCompound nbt = Optional.ofNullable(NBTFactory.read(serializer)).map(NBTBase::asCompound).orElse(null);
+
         // create stack
         if (durability != -1) {
             // before item update

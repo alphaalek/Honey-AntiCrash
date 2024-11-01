@@ -7,6 +7,7 @@ import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.util.LazyInit;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
@@ -61,7 +62,37 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public WrappedImmutableItemStack readItemStack() {
-        return WrappedImmutableItemStack.read(this);
+        int amount = -1;
+        short durability = -1;
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            amount = this.readVarInt();
+            if (amount < 1) {
+                return null;
+            }
+        } else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13_2)
+                && !this.readBoolean()) {
+            return null;
+        }
+
+        int id;
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13_2)) {
+            id = this.readVarInt();
+        } else {
+            id = this.readShort();
+        }
+        if (id < 1) {
+            return null;
+        }
+
+        if (amount == -1) { // before 1.20.5
+            amount = this.readByte();
+        }
+
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13)) {
+            durability = this.readShort();
+        }
+
+        return WrappedImmutableItemStack.read(this, id, amount, durability);
     }
 
     public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {

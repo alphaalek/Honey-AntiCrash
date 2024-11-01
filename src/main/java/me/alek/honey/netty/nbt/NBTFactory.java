@@ -1,5 +1,6 @@
 package me.alek.honey.netty.nbt;
 
+import io.netty.buffer.ByteBufInputStream;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -12,12 +13,25 @@ import me.alek.honey.util.reflection.NMS;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.IOException;
 import java.util.List;
 
 public class NBTFactory {
 
-    public static NBTBase<?, ?> read(PacketDataSerializer serializer) {
-        return null;
+    public static NBTBase<?, ?> read(PacketDataSerializer serializer) throws IOException {
+        try (ByteBufInputStream stream = new ByteBufInputStream(serializer)) {
+            return read(stream);
+        }
+    }
+
+    private static NBTBase<?, ?> read(ByteBufInputStream stream) throws IOException {
+        byte id = stream.readByte();
+        NBTType type = NBTType.getFromTypeId(id);
+        if (type == null) {
+            return NBTElement.END;
+        }
+
+        return type.getCodec().read(stream);
     }
 
     public static NBTCompound fromItem(ItemStack item, boolean createIfNone, boolean forceCreation) {
@@ -67,7 +81,7 @@ public class NBTFactory {
 
     @SuppressWarnings("unchecked")
     public static <K, V> NBTBase<K, V> copyFromType(NBTType type, Object handle, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
-        if (type == null || type == NBTType.UNKNOWN) {
+        if (type == null) {
             return null;
         }
 
@@ -86,7 +100,7 @@ public class NBTFactory {
     @SuppressWarnings("unchecked")
     public static NBTType getArrayType(Object handle, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
         if (handle == null) {
-            return NBTType.UNKNOWN;
+            return null;
         }
 
         IStructureModifier<Byte> byteModifier = ReflectStructure.Provider.acquireStructure(NMS.getNBTTagListClass())
@@ -103,12 +117,12 @@ public class NBTFactory {
         List<? extends NBTBase<?, ?>> array = arrayStructure.readFieldAndApplyMapping(0)
                 .getDelegatedList();
         if (array.isEmpty()) {
-            return NBTType.UNKNOWN;
+            return null;
         }
 
         NBTBase<?, ?> value = array.get(0);
         if (value == null) {
-            return NBTType.UNKNOWN;
+            return null;
         }
 
         return value.getType();
@@ -129,7 +143,7 @@ public class NBTFactory {
 
     public static NBTType getType(Object handle, boolean ignoreNestedArrays, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
         if (handle == null) {
-            return NBTType.UNKNOWN;
+            return null;
         }
 
         ReflectStructure<Object, ?> reflectStructure = ReflectStructure.Provider.acquireStructure(NMS.getNBTBaseClass());

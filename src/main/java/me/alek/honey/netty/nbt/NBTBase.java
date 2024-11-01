@@ -7,6 +7,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 
 import java.io.DataOutput;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +61,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
 
     public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter);
 
-    public abstract void write(DataOutput output) throws Exception;
+    public abstract void write(DataOutput output) throws IOException;
 
     public V getValue() {
         if (value == null) {
@@ -113,7 +114,7 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     }
 
     public NBTAbstractArray<?> asList() {
-        if (type.getClazz() != List.class) {
+        if (type.getDataTypeClass() != List.class) {
             return null;
         }
         return (NBTAbstractArray<?>) this;
@@ -127,14 +128,14 @@ public abstract class NBTBase<T, V> extends WrappedObject<NBTBase<T, V>> impleme
     }
 
     public NBTElement<V> asElement() {
-        if (type.getClazz() == List.class || type.getClazz() == Map.class) {
+        if (type.getDataTypeClass() == List.class || type.getDataTypeClass() == Map.class) {
             return null;
         }
         return (NBTElement<V>) this;
     }
 
     public <R> NBTElement<R> asElement(Class<R> clazz) {
-        if (type.getClazz() == List.class || type.getClazz() == Map.class) {
+        if (type.getDataTypeClass() == List.class || type.getDataTypeClass() == Map.class) {
             return null;
         }
         return (NBTElement<R>) this;
