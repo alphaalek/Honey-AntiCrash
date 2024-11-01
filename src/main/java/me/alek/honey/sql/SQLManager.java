@@ -55,7 +55,7 @@ public class SQLManager implements QueryFactory {
         } catch (Exception ex) {
             ex.printStackTrace();
 
-            HoneyPlugin.get().getLoggerService().getLogger().severe("No Driver found!");
+            HoneyPlugin.get().getLogger().getLogger().severe("No Driver found!");
             return;
         }
 
@@ -63,13 +63,13 @@ public class SQLManager implements QueryFactory {
         try {
             this.connection = DriverManager.getConnection(url, username, password);
 
-            HoneyPlugin.get().getLoggerService().getLogger().info("Successfully connected to database");
+            HoneyPlugin.get().getLogger().getLogger().info("Successfully connected to database");
         } catch (Exception ex) {
             ex.printStackTrace();
 
-            HoneyPlugin.get().getLoggerService().getLogger().severe("Error occurred when making connection to database!");
+            HoneyPlugin.get().getLogger().getLogger().severe("Error occurred when making connection to database!");
         }
-        HoneyPlugin.get().getLoggerService().getLogger().info(url + ", username: " + username + ", password: " + Strings.repeat("*", password.length()));
+        HoneyPlugin.get().getLogger().getLogger().info(url + ", username: " + username + ", password: " + Strings.repeat("*", password.length()));
     }
 
     public RepositoryCollection getRepositoryCollection() {

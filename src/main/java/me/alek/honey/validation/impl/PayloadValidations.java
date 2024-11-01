@@ -6,8 +6,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.nbt.NBTCompound;
-import me.alek.honey.netty.nbt.NBTFactory;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
@@ -18,7 +17,6 @@ import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -126,11 +124,10 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                ItemStack item = packet.getData().getBookChannelItemStack();
+                WrappedImmutableItemStack item = packet.getData().getBookChannelItemStack();
                 if (item != null) {
-                    NBTCompound nbt = NBTFactory.fromItem(item, false, false);
                     Callback callback = new Callback();
-                    if (ItemAnalysis.checkItem(player, item, nbt, callback)) {
+                    if (ItemAnalysis.checkItem(player, item, callback)) {
                         return ValidationServiceContext.Builder.validate().cancel().flag()
                                 .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                     if (onViolation != null) onViolation.run();
@@ -141,7 +138,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
                     }
 
                     int nbtSize;
-                    if (nbt != null && (nbtSize = nbt.toString().getBytes().length) > getSetting().max) {
+                    if (item.getNBT() != null && (nbtSize = item.getNBT().toString().getBytes().length) > getSetting().max) {
                         return ValidationServiceContext.Builder.validate().cancel().flag()
                                 .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                     if (onViolation != null) onViolation.run();

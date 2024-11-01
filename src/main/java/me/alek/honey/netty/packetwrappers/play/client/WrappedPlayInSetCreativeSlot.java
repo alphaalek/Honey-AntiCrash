@@ -3,6 +3,7 @@ package me.alek.honey.netty.packetwrappers.play.client;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
@@ -16,7 +17,7 @@ import java.util.Optional;
 public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayInSetCreativeSlot> implements AutoReleasable {
 
     private final int slot;
-    private final LazyInit<ItemStack> item;
+    private final LazyInit<WrappedImmutableItemStack> item;
     private final Runnable release;
 
     public WrappedPlayInSetCreativeSlot(PacketDataSerializer serializer, PacketContainer<WrappedPlayInSetCreativeSlot> packet) {
@@ -28,7 +29,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
         }
 
         PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.item = new LazyInit<>(copy::readBukkitItemStack);
+        this.item = new LazyInit<>(copy::readItemStack);
         this.release = () -> AutoReleasable.doRelease(copy);
     }
 
@@ -36,7 +37,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
         return this.slot;
     }
 
-    public ItemStack getItem() {
+    public WrappedImmutableItemStack getItem() {
         return this.item.get();
     }
 

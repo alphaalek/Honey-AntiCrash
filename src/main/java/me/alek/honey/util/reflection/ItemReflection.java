@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -68,13 +69,22 @@ public class ItemReflection {
         return CHAT_SERIALIZER_GSON.toJsonTree(component);
     }
 
-    public static List<Object> getPages(AtomicReference<IStructureModifier<List<Object>>> reference, BookMeta meta) {
+    public static List<Object> getPages(BookMeta meta) {
         IStructureModifier<List<Object>> bookMetaPageModifier = ReflectStructure.Provider.acquireStructure(meta.getClass())
-                .<List<Object>>withWeakType(List.class)
+                .<List<Object>>withWeakTypeWithoutCache(List.class)
+                .withSuperClass(false)
                 .withTarget(meta);
-        reference.set(bookMetaPageModifier);
 
         return bookMetaPageModifier.readField(bookMetaPageCache, "pages", 0);
+    }
+
+    public static void setPages(BookMeta meta, List<Object> pages) {
+        IStructureModifier<List<Object>> bookMetaPageModifier = ReflectStructure.Provider.acquireStructure(meta.getClass())
+                .<List<Object>>withWeakTypeWithoutCache(List.class)
+                .withSuperClass(false)
+                .withTarget(meta);
+
+        bookMetaPageModifier.writeField(bookMetaPageCache, "pages", 0, pages);
     }
 
     public static ItemStack asBukkitCopy(Object itemStack) {
@@ -167,8 +177,12 @@ public class ItemReflection {
         return itemStackClass.isInstance(item);
     }
 
+    public static boolean isCraftItem(Object item) {
+        return craftItemStackClass.isInstance(item);
+    }
+
     public static void setItemTag(Object item, Object tag) {
-        ReflectStructure.Provider.acquireStructure(NMS.getItemClass())
+        ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
                 .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
                 .writeField(0, tag);
     }

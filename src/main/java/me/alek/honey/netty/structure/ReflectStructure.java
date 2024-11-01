@@ -8,7 +8,6 @@ import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.reflection.*;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -74,7 +73,7 @@ public class ReflectStructure<T, C> {
 
     private final Map<Class<?>, ReflectStructure<?, ?>> SUB_TYPE_CACHE = new HashMap<>();
     private final List<Class<?>> disallowClasses = new ArrayList<>();
-    private final Class<?> handle;
+    private final Class<?> search;
     private final Class<?> type;
     private boolean withStatic = true;
     private boolean withSuperClass = true;
@@ -85,7 +84,7 @@ public class ReflectStructure<T, C> {
     private Map<Integer, MethodInvoker<T>> ACQUIRED_INVOKERS;
 
     public ReflectStructure(Class<?> delegate) {
-        this.handle = delegate;
+        this.search = delegate;
         this.type = null;
         initDefaults();
         initAcquired(null);
@@ -96,7 +95,7 @@ public class ReflectStructure<T, C> {
             Class<?> type,
             JavaConverter<T, C> converter
     ) {
-        this.handle = delegate;
+        this.search = delegate;
         this.type = type;
         this.converter = converter;
 
@@ -125,12 +124,12 @@ public class ReflectStructure<T, C> {
         return this;
     }
 
-    public synchronized ReflectStructure<T, C> withoutSuperClass() {
-        if (this.withSuperClass) {
-            this.withSuperClass = false;
+    public synchronized ReflectStructure<T, C> withSuperClass(boolean toggle) {
+        if (this.withSuperClass != toggle) {
+            this.withSuperClass = toggle;
             resetIf(this::disallowedClass);
         }
-        this.withSuperClass = false;
+        this.withSuperClass = toggle;
         return this;
     }
 
@@ -140,6 +139,13 @@ public class ReflectStructure<T, C> {
             resetIf(this::disallowedClass);
         }
         this.disallowClasses.add(handle);
+        return this;
+    }
+
+    public synchronized ReflectStructure<T, C> with(Class<?> handle) {
+        if (this.disallowClasses.remove(handle)) {
+            resetIf(this::disallowedClass);
+        }
         return this;
     }
 
@@ -181,7 +187,7 @@ public class ReflectStructure<T, C> {
 
     private boolean disallowedClass(IReflectionMember<?> member) {
         if (!withSuperClass
-                && !member.getDeclaringClass().equals(this.handle)) {
+                && !member.getDeclaringClass().equals(this.search)) {
             return true;
         }
 
@@ -203,7 +209,7 @@ public class ReflectStructure<T, C> {
             boolean isFields
     ) {
         AtomicInteger index = new AtomicInteger();
-        Class<?> clazz = handle;
+        Class<?> clazz = search;
 
         while (clazz != null && !clazz.equals(Object.class)) {
             setDefaultSpecific(index, defaults, clazz, isFields);
@@ -317,7 +323,7 @@ public class ReflectStructure<T, C> {
         if (withCache) {
             return (ReflectStructure<R, D>) SUB_TYPE_CACHE.computeIfAbsent(clazz, d -> withSpecificType(clazz, converter, false));
         } else {
-            return new ReflectStructure<>(handle, clazz, converter);
+            return new ReflectStructure<>(search, clazz, converter);
         }
     }
 

@@ -9,7 +9,7 @@ import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketLifecycleTimings;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.services.LoggerService;
+import me.alek.honey.HoneyLogger;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.statics.NumberUtils;
 
@@ -118,14 +118,14 @@ public class TaskLifecycleHandler {
 
     public static void dump(PacketContainer<? extends WrappedPacket<?>> packet) {
         String dump = formatThreadDump();
-        LoggerService loggerService = HoneyPlugin.get().getLoggerService();
+        HoneyLogger loggerService = HoneyPlugin.get().getLogger();
 
         if (!dump.contains("PacketTaskHandler")) {
             packet.dump();
 
             if (!PacketTypes.isUnknown(packet.getType())) {
                 loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getMinecraftID().get() + ", State: " + packet.getProtocolState());
-                loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLoggerService().formatPacketEntries(packet));
+                loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLogger().formatPacketEntries(packet));
             } else {
                 loggerService.getLogger().severe("Packet data unknown.");
             }
@@ -157,7 +157,7 @@ public class TaskLifecycleHandler {
             double millis = packet.getEventloopStateTimings().getTimeForMillis(LifecycleState.SERVER_HANDLE);
             if (ConfigurationOptions.PacketDump.HEAVY_PACKET_DUMP_ENABLED
                     && millis > ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_PACKET_DUMP) {
-                HoneyPlugin.get().getLoggerService().dumpAutoHeavyPacket(packet);
+                HoneyPlugin.get().getLogger().dumpAutoHeavyPacket(packet);
             }
 
             if (ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED

@@ -78,7 +78,7 @@ public class PacketFactory {
                 return (TP) WrappedPacketFactoryCollection.initWrappedPacket(type, handle, new InternalPacketContainer<WP>(handle, player, type, postAction));
             }
         } catch (Exception ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE, "Error occurred when creating packet for type " + type, ex);
+            HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Error occurred when creating packet for type " + type, ex);
         }
 
         return null;

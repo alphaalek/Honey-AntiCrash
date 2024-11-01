@@ -1,7 +1,7 @@
 package me.alek.honey.util.messages;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.services.NotificationService;
+import me.alek.honey.Notifications;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 public class MessageOffer {
 
-    private static final NotificationService notificationService = HoneyPlugin.get().getNotificationService();
+    private static final Notifications notificationService = HoneyPlugin.get().getNotificationService();
     private static final Map<String, Supplier<String>> globalOffers = new HashMap<>();
 
     static {

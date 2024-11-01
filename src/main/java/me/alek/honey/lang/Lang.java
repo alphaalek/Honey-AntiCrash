@@ -1,9 +1,8 @@
 package me.alek.honey.lang;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.services.NotificationService;
+import me.alek.honey.Notifications;
 import me.alek.honey.session.NoSessionEncryption;
-import org.bukkit.Bukkit;
 
 import java.io.*;
 import java.util.HashMap;
@@ -22,7 +21,7 @@ public class Lang {
     public static String getFormatted(String key, Object... values) {
         return String.format(
                     get(key)
-                    .replaceAll("\\{prefix}", NotificationService.PREFIX)
+                    .replaceAll("\\{prefix}", Notifications.PREFIX)
                 , values);
 
     }

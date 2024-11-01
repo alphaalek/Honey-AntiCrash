@@ -276,7 +276,7 @@ public interface MonitorFlag<T> {
 
         @Override
         public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
-            data.add(FlagRunner.AppendedData.from(HoneyPlugin.get().getLoggerService().formatPacketEntries(input), appendable));
+            data.add(FlagRunner.AppendedData.from(HoneyPlugin.get().getLogger().formatPacketEntries(input), appendable));
         }
     }
 

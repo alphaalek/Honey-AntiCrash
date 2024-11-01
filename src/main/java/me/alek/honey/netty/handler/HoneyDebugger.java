@@ -50,14 +50,14 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        if (HoneyPlugin.get().getLoggerService().isDebug()
+        if (HoneyPlugin.get().getLogger().isDebug()
                 && /* Java */ !(throwable instanceof ReadTimeoutException)
                 && /* Java */ !(throwable instanceof IOException)
                 && /* Netty */ !message.equals(NETTY_NATIVE_READ_RESET)
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_BROKEN_PIPE)
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_RESET)
                 && /* Netty */ !message.equals(NETTY_CONNECTION_RESET)) {
-            HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE, "DEBUG: Exception was caught in a channel handler:" + (channelClosed ? " (Closed Channel)" : ""), throwable);
+            HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "DEBUG: Exception was caught in a channel handler:" + (channelClosed ? " (Closed Channel)" : ""), throwable);
         }
     }
 }

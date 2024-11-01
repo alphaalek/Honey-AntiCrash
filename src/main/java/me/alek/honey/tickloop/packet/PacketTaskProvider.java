@@ -24,7 +24,7 @@ public class PacketTaskProvider {
 
     private static final boolean MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
     private static final BiConsumer<PacketContainer<? extends WrappedPacket<?>>, Throwable> DEBUGGER = (packet, thrown) -> {
-        HoneyPlugin.get().getLoggerService().getLogger().log(Level.SEVERE,
+        HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE,
                 "Error occurred when processing packet task " + packet.getType() + " by " + packet.getPlayerName(), thrown);
     };
 

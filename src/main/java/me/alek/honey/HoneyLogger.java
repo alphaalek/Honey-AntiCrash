@@ -1,7 +1,5 @@
-package me.alek.honey.services;
+package me.alek.honey;
 
-import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
@@ -24,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class LoggerService {
+public class HoneyLogger {
 
     private static final int MAX_PACKET_LOGGING_DATA = 5000;
 
@@ -34,7 +32,7 @@ public class LoggerService {
     private List<String> ignoredPlayers;
     private List<String> ignoredPackets;
     private final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
-    private final NotificationService notificationService = HoneyPlugin.get().getNotificationService();
+    private final Notifications notificationService = HoneyPlugin.get().getNotificationService();
     private final Map<UUID, Queue<PacketType>> recentPackets = new HashMap<>();
     private final Map<UUID, DecayingWindowCounter> packetRate = new HashMap<>();
     private final DecayingWindowCounter totalPacketRate = new DecayingWindowCounter(1000, 2000, 10000);
@@ -77,7 +75,7 @@ public class LoggerService {
 
     private final PacketLoggerHolder<? extends WrappedPacket<?>> holder = new PacketLoggerHolder<>();
 
-    public LoggerService() {
+    public HoneyLogger() {
         reload();
     }
 
@@ -142,7 +140,7 @@ public class LoggerService {
             return 0;
         }
 
-        return packetRatePerQueueExecution.getTotal(timespan) / length;
+        return ((double)packetRatePerQueueExecution.getTotal(timespan)) / length;
     }
 
     public void registerQueueExecutionPacket() {
@@ -158,7 +156,7 @@ public class LoggerService {
         if (player.isBukkitReady() && monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
                 && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getObjectWrapped().getHandle().getClass().getSimpleName()))) {
             synchronized (this) {
-                Queue<PacketType> recentPackets = LoggerService.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
+                Queue<PacketType> recentPackets = HoneyLogger.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
 
                 PacketType packetType = recentPackets.peek();
                 PacketType sentPacketType = Optional.ofNullable(packet).map(PacketContainer::getType).orElse(null);

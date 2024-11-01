@@ -194,7 +194,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 return null;
             }
 
-            HoneyPlugin.get().getLoggerService().registerQueueExecutionPacket();
+            HoneyPlugin.get().getLogger().registerQueueExecutionPacket();
 
             if (task.isPostponed()) {
                 task.getPlayer().postponedPackets--;
@@ -358,10 +358,10 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             submitQueue = submitQueue.compact(collector);
             collector.clear();
 
-            HoneyPlugin.get().getLoggerService().registerQueueExecutionStop();
+            HoneyPlugin.get().getLogger().registerQueueExecutionStop();
 
             if (Thread.interrupted()) {
-                HoneyPlugin.get().getLoggerService().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
+                HoneyPlugin.get().getLogger().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
             }
 
             doneTicks = tickAccessor.get();

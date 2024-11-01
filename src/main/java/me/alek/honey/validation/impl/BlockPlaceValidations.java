@@ -4,6 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.ValidationServiceContext;
@@ -167,7 +168,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
-                ItemStack item = packet.getItemStack();
+                WrappedImmutableItemStack item = packet.getItemStack();
                 if (item == null) {
                     return ValidationServiceContext.PASS;
                 }

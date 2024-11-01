@@ -1,16 +1,13 @@
 package me.alek.honey.validation.item;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.modelwrappers.WrappedItemStack;
-import me.alek.honey.validation.ValidationPipelineContext;
-import me.alek.honey.validation.ViolationKey;
-import me.alek.honey.validation.item.enums.ItemValidationFilterStrategy;
-import me.alek.honey.validation.ValidationServiceContext;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.nbt.NBTCompound;
-import me.alek.honey.netty.nbt.NBTFactory;
 import me.alek.honey.util.Callback;
+import me.alek.honey.validation.ValidationPipelineContext;
+import me.alek.honey.validation.ValidationServiceContext;
+import me.alek.honey.validation.ViolationKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -64,6 +61,10 @@ public class ItemAnalysis {
     }
 
     public static ValidationServiceContext flagIf(HoneyPlayer player, ItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
+        return flagIf(player, WrappedImmutableItemStack.fromBukkit(item), keyOuter, context);
+    }
+
+    public static ValidationServiceContext flagIf(HoneyPlayer player, WrappedImmutableItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
         Callback callback = new Callback();
         if (ItemAnalysis.checkItem(player, item, callback)) {
             return ValidationServiceContext.Builder.validate()
@@ -80,17 +81,16 @@ public class ItemAnalysis {
     }
 
     public static boolean checkItem(HoneyPlayer player, ItemStack item, Callback context) {
+        return checkItem(player, WrappedImmutableItemStack.fromBukkit(item), context);
+    }
+
+    public static boolean checkItem(HoneyPlayer player, WrappedImmutableItemStack item, Callback callback) {
         if (!ConfigurationOptions.ItemAnalysis.General.ENABLED
                 || item == null
                 || item.getType() == Material.AIR) {
             return false;
         }
 
-        NBTCompound nbt = NBTFactory.fromItem(item, false, false);
-        return checkItem(player, item, nbt, context);
-    }
-
-    public static boolean checkItem(HoneyPlayer player, WrappedItemStack item, NBTCompound nbt, Callback callback) {
         for (String ignoredPlayer : ignoredPlayers) {
             if (player.name.equalsIgnoreCase(ignoredPlayer)
                     || player.uuid.toString().equalsIgnoreCase(ignoredPlayer)) {
@@ -98,11 +98,7 @@ public class ItemAnalysis {
             }
         }
 
-        if (item == null || item.getType() == Material.AIR) {
-            return false;
-        }
-
-        ItemValidationRegistry flagged = checkItem(player, item, nbt);
+        ItemValidationRegistry flagged = checkItem(player, item);
         if (flagged == null) {
             return false;
         }
@@ -115,26 +111,26 @@ public class ItemAnalysis {
             Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flagged);
         }
 
-        HoneyPlugin.get().getConfiscationService().confiscate(player, item, nbt, flagged);
+        item.setType(Material.AIR);
         return true;
     }
 
-    private static ItemValidationRegistry checkItem(HoneyPlayer player, ItemStack item, NBTCompound nbt) {
+    private static ItemValidationRegistry checkItem(HoneyPlayer player, WrappedImmutableItemStack item) {
         Material material = item.getType();
         if (validationsForMaterial.containsKey(material)) {
             for (ItemValidation validation : validationsForMaterial.get(material)) {
-                ItemValidationRegistry registry = check(player, validation, item, nbt);
+                ItemValidationRegistry registry = checkValidation(player, validation, item);
                 if (registry != null) {
                     return registry;
                 }
             }
         }
 
-        if (nbt != null) {
-            for (String key : nbt.getKeys()) {
+        if (item.getNBT() != null) {
+            for (String key : item.getNBT().getKeys()) {
                 if (validationsForCompoundKey.containsKey(key)) {
                     for (ItemValidation validation : validationsForCompoundKey.get(key)) {
-                        ItemValidationRegistry registry = check(player, validation, item, nbt);
+                        ItemValidationRegistry registry = checkValidation(player, validation, item);
                         if (registry != null) {
                             return registry;
                         }
@@ -144,7 +140,7 @@ public class ItemAnalysis {
         }
 
         for (ItemValidation validation : validationsForAll) {
-            ItemValidationRegistry registry = check(player, validation, item, nbt);
+            ItemValidationRegistry registry = checkValidation(player, validation, item);
             if (registry != null) {
                 return registry;
             }
@@ -153,10 +149,9 @@ public class ItemAnalysis {
         return null;
     }
 
-    private static ItemValidationRegistry check(HoneyPlayer player, ItemValidation validation, ItemStack item, NBTCompound nbt) {
+    private static ItemValidationRegistry checkValidation(HoneyPlayer player, ItemValidation validation, WrappedImmutableItemStack item) {
         try {
-            if (checkFilter(validation.getFilter(), item, nbt)
-                    && validation.validate(player, item, nbt)) {
+            if (checkFilter(validation, item) && validation.validate(player, item, item.getNBT())) {
                 return getRegistryFrom(validation);
             }
         } catch (Exception ex) {
@@ -166,29 +161,27 @@ public class ItemAnalysis {
         return null;
     }
 
+    private static boolean checkFilter(ItemValidation validation, WrappedImmutableItemStack item) {
+        switch (validation.getFilter()) {
+            case ALL: return true;
+            case WITH_NBT: return item.hasNBT();
+            case WITH_META: return item.hasItemMeta();
+            default: throw new IllegalArgumentException();
+        }
+    }
+
     private static ItemValidationRegistry getRegistryFrom(ItemValidation checker) {
         Class<? extends ItemValidation> clazz = checker.getClass();
 
         return validationRegistryLookup.get(clazz);
     }
 
-    private static boolean checkFilter(ItemValidationFilterStrategy strategy, ItemStack item, NBTCompound nbt) {
-        switch (strategy) {
-            case ALL:
-                return true;
-            case ONLY_WITH_NBT:
-                return nbt != null;
-            case ONLY_WITH_METADATA:
-                return item.hasItemMeta();
-        }
-
-        return true;
-    }
-
     public interface ItemValidation {
 
-        boolean validate(HoneyPlayer player, ItemStack item, NBTCompound nbt);
+        boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt);
 
-        ItemValidationFilterStrategy getFilter();
+        default ItemValidationFilterStrategy getFilter() {
+            return ItemValidationFilterStrategy.ALL;
+        }
     }
 }

@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.util.LazyInit;
@@ -31,7 +32,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     private int faceId = -1;
     private BlockFace face;
     private Vector cursorPosition;
-    private LazyInit<ItemStack> itemStack;
+    private LazyInit<WrappedImmutableItemStack> itemStack;
     private boolean insideBlock;
     private boolean worldBorderHit;
     private int sequence;
@@ -71,7 +72,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
                     this.face = BlockFace.SELF;
                 }
                 PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-                this.itemStack = new LazyInit<>(copy::readBukkitItemStack);
+                this.itemStack = new LazyInit<>(copy::readItemStack);
                 this.release = () -> AutoReleasable.doRelease(copy);
                 this.interactionHand = InteractionHand.MAIN_HAND;
             }
@@ -115,7 +116,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
         return this.cursorPosition;
     }
 
-    public ItemStack getItemStack() {
+    public WrappedImmutableItemStack getItemStack() {
         return Optional.ofNullable(this.itemStack).map(LazyInit::get).orElse(null);
     }
 

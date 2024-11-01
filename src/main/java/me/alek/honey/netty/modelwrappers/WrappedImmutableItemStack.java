@@ -6,21 +6,28 @@ import me.alek.honey.netty.nbt.NBTCompound;
 import me.alek.honey.netty.nbt.NBTFactory;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Optional;
 
-public class WrappedItemStack {
+public class WrappedImmutableItemStack {
 
-    public static WrappedItemStack read(PacketDataSerializer serializer) {
+    private static final ConstructorInvoker<ItemMeta> defaultMetaConstructor =
+            Reflection.getConstructor(NMS.getCraftMetaItemClass(), NMS.getNBTTagCompoundClass());
+
+    public static WrappedImmutableItemStack read(PacketDataSerializer serializer) {
         short itemId = serializer.readShort();
         if (itemId < 0) {
             return null;
         } else if (itemId == 0) {
-            return new WrappedItemStack(); // air
+            return new WrappedImmutableItemStack(); // air
         }
 
         byte amount = serializer.readByte();
@@ -39,9 +46,9 @@ public class WrappedItemStack {
         // create stack
         if (durability != -1) {
             // before item update
-            return new WrappedItemStack(type, amount, durability, nbt);
+            return new WrappedImmutableItemStack(type, amount, durability, nbt);
         } else {
-            return new WrappedItemStack(type, amount, nbt);
+            return new WrappedImmutableItemStack(type, amount, nbt);
         }
     }
 
@@ -56,28 +63,39 @@ public class WrappedItemStack {
         }
     }
 
-    public static WrappedItemStack fromBukkit(ItemStack bukkitStack) {
-        Object nmsItem = ItemReflection.getHandleItem(bukkitStack);
+    public static WrappedImmutableItemStack fromBukkit(ItemStack bukkitStack) {
+        if (bukkitStack == null || bukkitStack.getType() == Material.AIR) {
+            return new WrappedImmutableItemStack();
+        }
+
+        Object nmsItem = null;
+        if (ItemReflection.isCraftItem(bukkitStack)) {
+            nmsItem = ItemReflection.getHandleItem(bukkitStack);
+        }
         if (nmsItem == null) {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
-                return new WrappedItemStack(bukkitStack.getType(), bukkitStack.getAmount(), null);
+                return new WrappedImmutableItemStack(bukkitStack.getType(), bukkitStack.getAmount(), null);
             } else {
-                return new WrappedItemStack(bukkitStack.getType(), bukkitStack.getAmount(), bukkitStack.getDurability(), null);
+                return new WrappedImmutableItemStack(bukkitStack.getType(), bukkitStack.getAmount(), bukkitStack.getDurability(), null);
             }
         }
 
         return fromNMS(nmsItem);
     }
 
-    public static WrappedItemStack fromNMS(Object stack) {
+    public static WrappedImmutableItemStack fromNMS(Object stack) {
+        if (stack == null) {
+            return new WrappedImmutableItemStack();
+        }
+
         ItemStack bukkitStack = ItemReflection.asCraftMirror(stack);
         NBTCompound wrappedNbt = getNBTFromNMS(stack);
 
         // create stack
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
-            return new WrappedItemStack(bukkitStack.getType(), bukkitStack.getAmount(), wrappedNbt);
+            return new WrappedImmutableItemStack(bukkitStack.getType(), bukkitStack.getAmount(), wrappedNbt);
         } else {
-            return new WrappedItemStack(bukkitStack.getType(), bukkitStack.getAmount(), bukkitStack.getDurability(), wrappedNbt);
+            return new WrappedImmutableItemStack(bukkitStack.getType(), bukkitStack.getAmount(), bukkitStack.getDurability(), wrappedNbt);
         }
     }
 
@@ -97,19 +115,26 @@ public class WrappedItemStack {
         return nmsStack;
     }
 
+    public ItemStack toBukkit() {
+        return ItemReflection.asCraftMirror(toNMS());
+    }
+
     private NBTCompound nbt;
     private int amount;
     private short durability = -1; // until 1.13
     private Material type = Material.AIR;
 
-    public WrappedItemStack(Material type, int amount, NBTCompound nbt) {
+    private ItemMeta cachedDefaultMeta;
+    private ItemMeta cachedSpecificMeta;
+
+    public WrappedImmutableItemStack(Material type, int amount, NBTCompound nbt) {
         this();
         this.type = type;
         this.amount = amount;
         this.nbt = nbt;
     }
 
-    public WrappedItemStack(Material type, int amount, short damage, NBTCompound nbt) {
+    public WrappedImmutableItemStack(Material type, int amount, short damage, NBTCompound nbt) {
         this(type, amount, nbt);
 
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
@@ -118,10 +143,37 @@ public class WrappedItemStack {
         this.durability = damage;
     }
 
-    public WrappedItemStack() {
+    public WrappedImmutableItemStack() {
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13)) {
             this.durability = 0;
         }
+    }
+
+    public boolean hasNBT() {
+        return this.nbt != null && !this.nbt.isEmpty();
+    }
+
+    public boolean hasItemMeta() {
+        if (this.cachedDefaultMeta != null || this.cachedSpecificMeta != null) {
+            return true;
+        }
+        return Bukkit.getItemFactory().getItemMeta(this.type) != null && hasNBT();
+    }
+
+    public ItemMeta getDefaultMeta() {
+        if (this.cachedDefaultMeta != null) {
+            return this.cachedSpecificMeta;
+        } else if (this.cachedSpecificMeta != null) {
+            return this.cachedSpecificMeta;
+        }
+        return (this.cachedDefaultMeta = defaultMetaConstructor.invoke(this.nbt.getHandle()));
+    }
+
+    public ItemMeta getSpecificMeta() {
+        if (this.cachedSpecificMeta != null) {
+            return this.cachedSpecificMeta;
+        }
+        return (cachedSpecificMeta = toBukkit().getItemMeta());
     }
 
     public NBTCompound getNBT() {

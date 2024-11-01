@@ -4,14 +4,14 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.services.NotificationService;
+import me.alek.honey.Notifications;
 import org.bukkit.command.CommandSender;
 
 public class NotifyCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender, String[] args) {
-        NotificationService notificationService = HoneyPlugin.get().getNotificationService();
+        Notifications notificationService = HoneyPlugin.get().getNotificationService();
 
         String toggledString;
         if (notificationService.isSubscribed(sender)) {

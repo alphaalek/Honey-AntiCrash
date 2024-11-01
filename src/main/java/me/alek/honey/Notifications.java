@@ -1,7 +1,5 @@
-package me.alek.honey.services;
+package me.alek.honey;
 
-import me.alek.honey.HoneyPlayer;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
@@ -35,7 +33,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
-public class NotificationService {
+public class Notifications {
 
     private final Map<CommandSender, NotificationListener> observerMap = new HashMap<>();
     private final List<CommandSender> untoggledlist = new ArrayList<>();
@@ -50,7 +48,7 @@ public class NotificationService {
     private MessageFormat packetFilterPostponeFormat;
     private MessageFormat quarantinedAsyncWorkerFormat;
 
-    public NotificationService() {
+    public Notifications() {
         subscribe(Bukkit.getConsoleSender());
 
         new BukkitRunnable() {

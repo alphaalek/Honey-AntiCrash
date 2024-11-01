@@ -110,7 +110,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                     packet = list.get(0);
                 }
             } catch (Throwable ex) {
-                if (HoneyPlugin.get().getLoggerService().isDebug()) {
+                if (HoneyPlugin.get().getLogger().isDebug()) {
                     Bukkit.getLogger().log(Level.INFO, "Error occurred while decoding packet sent by " + player + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();

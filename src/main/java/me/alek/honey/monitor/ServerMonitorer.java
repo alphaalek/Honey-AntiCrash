@@ -5,8 +5,6 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.util.TPSProvider;
 
-import java.io.IOException;
-
 public class ServerMonitorer implements ScheduledMonitorer {
 
     @Override
@@ -26,7 +24,7 @@ public class ServerMonitorer implements ScheduledMonitorer {
 
     private double getPacketRatePerQueueExecution(Timespan timespan) {
         double rate = NumberUtils.format(
-                HoneyPlugin.get().getLoggerService().getPacketRatePerQueueExecution(timespan),1);
+                HoneyPlugin.get().getLogger().getPacketRatePerQueueExecution(timespan),1);
 
         return Double.isNaN(rate) ? 0 : rate;
     }
@@ -37,7 +35,7 @@ public class ServerMonitorer implements ScheduledMonitorer {
 
         int packetRate;
         return "§6*§8TPS: §7" + TPSProvider.getTPS(Timespan.TEN_SECOND) + "§7, " + TPSProvider.getTPS(Timespan.FIFTEEN_SECOND) + "§8, "
-                + "p.r.: §7" + (packetRate = HoneyPlugin.get().getLoggerService().getTotalPacketRate()) + " §7pps §8(" + HoneyPlugin.get().getLoggerService().getTotalPacketRateGrade(packetRate) + "§8)§7, " + getPacketRatePerQueueExecution(Timespan.TEN_SECOND) + " ppqe§8, "
+                + "p.r.: §7" + (packetRate = HoneyPlugin.get().getLogger().getTotalPacketRate()) + " §7pps §8(" + HoneyPlugin.get().getLogger().getTotalPacketRateGrade(packetRate) + "§8)§7, " + getPacketRatePerQueueExecution(Timespan.TEN_SECOND) + " ppqe§8, "
                 + "§8o.s.t.: §7" + getPacketTaskPercentage(Timespan.TEN_SECOND) + ", " + getPacketTaskPercentage(Timespan.FIFTEEN_SECOND);
     }
 }

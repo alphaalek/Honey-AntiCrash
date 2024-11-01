@@ -22,10 +22,6 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.services.ConfiscationService;
-import me.alek.honey.services.LoggerService;
-import me.alek.honey.services.NotificationService;
-import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
 import me.alek.honey.sql.RepositoryCollection;
@@ -43,6 +39,7 @@ import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
+import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.print.PrintValidationBridge;
 import me.alek.honey.validation.types.HoneyValidation;
@@ -79,9 +76,8 @@ public class HoneyPlugin implements HoneyAPI {
     private static HoneyPlugin INSTANCE;
 
     private ViolationManagement violationService;
-    private NotificationService notificationService;
-    private ConfiscationService confiscationService;
-    private LoggerService loggerService;
+    private Notifications notificationService;
+    private HoneyLogger logger;
     private CommandManager commandManager;
     private SQLManager sqlManager;
     private Configuration configuration;
@@ -264,10 +260,9 @@ public class HoneyPlugin implements HoneyAPI {
         this.monitorManager = new MonitorManager();
 
         // setup services
-        this.notificationService = new NotificationService();
-        this.loggerService = new LoggerService();
+        this.notificationService = new Notifications();
+        this.logger = new HoneyLogger();
         this.violationService = new ViolationManagement();
-        this.confiscationService = new ConfiscationService();
 
         // setup sql handler
         this.sqlManager = new SQLManager(new RepositoryCollection());
@@ -305,7 +300,7 @@ public class HoneyPlugin implements HoneyAPI {
             this.packetLibrary.addListeners(tabCompleteListener, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
         }
 
-        getLoggerService().getLogger().info(Lang.getFormatted("loaded", this.plugin.getDescription().getVersion()));
+        getLogger().getLogger().info(Lang.getFormatted("loaded", this.plugin.getDescription().getVersion()));
     }
 
     private void setupPacketLibrary() {
@@ -333,10 +328,10 @@ public class HoneyPlugin implements HoneyAPI {
                 Session.sessionDecrypterClass.getDeclaredMethod("checkShutdown", boolean.class, boolean.class)
                         .invoke(null, false, true);
             } catch (Exception ex) {
-                getLoggerService().getLogger().log(Level.SEVERE, Lang.get("failed.shutdown.session.error"), ex);
+                getLogger().getLogger().log(Level.SEVERE, Lang.get("failed.shutdown.session.error"), ex);
             }
 
-            getLoggerService().getLogger().info(Lang.get("unloaded"));
+            getLogger().getLogger().info(Lang.get("unloaded"));
         }
     }
 
@@ -367,9 +362,8 @@ public class HoneyPlugin implements HoneyAPI {
         ItemAnalysis.reload();
 
         this.violationService.reload();
-        this.loggerService.reload();
+        this.logger.reload();
         this.notificationService.reload();
-        this.confiscationService.reload();
 
         this.sqlManager.reload();
         if (this.sqlManager.isEnabled()) {
@@ -413,20 +407,16 @@ public class HoneyPlugin implements HoneyAPI {
         return this.violationService;
     }
 
-    public NotificationService getNotificationService() {
+    public Notifications getNotificationService() {
         return this.notificationService;
-    }
-
-    public ConfiscationService getConfiscationService() {
-        return this.confiscationService;
     }
 
     public SQLManager getSQLManager() {
         return this.sqlManager;
     }
 
-    public LoggerService getLoggerService() {
-        return this.loggerService;
+    public HoneyLogger getLogger() {
+        return this.logger;
     }
 
     public TempIntervalTrackerManager getNettyPacketTracker() {

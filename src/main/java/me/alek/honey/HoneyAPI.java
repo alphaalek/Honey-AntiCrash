@@ -4,9 +4,6 @@ import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.services.ConfiscationService;
-import me.alek.honey.services.LoggerService;
-import me.alek.honey.services.NotificationService;
 import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
@@ -30,13 +27,11 @@ public interface HoneyAPI {
 
     ViolationManagement getViolationService();
 
-    NotificationService getNotificationService();
-
-    ConfiscationService getConfiscationService();
+    Notifications getNotificationService();
 
     SQLManager getSQLManager();
 
-    LoggerService getLoggerService();
+    HoneyLogger getLogger();
 
     TempIntervalTrackerManager getNettyPacketTracker();
 

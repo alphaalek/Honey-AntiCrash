@@ -4,20 +4,16 @@ import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Types;
-import me.alek.honey.netty.modelwrappers.WrappedItemStack;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.LazyInit;
-import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -114,7 +110,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         private final String channel;
         private final PacketDataSerializer serializer;
-        private LazyInit<WrappedItemStack> bookChannelItemStack;
+        private LazyInit<WrappedImmutableItemStack> bookChannelItemStack;
         private Runnable release;
 
         public PayloadData(String channel, PacketDataSerializer serializer) {
@@ -138,7 +134,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             }
         }
 
-        public WrappedItemStack getBookChannelItemStack() {
+        public WrappedImmutableItemStack getBookChannelItemStack() {
             return Optional.ofNullable(this.bookChannelItemStack).map(LazyInit::get).orElse(null);
         }
 

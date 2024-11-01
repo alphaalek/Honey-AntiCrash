@@ -3,7 +3,6 @@ package me.alek.honey;
 import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
-import me.alek.honey.services.NotificationService;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
@@ -84,7 +83,7 @@ public class HoneyPlayer implements Identifiable {
             validationContainer.cleanup(this);
         }
 
-        HoneyPlugin.get().getLoggerService().removePacketData(this);
+        HoneyPlugin.get().getLogger().removePacketData(this);
         HoneyPlugin.get().getNotificationService().unsubscribe(bukkit);
 
         HoneyPlugin.get().getNettyPacketTracker().remove(this);
@@ -113,7 +112,7 @@ public class HoneyPlayer implements Identifiable {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    player.sendMessage(NotificationService.PREFIX + " §7Found an update: v" + HoneyPlugin.get().getLatestVersion() + ". Download:");
+                    player.sendMessage(Notifications.PREFIX + " §7Found an update: v" + HoneyPlugin.get().getLatestVersion() + ". Download:");
                     player.sendMessage("§ahttps://builtbybit.com/resources/honey-anti-crash-anti-packet-exploit.40905/");
                 }
             }.runTaskLater(HoneyPlugin.get().getPlugin(), 40L);

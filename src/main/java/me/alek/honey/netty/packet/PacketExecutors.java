@@ -1,24 +1,21 @@
 package me.alek.honey.netty.packet;
 
-import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.modelwrappers.WrappedItemStack;
+import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.nbt.NBTCompound;
+import me.alek.honey.netty.nbt.NBTElement;
+import me.alek.honey.netty.nbt.NBTType;
+import me.alek.honey.netty.nbt.array.NBTArray;
+import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.nbt.NBTCompound;
-import me.alek.honey.netty.nbt.NBTElement;
-import me.alek.honey.netty.nbt.NBTFactory;
-import me.alek.honey.netty.nbt.NBTType;
-import me.alek.honey.netty.nbt.array.NBTArray;
-import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -32,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class PacketExecutors {
 
@@ -45,16 +43,21 @@ public class PacketExecutors {
 
     private static class CustomPayloadPacketExecutor<CP extends WrappedPlayInCustomPayload<CP>> implements PacketExecutor<CP> {
 
-        private static final Class<?> craftEventFactory = Reflection.getClass("{obc}.event.CraftEventFactory");
+        private static final Function<Player, Runnable> INVALID_BOOK_DATA = p -> () -> p.kickPlayer("Invalid book data!");
 
         private static final ConstructorInvoker<Object> chatComponentTextConstructor = Reflection.getConstructor(
                 Reflection.getClass("{nms}.ChatComponentText"), String.class);
         private static final MethodInvoker<Object> chatComponentSerializerInvoker = Reflection.getMethod(
-                Reflection.getClass("{nms}.IChatBaseComponent$ChatSerializer"), 0, Reflection.getClass("{nms}.IChatBaseComponent"));
+                NMS.getChatSerializerClass(), 0, NMS.getIChatBaseComponentClass());
 
         private static final MethodInvoker<Object> stripEventsInvoker = Reflection.getMethod(
-                craftEventFactory, "stripEvents", NMS.getIChatBaseComponentClass());
-        private static final AtomicReference<FieldAccessor<List<Object>>> bookMetaPageCache = new AtomicReference<>();
+                Reflection.getClass("{obc}.event.CraftEventFactory"), "stripEvents", NMS.getIChatBaseComponentClass());
+        private static final ConstructorInvoker<BookMeta> bookMetaConstructor = Reflection.getConstructor(
+                Reflection.getClass("{obc}.inventory.CraftMetaBook"), NMS.getNBTTagCompoundClass()
+        );
+        private static final ConstructorInvoker<BookMeta> bookSignedMetaConstructor = Reflection.getConstructor(
+                Reflection.getClass("{obc}.inventory.CraftMetaBookSigned"), NMS.getNBTTagCompoundClass()
+        );
 
         @Override
         public boolean test(PacketContainer<CP> packetContainer) {
@@ -63,13 +66,14 @@ public class PacketExecutors {
 
         @Override
         public Runnable getTask(PacketContainer<CP> packetContainer) {
-            WrappedItemStack item = packetContainer.getAnyWrapped().getData().getBookChannelItemStack();
-            if (item == null) {
+            WrappedImmutableItemStack item = packetContainer.getAnyWrapped().getData().getBookChannelItemStack();
+            if (item == null || item.getNBT() == null) {
+                // can't edit or sign book, if item or nbt is invalid
                 packetContainer.getAnyWrapped().release();
                 return null;
             }
 
-            Runnable edit = handleBookEdit(packetContainer, item, item.getNBT());
+            Runnable edit = handleBookChannel(packetContainer, item);
             return Optional.ofNullable(edit)
                 .map(r -> (Runnable) () -> {
                     packetContainer.getAnyWrapped().release();
@@ -78,66 +82,92 @@ public class PacketExecutors {
                 .orElse(null);
         }
 
-        private Runnable handleBookEdit(PacketContainer<CP> packetContainer, WrappedItemStack item, NBTCompound nbt) {
-            Player player = packetContainer.getPlayer().bukkit;
-            switch (packetContainer.getAnyWrapped().getData().getChannel()) {
-                case "MC|BEdit":
-                    if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null)) {
-                        break;
-                    }
-
-                    if (item.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
-                        break;
-                    }
-
-                    // TODO
-                    stripEvents(meta); // copy structure, THEN strip? in runnable for held item?
-
-                    return () -> handleItem(player, (BookMeta) meta, (i, m) -> {
-                        i.setItemMeta((ItemMeta) ReflectStructure.copyStructure(meta, m));
-                        player.getInventory().setItem(player.getInventory().getHeldItemSlot(), i);
-                    });
-                case "MC|BSign":
-                    if (ItemAnalysis.checkItem(packetContainer.getPlayer(), item, nbt, null)
-                            || !isValidAuthor(packetContainer.getPlayer(), nbt)) {
-                        break;
-                    }
-
-                    if (item.getType() != Material.WRITTEN_BOOK
-                            && item.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
-                        break;
-                    }
-
-                    if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
-                        NBTArray<String> pages = nbt.hasKeyOfType("pages", NBTType.STRING)
-                                ? nbt.getListOf("pages", NBTType.STRING)
-                                : new NBTArray<>(NBTType.STRING);
-                        if (!serializeTextComponents(pages)) {
-                            // TODO: actually serialize the components of the meta
-                            break;
-                        }
-                    }
-                    stripEvents(meta);
-
-                    return () -> handleItem(player, (BookMeta) meta, (i, m) -> {
-                        i.setType(Material.WRITTEN_BOOK);
-                        i.setItemMeta((ItemMeta) ReflectStructure.copyStructure(meta, m));
-                    });
-                default:
-                    return null;
+        private Runnable handleBookEdit(Player player, WrappedImmutableItemStack item, ItemStack heldItem, BookMeta newBookMeta) {
+            if (item.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
+                return null;
             }
-            return () -> player.kickPlayer("Invalid book data!");
+
+            return () -> handleItem(player, item.getNBT(), false, (oldMeta, newMeta) -> {
+                heldItem.setItemMeta(newMeta);
+                setItemInMainHand(player, heldItem);
+            });
         }
 
-        private void handleItem(Player player, BookMeta meta, BiConsumer<ItemStack, ItemMeta> success) {
+        private Runnable handleBookSign(Player player, PacketContainer<CP> packet, WrappedImmutableItemStack item, ItemStack heldItem, BookMeta newBookMeta) {
+            if (!isValidAuthor(packet.getPlayer(), item.getNBT())) {
+                return null;
+            }
+
+            if (item.getType() != Material.WRITTEN_BOOK
+                    && item.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
+                return null;
+            }
+
+            if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
+                NBTArray<String> pages = item.getNBT().hasKeyOfType("pages", NBTType.STRING)
+                        ? item.getNBT().getListOf("pages", NBTType.STRING)
+                        : new NBTArray<>(NBTType.STRING);
+                if (!serializeTextComponents(pages)) {
+                    // TODO: actually serialize the components of the meta
+                    return null;
+                }
+            }
+            stripEvents(newBookMeta);
+
+            return () -> handleItem(player, item.getNBT(), true, (oldMeta, newMeta) -> {
+                heldItem.setType(Material.WRITTEN_BOOK);
+                heldItem.setItemMeta(newMeta);
+                setItemInMainHand(player, heldItem);
+            });
+        }
+
+        private Runnable handleBookChannel(PacketContainer<CP> packet, WrappedImmutableItemStack item) {
+            Player bukkitPlayer = packet.getPlayer().bukkit;
+            ItemStack heldItem = getItemInMainHand(bukkitPlayer);
+            if (heldItem == null) {
+                return null;
+            }
+
+            if (ItemAnalysis.checkItem(packet.getPlayer(), item, null)) {
+                return INVALID_BOOK_DATA.apply(bukkitPlayer);
+            }
+
+            String channel = packet.getAnyWrapped().getData().getChannel();
+
+            if (channel.equals("MC|BEdit")) {
+                BookMeta newItemMeta = bookSignedMetaConstructor.invoke(item.getNBT().getHandle());
+                Runnable edit = handleBookEdit(bukkitPlayer, item, heldItem, newItemMeta);
+                if (edit != null) {
+                    return edit;
+                }
+            } else if (channel.equals("MC|BSign")) {
+                BookMeta newItemMeta = bookMetaConstructor.invoke(item.getNBT().getHandle());
+                Runnable sign = handleBookSign(bukkitPlayer, packet, item, heldItem, newItemMeta);
+                if (sign != null) {
+                    return sign;
+                }
+            }
+
+            return INVALID_BOOK_DATA.apply(bukkitPlayer);
+        }
+
+        private void handleItem(Player player, NBTCompound nbt, boolean signing, BiConsumer<ItemMeta, ItemMeta> success) {
             ItemStack heldItem = getItemInMainHand(player);
             if (heldItem.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
+                // can't edit or sign book, if the held item of the player is not writable book type
                 return;
             }
 
             BookMeta heldItemMeta = (BookMeta) heldItem.getItemMeta();
+
+            BookMeta newItemMeta;
+            if (signing) {
+                newItemMeta = bookSignedMetaConstructor.invoke(nbt.getHandle());
+            } else {
+                newItemMeta = bookMetaConstructor.invoke(nbt.getHandle());
+            }
             PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
-                    player, player.getInventory().getHeldItemSlot(), heldItemMeta, meta, true
+                    player, player.getInventory().getHeldItemSlot(), heldItemMeta, newItemMeta, signing
             );
             Bukkit.getPluginManager().callEvent(editBookEvent);
             if (editBookEvent.isCancelled()) {
@@ -145,19 +175,18 @@ public class PacketExecutors {
                 return;
             }
 
-            success.accept(heldItem, heldItemMeta);
+            success.accept(heldItemMeta, newItemMeta);
         }
 
         private void stripEvents(Object meta) {
-            AtomicReference<IStructureModifier<List<Object>>> bookMetaPageModifier = new AtomicReference<>();
-            List<Object> pages = ItemReflection.getPages(bookMetaPageModifier, (BookMeta) meta);
+            List<Object> pages = ItemReflection.getPages((BookMeta) meta);
 
             List<Object> newPages = new ArrayList<>();
             for (Object page : pages) {
                 newPages.add(stripEventsInvoker.invoke(null, page));
             }
 
-            bookMetaPageModifier.get().writeField(bookMetaPageCache, "pages", 0, newPages);
+            ItemReflection.setPages((BookMeta) meta, newPages);
         }
 
         private boolean serializeTextComponents(NBTArray<String> pages) {
@@ -183,6 +212,14 @@ public class PacketExecutors {
                 return player.getInventory().getItemInHand();
             } else {
                 return player.getInventory().getItemInMainHand();
+            }
+        }
+
+        private void setItemInMainHand(Player player, ItemStack item) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
+                player.getInventory().setItemInHand(item);
+            } else {
+                player.getInventory().setItemInMainHand(item);
             }
         }
 

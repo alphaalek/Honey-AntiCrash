@@ -3,6 +3,7 @@ package me.alek.honey.netty.packetwrappers.play.client;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.util.LazyInit;
@@ -23,8 +24,8 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
     private final int button;
     private int actionNumber;
     private final WindowClickType windowClickType;
-    private Map<Integer, ItemStack> slots;
-    private final LazyInit<ItemStack> carriedItemStack;
+    private Map<Integer, WrappedImmutableItemStack> slots;
+    private final LazyInit<WrappedImmutableItemStack> carriedItemStack;
 
     private final Runnable release;
 
@@ -54,12 +55,12 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
             this.slots = serializer.readMap(
                     serializerInput -> Math.toIntExact(serializerInput.readShort()),
-                    PacketDataSerializer::readBukkitItemStack
+                    PacketDataSerializer::readItemStack
             );
         }
 
         PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.carriedItemStack = new LazyInit<>(copy::readBukkitItemStack);
+        this.carriedItemStack = new LazyInit<>(copy::readItemStack);
         release = () -> AutoReleasable.doRelease(copy);
     }
 
@@ -92,11 +93,11 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
         return this.windowClickType;
     }
 
-    public Map<Integer, ItemStack> getSlots() {
+    public Map<Integer, WrappedImmutableItemStack> getSlots() {
         return this.slots;
     }
 
-    public ItemStack getCarriedItemStack() {
+    public WrappedImmutableItemStack getCarriedItemStack() {
         return this.carriedItemStack.get();
     }
 }

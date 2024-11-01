@@ -56,10 +56,10 @@ public class MonitorManager {
         try {
             executorService.shutdown();
             if (!executorService.awaitTermination(1000L, TimeUnit.MILLISECONDS)) {
-                HoneyPlugin.get().getLoggerService().getLogger().severe(Lang.get("monitor.executor.service.shutdown.error"));
+                HoneyPlugin.get().getLogger().getLogger().severe(Lang.get("monitor.executor.service.shutdown.error"));
             }
         } catch (Exception ex) {
-            HoneyPlugin.get().getLoggerService().getLogger().severe(Lang.get("monitor.executor.service.shutdown.exception"));
+            HoneyPlugin.get().getLogger().getLogger().severe(Lang.get("monitor.executor.service.shutdown.exception"));
         }
         schedule();
     }

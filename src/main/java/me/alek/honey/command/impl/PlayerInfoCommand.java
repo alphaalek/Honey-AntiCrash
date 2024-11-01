@@ -3,7 +3,7 @@ package me.alek.honey.command.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.services.NotificationService;
+import me.alek.honey.Notifications;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.command.CommandSender;
 
@@ -23,7 +23,7 @@ public class PlayerInfoCommand implements CommandImpl {
         }
 
         HoneyPlayer player = target.get();
-        sender.sendMessage(NotificationService.PREFIX + " §7Showing info for player §6" + player.name);
+        sender.sendMessage(Notifications.PREFIX + " §7Showing info for player §6" + player.name);
         sender.sendMessage("§8* §7Using client §8" + player.clientInfo.getBrand());
         sender.sendMessage("§8* §7Using version §8" + player.clientInfo.getProtocol().getName() + ", protocol " + player.clientInfo.getProtocolVersion() + " §7on server version §8" + NetProtocol.getProtocol().getName() + "");
 
