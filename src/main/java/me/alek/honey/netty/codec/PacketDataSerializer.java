@@ -11,6 +11,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,7 +93,11 @@ public class PacketDataSerializer extends ByteBuf {
             durability = this.readShort();
         }
 
-        return WrappedImmutableItemStack.read(this, id, amount, durability);
+        try {
+            return WrappedImmutableItemStack.read(this, id, amount, durability);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {

@@ -5,9 +5,6 @@ import me.alek.honey.netty.structure.converters.ApplicableConverter;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public class NBTElement<T> extends NBTBase<T, T> {
@@ -23,7 +20,7 @@ public class NBTElement<T> extends NBTBase<T, T> {
     }
 
     public NBTElement(NBTType type, T value) {
-        super(type.getElementBaseInvoker().invoke(value));
+        super(type.getBaseInvoker().invoke(value));
     }
 
     @Override

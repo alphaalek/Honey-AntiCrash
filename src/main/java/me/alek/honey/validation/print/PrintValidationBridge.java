@@ -63,7 +63,7 @@ public class PrintValidationBridge {
 
         Filter.Result result;
         if (cancellable.isCancelled()) {
-            result = Filter.Result.DENY;
+            result = Filter.Result.NEUTRAL;
         } else {
             result = Filter.Result.NEUTRAL;
         }

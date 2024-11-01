@@ -7,43 +7,52 @@ import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
 public enum NBTType {
-    END(0, CodecTypes.EndCodec.class, getNBTClass("NBTTagEnd"), void.class),
-    BYTE(1, CodecTypes.ByteCodec.class, getNBTClass("NBTTagByte"), byte.class),
-    SHORT(2, CodecTypes.ShortCodec.class, getNBTClass("NBTTagShort"), short.class),
-    INT(3, CodecTypes.IntCodec.class, getNBTClass("NBTTagInt"), int.class),
-    LONG(4, CodecTypes.LongCodec.class, getNBTClass("NBTTagLong"), long.class),
-    FLOAT(5, CodecTypes.FloatCodec.class, getNBTClass("NBTTagFloat"), float.class),
-    DOUBLE(6, CodecTypes.DoubleCodec.class, getNBTClass("NBTTagDouble"), double.class),
-    ARRAY_OF_BYTE(7, CodecTypes.ByteArrayCodec.class, getNBTClass("NBTTagByteArray"), byte[].class),
-    STRING(8, CodecTypes.StringCodec.class, getNBTClass("NBTTagString"), String.class),
-    @SuppressWarnings("unchecked")
-    ARRAY(9, (Class<? extends NBTCodec<?>>) CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(NBTArray.class), Object.class, NBTType.class, NBTRoot.class, NBTBase.class, boolean.class), List.class, byte.class),
-    COMPOUND(10, CodecTypes.CompoundCodec.class, getNBTClass("NBTTagCompound"),
+    @BaseInvoker() END(0, CodecTypes.EndCodec.class, getNBTClass("NBTTagEnd"), void.class),
+    @BaseInvoker(params = {byte.class}) BYTE(1, CodecTypes.ByteCodec.class, getNBTClass("NBTTagByte"), byte.class),
+    @BaseInvoker(params = {short.class}) SHORT(2, CodecTypes.ShortCodec.class, getNBTClass("NBTTagShort"), short.class),
+    @BaseInvoker(params = {int.class}) INT(3, CodecTypes.IntCodec.class, getNBTClass("NBTTagInt"), int.class),
+    @BaseInvoker(params = {long.class}) LONG(4, CodecTypes.LongCodec.class, getNBTClass("NBTTagLong"), long.class),
+    @BaseInvoker(params = {float.class}) FLOAT(5, CodecTypes.FloatCodec.class, getNBTClass("NBTTagFloat"), float.class),
+    @BaseInvoker(params = {double.class}) DOUBLE(6, CodecTypes.DoubleCodec.class, getNBTClass("NBTTagDouble"), double.class),
+    @BaseInvoker(params = {byte[].class}) ARRAY_OF_BYTE(7, CodecTypes.ByteArrayCodec.class, getNBTClass("NBTTagByteArray"), byte[].class),
+    @BaseInvoker(params = {String.class}) STRING(8, CodecTypes.StringCodec.class, getNBTClass("NBTTagString"), String.class),
+    @BaseInvoker(params = {List.class, byte.class}) ARRAY(9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
+            Reflection.getConstructor(getNBTBaseClass(NBTArray.class), Object.class, NBTType.class, NBTRoot.class, NBTBase.class, boolean.class), List.class),
+    @BaseInvoker(params = {Map.class}) COMPOUND(10, CodecTypes.CompoundCodec.class, getNBTClass("NBTTagCompound"),
             Reflection.getConstructor(getNBTBaseClass(NBTCompound.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), Map.class),
-    ARRAY_OF_INT(11, CodecTypes.IntArrayCodec.class, getNBTClass("NBTTagIntArray"), int[].class),
-    ARRAY_OF_LONG(12, CodecTypes.LongArrayCodec.class,
+    @BaseInvoker(params = {int[].class}) ARRAY_OF_INT(11, CodecTypes.IntArrayCodec.class, getNBTClass("NBTTagIntArray"), int[].class),
+    @BaseInvoker(params = {long[].class}) ARRAY_OF_LONG(12, CodecTypes.LongArrayCodec.class,
             NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2) ? getNBTClass("NBTTagLongArray") : null, long[].class),
-    @SuppressWarnings("unchecked")
-    ARRAY_OF_COMPOUND(9, (Class<? extends NBTCodec<?>>) CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.NBTArrayOfCompound.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), List.class, byte.class),
-    @SuppressWarnings("unchecked")
-    ARRAY_OF_ARRAY(9, (Class<? extends NBTCodec<?>>) CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.NBTArrayOfArray.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), List.class, byte.class)
+    @BaseInvoker(params = {List.class, byte.class}) ARRAY_OF_COMPOUND(9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
+            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.NBTArrayOfCompound.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), List.class),
+    @BaseInvoker(params = {List.class, byte.class}) ARRAY_OF_ARRAY(9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
+            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.NBTArrayOfArray.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), List.class)
     ;
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    private @interface BaseInvoker {
+
+        Class<?>[] params() default {};
+    }
 
     private final int typeId;
     private final Class<?> dataTypeClass;
     private final ConstructorInvoker<? extends NBTBase<?, ?>> wrappedInvoker;
-    private final ConstructorInvoker<?> elementBaseInvoker;
     private final TagFactory factory;
     private final NBTCodec<?> codec;
+    private final ConstructorInvoker<?> baseInvoker;
 
     private interface TagFactory {
 
@@ -78,11 +87,11 @@ public enum NBTType {
         return null;
     }
 
-    NBTType(int typeId, Class<? extends NBTCodec<?>> codec, Class<?> delegateClass, Class<?> clazz) {
-        this(typeId, codec, delegateClass, Reflection.getConstructor(getNBTBaseClass(NBTElement.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), clazz);
+    NBTType(int typeId, Class<? extends NBTCodec<?>> codec, Class<?> delegateClass, Class<?> dataTypeClass) {
+        this(typeId, codec, delegateClass, Reflection.getConstructor(getNBTBaseClass(NBTElement.class), Object.class, NBTRoot.class, NBTBase.class, boolean.class), dataTypeClass);
     }
 
-    NBTType(int typeId, Class<? extends NBTCodec<?>> codec, Class<?> delegateClass, ConstructorInvoker<? extends NBTBase<?, ?>> wrappedInvoker, Class<?> dataTypeClass, Class<?>... params) {
+    NBTType(int typeId, Class<? extends NBTCodec<?>> codec, Class<?> delegateClass, ConstructorInvoker<? extends NBTBase<?, ?>> wrappedInvoker, Class<?> dataTypeClass) {
         this.typeId = typeId;
         this.dataTypeClass = dataTypeClass;
 
@@ -90,24 +99,32 @@ public enum NBTType {
             this.codec = codec.getDeclaredConstructor().newInstance();
             this.wrappedInvoker = wrappedInvoker;
 
-            Class<?>[] constructorParams = new Class[1 + params.length];
-            constructorParams[0] = dataTypeClass;
-            if (params.length > 0) {
-                System.arraycopy(params, 0, constructorParams, 1, params.length);
+            Field field = NBTType.class.getField(this.name());
+            if (field.isAnnotationPresent(BaseInvoker.class)) {
+                BaseInvoker invoker = field.getAnnotation(BaseInvoker.class);
+                this.baseInvoker = Reflection.getConstructor(delegateClass, invoker.params());
+            } else {
+                this.baseInvoker = null;
             }
-            this.elementBaseInvoker = Reflection.getConstructor(delegateClass, constructorParams);
 
-            this.factory = new TagFactory() {
+            TagFactory factory;
+            try {
+                factory = new TagFactory() {
 
-                final ConstructorInvoker<?> constructor = Reflection.getConstructor(delegateClass);
+                    final ConstructorInvoker<?> constructor = Reflection.getConstructor(delegateClass);
 
-                @Override
-                public Object create() throws Exception {
-                    return constructor.invoke();
-                }
-            };
+                    @Override
+                    public Object create() throws Exception {
+                        return constructor.invoke();
+                    }
+                };
+            } catch (Exception ignored) {
+                factory = null;
+            }
+            this.factory = factory;
+
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to create nbt");
+            throw new RuntimeException("Failed to create nbt", ex);
         }
     }
 
@@ -132,8 +149,8 @@ public enum NBTType {
         return this.wrappedInvoker;
     }
 
-    public ConstructorInvoker<?> getElementBaseInvoker() {
-        return this.elementBaseInvoker;
+    public ConstructorInvoker<?> getBaseInvoker() {
+        return this.baseInvoker;
     }
 
     @SuppressWarnings("unchecked")

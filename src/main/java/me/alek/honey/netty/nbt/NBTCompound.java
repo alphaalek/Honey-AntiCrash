@@ -6,7 +6,6 @@ import me.alek.honey.netty.nbt.array.NBTArray;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
 
 import java.io.DataOutput;
@@ -29,7 +28,7 @@ public class NBTCompound extends NBTBase<Map<String, Object>, MapConverter<Strin
     }
 
     public NBTCompound(Map<String, Object> map) {
-        super(NBTType.COMPOUND.getElementBaseInvoker().invoke(map));
+        super(NBTType.COMPOUND.getBaseInvoker().invoke(map));
     }
 
     @Override

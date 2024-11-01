@@ -21,6 +21,7 @@ import me.alek.honey.util.statics.NumberUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapCursor;
@@ -199,7 +200,7 @@ public class ItemValidations {
 
         @Override
         public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_META;
+            return ItemValidationFilterStrategy.WITH_SPECIFIC_META;
         }
     }
 

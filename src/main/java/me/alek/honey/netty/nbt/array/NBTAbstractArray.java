@@ -6,7 +6,6 @@ import me.alek.honey.netty.nbt.NBTType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 
 import java.io.DataOutput;
@@ -33,7 +32,7 @@ public abstract class NBTAbstractArray<T extends NBTBase<?, ?>> extends NBTBase<
     }
 
     public NBTAbstractArray(NBTType typeOf, List<?> array) {
-        super(NBTType.ARRAY.getElementBaseInvoker().invoke(new ArrayList<>(), (byte) typeOf.getTypeId()));
+        super(NBTType.ARRAY.getBaseInvoker().invoke(new ArrayList<>(), (byte) typeOf.getTypeId()));
         this.typeOf = typeOf;
     }
 

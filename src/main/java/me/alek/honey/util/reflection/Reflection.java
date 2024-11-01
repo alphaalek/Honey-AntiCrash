@@ -167,8 +167,8 @@ public class Reflection {
         return output.toString();
     }
 
-    public static <T> ConstructorInvoker<T> getConstructor(Class<?> target, Class<?>... parameters) {
-        return (ConstructorInvoker<T>) new ConstructorInvoker<>(target, parameters);
+    public static <T> ConstructorInvoker<T> getConstructor(Class<T> target, Class<?>... parameters) {
+        return new ConstructorInvoker<>(target, parameters);
     }
 
     public static <T> MethodInvoker<T> getMethod(Method method) {

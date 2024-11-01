@@ -24,6 +24,16 @@ import java.util.stream.Collectors;
 
 public class HoneyLogger {
 
+    public static Map<Class<?>, Class<?>> BOXED = new HashMap<Class<?>, Class<?>>(){{
+        put(Integer.class, int.class);
+        put(Float.class, float.class);
+        put(Short.class, short.class);
+        put(Byte.class, byte.class);
+        put(Double.class, double.class);
+        put(Long.class, long.class);
+        put(Boolean.class, boolean.class);
+        put(Character.class, char.class);
+    }};
     private static final int MAX_PACKET_LOGGING_DATA = 5000;
 
     private boolean enabled;
@@ -190,7 +200,7 @@ public class HoneyLogger {
                 + packet.getPlayerName() + ": "
                 + packet.getType()
                 + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(LifecycleState.SERVER_HANDLE) + "ms) "
-                + filterTooMuchData(packet.getStructure().getAll().readFieldEntries()));
+                + filterTooMuchData(formatPacketEntries(packet)));
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName) {
@@ -269,10 +279,15 @@ public class HoneyLogger {
         sb.append('{');
         for (;;) {
             Map.Entry<String, Object> e = i.next();
-            sb.append(e.getKey());
-            sb.append('=');
+            sb.append(e.getKey())
+              .append("=");
             try {
-                sb.append(e.getValue());
+                sb.append(String.valueOf(e.getValue())
+                        .replace("\t", "\\t")
+                        .replace("\n", "\\n"))
+                  .append("<")
+                  .append(BOXED.getOrDefault(e.getValue().getClass(), e.getValue().getClass()).getName())
+                  .append(">");
             } catch (Exception ex) {
                 sb.append("null");
             }

@@ -32,7 +32,7 @@ public class Log4jFilter extends AbstractLifeCycle implements Filter {
 
     @Override
     public Result getOnMismatch() {
-        return Result.DENY;
+        return Result.NEUTRAL;
     }
 
     @Override

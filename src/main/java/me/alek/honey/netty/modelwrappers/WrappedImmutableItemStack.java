@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.io.IOException;
 import java.util.Optional;
 
 public class WrappedImmutableItemStack {
@@ -22,7 +23,7 @@ public class WrappedImmutableItemStack {
     private static final ConstructorInvoker<ItemMeta> defaultMetaConstructor =
             Reflection.getConstructor(NMS.getCraftMetaItemClass(), NMS.getNBTTagCompoundClass());
 
-    public static WrappedImmutableItemStack read(PacketDataSerializer serializer, int amount, int itemId, short durability) {
+    public static WrappedImmutableItemStack read(PacketDataSerializer serializer, int itemId, int amount, short durability) throws IOException {
         Material type = ItemReflection.getMaterialFromId(itemId);
         if (type == null) {
             return null; // no type found
@@ -141,20 +142,28 @@ public class WrappedImmutableItemStack {
         return this.nbt != null && !this.nbt.isEmpty();
     }
 
-    public boolean hasItemMeta() {
+    public boolean hasDefaultItemMeta() {
         if (this.cachedDefaultMeta != null || this.cachedSpecificMeta != null) {
             return true;
         }
-        return Bukkit.getItemFactory().getItemMeta(this.type) != null && hasNBT();
+        return hasNBT() && Bukkit.getItemFactory().getItemMeta(this.type) != null;
+    }
+
+    public boolean hasSpecificItemMeta() {
+        if (this.cachedSpecificMeta != null) {
+            return true;
+        }
+        ItemMeta meta = Bukkit.getItemFactory().getItemMeta(this.type);
+        return hasNBT() && meta != null && !NMS.getCraftMetaItemClass().equals(meta.getClass());
     }
 
     public ItemMeta getDefaultMeta() {
         if (this.cachedDefaultMeta != null) {
-            return this.cachedSpecificMeta;
+            return this.cachedDefaultMeta;
         } else if (this.cachedSpecificMeta != null) {
             return this.cachedSpecificMeta;
         }
-        return (this.cachedDefaultMeta = defaultMetaConstructor.invoke(this.nbt.getHandle()));
+        return (this.cachedDefaultMeta = orNewMeta(defaultMetaConstructor.invoke(this.nbt.getHandle())));
     }
 
     public ItemMeta getSpecificMeta() {
@@ -162,6 +171,10 @@ public class WrappedImmutableItemStack {
             return this.cachedSpecificMeta;
         }
         return (cachedSpecificMeta = toBukkit().getItemMeta());
+    }
+
+    private ItemMeta orNewMeta(ItemMeta got) {
+        return got != null ? got : Bukkit.getItemFactory().getItemMeta(this.type);
     }
 
     public NBTCompound getNBT() {

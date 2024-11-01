@@ -6,5 +6,7 @@ public enum ItemValidationFilterStrategy {
 
     WITH_NBT,
 
+    WITH_SPECIFIC_META,
+
     WITH_META
 }

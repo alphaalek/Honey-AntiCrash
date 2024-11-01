@@ -7,14 +7,12 @@ import me.alek.honey.util.reflection.Reflection;
 
 public class WrappedSuggestion extends WrappedObject<WrappedSuggestion> {
 
-    private static final Class<?> SUGGESTION_CLASS = NMS.getSuggestionClass();
-    private static final Class<?> STRING_RANGE_CLASS = NMS.getStringRangeClass();
     private static final ConstructorInvoker<Object> stringRangeInvoker;
     private static final ConstructorInvoker<Object> suggestionInvoker;
 
     static {
-        stringRangeInvoker = Reflection.getConstructor(STRING_RANGE_CLASS, int.class, int.class);
-        suggestionInvoker = Reflection.getConstructor(SUGGESTION_CLASS, STRING_RANGE_CLASS, String.class);
+        stringRangeInvoker = Reflection.getConstructor(NMS.getStringRangeClass(), int.class, int.class);
+        suggestionInvoker = Reflection.getConstructor(NMS.getSuggestionClass(), NMS.getStringRangeClass(), String.class);
     }
 
     private static Object createNewSuggestion(String text) {
@@ -51,7 +49,7 @@ public class WrappedSuggestion extends WrappedObject<WrappedSuggestion> {
             return getText().equals(((WrappedSuggestion)o).getText());
         }
 
-        if (SUGGESTION_CLASS.isInstance(o)) {
+        if (NMS.getSuggestionClass().isInstance(o)) {
             return getText().equals(new WrappedSuggestion(o).getText());
         }
 

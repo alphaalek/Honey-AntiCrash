@@ -5,6 +5,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -90,7 +91,7 @@ public class NMS {
         return (InetSocketAddress) socketAddress.get(networkManager);
     }
 
-    public static Class<Object> getUnsureClass(String... params) {
+    public static <T> Class<T> getUnsureClass(String... params) {
         return Reflection.getUnsureClass(params);
     }
 
@@ -134,8 +135,8 @@ public class NMS {
         return IAsyncTaskHandlerClass != null ? IAsyncTaskHandlerClass : (IAsyncTaskHandlerClass = getUnsureClass("{nms}.IAsyncTaskHandler", "{nms}.util.thread.IAsyncTaskHandler"));
     }
 
-    private static Class<Object> craftMetaItemClass;
-    public static Class<Object> getCraftMetaItemClass() {
+    private static Class<ItemMeta> craftMetaItemClass;
+    public static Class<ItemMeta> getCraftMetaItemClass() {
         return craftMetaItemClass != null ? craftMetaItemClass : (craftMetaItemClass = getUnsureClass("{obc}.inventory.CraftMetaItem"));
     }
 
