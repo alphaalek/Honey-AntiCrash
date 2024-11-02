@@ -3,7 +3,7 @@ package me.alek.honey.validation.item;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.nbt.NBTCompound;
+import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.util.Callback;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ValidationServiceContext;
@@ -111,7 +111,7 @@ public class ItemAnalysis {
             Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flagged);
         }
 
-        item.setType(Material.AIR);
+        // TODO clear item
         return true;
     }
 
@@ -179,7 +179,7 @@ public class ItemAnalysis {
 
     public interface ItemValidation {
 
-        boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt);
+        boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt);
 
         default ItemValidationFilterStrategy getFilter() {
             return ItemValidationFilterStrategy.ALL;

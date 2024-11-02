@@ -6,7 +6,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.nbt.NBTCompound;
+import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.netty.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -163,10 +163,9 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
                     && packetTypes.hasID(packet.getType().getHoneyID())) {
 
                 for (ItemStack item : packet.getContainer().getStructure().getItems().readFieldValues()) {
-                    NBTCompound nbt = NBTFactory.fromItem(item, false, true);
+                    CompoundTag nbt = NBTFactory.fromItem(item, false, true);
                     if (nbt != null && !nbt.isEmpty()) {
-                        int elements = nbt.getRoot().getTotalElements();
-                        return ValidationServiceContext.Builder.validate().flag(elements).build();
+                        return ValidationServiceContext.Builder.validate().flag(NBTFactory.getAmountOfTags(nbt)).build();
                     }
                 }
             }

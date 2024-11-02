@@ -221,7 +221,7 @@ public class CodecFactory {
                     public void apply(LegacyCodec codec) throws CodecException {
                         codec.apply(packet,
                                 ReflectStructure.Provider.acquireStructure(type.getNmsClass())
-                                        .withoutStatic().withTarget(packet),
+                                        .withStatic(false).withTarget(packet),
                                 dataSerializer);
                     }
                 });

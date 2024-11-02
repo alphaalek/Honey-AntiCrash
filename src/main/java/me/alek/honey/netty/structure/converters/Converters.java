@@ -3,22 +3,21 @@ package me.alek.honey.netty.structure.converters;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.LegacyProtocol;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
-import me.alek.honey.netty.nbt.NBTBase;
-import me.alek.honey.netty.nbt.NBTRoot;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
+import me.alek.honey.netty.nbt.AbstractTag;
+import me.alek.honey.netty.nbt.TagConverter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.converters.dedicated.NBTConverter;
-import me.alek.honey.netty.structure.converters.dedicated.SimpleListConverter;
-import me.alek.honey.netty.structure.converters.dedicated.SimpleMapConverter;
-import me.alek.honey.netty.structure.converters.dedicated.SimpleSetConverter;
+import me.alek.honey.netty.structure.converters.wrapper.SimpleListConverter;
+import me.alek.honey.netty.structure.converters.wrapper.SimpleMapConverter;
+import me.alek.honey.netty.structure.converters.wrapper.SimpleWrapperConverter;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
@@ -34,7 +33,6 @@ public class Converters {
 
     private static final Map<Class<?>, JavaConverter<?, ?>> CONVERTER_CACHE = new HashMap<>();
     private static final Map<Class<?>, ListConverter<?, ?>> LIST_CONVERTER_CACHE = new HashMap<>();
-    private static final Map<Class<?>, SetConverter<?, ?>> SET_CONVERTER_CACHE = new HashMap<>();
     private static final Map<Class<?>, MapConverter<?, ?, ?>> MAP_CONVERTER_CACHE = new HashMap<>();
 
     @SuppressWarnings("unchecked")
@@ -45,11 +43,6 @@ public class Converters {
     @SuppressWarnings("unchecked")
     private static <R, V, D> MapConverter<R, V, D> getMapConverter(Class<?> clazz, Function<? super Class<?>, ? extends MapConverter<R, V, D>> orElse) {
         return (MapConverter<R, V, D>) MAP_CONVERTER_CACHE.computeIfAbsent(clazz, orElse);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R, V> SetConverter<R, V> getSetConverter(Class<?> clazz, Function<? super Class<?>, ? extends SetConverter<R, V>> orElse) {
-        return (SetConverter<R, V>) SET_CONVERTER_CACHE.computeIfAbsent(clazz, orElse);
     }
 
     @SuppressWarnings("unchecked")
@@ -230,43 +223,34 @@ public class Converters {
     }
 
     // nbt
-    public static JavaConverter<Object, NBTBase<?, ?>> getNBTBaseConverter(NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
-        return new NBTConverter(root, owner, forceCreation);
+    public static JavaConverter<Object, AbstractTag<?, ?>> getNBTBaseConverter(boolean forceCreation) {
+        return new TagConverter(forceCreation);
     }
 
-    public static MapConverter<String, Object, NBTBase<?, ?>> getNBTCompoundConverter(NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
-        return getMapConverterWithoutCache(getNBTBaseConverter(root, owner, forceCreation), true);
+    public static MapConverter<String, Object, AbstractTag<?, ?>> getNBTCompoundConverter(boolean forceCreation) {
+        return getMapConverterWithoutCache(getNBTBaseConverter(forceCreation));
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> ListConverter<Object, T> getNBTListConverter(NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
-        return (ListConverter<Object, T>) getListConverterWithoutCache(getNBTBaseConverter(root, owner, forceCreation), true);
+    public static <T> ListConverter<Object, T> getNBTListConverter(boolean forceCreation) {
+        return (ListConverter<Object, T>) getListConverterWithoutCache(getNBTBaseConverter(forceCreation));
     }
 
     // lists
-    public static <K, T> ListConverter<K, T> getListConverterOf(Class<?> clazz, JavaConverter<K, T> converter, boolean controlDeclaring) {
-        return getListConverter(clazz, (clazz1) -> new SimpleListConverter<>(converter, controlDeclaring));
+    public static <K, T> ListConverter<K, T> getListConverterOf(Class<?> clazz, JavaConverter<K, T> converter) {
+        return getListConverter(clazz, (clazz1) -> new SimpleListConverter<>(converter));
     }
 
-    public static <K, T> ListConverter<K, T> getListConverterWithoutCache(JavaConverter<K, T> converter, boolean controlDeclaring) {
-        return new SimpleListConverter<>(converter, controlDeclaring);
-    }
-
-    // sets
-    public static <K, T> SetConverter<K, T> getSetConverterOf(Class<?> clazz, JavaConverter<K, T> converter, boolean controlDeclaring) {
-        return getSetConverter(clazz, (clazz1) -> new SimpleSetConverter<>(converter, controlDeclaring));
-    }
-
-    public static <K, T> SetConverter<K, T> getSetConverterWithoutCache(JavaConverter<K, T> converter, boolean controlDeclaring) {
-        return new SimpleSetConverter<>(converter, controlDeclaring);
+    public static <K, T> ListConverter<K, T> getListConverterWithoutCache(JavaConverter<K, T> converter) {
+        return new SimpleListConverter<>(converter);
     }
 
     // maps
-    public static <K, T, D> MapConverter<K, T, D> getMapConverterOf(Class<?> clazz, JavaConverter<T, D> converter, boolean controlDeclaring) {
-        return getMapConverter(clazz, (clazz1) -> new SimpleMapConverter<>(converter, controlDeclaring));
+    public static <K, T, D> MapConverter<K, T, D> getMapConverterOf(Class<?> clazz, JavaConverter<T, D> converter) {
+        return getMapConverter(clazz, (clazz1) -> new SimpleMapConverter<>(converter));
     }
 
-    public static <K, T, D> MapConverter<K, T, D> getMapConverterWithoutCache(JavaConverter<T, D> converter, boolean controlDeclaring) {
-        return new SimpleMapConverter<>(converter, controlDeclaring);
+    public static <K, T, D> MapConverter<K, T, D> getMapConverterWithoutCache(JavaConverter<T, D> converter) {
+        return new SimpleMapConverter<>(converter);
     }
 }

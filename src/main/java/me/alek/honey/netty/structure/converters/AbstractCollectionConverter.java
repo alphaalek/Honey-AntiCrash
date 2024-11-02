@@ -28,16 +28,16 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
         if (declaringCollection == null) {
             return true;
         }
+
         int delegatedSize = delegatedCollection.size();
         int declaringSize = declaringCollection.size();
-
         if (delegatedSize != declaringSize) {
-
             delegatedCollection.clear();
             for (K declaring : declaringCollection) {
                 delegatedCollection.add(converter.convertDelegate(declaring));
             }
         }
+
         return delegatedSize != declaringSize;
     }
 
@@ -101,6 +101,7 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
                 }
             }
         }
+
         return removed;
     }
 

@@ -21,20 +21,20 @@ public class HoneyPacketDecoder {
         Object packet;
         try {
             if (EmulatorCodec.LEGACY) {
-                packet = protocol.decodeLegacy(byteBuf, state, (packetType, callback) -> {
-                    if (packetType.equals(PacketTypes.Play.Client.BLOCK_PLACE)
+                packet = protocol.decodeLegacy(byteBuf, state, (type, callback) -> {
+                    if (type.equals(PacketTypes.Play.Client.BLOCK_PLACE)
                             && ConfigurationOptions.Decoder.DISABLE_NBT
                             && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                         callback.apply(DisabledNBTCodec.BLOCK_PLACE);
-                    } else if (packetType.equals(PacketTypes.Play.Client.CLICK_WINDOW)
+                    } else if (type.equals(PacketTypes.Play.Client.CLICK_WINDOW)
                             && ConfigurationOptions.Decoder.DISABLE_NBT) {
                         callback.apply(DisabledNBTCodec.WINDOW_CLICK);
-                    } else if (packetType.equals(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
+                    } else if (type.equals(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
                             && ConfigurationOptions.Decoder.DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE
                             && player.isBukkitReady() && !player.bukkit.getGameMode().equals(GameMode.CREATIVE)) {
                         // don't apply anything
                     } else {
-                        callback.apply(LegacyCodec.createDefault(packetType));
+                        callback.apply(LegacyCodec.createDefault(type));
                     }
                 });
             } else {
@@ -55,7 +55,7 @@ public class HoneyPacketDecoder {
                                 + state + " "
                                 + HoneyPlugin.get().getLogger().filterTooMuchData(
                                 ReflectStructure.Provider.acquireStructure(packet.getClass())
-                                                .withoutStatic()
+                                                .withStatic(false)
                                                 .withTarget(packet)
                                                 .readFieldEntries()
                                 )

@@ -1,6 +1,7 @@
-package me.alek.honey.netty.structure.converters;
+package me.alek.honey.netty.structure.converters.wrapper;
 
 import me.alek.honey.netty.modelwrappers.WrappedObject;
+import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 
 public class SimpleWrapperConverter<WO extends WrappedObject<WO>> implements JavaConverter<Object, WO> {

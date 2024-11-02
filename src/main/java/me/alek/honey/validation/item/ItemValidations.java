@@ -5,12 +5,12 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
-import me.alek.honey.netty.nbt.NBTCompound;
-import me.alek.honey.netty.nbt.NBTElement;
-import me.alek.honey.netty.nbt.NBTRoot;
-import me.alek.honey.netty.nbt.NBTType;
+import me.alek.honey.netty.nbt.CompoundTag;
+import me.alek.honey.netty.nbt.PrimitiveTag;
+import me.alek.honey.netty.nbt.NBTFactory;
+import me.alek.honey.netty.nbt.TagType;
 import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
-import me.alek.honey.netty.nbt.array.NBTArray;
+import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
@@ -21,7 +21,6 @@ import me.alek.honey.util.statics.NumberUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapCursor;
@@ -40,16 +39,14 @@ public class ItemValidations {
     public static class IllegalNumbersItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            NBTRoot root = nbt.getRoot();
-
-            for (NBTElement<Double> doubleValue : root.<Double>getAllPrimitiveElementsAs(NBTType.DOUBLE)) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            for (PrimitiveTag<Double> doubleValue : NBTFactory.<PrimitiveTag<Double>>getAllTagsAs(nbt, TagType.DOUBLE)) {
                 if (NumberUtils.isInvalid(doubleValue.getValue())) {
                     return true;
                 }
             }
 
-            for (NBTElement<Float> floatValue : root.<Float>getAllPrimitiveElementsAs(NBTType.FLOAT)) {
+            for (PrimitiveTag<Float> floatValue : NBTFactory.<PrimitiveTag<Float>>getAllTagsAs(nbt, TagType.FLOAT)) {
                 if (NumberUtils.isInvalid(floatValue.getValue())) {
                     return true;
                 }
@@ -67,7 +64,7 @@ public class ItemValidations {
     public static class MaxEnchantmentLevelItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             ItemMeta meta = item.getDefaultMeta();
             if (meta.hasEnchants()) {
                 for (int level : meta.getEnchants().values()) {
@@ -89,7 +86,7 @@ public class ItemValidations {
     public static class MaxAmountItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return item.getAmount() > ConfigurationOptions.ItemAnalysis.MAX_AMOUNT;
         }
     }
@@ -97,7 +94,7 @@ public class ItemValidations {
     public static class MaxDisplayNameLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             ItemMeta meta = item.getDefaultMeta();
             return meta.hasDisplayName() && meta.getDisplayName().length() > ConfigurationOptions.ItemAnalysis.MAX_DISPLAYNAME_LENGTH;
         }
@@ -111,7 +108,7 @@ public class ItemValidations {
     public static class MaxTotalLoreLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             ItemMeta meta = item.getDefaultMeta();
             if (meta.hasLore()) {
                 List<String> loreArray = meta.getLore();
@@ -139,9 +136,9 @@ public class ItemValidations {
     public static class UnbreakableItemItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_UNBREAKABLE_ITEMS
-                    && nbt.hasKeyOfType("Unbreakable", NBTType.BYTE)
+                    && nbt.hasKeyOfType("Unbreakable", TagType.BYTE)
                     && nbt.getByte("Unbreakable") == (byte) 1;
         }
 
@@ -154,9 +151,9 @@ public class ItemValidations {
     public static class AttributeModifiersItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_ATTRIBUTE_MODIFIERS
-                    && nbt.hasKeyOfType("AttributeModifiers", NBTType.ARRAY_OF_COMPOUND);
+                    && nbt.hasKeyOfType("AttributeModifiers", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND));
         }
 
         @Override
@@ -168,9 +165,9 @@ public class ItemValidations {
     public static class CustomPotionEffectsItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_CUSTOM_POTION_EFFECTS
-                    && nbt.hasKeyOfType("CustomPotionEffects", NBTType.ARRAY_OF_COMPOUND);
+                    && nbt.hasKeyOfType("CustomPotionEffects", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND));
         }
 
         @Override
@@ -182,7 +179,7 @@ public class ItemValidations {
     public static class BookTranslationComponents implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             List<Object> pages = ItemReflection.getPages((BookMeta) item.getSpecificMeta());
 
             // TODO: use nbt instead
@@ -207,7 +204,7 @@ public class ItemValidations {
     public static class IllegalCharacterItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             ItemMeta meta = item.getDefaultMeta();
             if (meta.hasDisplayName() && checkBadCharacter(meta.getDisplayName())) {
                 return true;
@@ -250,7 +247,7 @@ public class ItemValidations {
     public static class MaxNBTLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH;
         }
 
@@ -263,8 +260,8 @@ public class ItemValidations {
     public static class MaxNBTStringLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            for (NBTElement<String> stringValue : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            for (PrimitiveTag<String> stringValue : NBTFactory.<PrimitiveTag<String>>getAllTagsAs(nbt, TagType.STRING)) {
                 if (stringValue.getValue().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_STRING_LENGTH) {
                     return true;
                 }
@@ -281,8 +278,8 @@ public class ItemValidations {
     public static class MaxPageLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            for (NBTElement<String> page : nbt.<String>getListOf("pages", NBTType.STRING)) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            for (PrimitiveTag<String> page : nbt.<String>getArrayOf("pages", TagType.STRING)) {
                 if (page != null
                         && page.getValue().length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
                     return true;
@@ -301,7 +298,7 @@ public class ItemValidations {
     public static class MaxFireworkLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_NBT_LENGTH;
         }
 
@@ -323,9 +320,9 @@ public class ItemValidations {
         private static final int PAGES_PER_BOOK_MODERN = 100;
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            if (nbt.hasKeyOfType("pages", NBTType.ARRAY)) {
-                NBTArray<String> pages = nbt.getArray("pages");
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            if (nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+                ArrayTag<String> pages = nbt.getArray("pages");
 
                 boolean v1_14 = player.clientInfo.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
 
@@ -406,7 +403,7 @@ public class ItemValidations {
     public static class MaxBookNBTLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH;
         }
 
@@ -419,9 +416,9 @@ public class ItemValidations {
     public static class MaxBookPagesItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("pages", NBTType.ARRAY)
-                    && nbt.getListOf("pages", String.class).size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES;
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            return nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))
+                    && nbt.getArrayOf("pages", String.class).size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES;
         }
 
         @Override
@@ -433,10 +430,10 @@ public class ItemValidations {
     public static class MaxBookAuthorLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             String author;
             return nbt != null
-                    && nbt.hasKeyOfType("author", NBTType.STRING)
+                    && nbt.hasKeyOfType("author", TagType.STRING)
                     && (author = nbt.getString("author")) != null && author.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH;
         }
 
@@ -449,8 +446,8 @@ public class ItemValidations {
     public static class MaxBookTitleLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("title", NBTType.STRING)
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            return nbt.hasKeyOfType("title", TagType.STRING)
                     && nbt.getString("title").length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH;
         }
 
@@ -463,8 +460,8 @@ public class ItemValidations {
     public static class MaxNBTBasesItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            return nbt.getRoot().getTotalElements() > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES;
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            return NBTFactory.getAmountOfTags(nbt) > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES;
         }
 
         @Override
@@ -476,8 +473,8 @@ public class ItemValidations {
     public static class MaxNBTNestingItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            return nbt.getRoot().getMaxDistanceBetweenTail() > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            return NBTFactory.getComplexityOfTag(nbt) > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
         }
 
         @Override
@@ -492,10 +489,10 @@ public class ItemValidations {
         private static final String[] skullOwnerKeys = new String[]{"SkullOwner", "Owner"};
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            NBTCompound skullOwnerCompound = null;
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            CompoundTag skullOwnerCompound = null;
             for (String key : skullOwnerKeys) {
-                if (nbt.hasKeyOfType(key, NBTType.COMPOUND)) {
+                if (nbt.hasKeyOfType(key, TagType.getFromCollection(TagType.Collection.COMPOUND))) {
                     skullOwnerCompound = nbt.getCompound(key);
                     break;
                 }
@@ -504,14 +501,14 @@ public class ItemValidations {
                 return false;
             }
 
-            NBTCompound propertiesCompound = skullOwnerCompound.getCompound("Properties");
-            if (!propertiesCompound.hasKeyOfType("textures", NBTType.ARRAY_OF_COMPOUND)) {
+            CompoundTag propertiesCompound = skullOwnerCompound.getCompound("Properties");
+            if (!propertiesCompound.hasKeyOfType("textures", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))) {
                 return false;
             }
 
-            GeneticArrayTypes.NBTArrayOfCompound textures = propertiesCompound.getArrayOfCompound("textures");
-            for (NBTCompound texture : textures.getValues()) {
-                if (!texture.hasKeyOfType("Value", NBTType.STRING)) {
+            GeneticArrayTypes.ArrayOfCompoundTag textures = propertiesCompound.getArrayOfCompound("textures");
+            for (CompoundTag texture : textures.getValues()) {
+                if (!texture.hasKeyOfType("Value", TagType.STRING)) {
                     return false;
                 }
 
@@ -549,7 +546,7 @@ public class ItemValidations {
     public static class IllegalEnchantmentsItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return false;
         }
     }
@@ -557,13 +554,13 @@ public class ItemValidations {
     public static class MaxFireworkExplosionsItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            if (!nbt.hasKeyOfType("Fireworks", NBTType.COMPOUND)) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            if (!nbt.hasKeyOfType("Fireworks", TagType.getFromCollection(TagType.Collection.COMPOUND))) {
                 return false;
             }
 
-            NBTCompound fireworksCompound = nbt.getCompound("Fireworks");
-            if (!fireworksCompound.hasKeyOfType("Explosions", NBTType.ARRAY_OF_COMPOUND)) {
+            CompoundTag fireworksCompound = nbt.getCompound("Fireworks");
+            if (!fireworksCompound.hasKeyOfType("Explosions", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))) {
                 return false;
             }
 
@@ -579,8 +576,8 @@ public class ItemValidations {
     public static class MaxBannerPatternsItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            return nbt.hasKeyOfType("Patterns", NBTType.ARRAY_OF_COMPOUND)
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            return nbt.hasKeyOfType("Patterns", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))
                     && nbt.getArrayOfCompound("Patterns").size() > ConfigurationOptions.ItemAnalysis.MAX_BANNER_PATTERNS;
         }
 
@@ -593,7 +590,7 @@ public class ItemValidations {
     public static class MapRangeItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13)) {
                 return false;
             }
@@ -602,7 +599,7 @@ public class ItemValidations {
             if (mapView == null) return false;
 
             MapConverter<Object, Object, WrappedRenderData> renderCache = ReflectStructure.Provider.acquireStructure(mapView.getClass())
-                    .withWeakType(Map.class, Converters.getMapConverterOf(WrappedRenderData.class, Converters.getRenderDataConverter(), false))
+                    .withWeakType(Map.class, Converters.getMapConverterOf(WrappedRenderData.class, Converters.getRenderDataConverter()))
                     .withTarget(mapView)
                     .readFieldAndApplyMapping(0);
 
@@ -629,8 +626,8 @@ public class ItemValidations {
         };
 
         @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, NBTCompound nbt) {
-            for (NBTElement<String> string : nbt.getRoot().<String>getAllPrimitiveElementsAs(NBTType.STRING)) {
+        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
+            for (PrimitiveTag<String> string : NBTFactory.<PrimitiveTag<String>>getAllTagsAs(nbt, TagType.STRING)) {
                 String trimmed = string.getValue().toLowerCase().replace("\\", "").trim();
                 for (String component : ILLEGAL_COMPONENT_STRINGS) {
                     if (trimmed.contains(component)) {

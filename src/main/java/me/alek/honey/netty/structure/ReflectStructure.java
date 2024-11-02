@@ -5,9 +5,9 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import me.alek.honey.netty.structure.converters.SetConverter;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.reflection.*;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -23,6 +23,11 @@ import java.util.function.Supplier;
 @SuppressWarnings("unchecked")
 public class ReflectStructure<T, C> {
 
+    public static void debug(Object val) {
+        if (val != null) {
+            Bukkit.broadcastMessage(String.valueOf(ReflectStructure.Provider.acquireStructure(val.getClass()).withSuperClass(false).withStatic(false).withTarget(val).readFieldEntries()));
+        }
+    }
     public static class Provider {
 
         private static final Array<ReflectStructure<Object, Object>> PACKET_STRUCTURE_CACHE = new Array<>();
@@ -57,7 +62,7 @@ public class ReflectStructure<T, C> {
 
     public static Object copyStructure(Object from, Object to) {
         ReflectStructure<Object, Object> structure = ReflectStructure.Provider.acquireStructure(from.getClass())
-                .withoutStatic().without(NMS.getCraftMetaItemClass());
+                .withStatic(false).without(NMS.getCraftMetaItemClass());
 
         Iterator<FieldAccessor<Object>> fromIterator = structure.withTarget(from)
                 .getAccessors().iterator();
@@ -115,12 +120,12 @@ public class ReflectStructure<T, C> {
         ACQUIRED_INVOKERS = getAcquiredInvokers(type);
     }
 
-    public synchronized ReflectStructure<T, C> withoutStatic() {
-        if (this.withStatic) {
-            this.withStatic = false;
+    public synchronized ReflectStructure<T, C> withStatic(boolean toggle) {
+        if (this.withStatic != toggle) {
+            this.withStatic = toggle;
             resetIf(this::disallowedMember);
         }
-        this.withStatic = false;
+        this.withStatic = toggle;
         return this;
     }
 
@@ -544,7 +549,7 @@ public class ReflectStructure<T, C> {
                     MapConverter<K, V, R> mapConverter = (MapConverter<K, V, R>) converter;
                     Map<K, V> declaring = new HashMap<>((Map<K, V>) originalValue);
                     accessor.set(handle, (T) declaring);
-                    mapConverter.apply(declaring);
+                    mapConverter.inject(declaring);
 
                     if (mapConverter.isInvalid()) {
                         return null;
@@ -555,20 +560,9 @@ public class ReflectStructure<T, C> {
                     ListConverter<V, R> listConverter = (ListConverter<V, R>) converter;
                     List<V> declaring = new ArrayList<>((List<V>) originalValue);
                     accessor.set(handle, (T) declaring);
-                    listConverter.apply(declaring);
+                    listConverter.inject(declaring);
 
                     if (listConverter.isInvalid()) {
-                        return null;
-                    }
-                }
-
-                if (converter instanceof SetConverter && originalValue instanceof Set) {
-                    SetConverter<V, R> setConverter = (SetConverter<V, R>) converter;
-                    Set<V> declaring = new HashSet<>((Set<V>) originalValue);
-                    accessor.set(handle, (T) declaring);
-                    setConverter.apply(declaring);
-
-                    if (setConverter.isInvalid()) {
                         return null;
                     }
                 }

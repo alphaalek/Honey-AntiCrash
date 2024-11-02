@@ -33,8 +33,8 @@ public class WrappedPlayOutTabComplete extends ObjectWrappedPacket<WrappedPlayOu
                 .readField(0);
     }
 
-    private ListConverter<Object, WrappedSuggestion> getModernSuggestionsHandle(boolean controlDeclaring) {
-        return getWrappedSuggestionsObject().getSuggestions(controlDeclaring);
+    private ListConverter<Object, WrappedSuggestion> getModernSuggestionsHandle() {
+        return getWrappedSuggestionsObject().getSuggestions();
     }
 
     private String[] createStringArrayFromObjectArray(Object[] objects) {
@@ -59,7 +59,7 @@ public class WrappedPlayOutTabComplete extends ObjectWrappedPacket<WrappedPlayOu
             suggestions.remove(suggestion);
             getContainer().getStructure().getStringArrays().writeField(0, createStringArrayFromObjectArray(removeNullsFromArray(suggestions.toArray())));
         } else {
-            getModernSuggestionsHandle(true).removeConverted(new WrappedSuggestion(suggestion));
+            getModernSuggestionsHandle().removeConverted(new WrappedSuggestion(suggestion));
         }
     }
 
@@ -68,7 +68,7 @@ public class WrappedPlayOutTabComplete extends ObjectWrappedPacket<WrappedPlayOu
             return getContainer().getStructure().getStringArrays().readField(0);
         }
 
-        ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle(true);
+        ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle();
         String[] suggestionsArray = new String[suggestionsHandle.size()];
         int i = 0;
         for (final WrappedSuggestion suggestion : suggestionsHandle) {
@@ -83,7 +83,7 @@ public class WrappedPlayOutTabComplete extends ObjectWrappedPacket<WrappedPlayOu
             return getSuggestions().length;
         }
 
-        ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle(false);
+        ListConverter<Object, WrappedSuggestion> suggestionsHandle = getModernSuggestionsHandle();
         return suggestionsHandle.size();
     }
 }

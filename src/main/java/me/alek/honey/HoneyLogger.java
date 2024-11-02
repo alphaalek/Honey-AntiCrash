@@ -282,13 +282,15 @@ public class HoneyLogger {
             sb.append(e.getKey())
               .append("=");
             try {
-                sb.append(String.valueOf(e.getValue())
+                Object val = e.getValue();
+                sb.append(String.valueOf(val)
                         .replace("\t", "\\t")
                         .replace("\n", "\\n"))
                   .append("<")
-                  .append(BOXED.getOrDefault(e.getValue().getClass(), e.getValue().getClass()).getName())
+                  .append(BOXED.getOrDefault(val.getClass(), val.getClass()).getName()
+                        .replace(String.class.getName(), "String"))
                   .append(">");
-            } catch (Exception ex) {
+            } catch (Exception ignored) {
                 sb.append("null");
             }
 

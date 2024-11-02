@@ -23,7 +23,7 @@ public class InternalObjectPacketStructure implements ObjectPacketStructure {
         this.structure = structure;
 
         if (this.structure.isStaticFieldsAllowed()) {
-            this.structure.withoutStatic();
+            this.structure.withStatic(false);
         }
     }
 

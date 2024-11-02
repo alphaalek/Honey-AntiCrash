@@ -1,9 +1,12 @@
 package me.alek.honey.util.protocol;
 
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.type.RangedPacketType;
 import org.bukkit.Bukkit;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -147,5 +150,19 @@ public enum NetProtocol {
 
     public int getProtocolVersion() {
         return protocolVersion;
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE_USE)
+    public @interface From {
+
+        NetProtocol from();
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE_USE)
+    public @interface To {
+
+        NetProtocol to();
     }
 }

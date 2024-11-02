@@ -51,7 +51,7 @@ public class LegacyProtocol extends WrappedObject<LegacyProtocol> {
 
     public static Object getProtocolInfo(Object enumProtocol, PacketBound bound) {
         Map<Object, Object> enumProtocolDelegateFlowMap = ReflectStructure.Provider.acquireStructure(NMS.getEnumProtocolClass())
-                .<Map<Object, Object>>withWeakType(Map.class).withoutStatic().withTarget(enumProtocol).readField(0);
+                .<Map<Object, Object>>withWeakType(Map.class).withStatic(false).withTarget(enumProtocol).readField(0);
         return enumProtocolDelegateFlowMap.get(bound.getNMSType());
     }
 

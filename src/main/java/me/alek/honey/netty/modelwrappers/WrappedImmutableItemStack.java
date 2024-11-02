@@ -1,9 +1,8 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.nbt.NBTBase;
-import me.alek.honey.netty.nbt.NBTCompound;
-import me.alek.honey.netty.nbt.NBTFactory;
+import me.alek.honey.netty.nbt.*;
+import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -30,7 +29,7 @@ public class WrappedImmutableItemStack {
         }
 
         // wrap nbt
-        NBTCompound nbt = Optional.ofNullable(NBTFactory.read(serializer)).map(NBTBase::asCompound).orElse(null);
+        CompoundTag nbt = Optional.ofNullable(NBTFactory.read(serializer)).map(AbstractTag::asCompound).orElse(null);
 
         // create stack
         if (durability != -1) {
@@ -41,8 +40,8 @@ public class WrappedImmutableItemStack {
         }
     }
 
-    private static NBTCompound getNBTFromNMS(Object nmsStack) {
-        Object nbt = ReflectStructure.Provider.acquireStructure(ItemReflection.getNMSItemStackClass())
+    private static CompoundTag getNBTFromNMS(Object nmsStack) {
+        Object nbt = ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
                 .withType(NMS.getNBTTagCompoundClass()).withTarget(nmsStack).readField(0);
 
         if (nbt != null) {
@@ -78,7 +77,7 @@ public class WrappedImmutableItemStack {
         }
 
         ItemStack bukkitStack = ItemReflection.asCraftMirror(stack);
-        NBTCompound wrappedNbt = getNBTFromNMS(stack);
+        CompoundTag wrappedNbt = getNBTFromNMS(stack);
 
         // create stack
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
@@ -104,11 +103,11 @@ public class WrappedImmutableItemStack {
         return nmsStack;
     }
 
-    public ItemStack toBukkit() {
+    public ItemStack toCraftBukkit() {
         return ItemReflection.asCraftMirror(toNMS());
     }
 
-    private NBTCompound nbt;
+    private CompoundTag nbt;
     private int amount;
     private short durability = -1; // until 1.13
     private Material type = Material.AIR;
@@ -116,14 +115,14 @@ public class WrappedImmutableItemStack {
     private ItemMeta cachedDefaultMeta;
     private ItemMeta cachedSpecificMeta;
 
-    public WrappedImmutableItemStack(Material type, int amount, NBTCompound nbt) {
+    public WrappedImmutableItemStack(Material type, int amount, CompoundTag nbt) {
         this();
         this.type = type;
         this.amount = amount;
         this.nbt = nbt;
     }
 
-    public WrappedImmutableItemStack(Material type, int amount, short damage, NBTCompound nbt) {
+    public WrappedImmutableItemStack(Material type, int amount, short damage, CompoundTag nbt) {
         this(type, amount, nbt);
 
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
@@ -170,35 +169,24 @@ public class WrappedImmutableItemStack {
         if (this.cachedSpecificMeta != null) {
             return this.cachedSpecificMeta;
         }
-        return (cachedSpecificMeta = toBukkit().getItemMeta());
+
+        return (cachedSpecificMeta = toCraftBukkit().getItemMeta());
     }
 
     private ItemMeta orNewMeta(ItemMeta got) {
         return got != null ? got : Bukkit.getItemFactory().getItemMeta(this.type);
     }
 
-    public NBTCompound getNBT() {
+    public CompoundTag getNBT() {
         return this.nbt;
-    }
-
-    public void setNBT(NBTCompound nbt) {
-        this.nbt = nbt;
     }
 
     public int getAmount() {
         return this.amount;
     }
 
-    public void setAmount(int amount) {
-        this.amount = amount;
-    }
-
     public Material getType() {
         return this.type;
-    }
-
-    public void setType(Material type) {
-        this.type = type;
     }
 
     public short getDurability() {
@@ -206,12 +194,5 @@ public class WrappedImmutableItemStack {
             throw new UnsupportedOperationException();
         }
         return durability;
-    }
-
-    public void setDurability(short durability) {
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
-            throw new UnsupportedOperationException();
-        }
-        this.durability = durability;
     }
 }

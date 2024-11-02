@@ -17,14 +17,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ItemReflection {
 
-    private static final Class<?> itemStackClass = Reflection.getUnsureClass("{nms}.ItemStack", "{nms}.world.item.ItemStack");
-    private static final Class<?> craftItemStackClass = Reflection.getClass("{obc}.inventory.CraftItemStack");
     private static final ConstructorInvoker<?> itemStackConstructor;
 
-    private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(craftItemStackClass, "asNMSCopy", ItemStack.class);
-    private static final MethodInvoker<ItemStack> craftMirrorInvoker = Reflection.getMethod(craftItemStackClass, "asCraftMirror", itemStackClass);
-    private static final MethodInvoker<ItemStack> bukkitCopyInvoker = Reflection.getMethod(craftItemStackClass, "asBukkitCopy", itemStackClass);
-    private static final MethodInvoker<ItemMeta> createItemMetaInvoker = Reflection.getMethod(craftItemStackClass, "getItemMeta", itemStackClass);
+    private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(NMS.getCraftItemStackClass(), "asNMSCopy", ItemStack.class);
+    private static final MethodInvoker<ItemStack> craftMirrorInvoker = Reflection.getMethod(NMS.getCraftItemStackClass(), "asCraftMirror", NMS.getItemStackClass());
+    private static final MethodInvoker<ItemStack> bukkitCopyInvoker = Reflection.getMethod(NMS.getCraftItemStackClass(), "asBukkitCopy", NMS.getItemStackClass());
+    private static final MethodInvoker<ItemMeta> createItemMetaInvoker = Reflection.getMethod(NMS.getCraftItemStackClass(), "getItemMeta", NMS.getItemStackClass());
     private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(NMS.getItemClass(), method -> {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
             return method.getName().equals("getById");
@@ -36,7 +34,6 @@ public class ItemReflection {
         return method.getReturnType().equals(Material.class) && Arrays.equals(method.getParameterTypes(), new Class[]{NMS.getItemClass()});
     });
     private static final MethodInvoker<Void> craftItemSetMeta = Reflection.getMethod(NMS.getCraftItemStackClass(), "setItemMeta", NMS.getItemStackClass(), ItemMeta.class);
-    private static final MethodInvoker<ItemMeta> craftItemGetMeta = Reflection.getMethod(NMS.getCraftItemStackClass(), "getItemMeta", NMS.getItemStackClass());
 
     private static final AtomicReference<FieldAccessor<List<Object>>> bookMetaPageCache = new AtomicReference<>();
 
@@ -45,9 +42,9 @@ public class ItemReflection {
     static {
         ConstructorInvoker<?> invoker;
         try {
-            invoker = Reflection.getConstructor(itemStackClass, NMS.getItemClass(), int.class, int.class);
+            invoker = Reflection.getConstructor(NMS.getItemStackClass(), NMS.getItemClass(), int.class, int.class);
         } catch (Exception ex) {
-            invoker = Reflection.getConstructor(itemStackClass, NMS.getIMaterialClass(), int.class);
+            invoker = Reflection.getConstructor(NMS.getItemStackClass(), NMS.getIMaterialClass(), int.class);
         }
         itemStackConstructor = invoker;
 
@@ -55,14 +52,6 @@ public class ItemReflection {
                 .withType(Gson.class)
                 .withTarget(null)
                 .readField(0);
-    }
-
-    public static Class<?> getNMSItemStackClass() {
-        return itemStackClass;
-    }
-
-    public static Class<?> getCraftItemStackClass() {
-        return craftItemStackClass;
     }
 
     public static JsonElement chatComponentToJson(Object component) {
@@ -90,7 +79,7 @@ public class ItemReflection {
     public static ItemStack asBukkitCopy(Object itemStack) {
         if (itemStack != null) {
             try {
-                if (itemStackClass.isInstance(itemStack)) {
+                if (NMS.getItemStackClass().isInstance(itemStack)) {
                     return bukkitCopyInvoker.invokeWithException(null, itemStack);
                 }
             } catch (Exception ex) {
@@ -104,7 +93,7 @@ public class ItemReflection {
     public static ItemStack asCraftMirror(Object itemStack) {
         if (itemStack != null) {
             try {
-                if (itemStackClass.isInstance(itemStack)) {
+                if (NMS.getItemStackClass().isInstance(itemStack)) {
                     return craftMirrorInvoker.invokeWithException(null, itemStack);
                 }
             } catch (Exception ex) {
@@ -116,12 +105,9 @@ public class ItemReflection {
     }
 
     public static Object asNMSCopy(ItemStack item) {
-        if (item != null && Arrays.equals(nmsCopyInvoker.getHandle().getParameterTypes(), new Class[]{ItemStack.class})) {
+        if (item != null) {
             try {
-                Object nmsItem = nmsCopyInvoker.invokeWithException(null, item);
-                if (isNMSItem(nmsItem)) {
-                    return nmsItem;
-                }
+                return nmsCopyInvoker.invokeWithException(null, item);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -131,9 +117,9 @@ public class ItemReflection {
     }
 
     public static Object getHandleItem(ItemStack item) {
-        if (craftItemStackClass.isInstance(item)) {
-            IStructureModifier<?> structure = ReflectStructure.Provider.acquireStructure(craftItemStackClass)
-                    .withType(itemStackClass)
+        if (NMS.getCraftItemStackClass().isInstance(item)) {
+            IStructureModifier<?> structure = ReflectStructure.Provider.acquireStructure(NMS.getCraftItemStackClass())
+                    .withType(NMS.getItemStackClass())
                     .withTarget(item);
 
             Object handle = structure.readField(0);
@@ -174,11 +160,11 @@ public class ItemReflection {
     }
 
     public static boolean isNMSItem(Object item) {
-        return itemStackClass.isInstance(item);
+        return NMS.getItemStackClass().isInstance(item);
     }
 
     public static boolean isCraftItem(Object item) {
-        return craftItemStackClass.isInstance(item);
+        return NMS.getCraftItemStackClass().isInstance(item);
     }
 
     public static void setItemTag(Object item, Object tag) {
@@ -188,8 +174,7 @@ public class ItemReflection {
     }
 
     public static void setItemMeta(Object item) {
-        ItemMeta meta = craftItemGetMeta.invoke(null, item);
-        craftItemSetMeta.invoke(null, item, meta);
+        craftItemSetMeta.invoke(null, item, createItemMeta(item));
     }
 
     public static ItemMeta createItemMeta(Object item) {

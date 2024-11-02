@@ -15,6 +15,10 @@ import org.bukkit.plugin.Plugin;
 
 public interface HoneyAPI {
 
+    void sync(Runnable task);
+
+    void async(Runnable task);
+
     Plugin getPlugin();
 
     void resetConfiguration();

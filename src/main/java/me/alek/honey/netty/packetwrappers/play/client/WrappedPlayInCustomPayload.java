@@ -5,6 +5,9 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.nbt.PrimitiveTag;
+import me.alek.honey.netty.nbt.TagType;
+import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
@@ -65,7 +68,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
                 Object key;
                 if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                     Object payloadData = ReflectStructure.Provider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
-                            .withoutStatic().withTarget(payload).invokeMethod(payloadDataCustomPayloadCache, 0);
+                            .withStatic(false).withTarget(payload).invokeMethod(payloadDataCustomPayloadCache, 0);
 
                     key = ReflectStructure.Provider.acquireStructure(payloadData.getClass())
                             .withType(NMS.getMinecraftKeyClass()).withTarget(payloadData).invokeMethod(minecraftKeyCustomPayloadCache, 0);
@@ -120,11 +123,33 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
                 try {
                     PacketDataSerializer copy = makeSerializerCopy();
-                    this.bookChannelItemStack = new LazyInit<>(copy::readItemStack);
+                    this.bookChannelItemStack = new LazyInit<>(() -> this.readItemStack(copy));
                     this.release = () -> AutoReleasable.doRelease(copy);
                 } catch (Exception ignored) {
                 }
             }
+        }
+
+        private WrappedImmutableItemStack readItemStack(PacketDataSerializer copy) {
+            WrappedImmutableItemStack item = copy.readItemStack();
+
+            if (item.getNBT() != null) {
+                ArrayTag<String> pages = item.getNBT().getArrayOf("pages", TagType.STRING);
+                if (channel.equals("MC|BEdit")) {
+                    item.getNBT().clear();
+                } else if (channel.equals("MC|BSign")) {
+                    String author = item.getNBT().getString("author");
+                    String title = item.getNBT().getString("title");
+                    item.getNBT().clear();
+
+                    item.getNBT().put("author", new PrimitiveTag<>(TagType.STRING, author));
+                    item.getNBT().put("title", new PrimitiveTag<>(TagType.STRING, title));
+                }
+
+                item.getNBT().put("pages", pages);
+            }
+
+            return item;
         }
 
         @Override

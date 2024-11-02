@@ -7,19 +7,19 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.function.Function;
 
-public class NBTElement<T> extends NBTBase<T, T> {
+public class PrimitiveTag<T> extends AbstractTag<T, T> {
 
-    public static final NBTElement<Void> END = new NBTElement<>(NBTType.END);
+    public static final PrimitiveTag<Void> END = new PrimitiveTag<>(TagType.END);
 
-    public NBTElement(Object base, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
-        super(base, root, owner, forceCreation);
+    public PrimitiveTag(Object base, boolean forceCreation) {
+        super(base, forceCreation);
     }
 
-    public NBTElement(NBTType type) {
+    public PrimitiveTag(TagType type) {
         super(type.createRawDelegate());
     }
 
-    public NBTElement(NBTType type, T value) {
+    public PrimitiveTag(TagType type, T value) {
         super(type.getBaseInvoker().invoke(value));
     }
 

@@ -391,6 +391,16 @@ public class HoneyPlugin implements HoneyAPI {
         return INSTANCE;
     }
 
+    @Override
+    public void sync(Runnable task) {
+        this.plugin.getServer().getScheduler().runTask(this.plugin, task);
+    }
+
+    @Override
+    public void async(Runnable task) {
+        this.plugin.getServer().getScheduler().runTaskAsynchronously(this.plugin, task);
+    }
+
     public Plugin getPlugin() {
         return this.plugin;
     }

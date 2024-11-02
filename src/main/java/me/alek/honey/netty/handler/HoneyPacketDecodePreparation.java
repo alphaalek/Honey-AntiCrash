@@ -111,15 +111,19 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 }
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
-                    Bukkit.getLogger().log(Level.INFO, "Error occurred while decoding packet sent by " + player + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
+                    Bukkit.getLogger().log(Level.INFO,
+                            "Error occurred while decoding packet " + earlyPacketContainer.getType() + " (id " + earlyPacketContainer.getType().getMinecraftID().get()
+                                    + ") sent by " + player + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
 
-                if (ex.getMessage() != null) {
-                    player.bukkit.kickPlayer(ex.getMessage());
-                } else {
-                    player.bukkit.kickPlayer("Disconnected");
-                }
+                HoneyPlugin.get().sync(() -> {
+                    if (ex.getMessage() != null) {
+                        player.bukkit.kickPlayer(ex.getMessage());
+                    } else {
+                        player.bukkit.kickPlayer("Disconnected");
+                    }
+                });
                 player.punished = true;
 
                 stopTimings(earlyPacketContainer);

@@ -1,4 +1,4 @@
-package me.alek.honey.netty.structure.converters.dedicated;
+package me.alek.honey.netty.structure.converters.wrapper;
 
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
@@ -10,42 +10,26 @@ import java.util.Set;
 
 public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
 
-    private final boolean controlDeclaring;
     private final JavaConverter<V, T> converter;
     private final Map<K, T> delegatedMap = new HashMap<>();
-    private Map<K, V> declaringMap;
+    private Map<K, V> declaringMap = new HashMap<>();
 
-    public SimpleMapConverter(JavaConverter<V, T> converter, boolean controlDeclaring) {
+    public SimpleMapConverter(JavaConverter<V, T> converter) {
         this.converter = converter;
-        this.controlDeclaring = controlDeclaring;
     }
 
     public boolean isInvalid() {
         return declaringMap == null;
     }
 
-    public SimpleMapConverter<K, V, T> apply(Map<K, V> map) {
-        if (controlDeclaring) {
-            declaringMap = map;
-        } else {
-            declaringMap = new HashMap<>();
-        }
+    public SimpleMapConverter<K, V, T> inject(Map<K, V> map) {
+        this.declaringMap = map;
 
-        synchronized (declaringMap) {
-            for (Map.Entry<K, V> entry : map.entrySet()) {
-                if (!controlDeclaring) {
-                    declaringMap.put(entry.getKey(), entry.getValue());
-                }
-                delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
-            }
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            this.delegatedMap.put(entry.getKey(), this.converter.convertDelegate(entry.getValue()));
         }
 
         return this;
-    }
-
-    @Override
-    public MapConverter<K, V, T> fakeApply(Map<K, V> mapping) {
-        return new SimpleMapConverter<K, V, T>(converter, false).apply(mapping);
     }
 
     public boolean checkMap() {

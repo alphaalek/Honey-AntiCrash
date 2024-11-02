@@ -124,8 +124,8 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
 
             for (PacketType packetType : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
                 ReflectStructure<Object, ?> structure = ReflectStructure.Provider.acquireStructure(packetType);
-                if (!structure.withDoubles().withoutStatic().getAccessors().isEmpty()
-                        || !structure.withFloats().withoutStatic().getAccessors().isEmpty()) {
+                if (!structure.withDoubles().withStatic(false).getAccessors().isEmpty()
+                        || !structure.withFloats().withStatic(false).getAccessors().isEmpty()) {
                     packetTypes.add(packetType);
                 }
             }

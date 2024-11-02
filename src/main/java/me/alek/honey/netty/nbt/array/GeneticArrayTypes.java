@@ -1,41 +1,39 @@
 package me.alek.honey.netty.nbt.array;
 
-import me.alek.honey.netty.nbt.NBTBase;
-import me.alek.honey.netty.nbt.NBTCompound;
-import me.alek.honey.netty.nbt.NBTRoot;
-import me.alek.honey.netty.nbt.NBTType;
+import me.alek.honey.netty.nbt.CompoundTag;
+import me.alek.honey.netty.nbt.TagType;
 
 import java.util.List;
 
 public class GeneticArrayTypes {
 
-    public static class NBTArrayOfCompound extends NBTAbstractArray<NBTCompound> {
+    public static class ArrayOfCompoundTag extends AbstractArrayTag<CompoundTag> {
 
-        public NBTArrayOfCompound(Object base, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
-            super(base, NBTType.COMPOUND, root, owner, forceCreation);
+        public ArrayOfCompoundTag(Object base, boolean forceCreation) {
+            super(base, TagType.getFromCollection(TagType.Collection.COMPOUND), forceCreation);
         }
 
-        public NBTArrayOfCompound() {
-            super(NBTType.COMPOUND);
+        public ArrayOfCompoundTag() {
+            super(TagType.getFromCollection(TagType.Collection.COMPOUND));
         }
 
-        public NBTArrayOfCompound(List<?> array) {
-            super(NBTType.COMPOUND, array);
+        public ArrayOfCompoundTag(List<Object> array) {
+            super(TagType.getFromCollection(TagType.Collection.COMPOUND), array);
         }
     }
 
-    public static class NBTArrayOfArray extends NBTAbstractArray<NBTAbstractArray<?>> {
+    public static class ArrayOfArrayTag extends AbstractArrayTag<AbstractArrayTag<?>> {
 
-        public NBTArrayOfArray(Object base, NBTRoot root, NBTBase<?, ?> owner, boolean forceCreation) {
-            super(base, NBTType.ARRAY, root, owner, forceCreation);
+        public ArrayOfArrayTag(Object base, boolean forceCreation) {
+            super(base, TagType.getFromCollection(TagType.Collection.ARRAY), forceCreation);
         }
 
-        public NBTArrayOfArray() {
-            super(NBTType.ARRAY);
+        public ArrayOfArrayTag() {
+            super(TagType.getFromCollection(TagType.Collection.ARRAY));
         }
 
-        public NBTArrayOfArray(List<?> array) {
-            super(NBTType.ARRAY, array);
+        public ArrayOfArrayTag(List<Object> array) {
+            super(TagType.getFromCollection(TagType.Collection.ARRAY), array);
         }
     }
 }
