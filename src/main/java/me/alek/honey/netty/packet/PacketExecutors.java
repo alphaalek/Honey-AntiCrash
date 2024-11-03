@@ -74,7 +74,7 @@ public class PacketExecutors {
                 .orElse(null);
         }
 
-        private Runnable handleBookEdit(Player player, WrappedImmutableItemStack item, ItemStack heldItem) {
+        private Runnable handleBookEdit(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
             if (item.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
                 return null;
             }
@@ -84,12 +84,12 @@ public class PacketExecutors {
                 heldItemMeta.setPages(newMeta.getPages());
                 heldItem.setItemMeta(heldItemMeta);
 
-                setItemInMainHand(player, heldItem);
+                player.setItemInMainHand(heldItem);
             });
         }
 
-        private Runnable handleBookSign(Player player, PacketContainer<CP> packet, WrappedImmutableItemStack item, ItemStack heldItem) {
-            if (!isValidAuthor(packet.getPlayer(), item.getNBT())) {
+        private Runnable handleBookSign(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
+            if (!isValidAuthor(player, item.getNBT())) {
                 return null;
             }
 
@@ -109,13 +109,13 @@ public class PacketExecutors {
             return () -> handleItem(player, item, true, (oldMeta, newMeta) -> {
                 heldItem.setType(Material.WRITTEN_BOOK);
                 heldItem.setItemMeta(newMeta);
-                setItemInMainHand(player, heldItem);
+                player.setItemInMainHand(heldItem);
             });
         }
 
         private Runnable handleBookChannel(PacketContainer<CP> packet, WrappedImmutableItemStack item) {
             Player bukkitPlayer = packet.getPlayer().bukkit;
-            ItemStack heldItem = getItemInMainHand(bukkitPlayer);
+            ItemStack heldItem = packet.getPlayer().getItemInMainHand();
             if (heldItem == null) {
                 return null;
             }
@@ -127,12 +127,12 @@ public class PacketExecutors {
             String channel = packet.getAnyWrapped().getData().getChannel();
 
             if (channel.equals("MC|BEdit")) {
-                Runnable edit = handleBookEdit(bukkitPlayer, item, heldItem);
+                Runnable edit = handleBookEdit(packet.getPlayer(), item, heldItem);
                 if (edit != null) {
                     return edit;
                 }
             } else if (channel.equals("MC|BSign")) {
-                Runnable sign = handleBookSign(bukkitPlayer, packet, item, heldItem);
+                Runnable sign = handleBookSign(packet.getPlayer(), item, heldItem);
                 if (sign != null) {
                     return sign;
                 }
@@ -141,8 +141,8 @@ public class PacketExecutors {
             return INVALID_BOOK_DATA.apply(bukkitPlayer);
         }
 
-        private void handleItem(Player player, WrappedImmutableItemStack item, boolean signing, BiConsumer<BookMeta, BookMeta> successCallback) {
-            ItemStack heldItem = getItemInMainHand(player);
+        private void handleItem(HoneyPlayer player, WrappedImmutableItemStack item, boolean signing, BiConsumer<BookMeta, BookMeta> successCallback) {
+            ItemStack heldItem = player.getItemInMainHand();
             if (heldItem.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
                 // can't edit or sign book, if the held item of the player is not writable book type
                 return;
@@ -154,11 +154,11 @@ public class PacketExecutors {
 
             if (PlayerEditBookEvent.getHandlerList().getRegisteredListeners().length > 0) {
                 PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
-                        player, player.getInventory().getHeldItemSlot(), heldItemMeta, newItemMeta, signing
+                        player.bukkit, player.bukkit.getInventory().getHeldItemSlot(), heldItemMeta, newItemMeta, signing
                 );
                 Bukkit.getPluginManager().callEvent(editBookEvent);
                 if (editBookEvent.isCancelled()) {
-                    setItemInMainHand(player, heldItem); // update for client
+                    player.setItemInMainHand(heldItem); // update for client
                     return;
                 }
             }
@@ -192,14 +192,6 @@ public class PacketExecutors {
             }
 
             return true;
-        }
-
-        private ItemStack getItemInMainHand(Player player) {
-            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-                return player.getInventory().getItemInHand();
-            } else {
-                return player.getInventory().getItemInMainHand();
-            }
         }
 
         private void setItemInMainHand(Player player, ItemStack item) {

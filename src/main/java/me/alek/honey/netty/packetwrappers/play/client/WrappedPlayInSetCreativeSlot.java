@@ -6,13 +6,8 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
-import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.inventory.ItemStack;
-
-import java.util.Optional;
 
 public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayInSetCreativeSlot> implements AutoReleasable {
 
@@ -37,7 +32,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
         return this.slot;
     }
 
-    public WrappedImmutableItemStack getItem() {
+    public WrappedImmutableItemStack getItemStack() {
         return this.item.get();
     }
 

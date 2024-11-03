@@ -126,31 +126,37 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
             if (getSetting().isEnabled()) {
                 WrappedImmutableItemStack item = packet.getData().getBookChannelItemStack();
                 if (item != null) {
-                    Callback callback = new Callback();
-                    if (ItemAnalysis.checkItem(player, item, callback)) {
-                        return ValidationServiceContext.Builder.validate().cancel().flag()
-                                .onViolation(ViolationKey.of(this), (key, onViolation) -> {
-                                    if (onViolation != null) onViolation.run();
-
-                                    callback.call(context.getDevelopmentData(key));
-                                })
-                                .build();
-                    }
-
                     int nbtSize;
                     if (item.getNBT() != null && (nbtSize = item.getNBT().toString().getBytes().length) > getSetting().max) {
                         return ValidationServiceContext.Builder.validate().cancel().flag()
-                                .onViolation(ViolationKey.of(this), (key, onViolation) -> {
-                                    if (onViolation != null) onViolation.run();
-
-                                    context.getDevelopmentData(key).addPoint("NBT Size", nbtSize);
+                                .onViolation(generateKey(), (keyInner, onViolation) -> {
+                                    if (onViolation != null) {
+                                        onViolation.run();
+                                    }
+                                    context.getDevelopmentData(keyInner).addPoint("NBT Size", nbtSize);
+                                    clearItem(player);
                                 })
                                 .build();
                     }
+
+                    return ItemAnalysis.flagIf(player, item, generateKey(), context)
+                            .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
+                                if (onViolation != null) {
+                                    onViolation.run();
+                                }
+                                clearItem(player);
+                            }).build();
                 }
             }
 
             return ValidationServiceContext.PASS;
+        }
+
+        private void clearItem(HoneyPlayer player) {
+            ItemStack heldItem = player.getItemInMainHand();
+            if (heldItem != null && heldItem.getType() == Material.WRITABLE_BOOK) {
+                heldItem.setType(Material.AIR);
+            }
         }
 
         @Override

@@ -15,7 +15,9 @@ import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
+import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
 import java.util.List;
@@ -106,7 +108,19 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ItemAnalysis.flagIf(player, packet.getCarriedItemStack(), ViolationKey.of(this), context);
+                return ItemAnalysis.flagIf(player, packet.getCarriedItemStack(), generateKey(), context)
+                        .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
+                            if (onViolation != null) {
+                                onViolation.run();
+                            }
+                            try {
+                                ItemStack item = player.bukkit.getInventory().getItem(packet.getSlot());
+                                if (item != null && item.equals(packet.getCarriedItemStack().toCraftBukkit())) {
+                                    item.setType(Material.AIR);
+                                }
+                            } catch (Exception ignored) {
+                            }
+                        }).build();
             }
 
             return ValidationServiceContext.PASS;

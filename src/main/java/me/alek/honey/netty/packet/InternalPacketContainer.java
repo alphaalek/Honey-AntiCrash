@@ -55,11 +55,12 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         }
 
         this.pipelineState = createdState;
-        if (serializer != null) {
+        if (serializer != null && createdState != PipelineState.OBJECT) {
+            ByteWrappedPacket<WP> byteWrappedPacket = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
             if (createdState == PipelineState.INITIAL_BYTE) {
-                this.initialByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
+                this.initialByteWrapped = byteWrappedPacket;
             } else if (createdState == PipelineState.FINAL_BYTE) {
-                this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
+                this.finalByteWrapped = byteWrappedPacket;
             }
         }
     }
@@ -224,6 +225,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         } else if (this.objectWrapped != null && !this.objectWrapped.getClass().equals(ObjectWrappedPacket.class)) {
             return this.objectWrapped.get();
         } else {
+            // none of the wrapped packets are specific, just return any abstract instance
             if (this.initialByteWrapped != null) {
                 return this.initialByteWrapped.get();
             } else if (this.finalByteWrapped != null) {
@@ -243,8 +245,9 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public String getPlayerName() {
-        if (this.type == PacketTypes.Login.Client.LOGIN_START && this.objectWrapped != null) {
-            return ((WrappedLoginInLoginStart)this.objectWrapped).getName();
+        // if this is called before LOGIN_START post action, the player name is not yet updated
+        if (this.type == PacketTypes.Login.Client.LOGIN_START) {
+            return ((WrappedLoginInLoginStart)getAnyWrapped()).getName();
         }
 
         return this.player.packetHandler.getPlayerName();

@@ -16,6 +16,8 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
 import java.util.List;
@@ -121,7 +123,21 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ItemAnalysis.flagIf(player, packet.getItem(), ViolationKey.of(this), context);
+                return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context)
+                        .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
+                            if (onViolation != null) {
+                                onViolation.run();
+                            }
+                            if (player.bukkit.getGameMode() == GameMode.CREATIVE) {
+                                try {
+                                    ItemStack item = player.bukkit.getInventory().getItem(packet.getSlot());
+                                    if (item != null && item.equals(packet.getItemStack().toCraftBukkit())) {
+                                        item.setType(Material.AIR);
+                                    }
+                                } catch (Exception ignored) {
+                                }
+                            }
+                        }).build();
             }
 
             return ValidationServiceContext.PASS;

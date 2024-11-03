@@ -1,5 +1,6 @@
 package me.alek.honey.validation.item;
 
+import jdk.vm.ci.code.site.Call;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
@@ -65,7 +66,10 @@ public class ItemAnalysis {
     }
 
     public static ValidationServiceContext flagIf(HoneyPlayer player, WrappedImmutableItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
-        Callback callback = new Callback();
+        return flagIf(player, item, keyOuter, new Callback(), context);
+    }
+
+    public static ValidationServiceContext flagIf(HoneyPlayer player, WrappedImmutableItemStack item, ViolationKey keyOuter, Callback callback, ValidationPipelineContext context) {
         if (ItemAnalysis.checkItem(player, item, callback)) {
             return ValidationServiceContext.Builder.validate()
                     .cancel()
@@ -111,7 +115,6 @@ public class ItemAnalysis {
             Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flagged);
         }
 
-        // TODO clear item
         return true;
     }
 

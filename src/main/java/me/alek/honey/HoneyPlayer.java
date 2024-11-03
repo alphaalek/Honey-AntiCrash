@@ -16,6 +16,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -182,6 +183,22 @@ public class HoneyPlayer implements Identifiable {
 
     public void sendMessage(String message) {
         bukkit.sendMessage(message);
+    }
+
+    public ItemStack getItemInMainHand() {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
+            return bukkit.getInventory().getItemInHand();
+        } else {
+            return bukkit.getInventory().getItemInMainHand();
+        }
+    }
+
+    public void setItemInMainHand(ItemStack item) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
+            bukkit.getInventory().setItemInHand(item);
+        } else {
+            bukkit.getInventory().setItemInMainHand(item);
+        }
     }
 
     @Override

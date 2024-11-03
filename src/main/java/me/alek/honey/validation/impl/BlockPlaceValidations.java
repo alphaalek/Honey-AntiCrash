@@ -134,7 +134,17 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         @Override
         public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
-                return ItemAnalysis.flagIf(player, packet.getItemStack(), ViolationKey.of(this), context);
+                return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context)
+                        .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
+                            if (onViolation != null) {
+                                onViolation.run();
+                            }
+                            ItemStack heldItem = player.getItemInMainHand();
+                            if (heldItem.equals(packet.getItemStack().toCraftBukkit())) {
+                                heldItem.setType(Material.AIR);
+                            }
+                        }).build();
+
             }
 
             return ValidationServiceContext.PASS;

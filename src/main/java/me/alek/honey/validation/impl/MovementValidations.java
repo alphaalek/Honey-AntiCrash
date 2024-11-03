@@ -81,7 +81,9 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
         callback.addAction(Callback.Action.<ViolationKey, ValidationServiceContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
-                if (onViolation != null) onViolation.run();
+                if (onViolation != null) {
+                    onViolation.run();
+                }
 
                 final String x = format(currentLocation.getX());
                 final String y = format(currentLocation.getY());
@@ -212,8 +214,9 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                     builder.add(
                             ValidationServiceContext.Builder.validate().cancel().flag().withViolationKey(XZKey)
                                     .onViolation(ViolationKey.of(this, XZKey), (key, onViolation) -> {
-                                        if (onViolation != null) onViolation.run();
-
+                                        if (onViolation != null) {
+                                            onViolation.run();
+                                        }
                                         context.getDevelopmentData(key).addPoint("2D Distance", distance2d);
                                     })
                                     .build()
@@ -224,8 +227,9 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                     builder.add(
                             ValidationServiceContext.Builder.validate().cancel().flag().withViolationKey(YKey)
                                     .onViolation(ViolationKey.of(this, YKey), (key, onViolation) -> {
-                                        if (onViolation != null) onViolation.run();
-
+                                        if (onViolation != null) {
+                                            onViolation.run();
+                                        }
                                         context.getDevelopmentData(key).addPoint("Y Distance", distanceY);
                                     })
                                     .build()
