@@ -21,8 +21,9 @@ import java.util.List;
 
 public class NBTFactory {
 
-    private static final int THIRTY_TWO_KB = 1024 * 32;
-    private static final int MAX_COMPLEXITY = 8;
+    private static final int SIXTY_FOUR_KILOBYTES = 1024 * 64;
+    private static final int MAX_DEPTH = 8;
+    private static final int MAX_COMPLEXITY = 256;
 
     public static AbstractTag<?, ?, ?> read(PacketDataSerializer serializer) throws IOException {
         try (ByteBufInputStream stream = new ByteBufInputStream(serializer)) {
@@ -46,7 +47,8 @@ public class NBTFactory {
         }
 
         // deserialize tag
-        return type.getCodec().read(new DataInputStream(stream), new TagLimiter(THIRTY_TWO_KB, MAX_COMPLEXITY));
+        return type.getCodec().read(new DataInputStream(stream),
+                new TagLimiter(SIXTY_FOUR_KILOBYTES, MAX_DEPTH, MAX_COMPLEXITY));
     }
 
     public static int getAmountOfTags(AbstractTag<?, ?, ?> tag) {

@@ -8,6 +8,7 @@ import me.alek.honey.util.protocol.NetProtocolRange;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
+import org.checkerframework.checker.units.qual.C;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -228,11 +229,11 @@ public enum TagType {
         return null;
     }
 
-    TagType(byte typeId, Class<? extends NBTCodec<?>> codec, Class<?> delegateClass, Class<?> dataTypeClass) {
+    TagType(byte typeId, Class<?> codec, Class<?> delegateClass, Class<?> dataTypeClass) {
         this(typeId, codec, delegateClass, Reflection.getConstructor(getNBTBaseClass(PrimitiveTag.class), Object.class, boolean.class), dataTypeClass);
     }
 
-    <T extends AbstractTag<?, ?, T>, C extends NBTCodec<T>> TagType(byte typeId, Class<C> codec, Class<?> delegateClass, ConstructorInvoker<? extends AbstractTag<?, ?, ?>> wrappedInvoker, Class<?> dataTypeClass) {
+    TagType(byte typeId, Class<?> codec, Class<?> delegateClass, ConstructorInvoker<? extends AbstractTag<?, ?, ?>> wrappedInvoker, Class<?> dataTypeClass) {
         this.typeId = typeId;
         this.deleteClass = delegateClass;
         this.dataTypeClass = dataTypeClass;
@@ -246,7 +247,7 @@ public enum TagType {
         }
 
         try {
-            this.codec = codec.getDeclaredConstructor().newInstance();
+            this.codec = (NBTCodec<?>) codec.getDeclaredConstructor().newInstance();
             this.wrappedInvoker = wrappedInvoker;
 
             Field field = TagType.class.getField(this.name());

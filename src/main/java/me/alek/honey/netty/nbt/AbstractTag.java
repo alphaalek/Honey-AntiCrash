@@ -45,7 +45,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     }
 
     public TAG incrementComplexity(TagLimiter limiter) {
-        limiter.incrementComplexity();
+        limiter.incrementDepth();
         return (TAG) this;
     }
 

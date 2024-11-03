@@ -6,12 +6,15 @@ public class TagLimiter {
 
     private final int maxBytes;
     private final int maxDepth;
+    private final int maxComplexity;
     private int bytes;
     private int depth;
+    private int complexity;
 
-    public TagLimiter(int maxBytes, int maxDepth) {
+    public TagLimiter(int maxBytes, int maxDepth, int maxComplexity) {
         this.maxBytes = maxBytes;
         this.maxDepth = maxDepth;
+        this.maxComplexity = maxComplexity;
     }
 
     public void incrementBytes(int bytes) {
@@ -22,17 +25,25 @@ public class TagLimiter {
         }
     }
 
-    public int incrementComplexity() {
+    public int incrementDepth() {
         this.depth++;
 
         if (this.depth > this.maxDepth) {
-            throw new DecoderException("Tried to read too complex nbt: " + this.depth);
+            throw new DecoderException("Tried to read nbt which is too deep: " + this.depth);
         }
 
         return this.depth - 1;
     }
 
-    public void setComplexity(int depth) {
+    public void incrementComplexity() {
+        this.complexity++;
+
+        if (this.complexity > this.maxComplexity) {
+            throw new DecoderException("Tried to read nbt which is too complex: " + this.complexity);
+        }
+    }
+
+    public void setDepth(int depth) {
         this.depth = depth;
     }
 }

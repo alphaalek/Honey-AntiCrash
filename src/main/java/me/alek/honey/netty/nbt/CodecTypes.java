@@ -7,7 +7,6 @@ import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.IntUnaryOperator;
 
 public class CodecTypes {
 
@@ -263,7 +262,7 @@ public class CodecTypes {
             if (type == null) {
                 throw new IOException();
             }
-            int depth = limiter.incrementComplexity();
+            int depth = limiter.incrementDepth();
 
             int length = input.readInt();
             List<Object> array = new ArrayList<>();
@@ -271,7 +270,7 @@ public class CodecTypes {
                 array.add(Optional.ofNullable(type.getCodec().read(input, limiter)).map(AbstractTag::getHandle).orElse(null));
             }
 
-            limiter.setComplexity(depth);
+            limiter.setDepth(depth);
 
             R wrappedArray;
             if (type.hasCollection()) {
@@ -290,6 +289,7 @@ public class CodecTypes {
             }
 
             return wrappedArray
+                    .incrementComplexity(limiter)
                     .incrementBytes(limiter, ARRAY_BYTES)
                     .incrementBytes(limiter, ARRAY_ELEMENT_BYTES * wrappedArray.size());
         }
@@ -320,7 +320,7 @@ public class CodecTypes {
         public CompoundTag read(DataInputStream input, TagLimiter limiter) throws IOException {
             Map<String, Object> map = new HashMap<>();
 
-            int depth = limiter.incrementComplexity();
+            int depth = limiter.incrementDepth();
             byte b;
             while ((b = input.readByte()) != 0) {
                 TagType type = TagType.getFromTypeId(b);
@@ -334,9 +334,10 @@ public class CodecTypes {
                 map.put(key, value);
             }
 
-            limiter.setComplexity(depth);
+            limiter.setDepth(depth);
 
             return new CompoundTag(map)
+                    .incrementComplexity(limiter)
                     .incrementBytes(limiter, COMPOUND_BYTES)
                     .incrementBytes(limiter, COMPOUND_ELEMENT_BYTES * map.size());
         }
