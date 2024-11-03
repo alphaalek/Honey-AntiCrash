@@ -99,13 +99,11 @@ public class PacketExecutors {
             }
 
             if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
-                ArrayTag<String> pages = item.getNBT().hasKeyOfType("pages", TagType.STRING)
-                        ? item.getNBT().getArrayOf("pages", TagType.STRING)
-                        : new ArrayTag<>(TagType.STRING);
+                ArrayTag<String> pages = item.getNBT().getArrayOf("pages", TagType.STRING);
                 if (!serializeTextComponents(pages)) {
-                    // TODO: actually serialize the components of the meta
                     return null;
                 }
+                item.clearSpecificMetaCache();
             }
 
             return () -> handleItem(player, item, true, (oldMeta, newMeta) -> {
@@ -189,7 +187,6 @@ public class PacketExecutors {
 
                     pages.set(i, new PrimitiveTag<>(TagType.STRING, serialized));
                 } catch (Exception ex) {
-                    ex.printStackTrace();
                     return false;
                 }
             }

@@ -177,6 +177,19 @@ public class WrappedImmutableItemStack {
         return got != null ? got : Bukkit.getItemFactory().getItemMeta(this.type);
     }
 
+    public void clearDefaultMetaCache() {
+        this.cachedDefaultMeta = null;
+    }
+
+    public void clearSpecificMetaCache() {
+        this.cachedSpecificMeta = null;
+    }
+
+    public void clearMetaCache() {
+        clearDefaultMetaCache();
+        clearSpecificMetaCache();
+    }
+
     public CompoundTag getNBT() {
         return this.nbt;
     }

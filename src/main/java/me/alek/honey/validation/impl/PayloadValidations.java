@@ -79,7 +79,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadA.class);
+            return Settings.getSetting(this, ConfigurationOptions.Payload.PayloadA.class);
         }
     }
 
@@ -113,7 +113,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadB.class);
+            return Settings.getSetting(this, ConfigurationOptions.Payload.PayloadB.class);
         }
     }
 
@@ -170,7 +170,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadC.class);
+            return Settings.getSetting(this, ConfigurationOptions.Payload.PayloadC.class);
         }
     }
 
@@ -212,7 +212,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadD.class);
+            return Settings.getSetting(this, ConfigurationOptions.Payload.PayloadD.class);
         }
     }
 
@@ -256,7 +256,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.CustomPayload.PayloadE.class);
+            return Settings.getSetting(this, ConfigurationOptions.Payload.PayloadE.class);
         }
     }
 }

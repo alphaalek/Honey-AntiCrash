@@ -764,7 +764,7 @@ public class ConfigurationOptions {
     }
 
     @Setting
-    public static class CustomPayload {
+    public static class Payload {
 
         @Setting
         @Violation(prefixPaths = "custom-payload.a", packetHandler = PacketLimitHandlerType.SIMPLE)
