@@ -11,23 +11,26 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class NBTFactory {
 
-    public static AbstractTag<?, ?> read(PacketDataSerializer serializer) throws IOException {
+    private static final int THIRTY_TWO_KB = 1024 * 32;
+    private static final int MAX_COMPLEXITY = 8;
+
+    public static AbstractTag<?, ?, ?> read(PacketDataSerializer serializer) throws IOException {
         try (ByteBufInputStream stream = new ByteBufInputStream(serializer)) {
             return read(stream);
         }
     }
 
-    private static AbstractTag<?, ?> read(ByteBufInputStream stream) throws IOException {
+    private static AbstractTag<?, ?, ?> read(ByteBufInputStream stream) throws IOException {
         byte id = stream.readByte();
         TagType type = TagType.getFromTypeId(id);
         if (type == TagType.END || type == null) {
@@ -43,19 +46,19 @@ public class NBTFactory {
         }
 
         // deserialize tag
-        return type.getCodec().read(stream);
+        return type.getCodec().read(new DataInputStream(stream), new TagLimiter(THIRTY_TWO_KB, MAX_COMPLEXITY));
     }
 
-    public static int getAmountOfTags(AbstractTag<?, ?> tag) {
+    public static int getAmountOfTags(AbstractTag<?, ?, ?> tag) {
         if (tag instanceof AbstractArrayTag) {
             int i = 0;
-            for (AbstractTag<?, ?> tagIn : ((AbstractArrayTag<?>)tag))  {
+            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?>)tag))  {
                 i += getAmountOfTags(tagIn);
             }
             return i;
         } else if (tag instanceof CompoundTag) {
             int i = 0;
-            for (AbstractTag<?, ?> tagIn : ((CompoundTag)tag).getBases()) {
+            for (AbstractTag<?, ?, ?> tagIn : ((CompoundTag)tag).getBases()) {
                 i += getAmountOfTags(tagIn);
             }
             return i;
@@ -64,14 +67,14 @@ public class NBTFactory {
         }
     }
 
-    public static int getComplexityOfTag(AbstractTag<?, ?> tag) {
+    public static int getComplexityOfTag(AbstractTag<?, ?, ?> tag) {
         return getComplexityOfTag0(tag, 0);
     }
 
-    private static int getComplexityOfTag0(AbstractTag<?, ?> tag, int complexity) {
+    private static int getComplexityOfTag0(AbstractTag<?, ?, ?> tag, int complexity) {
         if (tag instanceof AbstractArrayTag) {
             int max = complexity;
-            for (AbstractTag<?, ?> tagIn : ((AbstractArrayTag<?>)tag)) {
+            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?>)tag)) {
                 int complexity0 = getComplexityOfTag0(tagIn, complexity + 1);
                 if (complexity0 > max) {
                     max = complexity0;
@@ -80,7 +83,7 @@ public class NBTFactory {
             return max;
         } else if (tag instanceof CompoundTag) {
             int max = complexity;
-            for (AbstractTag<?, ?> tagIn : ((CompoundTag)tag).getBases()) {
+            for (AbstractTag<?, ?, ?> tagIn : ((CompoundTag)tag).getBases()) {
                 int complexity0 = getComplexityOfTag0(tagIn, complexity + 1);
                 if (complexity0 > max) {
                     max = complexity0;
@@ -92,19 +95,19 @@ public class NBTFactory {
         }
     }
 
-    public static <T extends AbstractTag<?, ?>> List<T> getAllTagsAs(AbstractTag<?, ?> tag, TagType type) {
+    public static <T extends AbstractTag<?, ?, ?>> List<T> getAllTagsAs(AbstractTag<?, ?, ?> tag, TagType type) {
         List<T> tags = new ArrayList<>();
         getAllTagsAs0(tag, type, tags);
         return tags;
     }
 
-    private static <T extends AbstractTag<?, ?>> void getAllTagsAs0(AbstractTag<?, ?> tag, TagType type, List<T> tags) {
+    private static <T extends AbstractTag<?, ?, ?>> void getAllTagsAs0(AbstractTag<?, ?, ?> tag, TagType type, List<T> tags) {
         if (tag instanceof AbstractArrayTag) {
-            for (AbstractTag<?, ?> tagIn : ((AbstractArrayTag<?>)tag))  {
+            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?>)tag))  {
                 getAllTagsAs0(tagIn, type, tags);
             }
         } else if (tag instanceof CompoundTag) {
-            for (AbstractTag<?, ?> tagIn : ((CompoundTag)tag).getBases()) {
+            for (AbstractTag<?, ?, ?> tagIn : ((CompoundTag)tag).getBases()) {
                 getAllTagsAs0(tagIn, type, tags);
             }
         }
@@ -125,11 +128,11 @@ public class NBTFactory {
         }
 
         ReflectStructure<Object, ?> reflectStructure = ReflectStructure.Provider.acquireStructure(nmsItem.getClass());
-        IStructureModifier<AbstractTag<?, ?>> structureModifier = reflectStructure
+        IStructureModifier<AbstractTag<?, ?, ?>> structureModifier = reflectStructure
                 .withTypeWithoutCache(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(forceCreation))
                 .withTarget(nmsItem);
 
-        AbstractTag<?, ?> base = structureModifier.readField(0);
+        AbstractTag<?, ?, ?> base = structureModifier.readField(0);
         if (base == null && createIfNone) {
             try {
                 Object handle = NMS.getNBTTagCompoundClass().getDeclaredConstructor().newInstance();
@@ -145,29 +148,29 @@ public class NBTFactory {
         return (CompoundTag) base;
     }
 
-    public static <K, V> AbstractTag<K, V> fromDelegate(Object handle, boolean forceCreation) {
+    public static <T extends AbstractTag<K, V, T>, K, V> T fromDelegate(Object handle, boolean forceCreation) {
         return copyFromType(getType(handle, false, forceCreation), handle, forceCreation);
     }
 
-    public static <K, V> AbstractTag<K, V> copyBase(AbstractTag<K, V> base, boolean forceCreation) {
+    public static <T extends AbstractTag<K, V, T>, K, V> T copyBase(T base, boolean forceCreation) {
         return copyFromType(base.getType(), base.getHandle(), forceCreation);
     }
 
     @SuppressWarnings("unchecked")
-    public static <K, V> AbstractTag<K, V> copyFromType(TagType type, Object handle, boolean forceCreation) {
+    public static <T extends AbstractTag<K, V, T>, K, V> T copyFromType(TagType type, Object handle, boolean forceCreation) {
         if (type == null) {
             return null;
         }
 
-        ConstructorInvoker<? extends AbstractTag<?, ?>> constructorInvoker = type.getWrappedInvoker();
+        ConstructorInvoker<? extends AbstractTag<?, ?, ?>> constructorInvoker = type.getWrappedInvoker();
         if (constructorInvoker == null) {
             return null;
         }
 
         if (type.getCollection() == TagType.Collection.ARRAY) {
-            return (AbstractTag<K, V>) constructorInvoker.invoke(handle, getArrayType(handle, forceCreation), forceCreation);
+            return (T) constructorInvoker.invoke(handle, getArrayType(handle, forceCreation), forceCreation);
         } else {
-            return (AbstractTag<K, V>) constructorInvoker.invoke(handle, forceCreation);
+            return (T) constructorInvoker.invoke(handle, forceCreation);
         }
     }
 
@@ -184,16 +187,16 @@ public class NBTFactory {
             return TagType.getFromTypeId(typeId);
         }
 
-        IStructureModifier<ListConverter<Object, AbstractTag<?, ?>>> arrayStructure = ReflectStructure.Provider.acquireStructure(handle.getClass())
-            .withWeakType(List.class, Converters.<AbstractTag<?, ?>>getNBTListConverter(forceCreation))
+        IStructureModifier<ListConverter<Object, AbstractTag<?, ?, ?>>> arrayStructure = ReflectStructure.Provider.acquireStructure(handle.getClass())
+            .withWeakType(List.class, Converters.<AbstractTag<?, ?, ?>>getNBTListConverter(forceCreation))
             .withTarget(handle);
-        List<? extends AbstractTag<?, ?>> array = arrayStructure.readFieldAndApplyMapping(0)
+        List<? extends AbstractTag<?, ?, ?>> array = arrayStructure.readFieldAndApplyMapping(0)
                 .getDelegatedList();
         if (array.isEmpty()) {
             return null;
         }
 
-        AbstractTag<?, ?> value = array.get(0);
+        AbstractTag<?, ?, ?> value = array.get(0);
         if (value == null) {
             return null;
         }

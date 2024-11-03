@@ -1,112 +1,132 @@
 package me.alek.honey.netty.nbt;
 
-import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.nbt.array.ArrayTag;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
+import java.util.function.IntUnaryOperator;
 
 public class CodecTypes {
 
     public static class EndCodec implements NBTCodec.Element<Void> {
 
+        private static final int END_BYTES = 8;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<Void> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<Void> tag) throws IOException {
 
         }
 
         @Override
-        public PrimitiveTag<Void> read(DataInput input) throws IOException {
-            return PrimitiveTag.END;
+        public PrimitiveTag<Void> read(DataInputStream input, TagLimiter limiter) throws IOException {
+            return PrimitiveTag.END
+                    .incrementBytes(limiter, END_BYTES);
         }
     }
 
     public static class ByteCodec implements NBTCodec.Element<Byte> {
 
         @Override
-        public void write(DataOutput output, PrimitiveTag<Byte> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<Byte> tag) throws IOException {
             output.writeByte(tag.getValue());
         }
 
         @Override
-        public PrimitiveTag<Byte> read(DataInput input) throws IOException {
-            return new PrimitiveTag<>(TagType.BYTE, input.readByte());
+        public PrimitiveTag<Byte> read(DataInputStream input, TagLimiter limiter) throws IOException {
+            return new PrimitiveTag<>(TagType.BYTE, input.readByte())
+                    .incrementBytes(limiter, 1);
         }
     }
 
     public static class ShortCodec implements NBTCodec.Element<Short> {
 
+        private static final int SHORT_BYTES = 10;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<Short> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<Short> tag) throws IOException {
             output.writeShort(tag.getValue());
         }
 
         @Override
-        public PrimitiveTag<Short> read(DataInput input) throws IOException {
-            return new PrimitiveTag<>(TagType.SHORT, input.readShort());
+        public PrimitiveTag<Short> read(DataInputStream input, TagLimiter limiter) throws IOException {
+            return new PrimitiveTag<>(TagType.SHORT, input.readShort())
+                    .incrementBytes(limiter, SHORT_BYTES);
         }
     }
 
     public static class IntCodec implements NBTCodec.Element<Integer> {
 
+        private static final int INT_BYTES = 12;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<Integer> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<Integer> tag) throws IOException {
             output.writeInt(tag.getValue());
         }
 
         @Override
-        public PrimitiveTag<Integer> read(DataInput input) throws IOException {
-            return new PrimitiveTag<>(TagType.INT, input.readInt());
+        public PrimitiveTag<Integer> read(DataInputStream input, TagLimiter limiter) throws IOException {
+            return new PrimitiveTag<>(TagType.INT, input.readInt())
+                    .incrementBytes(limiter, INT_BYTES);
         }
     }
 
     public static class LongCodec implements NBTCodec.Element<Long> {
 
+        private static final int LONG_BYTES = 16;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<Long> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<Long> tag) throws IOException {
             output.writeLong(tag.getValue());
         }
 
         @Override
-        public PrimitiveTag<Long> read(DataInput input) throws IOException {
-            return new PrimitiveTag<>(TagType.LONG, input.readLong());
+        public PrimitiveTag<Long> read(DataInputStream input, TagLimiter limiter) throws IOException {
+            return new PrimitiveTag<>(TagType.LONG, input.readLong())
+                    .incrementBytes(limiter, LONG_BYTES);
         }
     }
 
     public static class FloatCodec implements NBTCodec.Element<Float> {
 
+        private static final int FLOAT_BYTES = 12;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<Float> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<Float> tag) throws IOException {
             output.writeFloat(tag.getValue());
         }
 
         @Override
-        public PrimitiveTag<Float> read(DataInput input) throws IOException {
-            return new PrimitiveTag<>(TagType.FLOAT, input.readFloat());
+        public PrimitiveTag<Float> read(DataInputStream input, TagLimiter limiter) throws IOException {
+            return new PrimitiveTag<>(TagType.FLOAT, input.readFloat())
+                    .incrementBytes(limiter, FLOAT_BYTES);
         }
     }
 
     public static class DoubleCodec implements NBTCodec.Element<Double> {
 
+        private static final int DOUBLE_BYTES = 16;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<Double> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<Double> tag) throws IOException {
             output.writeDouble(tag.getValue());
         }
 
         @Override
-        public PrimitiveTag<Double> read(DataInput input) throws IOException {
-            return new PrimitiveTag<>(TagType.DOUBLE, input.readDouble());
+        public PrimitiveTag<Double> read(DataInputStream input, TagLimiter limiter) throws IOException {
+            return new PrimitiveTag<>(TagType.DOUBLE, input.readDouble())
+                    .incrementBytes(limiter, DOUBLE_BYTES);
         }
     }
 
     public static class ByteArrayCodec implements NBTCodec.Element<byte[]> {
 
+        private static final int BYTE_ARRAY_BYTES = 24;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<byte[]> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<byte[]> tag) throws IOException {
             if (tag.getValue() == null) {
                 output.writeInt(0);
             } else {
@@ -116,34 +136,53 @@ public class CodecTypes {
         }
 
         @Override
-        public PrimitiveTag<byte[]> read(DataInput input) throws IOException {
+        public PrimitiveTag<byte[]> read(DataInputStream input, TagLimiter limiter) throws IOException {
             int length = input.readInt();
             byte[] array = new byte[length];
             for (int i = 0; i < length; i++) {
                 array[i] = input.readByte();
             }
 
-            return new PrimitiveTag<>(TagType.ARRAY_OF_BYTE, array);
+            return new PrimitiveTag<>(TagType.ARRAY_OF_BYTE, array)
+                    .incrementBytes(limiter, BYTE_ARRAY_BYTES)
+                    .incrementBytes(limiter, length);
         }
     }
 
     public static class StringCodec implements NBTCodec.Element<String> {
 
+        private static final int STRING_BYTES = 36;
+        private static final int CHAR_BYTES = 2;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<String> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<String> tag) throws IOException {
             output.writeUTF(tag.getValue());
         }
 
         @Override
-        public PrimitiveTag<String> read(DataInput input) throws IOException {
-            return new PrimitiveTag<>(TagType.STRING, input.readUTF());
+        public PrimitiveTag<String> read(DataInputStream input, TagLimiter limiter) throws IOException {
+            String str = input.readUTF();
+            return new PrimitiveTag<>(TagType.STRING, str)
+                    .incrementBytes(limiter, STRING_BYTES)
+                    .incrementBytes(limiter, Math.max(str.length() * CHAR_BYTES, getBytesFor(str)));
+        }
+
+        private int getBytesFor(String str) {
+            return str.codePoints().map(operand -> getBytesFor((char) operand)).sum();
+        }
+
+        private int getBytesFor(char c) {
+            return (Integer.SIZE >> 3) - (Integer.numberOfLeadingZeros(c) >> 3);
         }
     }
 
     public static class LongArrayCodec implements NBTCodec.Element<long[]> {
 
+        private static final int LONG_ARRAY_BYTES = 24;
+        private static final int LONG_ARRAY_ELEMENT_BYTES = 8;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<long[]> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<long[]> tag) throws IOException {
             if (tag.getValue() == null) {
                 output.writeInt(0);
             } else {
@@ -155,21 +194,26 @@ public class CodecTypes {
         }
 
         @Override
-        public PrimitiveTag<long[]> read(DataInput input) throws IOException {
+        public PrimitiveTag<long[]> read(DataInputStream input, TagLimiter limiter) throws IOException {
             int length = input.readInt();
             long[] array = new long[length];
             for (int i = 0; i < length; i++) {
                 array[i] = input.readLong();
             }
 
-            return new PrimitiveTag<>(TagType.ARRAY_OF_LONG, array);
+            return new PrimitiveTag<>(TagType.ARRAY_OF_LONG, array)
+                    .incrementBytes(limiter, LONG_ARRAY_BYTES)
+                    .incrementBytes(limiter, length * LONG_ARRAY_ELEMENT_BYTES);
         }
     }
 
     public static class IntArrayCodec implements NBTCodec.Element<int[]> {
 
+        private static final int INT_ARRAY_BYTES = 24;
+        private static final int INT_ARRAY_ELEMENT_BYTES = 4;
+
         @Override
-        public void write(DataOutput output, PrimitiveTag<int[]> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<int[]> tag) throws IOException {
             if (tag.getValue() == null) {
                 output.writeInt(0);
             } else {
@@ -181,63 +225,85 @@ public class CodecTypes {
         }
 
         @Override
-        public PrimitiveTag<int[]> read(DataInput input) throws IOException {
+        public PrimitiveTag<int[]> read(DataInputStream input, TagLimiter limiter) throws IOException {
             int length = input.readInt();
             int[] array = new int[length];
             for (int i = 0; i < length; i++) {
                 array[i] = input.readInt();
             }
 
-            return new PrimitiveTag<>(TagType.ARRAY_OF_INT, array);
+            return new PrimitiveTag<>(TagType.ARRAY_OF_INT, array)
+                    .incrementBytes(limiter, INT_ARRAY_BYTES)
+                    .incrementBytes(limiter, length * INT_ARRAY_ELEMENT_BYTES);
         }
     }
 
-    public static class ArrayCodec implements NBTCodec<AbstractArrayTag<? extends AbstractTag<?, ?>>> {
+    public static class ArrayCodec<T extends AbstractTag<?, ?, T>, R extends AbstractArrayTag<T, R>> implements NBTCodec<R> {
+
+        private static final int ARRAY_BYTES = 37;
+        private static final int ARRAY_ELEMENT_BYTES = 4;
 
         @Override
-        public void write(DataOutput output, AbstractArrayTag<? extends AbstractTag<?, ?>> tag) throws IOException {
+        public void write(DataOutputStream output, R tag) throws IOException {
             if (tag.getValue().isEmpty()) {
                 output.writeByte(0);
             } else {
                 output.writeByte(Optional.ofNullable(tag.getTypeOf()).map(TagType::getTypeId).orElse((byte) 0));
             }
             output.writeInt(tag.getValue().size());
-            for (AbstractTag<?, ?> tagInList : tag) {
+            for (AbstractTag<?, ?, ?> tagInList : tag) {
                 tagInList.write(output);
             }
         }
 
+        @SuppressWarnings("unchecked")
         @Override
-        public AbstractArrayTag<? extends AbstractTag<?, ?>> read(DataInput input) throws IOException {
+        public R read(DataInputStream input, TagLimiter limiter) throws IOException {
             TagType type = TagType.getFromTypeId(input.readByte());
             if (type == null) {
                 throw new IOException();
             }
+            int depth = limiter.incrementComplexity();
+
             int length = input.readInt();
             List<Object> array = new ArrayList<>();
             for (int i = 0; i < length; i++) {
-                array.add(Optional.ofNullable(type.getCodec().read(input)).map(AbstractTag::getHandle).orElse(null));
+                array.add(Optional.ofNullable(type.getCodec().read(input, limiter)).map(AbstractTag::getHandle).orElse(null));
             }
 
+            limiter.setComplexity(depth);
+
+            R wrappedArray;
             if (type.hasCollection()) {
                 switch (type.getCollection()) {
                     case ARRAY:
-                        return new GeneticArrayTypes.ArrayOfArrayTag(array);
+                        wrappedArray = (R) new GeneticArrayTypes.ArrayOfArrayTag<>(array);
+                        break;
                     case COMPOUND:
-                        return new GeneticArrayTypes.ArrayOfCompoundTag(array);
+                        wrappedArray = (R) new GeneticArrayTypes.ArrayOfCompoundTag(array);
+                        break;
+                    default:
+                        throw new DecoderException("Wrong array type");
                 }
+            } else {
+                wrappedArray = (R) new ArrayTag<>(array, type);
             }
 
-            return new ArrayTag<>(array, type);
+            return wrappedArray
+                    .incrementBytes(limiter, ARRAY_BYTES)
+                    .incrementBytes(limiter, ARRAY_ELEMENT_BYTES * wrappedArray.size());
         }
     }
 
     public static class CompoundCodec implements NBTCodec<CompoundTag> {
 
+        private static final int COMPOUND_BYTES = 48;
+        private static final int COMPOUND_ELEMENT_BYTES = 36;
+
         @Override
-        public void write(DataOutput output, CompoundTag tag) throws IOException {
+        public void write(DataOutputStream output, CompoundTag tag) throws IOException {
             for (String key : tag.getValue().keySet()) {
-                AbstractTag<?, ?> tagInCompound = tag.getValue().getConverted(key);
+                AbstractTag<?, ?, ?> tagInCompound = tag.getValue().getConverted(key);
                 output.writeByte(tagInCompound.getType().getTypeId());
                 if (tagInCompound.getType() == TagType.END) {
                     continue;
@@ -251,9 +317,10 @@ public class CodecTypes {
         }
 
         @Override
-        public CompoundTag read(DataInput input) throws IOException {
+        public CompoundTag read(DataInputStream input, TagLimiter limiter) throws IOException {
             Map<String, Object> map = new HashMap<>();
 
+            int depth = limiter.incrementComplexity();
             byte b;
             while ((b = input.readByte()) != 0) {
                 TagType type = TagType.getFromTypeId(b);
@@ -262,12 +329,16 @@ public class CodecTypes {
                 }
 
                 String key = input.readUTF();
-                Object value = Optional.ofNullable(type.getCodec().read(input)).map(AbstractTag::getHandle).orElse(null);
+                Object value = Optional.ofNullable(type.getCodec().read(input, limiter)).map(AbstractTag::getHandle).orElse(null);
 
                 map.put(key, value);
             }
 
-            return new CompoundTag(map);
+            limiter.setComplexity(depth);
+
+            return new CompoundTag(map)
+                    .incrementBytes(limiter, COMPOUND_BYTES)
+                    .incrementBytes(limiter, COMPOUND_ELEMENT_BYTES * map.size());
         }
     }
 }

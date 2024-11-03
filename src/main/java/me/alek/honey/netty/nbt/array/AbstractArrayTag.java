@@ -6,9 +6,8 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
-import org.bukkit.Bukkit;
 
-import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -17,7 +16,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public abstract class AbstractArrayTag<T extends AbstractTag<?, ?>> extends AbstractTag<List<Object>, ListConverter<Object, T>> implements Iterable<T> {
+public abstract class AbstractArrayTag<T extends AbstractTag<?, ?, T>, TAG extends AbstractArrayTag<T, TAG>> extends AbstractTag<List<Object>, ListConverter<Object, T>, TAG> implements Iterable<T> {
 
     private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.ARRAY);
 
@@ -43,8 +42,6 @@ public abstract class AbstractArrayTag<T extends AbstractTag<?, ?>> extends Abst
             }
             ReflectStructure.Provider.acquireStructure(TYPE.getDelegateClass())
                     .withBytes().withTarget(getHandle()).writeField(0, this.typeOf.getTypeId());
-
-            ReflectStructure.debug(getHandle());
         }
     }
 
@@ -59,8 +56,8 @@ public abstract class AbstractArrayTag<T extends AbstractTag<?, ?>> extends Abst
     }
 
     @Override
-    public void write(DataOutput output) throws IOException {
-        getType().getCodec().write(output, this);
+    public void write(DataOutputStream output) throws IOException {
+        getType().<TAG>getCodec().write(output, (TAG) this);
     }
 
     @Override

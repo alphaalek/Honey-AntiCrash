@@ -27,8 +27,6 @@ public enum ItemValidationRegistry {
     ATTRIBUTE_MODIFIERS(ItemValidations.AttributeModifiersItemValidation::new),
     BOOK_NO_TEXT_COMPONENT(ItemValidations.BookTranslationComponents::new,
             Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
-    INVALID_BOOK_CONTENT(ItemValidations.InvalidBookContentValidation::new,
-            Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
     MAP_RANGE(ItemValidations.MapRangeItemValidation::new, MaterialMappings.getTypeIfAny("empty-map"), MaterialMappings.getTypeIfAny("filled-map")),
 
     // nbt

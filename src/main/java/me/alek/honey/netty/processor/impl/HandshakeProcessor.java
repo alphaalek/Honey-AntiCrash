@@ -15,6 +15,6 @@ public class HandshakeProcessor extends Processor<WrappedHandshakeInSetProtocol>
     }
 
     public void handleHandshake(HoneyPlayer player, PacketContainer<WrappedHandshakeInSetProtocol> packet) {
-        player.clientInfo = new ClientInfo(packet.getAnyWrapped().getProtocolVersion());
+        player.onVersionUpdate(packet.getAnyWrapped().getProtocolVersion());
     }
 }

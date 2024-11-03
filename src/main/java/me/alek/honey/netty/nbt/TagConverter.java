@@ -2,7 +2,7 @@ package me.alek.honey.netty.nbt;
 
 import me.alek.honey.netty.structure.converters.JavaConverter;
 
-public class TagConverter implements JavaConverter<Object, AbstractTag<?, ?>> {
+public class TagConverter implements JavaConverter<Object, AbstractTag<?, ?, ?>> {
 
     private final boolean forceCreation;
 
@@ -11,7 +11,7 @@ public class TagConverter implements JavaConverter<Object, AbstractTag<?, ?>> {
     }
 
     @Override
-    public AbstractTag<?, ?> convertDelegate(Object delegate, Object... params) {
+    public AbstractTag<?, ?, ?> convertDelegate(Object delegate, Object... params) {
         if (delegate == null) {
             return null;
         }
@@ -19,7 +19,7 @@ public class TagConverter implements JavaConverter<Object, AbstractTag<?, ?>> {
     }
 
     @Override
-    public Object convertDeclaring(AbstractTag<?, ?> declaring) {
+    public Object convertDeclaring(AbstractTag<?, ?, ?> declaring) {
         if (declaring == null) {
             return null;
         }

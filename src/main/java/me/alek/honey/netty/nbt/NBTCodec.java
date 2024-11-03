@@ -1,14 +1,14 @@
 package me.alek.honey.netty.nbt;
 
-import java.io.DataInput;
-import java.io.DataOutput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
-public interface NBTCodec<T extends AbstractTag<?, ?>> {
+public interface NBTCodec<T extends AbstractTag<?, ?, T>> {
 
-    void write(DataOutput output, T tag) throws IOException;
+    void write(DataOutputStream output, T tag) throws IOException;
 
-    T read(DataInput input) throws IOException;
+    T read(DataInputStream input, TagLimiter limiter) throws IOException;
 
     interface Element<T> extends NBTCodec<PrimitiveTag<T>> {
 

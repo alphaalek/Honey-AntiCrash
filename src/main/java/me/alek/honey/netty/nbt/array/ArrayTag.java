@@ -5,7 +5,7 @@ import me.alek.honey.netty.nbt.TagType;
 
 import java.util.List;
 
-public class ArrayTag<T> extends AbstractArrayTag<PrimitiveTag<T>> {
+public class ArrayTag<T> extends AbstractArrayTag<PrimitiveTag<T>, ArrayTag<T>> {
 
     public ArrayTag(Object base, TagType typeOf, boolean forceCreation) {
         super(base, typeOf, forceCreation);

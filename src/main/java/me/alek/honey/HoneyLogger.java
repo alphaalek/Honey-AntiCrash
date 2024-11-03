@@ -285,7 +285,7 @@ public class HoneyLogger {
                 Object val = e.getValue();
                 sb.append(String.valueOf(val)
                         .replace("\t", "\\t")
-                        .replace("\n", "\\n"))
+                        .replace("\n", "!n"))
                   .append("<")
                   .append(BOXED.getOrDefault(val.getClass(), val.getClass()).getName()
                         .replace(String.class.getName(), "String"))

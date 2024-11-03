@@ -8,6 +8,7 @@ import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
 import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.*;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.ViolationManagement;
@@ -74,6 +75,10 @@ public class HoneyPlayer implements Identifiable {
         PLAYERS.set(registryID, this);
         this.channel = channel;
         this.packetHandler = handler;
+    }
+
+    public void onVersionUpdate(int protocol) {
+        this.clientInfo = new ClientInfo(protocol);
     }
 
     public void remove() {

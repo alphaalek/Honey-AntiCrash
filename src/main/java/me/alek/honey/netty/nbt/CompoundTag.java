@@ -8,18 +8,18 @@ import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
 
-import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?>>> {
+public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?, ?>>, CompoundTag> {
 
     private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.COMPOUND);
 
-    private MapConverter<String, Object, AbstractTag<?, ?>> delegate;
+    private MapConverter<String, Object, AbstractTag<?, ?, ?>> delegate;
 
     public CompoundTag(Object rawNms, boolean forceCreation) {
         super(rawNms, forceCreation);
@@ -49,19 +49,19 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
     }
 
     @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?>>>> applyStructure(ApplicableConverter<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?>>> converter) {
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?, ?>>>> applyStructure(ApplicableConverter<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?, ?>>> converter) {
         return (structure) -> structure.withSpecificType(Map.class, converter, false);
     }
 
     @Override
-    public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?>>> getNBTConverter() {
+    public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?, ?>>> getNBTConverter() {
         if (this.delegate == null) {
             this.delegate = Converters.getNBTCompoundConverter(this.forceCreateChildren);
         }
         return this.delegate;
     }
 
-    public AbstractTag<?, ?> remove(String key) {
+    public AbstractTag<?, ?, ?> remove(String key) {
         return getValue().removeConverted(key);
     }
 
@@ -77,11 +77,11 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         return getValue().keySet();
     }
 
-    public Collection<AbstractTag<?, ?>> getBases() {
+    public Collection<AbstractTag<?, ?, ?>> getBases() {
         return getValue().convertedValues();
     }
 
-    public AbstractTag<?, ?> get(String key) {
+    public AbstractTag<?, ?, ?> get(String key) {
         return getValue().getConverted(key);
     }
 
@@ -101,19 +101,19 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         return hasKey(key) && get(key).getType().equals(type);
     }
 
-    public void put(String key, AbstractTag<?, ?> base) {
+    public void put(String key, AbstractTag<?, ?, ?> base) {
         getValue().putConverted(key, base);
     }
 
-    public void putIfAbsent(String key, AbstractTag<?, ?> base) {
+    public void putIfAbsent(String key, AbstractTag<?, ?, ?> base) {
         if (!hasKey(key)) {
             put(key, base);
         }
     }
 
     @Override
-    public void write(DataOutput output) throws IOException {
-        getType().getCodec().write(output, this);
+    public void write(DataOutputStream output) throws IOException {
+        getType().<CompoundTag>getCodec().write(output, this);
     }
 
     @SuppressWarnings("unchecked")
@@ -126,7 +126,7 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends AbstractTag<?, ?>> T getUnspecificDeclaring(String key) {
+    public <T extends AbstractTag<?, ?, ?>> T getUnspecificDeclaring(String key) {
         if (hasKey(key)) {
             return (T) get(key);
         }
@@ -134,7 +134,7 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         return null;
     }
 
-    public <R extends AbstractTag<?, ?>> AbstractArrayTag<R> getAbstractArrayOf(String key, TagType type) {
+    public <R extends AbstractTag<?, ?, R>, RT extends AbstractArrayTag<R, RT>> AbstractArrayTag<R, RT> getAbstractArrayOf(String key, TagType type) {
         if (type == TagType.getFromCollection(TagType.Collection.ARRAY) && !hasKeyOfType(key, TagType.getFromCollection(TagType.Collection.ARRAY_OF_ARRAY))) {
             return null;
         } else if (type == TagType.getFromCollection(TagType.Collection.COMPOUND) && !hasKeyOfType(key, TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))) {
@@ -148,34 +148,34 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         return getAbstractArray(key);
     }
 
-    public <R extends AbstractTag<?, ?>> AbstractArrayTag<R> getAbstractArrayOf(String key, Class<?> clazz) {
+    public <R extends AbstractTag<?, ?, R>, RT extends AbstractArrayTag<R, RT>> AbstractArrayTag<R, RT> getAbstractArrayOf(String key, Class<?> clazz) {
         return getAbstractArrayOf(key, TagType.getFromClass(clazz));
     }
 
     @SuppressWarnings("unchecked")
     public <R> ArrayTag<R> getArrayOf(String key, Class<R> clazz) {
-        return (ArrayTag<R>) (AbstractArrayTag<?>) getAbstractArrayOf(key, clazz);
+        return (ArrayTag<R>) getAbstractArrayOf(key, clazz);
     }
 
     @SuppressWarnings("unchecked")
     public <R> ArrayTag<R> getArrayOf(String key, TagType nbtType) {
-        return (ArrayTag<R>) (AbstractArrayTag<?>) getAbstractArrayOf(key, nbtType);
+        return (ArrayTag<R>) getAbstractArrayOf(key, nbtType);
     }
 
     public GeneticArrayTypes.ArrayOfCompoundTag getArrayOfCompound(String key) {
-        return (GeneticArrayTypes.ArrayOfCompoundTag) (AbstractArrayTag<?>) getAbstractArrayOf(key, TagType.getFromCollection(TagType.Collection.COMPOUND));
+        return (GeneticArrayTypes.ArrayOfCompoundTag) getAbstractArrayOf(key, TagType.getFromCollection(TagType.Collection.COMPOUND));
     }
 
     public GeneticArrayTypes.ArrayOfArrayTag getArrayOfArray(String key) {
-        return (GeneticArrayTypes.ArrayOfArrayTag) (AbstractArrayTag<?>) getAbstractArrayOf(key, TagType.getFromCollection(TagType.Collection.ARRAY));
+        return (GeneticArrayTypes.ArrayOfArrayTag) getAbstractArrayOf(key, TagType.getFromCollection(TagType.Collection.ARRAY));
     }
 
     @SuppressWarnings("unchecked")
     public <T> ArrayTag<T> getArray(String key) {
-        return (ArrayTag<T>) (AbstractArrayTag<?>) getAbstractArray(key);
+        return (ArrayTag<T>) getAbstractArray(key);
     }
 
-    public <R extends AbstractTag<?, ?>> AbstractArrayTag<R> getAbstractArray(String key) {
+    public <R extends AbstractTag<?, ?, R>, RT extends AbstractArrayTag<R, RT>> AbstractArrayTag<R, RT> getAbstractArray(String key) {
         return getUnspecificDeclaring(key);
     }
 

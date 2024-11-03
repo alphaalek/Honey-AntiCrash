@@ -104,6 +104,33 @@ public class PacketDataSerializer extends ByteBuf {
         }
     }
 
+    public Object readItemStackTest() {
+        short itemId = readShort();
+        if (itemId < 0) {
+            return null;
+        }
+        byte amount = readByte();
+        short damage = -1;
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
+            damage = readShort();
+        }
+
+        Object item = ItemReflection.getItemFromId(itemId);
+        if (item == null) {
+            return null;
+        }
+
+        Object nbt = ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
+                .withType(NMS.getNBTTagCompoundClass()).withTarget(getSerializer())
+                .invokeMethod(null, 0);
+
+        Object itemStack = ItemReflection.createItemStack(item, amount, damage);
+        ItemReflection.setItemTag(itemStack, nbt);
+
+        return itemStack;
+    }
+
+
     public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {
         int size = readVarInt();
         Map<K, V> map = new HashMap<>(size);

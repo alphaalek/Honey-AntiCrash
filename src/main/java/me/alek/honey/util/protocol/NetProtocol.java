@@ -38,6 +38,10 @@ public enum NetProtocol {
         PROTOCOLS.remove(UNKNOWN);
     }
 
+    public static NetProtocol getByName(String name) {
+        return PROTOCOLS.stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null);
+    }
+
     private final int protocolVersion;
 
     NetProtocol(int protocol) {

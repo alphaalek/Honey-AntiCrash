@@ -1,7 +1,7 @@
 package me.alek.honey.netty.nbt;
 
-import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.nbt.array.ArrayTag;
+import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.protocol.NetProtocolRange;
@@ -14,7 +14,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 public enum TagType {
@@ -93,7 +96,7 @@ public enum TagType {
     private final byte typeId;
     private final Class<?> dataTypeClass;
     private final Class<?> deleteClass;
-    private final ConstructorInvoker<? extends AbstractTag<?, ?>> wrappedInvoker;
+    private final ConstructorInvoker<? extends AbstractTag<?, ?, ?>> wrappedInvoker;
     private final TagFactory factory;
     private final NBTCodec<?> codec;
     private final ConstructorInvoker<?> baseInvoker;
@@ -168,10 +171,10 @@ public enum TagType {
     }
 
     @SuppressWarnings("unchecked")
-    public static Class<? extends AbstractTag<?, ?>> getNBTBaseClass(Class<?> clazz) {
+    public static Class<? extends AbstractTag<?, ?, ?>> getNBTBaseClass(Class<?> clazz) {
         try {
             if (AbstractTag.class.isAssignableFrom(clazz)) {
-                return (Class<? extends AbstractTag<?, ?>>) clazz.asSubclass(AbstractTag.class);
+                return (Class<? extends AbstractTag<?, ?, ?>>) clazz.asSubclass(AbstractTag.class);
             }
         } catch (Exception ignored) {
         }
@@ -229,7 +232,7 @@ public enum TagType {
         this(typeId, codec, delegateClass, Reflection.getConstructor(getNBTBaseClass(PrimitiveTag.class), Object.class, boolean.class), dataTypeClass);
     }
 
-    TagType(byte typeId, Class<? extends NBTCodec<?>> codec, Class<?> delegateClass, ConstructorInvoker<? extends AbstractTag<?, ?>> wrappedInvoker, Class<?> dataTypeClass) {
+    <T extends AbstractTag<?, ?, T>, C extends NBTCodec<T>> TagType(byte typeId, Class<C> codec, Class<?> delegateClass, ConstructorInvoker<? extends AbstractTag<?, ?, ?>> wrappedInvoker, Class<?> dataTypeClass) {
         this.typeId = typeId;
         this.deleteClass = delegateClass;
         this.dataTypeClass = dataTypeClass;
@@ -296,7 +299,7 @@ public enum TagType {
         return this.typeId;
     }
 
-    public ConstructorInvoker<? extends AbstractTag<?, ?>> getWrappedInvoker() {
+    public ConstructorInvoker<? extends AbstractTag<?, ?, ?>> getWrappedInvoker() {
         return this.wrappedInvoker;
     }
 
@@ -305,7 +308,7 @@ public enum TagType {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends AbstractTag<?, ?>> NBTCodec<T> getCodec() {
+    public <T extends AbstractTag<?, ?, T>> NBTCodec<T> getCodec() {
         return (NBTCodec<T>) this.codec;
     }
 }

@@ -3,11 +3,11 @@ package me.alek.honey.netty.nbt;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 
-import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.function.Function;
 
-public class PrimitiveTag<T> extends AbstractTag<T, T> {
+public class PrimitiveTag<T> extends AbstractTag<T, T, PrimitiveTag<T>> {
 
     public static final PrimitiveTag<Void> END = new PrimitiveTag<>(TagType.END);
 
@@ -35,7 +35,8 @@ public class PrimitiveTag<T> extends AbstractTag<T, T> {
     }
 
     @Override
-    public void write(DataOutput output) throws IOException {
-        getType().getCodec().write(output, this);
+    public void write(DataOutputStream output) throws IOException {
+        NBTCodec<PrimitiveTag<T>> codec = getType().getCodec();
+        codec.write(output, this);
     }
 }

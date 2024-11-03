@@ -6,13 +6,13 @@ import me.alek.honey.netty.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 
-import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.function.Function;
 
-public abstract class AbstractTag<T, V> extends WrappedObject<AbstractTag<T, V>> implements Cloneable, Serializable {
+public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> extends WrappedObject<AbstractTag<T, V, TAG>> implements Cloneable, Serializable {
 
     private final Object handle;
     protected final boolean forceCreateChildren;
@@ -39,6 +39,16 @@ public abstract class AbstractTag<T, V> extends WrappedObject<AbstractTag<T, V>>
         }
     }
 
+    public TAG incrementBytes(TagLimiter limiter, int bytes) {
+        limiter.incrementBytes(bytes);
+        return (TAG) this;
+    }
+
+    public TAG incrementComplexity(TagLimiter limiter) {
+        limiter.incrementComplexity();
+        return (TAG) this;
+    }
+
     public AbstractTag(Object base) {
         this(base, true);
     }
@@ -47,7 +57,7 @@ public abstract class AbstractTag<T, V> extends WrappedObject<AbstractTag<T, V>>
 
     public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter);
 
-    public abstract void write(DataOutput output) throws IOException;
+    public abstract void write(DataOutputStream output) throws IOException;
 
     public V getValue() {
         if (this.value == null) {
@@ -71,11 +81,11 @@ public abstract class AbstractTag<T, V> extends WrappedObject<AbstractTag<T, V>>
                 || this.handle == null;
     }
 
-    public AbstractArrayTag<?> asArray() {
+    public AbstractArrayTag<?, ?> asArray() {
         if (getType().getDataTypeClass() != List.class) {
             return null;
         }
-        return (AbstractArrayTag<?>) this;
+        return (AbstractArrayTag<?, ?>) this;
     }
 
     public CompoundTag asCompound() {
@@ -104,10 +114,6 @@ public abstract class AbstractTag<T, V> extends WrappedObject<AbstractTag<T, V>>
             this.type = NBTFactory.getType(this.handle, false, this.forceCreateChildren);
         }
         return type;
-    }
-
-    public boolean equals(AbstractTag<?, ?> nbtBase) {
-        return getType() == nbtBase.getType();
     }
 
     private boolean isType(TagType type) {
@@ -176,7 +182,7 @@ public abstract class AbstractTag<T, V> extends WrappedObject<AbstractTag<T, V>>
         if (!(object instanceof AbstractTag)) {
             return false;
         }
-        AbstractTag<?, ?> base = (AbstractTag<?, ?>) object;
+        AbstractTag<?, ?, ?> base = (AbstractTag<?, ?, ?>) object;
         if (base.getType() != getType()) {
             return false;
         }
@@ -184,7 +190,7 @@ public abstract class AbstractTag<T, V> extends WrappedObject<AbstractTag<T, V>>
     }
 
     @Override
-    public AbstractTag<T, V> clone() {
-        return NBTFactory.copyBase(this, this.forceCreateChildren);
+    public TAG clone() {
+        return NBTFactory.copyBase((TAG) this, this.forceCreateChildren);
     }
 }

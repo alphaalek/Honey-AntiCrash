@@ -223,11 +223,11 @@ public class Converters {
     }
 
     // nbt
-    public static JavaConverter<Object, AbstractTag<?, ?>> getNBTBaseConverter(boolean forceCreation) {
+    public static JavaConverter<Object, AbstractTag<?, ?, ?>> getNBTBaseConverter(boolean forceCreation) {
         return new TagConverter(forceCreation);
     }
 
-    public static MapConverter<String, Object, AbstractTag<?, ?>> getNBTCompoundConverter(boolean forceCreation) {
+    public static MapConverter<String, Object, AbstractTag<?, ?, ?>> getNBTCompoundConverter(boolean forceCreation) {
         return getMapConverterWithoutCache(getNBTBaseConverter(forceCreation));
     }
 

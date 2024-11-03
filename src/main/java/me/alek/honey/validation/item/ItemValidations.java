@@ -10,7 +10,6 @@ import me.alek.honey.netty.nbt.PrimitiveTag;
 import me.alek.honey.netty.nbt.NBTFactory;
 import me.alek.honey.netty.nbt.TagType;
 import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
-import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
@@ -20,19 +19,16 @@ import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.statics.NumberUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapView;
-import org.bukkit.map.MinecraftFont;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class ItemValidations {
 
@@ -300,98 +296,6 @@ public class ItemValidations {
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_NBT_LENGTH;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
-    }
-
-    public static class InvalidBookContentValidation implements ItemAnalysis.ItemValidation {
-
-        private static final int BOOK_PIXEL_WIDTH = 57;
-        private static final int BOOK_LINES = 14;
-
-        private static final int CHARS_PER_PAGE_LEGACY = 255;
-        private static final int CHARS_PER_PAGE_MODERN = 798;
-
-        private static final int PAGES_PER_BOOK_LEGACY = 50;
-        private static final int PAGES_PER_BOOK_MODERN = 100;
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
-                ArrayTag<String> pages = nbt.getArray("pages");
-
-                boolean v1_14 = player.clientInfo.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
-
-                // up until v1.14 the page limit for a book was set to 50 pages
-                // then, the limit was changed to 100 pages
-                if (!v1_14 && pages.size() > PAGES_PER_BOOK_LEGACY) {
-                    return true;
-                } else if (v1_14 && pages.size() > PAGES_PER_BOOK_MODERN) {
-                    return true;
-                }
-
-                for (String page : pages.<String>streamOfValues().collect(Collectors.toList())) {
-
-                    // up until v1.14 the chars per book page limit was set to 255 chars
-                    // then, the limit was changed to 798 chars
-                    if (!v1_14 && page.length() > CHARS_PER_PAGE_LEGACY) {
-                        return true;
-                    } else if (v1_14 && page.length() > CHARS_PER_PAGE_MODERN) {
-                        return true;
-                    }
-
-                    int forLine = 0, lines = 1, sectionChars = 0;
-                    for (int i = 0; i < page.length(); i++) {
-                        char c = page.charAt(i);
-                        // check if the default Minecraft font allows this character
-                        if (!MinecraftFont.Font.isValid(String.valueOf(c))) {
-                            return true;
-                        }
-
-                        // skip the colour code chars
-                        if (c == '§') {
-                            sectionChars++; i++;
-                            if (i == page.length()) {
-                                return true;
-                            }
-                            // check for valid color code
-                            char n = page.charAt(i - 1);
-                            if (ChatColor.getByChar(n) == null) {
-                                return true;
-                            }
-                            continue;
-                        }
-
-                        // get the width of the default Minecraft font which is displayed in books
-                        // check if the display used for this book page is actually possible to do with a client
-                        int width = MinecraftFont.Font.getWidth(String.valueOf(c));
-                        forLine += width;
-                        if (forLine > BOOK_PIXEL_WIDTH) { // assume line break
-                            forLine = width;
-                            lines++;
-                        } else if (c == '\n') {
-                            lines++;
-                            forLine = 0;
-                        }
-
-                        // does the book has more lines than allowed?
-                        if (lines > BOOK_LINES) {
-                            return true;
-                        }
-                    }
-
-                    // allow up to max 2 color codes averagely per char for a page
-                    if (sectionChars > page.length() * 2) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         @Override
