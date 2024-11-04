@@ -7,7 +7,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 
 import java.nio.charset.StandardCharsets;
 
-public class Utf8String implements Type<String, PacketDataSerializer> {
+public class Utf8String implements Type<String> {
 
     private static final int MAX_BYTES_PER_CHAR_UTF8;
 

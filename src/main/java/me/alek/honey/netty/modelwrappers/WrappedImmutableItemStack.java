@@ -1,8 +1,11 @@
 package me.alek.honey.netty.modelwrappers;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.nbt.*;
-import me.alek.honey.netty.nbt.array.ArrayTag;
+import me.alek.honey.netty.codec.types.Type;
+import me.alek.honey.netty.codec.types.Types;
+import me.alek.honey.netty.nbt.AbstractTag;
+import me.alek.honey.netty.nbt.CompoundTag;
+import me.alek.honey.netty.nbt.NBTFactory;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -19,17 +22,73 @@ import java.util.Optional;
 
 public class WrappedImmutableItemStack {
 
+    public static class ProtocolType implements Type.In<WrappedImmutableItemStack> {
+
+        public static Type.In<WrappedImmutableItemStack> forProtocol(NetProtocol protocol) {
+            return new WrappedImmutableItemStack.ProtocolType(protocol);
+        }
+
+        private final NetProtocol protocol;
+
+        public ProtocolType(NetProtocol protocol) {
+            this.protocol = protocol;
+        }
+
+        @Override
+        public WrappedImmutableItemStack read(PacketDataSerializer buf, Object... params) {
+            int amount = -1;
+            short durability = -1;
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                amount = buf.readVarInt();
+                if (amount < 1) {
+                    return null;
+                }
+            } else if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)
+                    && !buf.readBoolean()) {
+                return null;
+            }
+
+            int id;
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
+                id = buf.readVarInt();
+            } else {
+                id = buf.readShort();
+            }
+            if (id < 1) {
+                return null;
+            }
+
+            if (amount == -1) { // before 1.20.5
+                amount = buf.readByte();
+            }
+
+            if (protocol.isOlderThan(NetProtocol.v1_13)) {
+                durability = buf.readShort();
+            }
+
+            try {
+                return WrappedImmutableItemStack.read(protocol, buf, id, amount, durability);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return null;
+            }
+        }
+    }
+
     private static final ConstructorInvoker<ItemMeta> defaultMetaConstructor =
             Reflection.getConstructor(NMS.getCraftMetaItemClass(), NMS.getNBTTagCompoundClass());
 
-    public static WrappedImmutableItemStack read(PacketDataSerializer serializer, int itemId, int amount, short durability) throws IOException {
+    public static WrappedImmutableItemStack read(NetProtocol protocol, PacketDataSerializer serializer, int itemId, int amount, short durability) throws IOException {
         Material type = ItemReflection.getMaterialFromId(itemId);
         if (type == null) {
             return null; // no type found
         }
 
         // wrap nbt
-        CompoundTag nbt = Optional.ofNullable(NBTFactory.read(serializer)).map(AbstractTag::asCompound).orElse(null);
+        CompoundTag nbt = Optional.ofNullable(
+                Types.NBT.forProtocol(protocol).read(serializer))
+                .map(AbstractTag::asCompound)
+                .orElse(null);
 
         // create stack
         if (durability != -1) {

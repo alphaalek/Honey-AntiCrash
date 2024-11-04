@@ -3,6 +3,8 @@ package me.alek.honey.netty.nbt;
 import io.netty.buffer.ByteBufInputStream;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.types.Type;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -11,6 +13,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -25,13 +28,29 @@ public class NBTFactory {
     private static final int MAX_DEPTH = 8;
     private static final int MAX_COMPLEXITY = 256;
 
-    public static AbstractTag<?, ?, ?> read(PacketDataSerializer serializer) throws IOException {
-        try (ByteBufInputStream stream = new ByteBufInputStream(serializer)) {
-            return read(stream);
+    public static class ProtocolType implements Type.In<AbstractTag<?, ?, ?>> {
+
+        public static Type.In<AbstractTag<?, ?, ?>> forProtocol(NetProtocol protocol) {
+            return new NBTFactory.ProtocolType(protocol);
+        }
+
+        private final NetProtocol protocol;
+
+        public ProtocolType(NetProtocol protocol) {
+            this.protocol = protocol;
+        }
+
+        @Override
+        public AbstractTag<?, ?, ?> read(PacketDataSerializer buf, Object... params) {
+            try (ByteBufInputStream stream = new ByteBufInputStream(buf)) {
+                return NBTFactory.read(stream, protocol);
+            } catch (IOException ex) {
+                return null;
+            }
         }
     }
 
-    private static AbstractTag<?, ?, ?> read(ByteBufInputStream stream) throws IOException {
+    private static AbstractTag<?, ?, ?> read(ByteBufInputStream stream, NetProtocol protocol) throws IOException {
         byte id = stream.readByte();
         TagType type = TagType.getFromTypeId(id);
         if (type == TagType.END || type == null) {
@@ -42,7 +61,7 @@ public class NBTFactory {
         }
 
         // named compound tag, skip these bytes
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
+        if (protocol.isOlderThan(NetProtocol.v1_20_2)) {
             stream.skipBytes(stream.readUnsignedShort());
         }
 
