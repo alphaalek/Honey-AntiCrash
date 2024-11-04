@@ -25,7 +25,7 @@ public class TagLimiter {
         }
     }
 
-    public int incrementDepth() {
+    public int incrementNestingDepth() {
         this.depth++;
 
         if (this.depth > this.maxDepth) {
@@ -43,7 +43,7 @@ public class TagLimiter {
         }
     }
 
-    public void setDepth(int depth) {
+    public void setNestingDepthLevel(int depth) {
         this.depth = depth;
     }
 }

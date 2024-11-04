@@ -23,7 +23,7 @@ public class GeneticArrayTypes {
         }
     }
 
-    public static class ArrayOfArrayTag<T extends AbstractTag<?, ?, AT>, AT extends ArrayOfArrayTag<T, AT>> extends AbstractArrayTag<ArrayTag<T>, AT> {
+    public static class ArrayOfArrayTag<T extends AbstractTag<?, ?, T>> extends AbstractArrayTag<ArrayTag<T>, ArrayOfArrayTag<T>> {
 
         public ArrayOfArrayTag(Object base, boolean forceCreation) {
             super(base, TagType.getFromCollection(TagType.Collection.ARRAY), forceCreation);

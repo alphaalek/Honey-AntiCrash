@@ -10,7 +10,7 @@ import java.util.*;
 
 public class CodecTypes {
 
-    public static class EndCodec implements NBTCodec.Element<Void> {
+    public static class EndCodec implements NBTCodec.Primitive<Void> {
 
         private static final int END_BYTES = 8;
 
@@ -26,7 +26,9 @@ public class CodecTypes {
         }
     }
 
-    public static class ByteCodec implements NBTCodec.Element<Byte> {
+    public static class ByteCodec implements NBTCodec.Primitive<Byte> {
+
+        private static final int BYTE_BYTES = 10;
 
         @Override
         public void write(DataOutputStream output, PrimitiveTag<Byte> tag) throws IOException {
@@ -36,11 +38,11 @@ public class CodecTypes {
         @Override
         public PrimitiveTag<Byte> read(DataInputStream input, TagLimiter limiter) throws IOException {
             return new PrimitiveTag<>(TagType.BYTE, input.readByte())
-                    .incrementBytes(limiter, 1);
+                    .incrementBytes(limiter, BYTE_BYTES);
         }
     }
 
-    public static class ShortCodec implements NBTCodec.Element<Short> {
+    public static class ShortCodec implements NBTCodec.Primitive<Short> {
 
         private static final int SHORT_BYTES = 10;
 
@@ -56,7 +58,7 @@ public class CodecTypes {
         }
     }
 
-    public static class IntCodec implements NBTCodec.Element<Integer> {
+    public static class IntCodec implements NBTCodec.Primitive<Integer> {
 
         private static final int INT_BYTES = 12;
 
@@ -72,7 +74,7 @@ public class CodecTypes {
         }
     }
 
-    public static class LongCodec implements NBTCodec.Element<Long> {
+    public static class LongCodec implements NBTCodec.Primitive<Long> {
 
         private static final int LONG_BYTES = 16;
 
@@ -88,7 +90,7 @@ public class CodecTypes {
         }
     }
 
-    public static class FloatCodec implements NBTCodec.Element<Float> {
+    public static class FloatCodec implements NBTCodec.Primitive<Float> {
 
         private static final int FLOAT_BYTES = 12;
 
@@ -104,7 +106,7 @@ public class CodecTypes {
         }
     }
 
-    public static class DoubleCodec implements NBTCodec.Element<Double> {
+    public static class DoubleCodec implements NBTCodec.Primitive<Double> {
 
         private static final int DOUBLE_BYTES = 16;
 
@@ -120,7 +122,7 @@ public class CodecTypes {
         }
     }
 
-    public static class ByteArrayCodec implements NBTCodec.Element<byte[]> {
+    public static class ByteArrayCodec implements NBTCodec.Primitive<byte[]> {
 
         private static final int BYTE_ARRAY_BYTES = 24;
 
@@ -148,7 +150,7 @@ public class CodecTypes {
         }
     }
 
-    public static class StringCodec implements NBTCodec.Element<String> {
+    public static class StringCodec implements NBTCodec.Primitive<String> {
 
         private static final int STRING_BYTES = 36;
         private static final int CHAR_BYTES = 2;
@@ -163,19 +165,23 @@ public class CodecTypes {
             String str = input.readUTF();
             return new PrimitiveTag<>(TagType.STRING, str)
                     .incrementBytes(limiter, STRING_BYTES)
-                    .incrementBytes(limiter, Math.max(str.length() * CHAR_BYTES, getBytesFor(str)));
+                    .incrementBytes(limiter, getBytesForLimiter(str));
         }
 
-        private int getBytesFor(String str) {
+        private static int getBytesForLimiter(String str) {
+            return Math.max(str.length() * CHAR_BYTES, getBytesFor(str));
+        }
+
+        private static int getBytesFor(String str) {
             return str.codePoints().map(operand -> getBytesFor((char) operand)).sum();
         }
 
-        private int getBytesFor(char c) {
+        private static int getBytesFor(char c) {
             return (Integer.SIZE >> 3) - (Integer.numberOfLeadingZeros(c) >> 3);
         }
     }
 
-    public static class LongArrayCodec implements NBTCodec.Element<long[]> {
+    public static class LongArrayCodec implements NBTCodec.Primitive<long[]> {
 
         private static final int LONG_ARRAY_BYTES = 24;
         private static final int LONG_ARRAY_ELEMENT_BYTES = 8;
@@ -206,7 +212,7 @@ public class CodecTypes {
         }
     }
 
-    public static class IntArrayCodec implements NBTCodec.Element<int[]> {
+    public static class IntArrayCodec implements NBTCodec.Primitive<int[]> {
 
         private static final int INT_ARRAY_BYTES = 24;
         private static final int INT_ARRAY_ELEMENT_BYTES = 4;
@@ -262,7 +268,7 @@ public class CodecTypes {
             if (type == null) {
                 throw new IOException();
             }
-            int depth = limiter.incrementDepth();
+            int depth = limiter.incrementNestingDepth();
 
             int length = input.readInt();
             List<Object> array = new ArrayList<>();
@@ -270,7 +276,7 @@ public class CodecTypes {
                 array.add(Optional.ofNullable(type.getCodec().read(input, limiter)).map(AbstractTag::getHandle).orElse(null));
             }
 
-            limiter.setDepth(depth);
+            limiter.setNestingDepthLevel(depth);
 
             R wrappedArray;
             if (type.hasCollection()) {
@@ -320,7 +326,7 @@ public class CodecTypes {
         public CompoundTag read(DataInputStream input, TagLimiter limiter) throws IOException {
             Map<String, Object> map = new HashMap<>();
 
-            int depth = limiter.incrementDepth();
+            int depth = limiter.incrementNestingDepth();
             byte b;
             while ((b = input.readByte()) != 0) {
                 TagType type = TagType.getFromTypeId(b);
@@ -334,10 +340,11 @@ public class CodecTypes {
                 map.put(key, value);
             }
 
-            limiter.setDepth(depth);
+            limiter.setNestingDepthLevel(depth);
 
             return new CompoundTag(map)
                     .incrementComplexity(limiter)
+                    .incrementBytes(limiter, map.keySet().stream().mapToInt(StringCodec::getBytesForLimiter).sum())
                     .incrementBytes(limiter, COMPOUND_BYTES)
                     .incrementBytes(limiter, COMPOUND_ELEMENT_BYTES * map.size());
         }

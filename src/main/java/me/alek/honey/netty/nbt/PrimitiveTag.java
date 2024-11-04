@@ -36,7 +36,6 @@ public class PrimitiveTag<T> extends AbstractTag<T, T, PrimitiveTag<T>> {
 
     @Override
     public void write(DataOutputStream output) throws IOException {
-        NBTCodec<PrimitiveTag<T>> codec = getType().getCodec();
-        codec.write(output, this);
+        getType().<PrimitiveTag<T>>getCodec().write(output, this);
     }
 }

@@ -10,7 +10,7 @@ public interface NBTCodec<T extends AbstractTag<?, ?, T>> {
 
     T read(DataInputStream input, TagLimiter limiter) throws IOException;
 
-    interface Element<T> extends NBTCodec<PrimitiveTag<T>> {
+    interface Primitive<T> extends NBTCodec<PrimitiveTag<T>> {
 
     }
 }

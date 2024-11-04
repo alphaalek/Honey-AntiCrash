@@ -126,7 +126,7 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends AbstractTag<?, ?, ?>> T getUnspecificDeclaring(String key) {
+    public <T extends AbstractTag<?, ?, T>> T getUnspecificDeclaring(String key) {
         if (hasKey(key)) {
             return (T) get(key);
         }
@@ -134,7 +134,7 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         return null;
     }
 
-    public <R extends AbstractTag<?, ?, R>, RT extends AbstractArrayTag<R, RT>> AbstractArrayTag<R, RT> getAbstractArrayOf(String key, TagType type) {
+    public <R extends AbstractTag<?, ?, R>, AT extends AbstractArrayTag<R, AT>> AbstractArrayTag<R, AT> getAbstractArrayOf(String key, TagType type) {
         if (type == TagType.getFromCollection(TagType.Collection.ARRAY) && !hasKeyOfType(key, TagType.getFromCollection(TagType.Collection.ARRAY_OF_ARRAY))) {
             return null;
         } else if (type == TagType.getFromCollection(TagType.Collection.COMPOUND) && !hasKeyOfType(key, TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))) {
@@ -148,7 +148,7 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         return getAbstractArray(key);
     }
 
-    public <R extends AbstractTag<?, ?, R>, RT extends AbstractArrayTag<R, RT>> AbstractArrayTag<R, RT> getAbstractArrayOf(String key, Class<?> clazz) {
+    public <R extends AbstractTag<?, ?, R>, AT extends AbstractArrayTag<R, AT>> AbstractArrayTag<R, AT> getAbstractArrayOf(String key, Class<?> clazz) {
         return getAbstractArrayOf(key, TagType.getFromClass(clazz));
     }
 
@@ -166,8 +166,8 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         return (GeneticArrayTypes.ArrayOfCompoundTag) getAbstractArrayOf(key, TagType.getFromCollection(TagType.Collection.COMPOUND));
     }
 
-    public GeneticArrayTypes.ArrayOfArrayTag getArrayOfArray(String key) {
-        return (GeneticArrayTypes.ArrayOfArrayTag) getAbstractArrayOf(key, TagType.getFromCollection(TagType.Collection.ARRAY));
+    public GeneticArrayTypes.ArrayOfArrayTag<?> getArrayOfArray(String key) {
+        return (GeneticArrayTypes.ArrayOfArrayTag<?>) getAbstractArrayOf(key, TagType.getFromCollection(TagType.Collection.ARRAY));
     }
 
     @SuppressWarnings("unchecked")
