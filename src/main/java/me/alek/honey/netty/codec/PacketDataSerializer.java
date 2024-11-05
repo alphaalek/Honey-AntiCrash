@@ -65,48 +65,12 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.VAR_INT.write(this, val);
     }
 
-    public WrappedImmutableItemStack readItemStack(NetProtocol protocol) {
-        return Types.ITEM_STACK.forProtocol(protocol).read(this);
+    public WrappedImmutableItemStack readItemStack() {
+        return readItemStack(NetProtocol.getProtocol());
     }
 
-    public WrappedImmutableItemStack readItemStack() {
-
-        int amount = -1;
-        short durability = -1;
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-            amount = this.readVarInt();
-            if (amount < 1) {
-                return null;
-            }
-        } else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13_2)
-                && !this.readBoolean()) {
-            return null;
-        }
-
-        int id;
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13_2)) {
-            id = this.readVarInt();
-        } else {
-            id = this.readShort();
-        }
-        if (id < 1) {
-            return null;
-        }
-
-        if (amount == -1) { // before 1.20.5
-            amount = this.readByte();
-        }
-
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13)) {
-            durability = this.readShort();
-        }
-
-        try {
-            return WrappedImmutableItemStack.read(this, id, amount, durability);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
+    public WrappedImmutableItemStack readItemStack(NetProtocol protocol) {
+        return Types.ITEM_STACK.forProtocol(protocol).read(this);
     }
 
     public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {

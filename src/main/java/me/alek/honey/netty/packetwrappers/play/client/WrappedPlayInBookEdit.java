@@ -32,7 +32,7 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
         NetProtocol protocol = packet.getProtocolByBytePacketState();
 
         if (protocol.isOlderThan(NetProtocol.v1_17)) {
-            this.itemStack = buf.readItemStack();
+            this.itemStack = buf.readItemStack(protocol);
             this.signing = buf.readBoolean();
             this.slot = buf.readVarInt();
         } else {
@@ -44,15 +44,16 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
             }
 
             CompoundTag tag = new CompoundTag();
-            List<String> pages = new ArrayList<>();
+            ArrayTag<String> pages = new ArrayTag<>(TagType.STRING);
             for (int i = 0; i < pageCount; i++) {
-                pages.add(buf.readString(PAGE_CHAR_LIMIT));
+                pages.add(new PrimitiveTag<>(TagType.STRING, buf.readString(PAGE_CHAR_LIMIT)));
             }
-            tag.put("pages", new ArrayTag<>(pages, TagType.STRING));
+            tag.put("pages", pages);
 
             Material material = MaterialMappings.getTypeIfAny("writable-book");
             if (buf.readBoolean()) {
                 tag.put("title", new PrimitiveTag<>(TagType.STRING, buf.readString(TITLE_CHAR_LIMIT)));
+                tag.put("author", new PrimitiveTag<>(TagType.STRING, packet.getPlayer().name));
                 material = Material.WRITTEN_BOOK;
                 this.signing = true;
             } else {

@@ -684,6 +684,11 @@ sign:
   a:
     enabled: true
 
+# |--- book edit ---|
+book-edit:
+  a:
+    enabled: true
+
 # |--- chat ---|
 chat:
   a:

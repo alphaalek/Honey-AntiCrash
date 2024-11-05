@@ -72,7 +72,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
                     this.face = BlockFace.SELF;
                 }
                 PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-                this.itemStack = new LazyInit<>(copy::readItemStack);
+                this.itemStack = new LazyInit<>(() -> copy.readItemStack(protocol));
                 this.release = () -> AutoReleasable.doRelease(copy);
                 this.interactionHand = InteractionHand.MAIN_HAND;
             }

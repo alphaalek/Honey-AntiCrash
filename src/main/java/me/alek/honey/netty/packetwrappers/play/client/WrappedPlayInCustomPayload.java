@@ -33,7 +33,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             super(buf, packet);
             String channel = Types.UTF8.read(buf, 20);
             PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
-            this.data = new PayloadData(channel, serializer);
+            this.data = new PayloadData(channel, serializer, packet.getProtocolByBytePacketState());
         }
 
         @Override
@@ -90,7 +90,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
                 }
             }
 
-            this.data = new PayloadData(channel, serializer);
+            this.data = new PayloadData(channel, serializer, NetProtocol.getProtocol());
         }
 
         public PacketDataSerializer getDataSerializer(boolean copy) {
@@ -116,22 +116,22 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         private LazyInit<WrappedImmutableItemStack> bookChannelItemStack;
         private Runnable release;
 
-        public PayloadData(String channel, PacketDataSerializer serializer) {
+        public PayloadData(String channel, PacketDataSerializer serializer, NetProtocol protocol) {
             this.channel = channel;
             this.serializer = serializer;
 
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
                 try {
                     PacketDataSerializer copy = makeSerializerCopy();
-                    this.bookChannelItemStack = new LazyInit<>(() -> this.readItemStack(copy));
+                    this.bookChannelItemStack = new LazyInit<>(() -> this.readItemStack(protocol, copy));
                     this.release = () -> AutoReleasable.doRelease(copy);
                 } catch (Exception ignored) {
                 }
             }
         }
 
-        private WrappedImmutableItemStack readItemStack(PacketDataSerializer copy) {
-            WrappedImmutableItemStack item = copy.readItemStack();
+        private WrappedImmutableItemStack readItemStack(NetProtocol protocol, PacketDataSerializer copy) {
+            WrappedImmutableItemStack item = copy.readItemStack(protocol);
 
             if (item.getNBT() != null) {
                 ArrayTag<String> pages = item.getNBT().getArrayOf("pages", TagType.STRING);

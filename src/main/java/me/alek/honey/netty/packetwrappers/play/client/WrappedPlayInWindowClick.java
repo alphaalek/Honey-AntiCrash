@@ -55,12 +55,12 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
             this.slots = serializer.readMap(
                     serializerInput -> Math.toIntExact(serializerInput.readShort()),
-                    PacketDataSerializer::readItemStack
+                    serializerInput -> serializerInput.readItemStack(protocol)
             );
         }
 
         PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.carriedItemStack = new LazyInit<>(copy::readItemStack);
+        this.carriedItemStack = new LazyInit<>(() -> copy.readItemStack(protocol));
         release = () -> AutoReleasable.doRelease(copy);
     }
 

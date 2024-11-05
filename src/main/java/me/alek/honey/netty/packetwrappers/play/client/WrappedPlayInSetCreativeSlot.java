@@ -17,14 +17,17 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
 
     public WrappedPlayInSetCreativeSlot(PacketDataSerializer serializer, PacketContainer<WrappedPlayInSetCreativeSlot> packet) {
         super(serializer, packet);
-        if (packet.getProtocolByBytePacketState().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+
+        NetProtocol protocol = packet.getProtocolByBytePacketState();
+
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
             this.slot = serializer.readUnsignedShort();
         } else {
             this.slot = serializer.readShort();
         }
 
         PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.item = new LazyInit<>(copy::readItemStack);
+        this.item = new LazyInit<>(() -> copy.readItemStack(protocol));
         this.release = () -> AutoReleasable.doRelease(copy);
     }
 
