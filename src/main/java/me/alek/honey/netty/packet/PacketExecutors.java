@@ -194,14 +194,6 @@ public class PacketExecutors {
             return true;
         }
 
-        private void setItemInMainHand(Player player, ItemStack item) {
-            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-                player.getInventory().setItemInHand(item);
-            } else {
-                player.getInventory().setItemInMainHand(item);
-            }
-        }
-
         private boolean isValidAuthor(HoneyPlayer player, CompoundTag nbt) {
             String author;
             return nbt != null

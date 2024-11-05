@@ -17,7 +17,7 @@ public interface HoneyValidation<T> extends Identifiable {
 
     String getDescription();
 
-    ValidationServiceContext validate(HoneyPlayer player, T type, ValidationPipelineContext container);
+    ValidationServiceContext validate(HoneyPlayer player, T type, ValidationPipelineContext context);
 
     default boolean isViolation() {
         return false;

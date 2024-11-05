@@ -27,6 +27,7 @@ public enum ValidationContainerRegistry {
     v16(TabValidations::new),
     v17(TabValidations.ClientboundTabValidations::new),
     v18(CommandValidations::new),
+    v19(BookEditValidations::new),
     ;
 
     private static final List<Function<PacketLibrary, BaseValidationContainer>> validationFactories = new ArrayList<>();

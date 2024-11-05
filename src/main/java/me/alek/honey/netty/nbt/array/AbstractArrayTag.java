@@ -32,7 +32,7 @@ public abstract class AbstractArrayTag<T extends AbstractTag<?, ?, T>, TAG exten
         this(typeOf, new ArrayList<>());
     }
 
-    public AbstractArrayTag(TagType typeOf, List<Object> array) {
+    public AbstractArrayTag(TagType typeOf, List<?> array) {
         super(createBaseFromArray(array, typeOf.getTypeId()));
         this.typeOf = typeOf;
 

@@ -27,6 +27,7 @@ public class WrappedPacketFactoryCollection {
         loadByteWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInSetCreativeSlot::new);
         loadByteWrapper(PacketTypes.Play.Client.CLICK_WINDOW, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInWindowClick::new);
         loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);
+        loadByteWrapper(PacketTypes.Play.Client.BOOK_EDIT, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInBookEdit::new);
         loadByteWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.INITIAL_BYTE, WrappedHandshakeInSetProtocol::new);
 
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_DIGGING, WrappedPlayInBlockDig::new);

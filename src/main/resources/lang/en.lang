@@ -87,7 +87,7 @@ validation.payload.c=Illegal item in payload
 validation.payload.d=Illegal usage of book channel
 validation.payload.e=Too many registered plugin channels
 
-validation.book.edit.a=Illegal book
+validation.book-edit.a=Illegal book
 
 command.desc.help=Sends all the commands you can use.
 command.desc.monitor=Monitor either server performance or player impact.

@@ -253,6 +253,11 @@ public class WrappedImmutableItemStack {
         return this.nbt;
     }
 
+    public void setNBT(CompoundTag nbt) {
+        this.nbt = nbt;
+        clearMetaCache();
+    }
+
     public int getAmount() {
         return this.amount;
     }

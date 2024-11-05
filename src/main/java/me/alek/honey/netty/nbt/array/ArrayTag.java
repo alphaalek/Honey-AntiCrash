@@ -15,7 +15,7 @@ public class ArrayTag<T> extends AbstractArrayTag<PrimitiveTag<T>, ArrayTag<T>> 
         super(typeOf);
     }
 
-    public ArrayTag(List<Object> array, TagType typeOf) {
+    public ArrayTag(List<?> array, TagType typeOf) {
         super(typeOf, array);
     }
 }

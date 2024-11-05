@@ -852,6 +852,16 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class BookEdit {
+
+        @Setting
+        @Violation(prefixPaths = "book-edit.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class BookEditA extends ViolationSetting {
+
+        }
+    }
+
+    @Setting
     public static class BlockInteract {
 
         @Setting

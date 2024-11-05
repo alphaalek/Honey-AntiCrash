@@ -65,7 +65,12 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.VAR_INT.write(this, val);
     }
 
+    public WrappedImmutableItemStack readItemStack(NetProtocol protocol) {
+        return Types.ITEM_STACK.forProtocol(protocol).read(this);
+    }
+
     public WrappedImmutableItemStack readItemStack() {
+
         int amount = -1;
         short durability = -1;
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
