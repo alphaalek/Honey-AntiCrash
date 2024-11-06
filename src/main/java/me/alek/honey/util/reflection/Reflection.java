@@ -344,6 +344,10 @@ public class Reflection {
         return null;
     }
 
+    public static <T> FieldAccessor<T> getField(Field field) {
+        return new FieldAccessor<>(field);
+    }
+
     public static <T> FieldAccessor<T> getField(String target, String name, Class<?> type) {
         return getField(getClass(target), name, type);
     }

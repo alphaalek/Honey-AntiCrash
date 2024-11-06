@@ -8,7 +8,6 @@ import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.Map;
 
@@ -18,13 +17,21 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
         PICKUP, QUICK_MOVE, SWAP, CLONE, THROW, QUICK_CRAFT, PICKUP_ALL;
     }
 
+    @Property
     private final int windowId;
+    @Property(from = @NetProtocol.From(from = NetProtocol.v1_17_1))
     private int stateId;
+    @Property
     private final int slot;
+    @Property
     private final int button;
+    @Property(to = @NetProtocol.To(to = NetProtocol.v1_16_5))
     private int actionNumber;
+    @Property
     private final WindowClickType windowClickType;
+    @Property(from = @NetProtocol.From(from = NetProtocol.v1_17))
     private Map<Integer, WrappedImmutableItemStack> slots;
+    @Property @Property.Unlock(methodSupplier = "getCarriedItemStack")
     private final LazyInit<WrappedImmutableItemStack> carriedItemStack;
 
     private final Runnable release;

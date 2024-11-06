@@ -189,16 +189,7 @@ public enum TagType {
             NetProtocol.From from = field.getAnnotation(NetProtocol.From.class);
             NetProtocol.To to = field.getAnnotation(NetProtocol.To.class);
 
-            NetProtocolRange range = NetProtocolRange.ALL;
-            if (from != null && to != null) {
-                range = NetProtocolRange.between(from.from(), to.to());
-            } else if (from != null) {
-                range = NetProtocolRange.since(from.from());
-            } else if (to != null) {
-                range = NetProtocolRange.until(to.to());
-            }
-
-            return range.match(NetProtocol.getProtocol());
+            return NetProtocolRange.matchProtocol(to, from);
 
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -7,10 +7,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public enum NetProtocol {
     v1_8(47), v1_8_1(47), v1_8_2(47), v1_8_3(47), v1_8_4(47), v1_8_5(47), v1_8_6(47), v1_8_7(47), v1_8_8(47),
@@ -27,19 +25,12 @@ public enum NetProtocol {
     v1_19(759), v1_19_1(760), v1_19_2(760), v1_19_3(761), v1_19_4(762),
     v1_20(763), v1_20_1(763), v1_20_2(764), v1_20_3(765), v1_20_4(765), v1_20_5(766), v1_20_6(766),
 
-    UNKNOWN(-1);
+    LATEST(-1), OLDEST(-1), UNKNOWN(-1);
 
     private static NetProtocol PROTOCOL;
-    private static final List<NetProtocol> PROTOCOLS = new ArrayList<>();
-
-    static {
-        PROTOCOLS.addAll(Arrays.asList(NetProtocol.values()));
-        Collections.reverse(PROTOCOLS);
-        PROTOCOLS.remove(UNKNOWN);
-    }
 
     public static NetProtocol getByName(String name) {
-        return PROTOCOLS.stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null);
+        return Arrays.stream(NetProtocol.values()).filter(p -> p.getName().equals(name)).findFirst().orElse(null);
     }
 
     private final int protocolVersion;
@@ -48,8 +39,16 @@ public enum NetProtocol {
         this.protocolVersion = protocol;
     }
 
+    public static List<NetProtocol> getProtocols() {
+        return Arrays.stream(NetProtocol.values()).filter(p -> p.protocolVersion != -1).collect(Collectors.toList());
+    }
+
     private static NetProtocol acquireProtocol() {
-        for (NetProtocol version : PROTOCOLS) {
+        if (PROTOCOL != null) {
+            return PROTOCOL;
+        }
+
+        for (NetProtocol version : getProtocols()) {
             if (Bukkit.getVersion().contains(version.getName())) {
                 return version;
             }
@@ -59,7 +58,7 @@ public enum NetProtocol {
     }
 
     public static NetProtocol getMajorFrom(int protocolVersion) {
-        for (NetProtocol protocol : PROTOCOLS) {
+        for (NetProtocol protocol : getProtocols()) {
             if (protocolVersion >= protocol.getProtocolVersion()
                     && (protocolVersion < protocol.getAfter().getProtocolVersion()
                         || protocol.getAfter().isEqual(protocol))) {
@@ -129,7 +128,7 @@ public enum NetProtocol {
     }
 
     public NetProtocol getAfter() {
-        if (ordinal() == PROTOCOLS.get(0).ordinal()) {
+        if (ordinal() == LATEST.ordinal() - 1) {
             return this;
         }
         NetProtocol protocol = NetProtocol.values()[ordinal() + 1];
@@ -145,15 +144,21 @@ public enum NetProtocol {
     }
 
     public static NetProtocol getLatest() {
-        return PROTOCOLS.get(1);
+        return getProtocols().get(getProtocols().size() - 1);
     }
 
     public static NetProtocol getOldest() {
-        return NetProtocol.values()[0];
+        return getProtocols().get(0);
     }
 
     public int getProtocolVersion() {
-        return protocolVersion;
+        if (this == LATEST) {
+            return getLatest().getProtocolVersion();
+        } else if (this == OLDEST) {
+            return getOldest().getProtocolVersion();
+        } else {
+            return protocolVersion;
+        }
     }
 
     @Retention(RetentionPolicy.RUNTIME)

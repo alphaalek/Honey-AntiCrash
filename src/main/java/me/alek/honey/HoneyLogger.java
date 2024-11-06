@@ -54,7 +54,6 @@ public class HoneyLogger {
         private final PacketListenerAdapter<WP> packetLogger = new PacketListenerAdapter<WP>() {
 
             @Override
-            @SuppressWarnings("unchecked")
             public void onObjectPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
                 if (monitorManager.hasMonitorers()) {
                     // notify monitor observers
@@ -90,15 +89,16 @@ public class HoneyLogger {
     }
 
     public void reload() {
-        enabled = ConfigurationOptions.PacketLogger.ENABLED;
-        detailed = ConfigurationOptions.PacketLogger.DETAILED;
-        debug = ConfigurationOptions.PacketLogger.DEBUG;
-        ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
-        ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
+        this.enabled = ConfigurationOptions.PacketLogger.ENABLED;
+        this.detailed = ConfigurationOptions.PacketLogger.DETAILED;
+        this.debug = ConfigurationOptions.PacketLogger.DEBUG;
+        this.ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
+        this.ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
 
-        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(holder.packetLogger, PacketContainer.PipelineState.OBJECT);
+        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(this.holder.packetLogger, PacketContainer.PipelineState.OBJECT);
         if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addListeners(holder.packetLogger, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
+            HoneyPlugin.get().getPacketLibrary().addListeners(this.holder.packetLogger, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
+            // TODO; for byte wrapped packets
         }
     }
 
@@ -107,18 +107,18 @@ public class HoneyLogger {
     }
 
     public int getPacketRate(HoneyPlayer player) {
-        synchronized (packetRate) {
-            return packetRate.getOrDefault(player.uuid, DecayingWindowCounter.EMPTY).size(0);
+        synchronized (this.packetRate) {
+            return this.packetRate.getOrDefault(player.uuid, DecayingWindowCounter.EMPTY).size(0);
         }
     }
 
     public int getTotalPacketRate() {
-        return totalPacketRate.size(0);
+        return this.totalPacketRate.size(0);
     }
 
     public String getTotalPacketRateGrade(int packetRate) {
         synchronized (this.packetRate) {
-            int prevRate = totalPacketRate.size(1, 2);
+            int prevRate = this.totalPacketRate.size(1, 2);
             return getPacketRateGrade(packetRate, prevRate);
         }
     }
