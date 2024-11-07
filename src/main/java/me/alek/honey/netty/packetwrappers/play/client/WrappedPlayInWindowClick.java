@@ -67,7 +67,7 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
         }
 
         PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.carriedItemStack = new LazyInit<>(() -> copy.readItemStack(protocol));
+        this.carriedItemStack = new LazyInit<>(() -> decodeExternally(() -> copy.readItemStack(protocol)));
         release = () -> AutoReleasable.doRelease(copy);
     }
 

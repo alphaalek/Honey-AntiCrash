@@ -8,7 +8,6 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.LifecycleState;
@@ -27,14 +26,10 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.logging.Level;
 
 @ChannelHandler.Sharable
 public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
-
-    private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-    private static final Queue<Object> serverThreadExecutionQueue = HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue();
 
     private final AsyncPacketStream stream;
     private final HoneyPacketHandler packetHandler;
@@ -50,11 +45,11 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     public HoneyPacketHandler getPacketHandler() {
-        return packetHandler;
+        return this.packetHandler;
     }
 
-    public AsyncPacketStream getAsync() {
-        return stream;
+    public AsyncPacketStream getAsyncPacketStream() {
+        return this.stream;
     }
 
     private void setupMethodInvoke(ChannelPipeline pipeline) {
@@ -78,7 +73,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
         packet.getEventloopStateTimings().stopTimings();
 
-        if (player.isBukkitReady()) {
+        if (this.player.isBukkitReady()) {
             HoneyPlugin.get().getNettyPacketTracker().registerTime(player,
                       packet.getEventloopStateTimings().getTimeFor(LifecycleState.HONEY_HANDLE)
                     + packet.getEventloopStateTimings().getTimeFor(LifecycleState.IN_BETWEEN)
@@ -98,10 +93,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             Object packet;
             try {
                 if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
-                    packet = HoneyPacketDecoder.decodePacket(player, packetHandler.getProtocolState(PacketBound.SERVER), packetHandler.getProtocolCodec(PacketBound.SERVER), buf);
+                    packet = HoneyPacketDecoder.decodePacket(this.player, this.packetHandler.getProtocolState(PacketBound.SERVER), packetHandler.getProtocolCodec(PacketBound.SERVER), buf);
                 } else {
                     // explicit set variable, so Proguard recognizes the method
-                    Object empty = decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, buf, list});
+                    Object empty = this.decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, buf, list});
 
                     if (list.isEmpty()) {
                         stopTimings(earlyPacketContainer);
@@ -113,20 +108,11 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
                     Bukkit.getLogger().log(Level.WARNING,
                             "Error occurred while decoding packet " + earlyPacketContainer.getType() + " (id " + earlyPacketContainer.getType().getMinecraftID().get()
-                                    + ") sent by " + player.name + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
+                                    + ") sent by " + this.player.name + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
 
-                HoneyPlugin.get().sync(() -> {
-                    if (ex.getMessage() != null) {
-                        player.bukkit.kickPlayer(ex.getMessage());
-                    } else {
-                        player.bukkit.kickPlayer("Disconnected");
-                    }
-                });
-                player.punished = true;
-
-                stopTimings(earlyPacketContainer);
+                this.player.failPacket(ex, earlyPacketContainer);
                 return;
             }
 
@@ -141,17 +127,17 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
             // ignore all transaction packets, as well as players with permission to bypass all validations
             if (earlyPacketContainer.getType() == PacketTypes.Play.Client.TRANSACTION
-                    || player.bypassEverything()) {
+                    || this.player.bypassEverything()) {
                 ctx.fireChannelRead(packet);
                 stopTimings(earlyPacketContainer);
                 return;
             }
 
-            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = packetProcessor.read(player, packet, earlyPacketContainer);
+            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().read(player, packet, earlyPacketContainer);
 
             Runnable packetExecutorTask;
             if (!finalPacketContainer.isCancelled()) {
-                packetExecutorTask = packetProcessor.getPacketExecutorTask(finalPacketContainer);
+                packetExecutorTask = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPacketExecutorTask(finalPacketContainer);
             } else {
                 packetExecutorTask = null;
             }
@@ -175,12 +161,12 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     private <WP extends WrappedPacket<WP>> void firePacketRead(ChannelHandlerContext ctx, PacketContainer<WP> packetContainer, Runnable packetExecutorTask) {
-        if (!packetHandler.read(packetContainer)) {
+        if (!this.packetHandler.read(packetContainer)) {
             return;
         }
 
         if (packetExecutorTask != null) {
-            serverThreadExecutionQueue.add(packetExecutorTask);
+            HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue().add(packetExecutorTask);
             // drop the packet for the pipeline
             return;
         }
@@ -206,12 +192,12 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     }
 
     public boolean read(ChannelHandlerContext ctx, Object msg) {
-        if (!player.isStreamActive()) {
+        if (!this.player.isStreamActive()) {
             return false;
         }
 
         if (!(msg instanceof ByteBuf)) {
-            if (!packetHandler.handleNonPacket(msg)) {
+            if (!this.packetHandler.handleNonPacket(msg)) {
                 return false;
             }
             ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
@@ -232,7 +218,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             if (packet == null) {
                 // this packet is not sent by the client (because it was not received by the filter),
                 // but instead invoked by some plugin (most likely ViaVersion)
-                packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, player, packetHandler.getPacketType(buf, false), null);
+                packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, this.packetHandler.getPacketType(buf, false), null);
                 InboundPacketFilter.MARK.set(packet);
                 fresh = true;
             }
@@ -259,7 +245,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
             List<Object> nonRecycledList = new ArrayList<>();
             if (!ConfigurationOptions.AsyncDecoder.ENABLED
-                    || !player.isBukkitReady()
+                    || !this.player.isBukkitReady()
                     || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
                 invokeRead(packet, ctx, buf, nonRecycledList);
                 return false;
@@ -268,10 +254,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 buf.release();
 
                 PacketContainer<? extends WrappedPacket<?>> copy = packet;
-                stream.decode((s) -> {
+                this.stream.decode((s) -> {
                     InboundPacketFilter.MARK.set(copy);
 
-                    if (player.isStreamActive()) {
+                    if (this.player.isStreamActive()) {
                         invokeRead(copy, ctx, wrapped, nonRecycledList);
                         copy.releaseIfAutoReleasable();
                     }
@@ -286,21 +272,12 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
                     Bukkit.getLogger().log(Level.WARNING,
                             "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
-                                    + ") sent by " + player.name + ", " + buf.readableBytes() + " bytes", ex);
+                                    + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
                 }
-
-                packet.getEventloopStateTimings().stopTimings();
             }
             serializer.release();
 
-            HoneyPlugin.get().sync(() -> {
-                if (ex.getMessage() != null) {
-                    player.bukkit.kickPlayer(ex.getMessage());
-                } else {
-                    player.bukkit.kickPlayer("Disconnected");
-                }
-            });
-            player.punished = true;
+            this.player.failPacket(ex, packet);
 
             return false;
         }

@@ -17,7 +17,6 @@ import me.alek.honey.util.Provider;
 import me.alek.honey.util.RemoteProviderBridge;
 import me.alek.honey.util.RemoteProviderUtils;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -151,7 +150,7 @@ public class SpigotPipelineInjector {
             async = new AsyncPacketStream(packetHandler.getPlayer(), WorkerPool.ASYNC_PACKET_DECODER_POOL);
         } else {
             if (decoder != null) {
-                async = decoder.getAsync();
+                async = decoder.getAsyncPacketStream();
             } else {
                 async = encoder.getAsync();
             }
@@ -257,7 +256,7 @@ public class SpigotPipelineInjector {
         synchronized (channel) {
             if (HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel) != null) {
                 HoneyPacketDecodePreparation decoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getDecoder(channel);
-                decoder.getAsync().farewell();
+                decoder.getAsyncPacketStream().farewell();
             } else if (HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel) != null) {
                 HoneyPacketEncodePreparation encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
                 encoder.getAsync().farewell();

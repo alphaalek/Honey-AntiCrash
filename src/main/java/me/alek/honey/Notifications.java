@@ -1,5 +1,6 @@
 package me.alek.honey;
 
+import com.google.common.collect.Sets;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.api.PacketContainer;
@@ -348,7 +349,7 @@ public class Notifications {
     }
 
     public void notify(String notification) {
-        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : Sets.newHashSet(this.observerMap.entrySet())) {
             if (!hasNotifyPermission(observer.getKey())) {
                 continue;
             }
@@ -357,7 +358,7 @@ public class Notifications {
     }
 
     public void notify(HoneyPlayer player, String notification, ViolationManagement.HoneyKey honeyKey, ConfigurationOptions.ViolationSetting setting, ViolationManagement.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
-        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : Sets.newHashSet(this.observerMap.entrySet())) {
             if (!hasNotifyPermission(observer.getKey())
                     || !player.isStreamActive()) {
                 continue;
@@ -368,7 +369,7 @@ public class Notifications {
     }
 
     public void warn(HoneyPlayer player, String warning, ViolationManagement.HoneyKey honeyKey) {
-        for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
+        for (Map.Entry<CommandSender, NotificationListener> observer : Sets.newHashSet(this.observerMap.entrySet())) {
             if (!hasNotifyPermission(observer.getKey())
                     || !player.isStreamActive()) {
                 continue;

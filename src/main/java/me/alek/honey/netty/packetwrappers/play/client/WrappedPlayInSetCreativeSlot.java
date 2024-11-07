@@ -29,7 +29,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
         }
 
         PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.item = new LazyInit<>(() -> copy.readItemStack(protocol));
+        this.item = new LazyInit<>(() -> decodeExternally(() -> copy.readItemStack(protocol)));
         this.release = () -> AutoReleasable.doRelease(copy);
     }
 

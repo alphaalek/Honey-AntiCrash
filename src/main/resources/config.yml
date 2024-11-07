@@ -640,10 +640,6 @@ block-interact:
 
   d:
     enabled: true
-    vls-amount: 3
-
-  e:
-    enabled: true
     max: 100
     min-vls: 5
     vls-amount: 8

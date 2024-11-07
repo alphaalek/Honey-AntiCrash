@@ -14,6 +14,7 @@ import java.util.function.Supplier;
 public class LazyInit<T> {
 
     private T val;
+    private boolean called;
     private final Supplier<T> function;
 
     public LazyInit(Supplier<T> function) {
@@ -21,7 +22,11 @@ public class LazyInit<T> {
     }
 
     public T get() {
-        return val == null ? (val = function.get()) : val;
+        if (!called) {
+            called = true;
+            val = function.get();
+        }
+        return val;
     }
 
     public static LazyInit<Integer> getMinecraftIDInit(PacketType type) {

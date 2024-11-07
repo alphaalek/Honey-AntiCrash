@@ -158,25 +158,14 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                 return;
             }
 
-            if (packet != null) {
-                if (HoneyPlugin.get().getLogger().isDebug()) {
-                    Bukkit.getLogger().log(Level.WARNING,
-                            "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
-                                    + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
-                }
-
-                packet.getEventloopStateTimings().stopTimings();
+            if (packet != null && HoneyPlugin.get().getLogger().isDebug()) {
+                Bukkit.getLogger().log(Level.WARNING,
+                        "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
+                                + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
             }
             serializer.release();
 
-            HoneyPlugin.get().sync(() -> {
-                if (ex.getMessage() != null) {
-                    this.player.bukkit.kickPlayer(ex.getMessage());
-                } else {
-                    this.player.bukkit.kickPlayer("Disconnected");
-                }
-            });
-            this.player.punished = true;
+            this.player.failPacket(ex, packet);
         }
     }
 }

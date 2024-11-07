@@ -2,7 +2,9 @@ package me.alek.honey;
 
 import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
@@ -20,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public class HoneyPlayer implements Identifiable {
 
@@ -137,6 +140,44 @@ public class HoneyPlayer implements Identifiable {
                 }
             }
         };
+    }
+
+    public void executeExternally(Runnable runnable, Callback exCallback) {
+        try {
+            runnable.run();
+        } catch (Exception ex) {
+            if (exCallback != null) {
+                exCallback.call(ex);
+            }
+        }
+    }
+
+    public <T> T executeExternally(Callable<T> callable, Callback exCallback) {
+        try {
+            return callable.call();
+        } catch (Exception ex) {
+            if (exCallback != null) {
+                exCallback.call(ex);
+            }
+            return null;
+        }
+    }
+
+    public void failPacket(Throwable ex, PacketContainer<? extends WrappedPacket<?>> packet) {
+        if (packet != null) {
+            packet.releaseIfAutoReleasable();
+        }
+
+        HoneyPlugin.get().sync(() -> {
+            if (bukkit != null) {
+                if (ex.getMessage() != null) {
+                    bukkit.kickPlayer(ex.getMessage());
+                } else {
+                    bukkit.kickPlayer("Disconnected");
+                }
+            }
+        });
+        punished = true;
     }
 
     public boolean isStreamActive() {

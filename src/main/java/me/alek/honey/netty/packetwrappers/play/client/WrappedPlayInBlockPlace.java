@@ -81,10 +81,11 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
                 if (this.faceId == 255) {
                     this.face = BlockFace.SELF;
                 }
-                PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-                this.itemStack = new LazyInit<>(() -> copy.readItemStack(protocol));
-                this.release = () -> AutoReleasable.doRelease(copy);
                 this.interactionHand = InteractionHand.MAIN_HAND;
+
+                PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
+                this.itemStack = new LazyInit<>(() -> decodeExternally(() -> copy.readItemStack(protocol)));
+                this.release = () -> AutoReleasable.doRelease(copy);
             }
 
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_11)) {

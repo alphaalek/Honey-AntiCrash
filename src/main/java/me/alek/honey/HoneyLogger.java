@@ -312,8 +312,7 @@ public class HoneyLogger {
                         .replace("\t", "\\t")
                         .replace("\n", "!n"))
                   .append("<")
-                  .append(BOXED.getOrDefault(val.getClass(), val.getClass()).getName()
-                        .replace(String.class.getName(), "String"))
+                  .append(BOXED.getOrDefault(val.getClass(), val.getClass()).getSimpleName())
                   .append(">");
             } catch (Exception ignored) {
                 sb.append("null");
