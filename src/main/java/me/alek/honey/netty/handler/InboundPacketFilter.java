@@ -7,9 +7,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
 import me.alek.honey.netty.api.PacketContainer;
@@ -22,6 +24,7 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
 import java.util.*;
+import java.util.logging.Level;
 
 @ChannelHandler.Sharable
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
@@ -69,7 +72,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(ctx.channel()).setProtocolState(PacketBound.SERVER, PacketState.HANDSHAKE);
         } catch (MissingHandlerException ex) {
-            ex.printStackTrace();
             ctx.close();
         }
     }
@@ -121,29 +123,60 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             prevMarked.releaseIfAutoReleasable();
         }
 
-        // initialize packet container
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
-        PacketType type = packetHandler.getPacketType(serializer, false);
-        PacketContainer<? extends WrappedPacket<?>> packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, player, type, null);
-        MARK.set(packet);
+        PacketContainer<? extends WrappedPacket<?>> packet = null;
+        try {
+            // initialize packet container
+            PacketType type = packetHandler.getPacketType(serializer, false);
+            packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, player, type, null);
+            MARK.set(packet);
 
-        // call listeners
-        packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
-        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(player, packet);
-        packet.getEventloopStateTimings().stopTimings();
+            // call listeners
+            packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(player, packet);
+            packet.getEventloopStateTimings().stopTimings();
 
-        // we're done using this byte buffer, just release it so Netty can
-        // clear the allocated memory used
-        serializer.release();
+            // we're done using this byte buffer, just release it so Netty can
+            // clear the allocated memory used
+            serializer.release();
 
-        if (!packet.isCancelled()) {
-            list.add(buf.readBytes(buf.readableBytes()));
-        } else {
-            list.add(Unpooled.buffer());
-            packet.releaseIfAutoReleasable();
+            if (!packet.isCancelled()) {
+                list.add(buf.readBytes(buf.readableBytes()));
+            } else {
+                list.add(Unpooled.buffer());
+                packet.releaseIfAutoReleasable();
+            }
+
+            // start in-between timings - stopped in decode preparation handler
+            packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
+        } catch (Exception ex) {
+            if (this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
+                // failed to handle handshake packet
+                // most likely something pinging this server without following the Minecraft protocol
+
+                UnsafeChannelCloser.closeForcibly(ctx.channel());
+                return;
+            }
+
+            if (packet != null) {
+                if (HoneyPlugin.get().getLogger().isDebug()) {
+                    Bukkit.getLogger().log(Level.WARNING,
+                            "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
+                                    + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
+                }
+
+                packet.getEventloopStateTimings().stopTimings();
+            }
+            serializer.release();
+
+            HoneyPlugin.get().sync(() -> {
+                if (ex.getMessage() != null) {
+                    this.player.bukkit.kickPlayer(ex.getMessage());
+                } else {
+                    this.player.bukkit.kickPlayer("Disconnected");
+                }
+            });
+            this.player.punished = true;
         }
-
-        // start in-between timings - stopped in decode preparation handler
-        packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
     }
 }

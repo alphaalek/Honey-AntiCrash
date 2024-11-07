@@ -6,6 +6,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacketFactory;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -59,8 +60,14 @@ public class PacketFactory {
         return null;
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>, TP extends WrappedPacket<WP>> TP createNewPacket(WrappedPacketFactory<TP, WP, ?> factory, PacketType type, HoneyPlayer player) {
-        return createNewPacket(factory, type, null, player);
+    public static synchronized <WP extends ObjectWrappedPacket<WP>> WP createNewPacket(PacketType type, HoneyPlayer player) {
+        return createNewPacket(type, player, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static synchronized <WP extends ObjectWrappedPacket<WP>> WP createNewPacket(PacketType type, HoneyPlayer player, Callback postAction) {
+        PacketContainer<WP> packet = new InternalPacketContainer<>(createPacket(type, null), player, type, postAction);
+        return (WP) packet.getObjectWrapped();
     }
 
     public static synchronized <WP extends WrappedPacket<WP>, TP extends WrappedPacket<WP>> TP createNewPacket(WrappedPacketFactory<?, ?, ?> factory, PacketType type, ByteBuf serializer, HoneyPlayer player) {

@@ -35,7 +35,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<CP> packet, ValidationPipelineContext context, Callback callback) {
-        String channel = packet.getAnyWrapped().getData().getChannel();
+        String channel = packet.getAnyWrapped().getPayloadData().getChannel();
 
         callback.addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
@@ -90,7 +90,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationViolationContext.Builder.validate().flag(packet.getData().getSerializer().readableBytes()).build();
+                return ValidationViolationContext.Builder.validate().flag(packet.getPayloadData().getSerializer().readableBytes()).build();
             }
 
             return ValidationViolationContext.PASS;
@@ -124,7 +124,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                WrappedImmutableItemStack item = packet.getData().getBookChannelItemStack();
+                WrappedImmutableItemStack item = packet.getPayloadData().getBookChannelItemStack();
                 if (item != null) {
                     int nbtSize;
                     if (item.getNBT() != null && (nbtSize = item.getNBT().toString().getBytes().length) > getSetting().max) {
@@ -186,8 +186,8 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getData().isBookChannel()) {
-                if (packet.getData().getBookChannelItemStack() == null) {
+            if (getSetting().isEnabled() && packet.getPayloadData().isBookChannel()) {
+                if (packet.getPayloadData().getBookChannelItemStack() == null) {
                     return ValidationViolationContext.FLAG;
                 }
 
@@ -229,7 +229,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                String channel = packet.getData().getChannel();
+                String channel = packet.getPayloadData().getChannel();
                 if (channel.equalsIgnoreCase("register") &&
                         player.bukkit.getListeningPluginChannels().size() > getSetting().max) {
                     return ValidationViolationContext.Builder.validate().cancel().flag()

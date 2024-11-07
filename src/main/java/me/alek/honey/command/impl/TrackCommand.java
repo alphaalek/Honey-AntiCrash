@@ -2,6 +2,7 @@ package me.alek.honey.command.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.Notifications;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.lang.Lang;
@@ -22,7 +23,7 @@ public class TrackCommand implements CommandImpl {
     @Override
     public void perform(CommandSender sender, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(CommandManager.PREFIX + " §cUsage: /honey track <players/checks>");
+            sender.sendMessage(Notifications.PREFIX + " §cUsage: /honey track <players/checks>");
             return;
         }
 
@@ -64,7 +65,7 @@ public class TrackCommand implements CommandImpl {
                 }
                 break;
             default:
-                sender.sendMessage(CommandManager.PREFIX + " §cUsage: /honey track <players/checks>");
+                sender.sendMessage(Notifications.PREFIX + " §cUsage: /honey track <players/checks>");
         }
     }
 

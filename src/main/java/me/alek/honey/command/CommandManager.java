@@ -22,9 +22,8 @@ import java.util.Optional;
 
 public class CommandManager implements CommandExecutor {
 
-    public static final String PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX) + " §7";
     private final Map<String, CommandImpl> commands = new HashMap<>();
-    private final CooldownManager cooldownManager;
+    private final CooldownManager cooldownManager = new CooldownManager();
 
     public CommandManager(Plugin plugin) {
         if (!(plugin instanceof JavaPlugin)) {
@@ -32,7 +31,6 @@ public class CommandManager implements CommandExecutor {
         }
 
         ((JavaPlugin)plugin).getCommand("honey").setExecutor(this);
-        cooldownManager = new CooldownManager();
 
         registerCommands();
     }
@@ -95,7 +93,7 @@ public class CommandManager implements CommandExecutor {
                 }
             }
             if (disabledNettyChecks > 0) {
-                disabledFeatures.append(disabledNettyChecks + " Netty Checks, ");
+                disabledFeatures.append(disabledNettyChecks).append(" Netty Checks, ");
             }
 
             if (disabledFeatures.length() > 0) {

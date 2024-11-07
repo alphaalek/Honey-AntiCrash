@@ -32,6 +32,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.logging.Level;
 
 public class Notifications {
 
@@ -55,17 +56,18 @@ public class Notifications {
             @Override
             public void run() {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-
                     if (!player.isOnline() && isSubscribed(player)) {
                         unsubscribe(player);
                         untoggledlist.remove(player);
                         return;
                     }
+
                     if (hasNotifyPermission(player) && !isSubscribed(player) && !isUntoggled(player)) {
                         subscribe(player);
                         return;
                     }
-                    if(!hasNotifyPermission(player) && isSubscribed(player)) {
+
+                    if (!hasNotifyPermission(player) && isSubscribed(player)) {
                         unsubscribe(player);
                     }
                 }
@@ -318,7 +320,6 @@ public class Notifications {
     }
 
     private static IStructureModifier<Object> chatSerializer;
-    private static Class<Object> IchatBaseComponentClass;
 
     public void sendActionBar(HoneyPlayer player, String text) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
@@ -326,32 +327,28 @@ public class Notifications {
             return;
         }
 
-        ObjectWrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(WrappedPacketFactory.<WrappedPlayOutChat>acquireHolder().OBJECT_FACTORY, PacketTypes.Play.Server.PLAYER_CHAT, player);
+        ObjectWrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketTypes.Play.Server.PLAYER_CHAT, player);
         PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
 
         packetContainer.getStructure().getBytes().writeField(0, (byte) 2);
 
-        if (IchatBaseComponentClass == null) {
-            IchatBaseComponentClass = NMS.getIChatBaseComponentClass();
-        }
         if (chatSerializer == null) {
             chatSerializer = ReflectStructure.Provider.acquireStructure(NMS.getChatSerializerClass())
-                    .withType(IchatBaseComponentClass)
+                    .withType(NMS.getIChatBaseComponentClass())
                     .withTarget(null);
         }
         Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
-        packetContainer.getStructure().getObjectsOf(IchatBaseComponentClass).writeField(0, chatComponent);
+        packetContainer.getStructure().getObjectsOf(NMS.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
         try {
             HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Bukkit.getLogger().log(Level.SEVERE, "Failed to send action bar packet", ex);
         }
     }
 
     public void notify(String notification) {
         for (Map.Entry<CommandSender, NotificationListener> observer : observerMap.entrySet()) {
-
             if (!hasNotifyPermission(observer.getKey())) {
                 continue;
             }

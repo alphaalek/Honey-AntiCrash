@@ -111,9 +111,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 }
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
-                    Bukkit.getLogger().log(Level.INFO,
+                    Bukkit.getLogger().log(Level.WARNING,
                             "Error occurred while decoding packet " + earlyPacketContainer.getType() + " (id " + earlyPacketContainer.getType().getMinecraftID().get()
-                                    + ") sent by " + player + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
+                                    + ") sent by " + player.name + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
 
@@ -225,59 +225,84 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
-        PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
-        boolean fresh = false;
-        if (packet == null) {
-            // this packet is not sent by the client (because it was not received by the filter),
-            // but instead invoked by some plugin (most likely ViaVersion)
-            packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, player, packetHandler.getPacketType(buf, false), null);
-            InboundPacketFilter.MARK.set(packet);
-            fresh = true;
-        }
-        if (PacketTypes.isUnknown(packet.getType())) {
-            return false;
-        }
+        PacketContainer<? extends WrappedPacket<?>> packet = null;
+        try {
+            packet = InboundPacketFilter.MARK.get();
+            boolean fresh = false;
+            if (packet == null) {
+                // this packet is not sent by the client (because it was not received by the filter),
+                // but instead invoked by some plugin (most likely ViaVersion)
+                packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, player, packetHandler.getPacketType(buf, false), null);
+                InboundPacketFilter.MARK.set(packet);
+                fresh = true;
+            }
+            if (PacketTypes.isUnknown(packet.getType())) {
+                return false;
+            }
 
-        boolean hasWrappedPacket = WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE);
-        // check if we have to care about a wrapped initial byte packet for this type
-        if (!fresh && hasWrappedPacket) {
-            serializer.readVarInt(); // skip packet-id
-        }
+            boolean hasWrappedPacket = WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE);
+            // check if we have to care about a wrapped initial byte packet for this type
+            if (!fresh && hasWrappedPacket) {
+                serializer.readVarInt(); // skip packet-id
+            }
 
-        // stops in-between timings
-        packet.getEventloopStateTimings().stopTimings();
+            // stops in-between timings
+            packet.getEventloopStateTimings().stopTimings();
 
-        // handle final byte state
-        if (hasWrappedPacket) {
-            packet.callPreMinecraftDecode(serializer);
-            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(player, packet);
-        }
+            // handle final byte state
+            if (hasWrappedPacket) {
+                packet.callPreMinecraftDecode(serializer);
+                HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(player, packet);
+            }
 
-        serializer.resetReaderIndex();
+            serializer.resetReaderIndex();
 
-        List<Object> nonRecycledList = new ArrayList<>();
-        if (!ConfigurationOptions.AsyncDecoder.ENABLED
-                || !player.isBukkitReady()
-                || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
-            invokeRead(packet, ctx, buf, nonRecycledList);
-            return false;
-        } else {
-            ByteBuf wrapped = buf.readBytes(buf.readableBytes()).retain();
-            buf.release();
+            List<Object> nonRecycledList = new ArrayList<>();
+            if (!ConfigurationOptions.AsyncDecoder.ENABLED
+                    || !player.isBukkitReady()
+                    || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
+                invokeRead(packet, ctx, buf, nonRecycledList);
+                return false;
+            } else {
+                ByteBuf wrapped = buf.readBytes(buf.readableBytes()).retain();
+                buf.release();
 
-            PacketContainer<? extends WrappedPacket<?>> copy = packet;
-            stream.decode((s) -> {
-                InboundPacketFilter.MARK.set(copy);
+                PacketContainer<? extends WrappedPacket<?>> copy = packet;
+                stream.decode((s) -> {
+                    InboundPacketFilter.MARK.set(copy);
 
-                if (player.isStreamActive()) {
-                    invokeRead(copy, ctx, wrapped, nonRecycledList);
-                    copy.releaseIfAutoReleasable();
+                    if (player.isStreamActive()) {
+                        invokeRead(copy, ctx, wrapped, nonRecycledList);
+                        copy.releaseIfAutoReleasable();
+                    }
+
+                    InboundPacketFilter.MARK.remove();
+                });
+
+                return true;
+            }
+        } catch (Exception ex) {
+            if (packet != null) {
+                if (HoneyPlugin.get().getLogger().isDebug()) {
+                    Bukkit.getLogger().log(Level.WARNING,
+                            "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
+                                    + ") sent by " + player.name + ", " + buf.readableBytes() + " bytes", ex);
                 }
 
-                InboundPacketFilter.MARK.remove();
-            });
+                packet.getEventloopStateTimings().stopTimings();
+            }
+            serializer.release();
 
-            return true;
+            HoneyPlugin.get().sync(() -> {
+                if (ex.getMessage() != null) {
+                    player.bukkit.kickPlayer(ex.getMessage());
+                } else {
+                    player.bukkit.kickPlayer("Disconnected");
+                }
+            });
+            player.punished = true;
+
+            return false;
         }
     }
 }

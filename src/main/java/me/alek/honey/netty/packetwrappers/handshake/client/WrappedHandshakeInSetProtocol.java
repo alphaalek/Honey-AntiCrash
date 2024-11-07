@@ -4,13 +4,16 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
-import org.bukkit.Bukkit;
 
 public class WrappedHandshakeInSetProtocol extends ByteWrappedPacket<WrappedHandshakeInSetProtocol> {
 
+    @Property
     private final int protocolVersion;
+    @Property
     private final String host;
+    @Property
     private final int port;
+    @Property
     private final int intent;
 
     public WrappedHandshakeInSetProtocol(PacketDataSerializer serializer, PacketContainer<WrappedHandshakeInSetProtocol> packetContainer) {

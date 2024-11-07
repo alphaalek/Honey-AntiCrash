@@ -1,7 +1,6 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -13,13 +12,11 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
-import org.bukkit.Bukkit;
 
 import java.util.function.Function;
 
 public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
-    private final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private final HoneyPacketHandler packetHandler;
 
     public boolean read = true;
@@ -45,15 +42,15 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             case SERVER:
                 PacketContainer<WP> packet = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
                 InboundPacketFilter.MARK.remove();
-                return this.packetProcessor.read(this.packetHandler.getPlayer(), msg, packet);
+                return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().read(this.packetHandler.getPlayer(), msg, packet);
             case CLIENT:
-                return this.packetProcessor.write(this.packetHandler.getPlayer(), msg);
+                return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().write(this.packetHandler.getPlayer(), msg);
         }
 
         throw new IllegalStateException();
     }
 
-    private <WP extends WrappedPacket<WP>> void sendThroughPipeline(Object msg, PacketContainer<WP> packetContainer, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
+    private <WP extends WrappedPacket<WP>> void streamToPipeline(Object msg, PacketContainer<WP> packetContainer, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
         if (msg instanceof ByteBuf) {
             sending.run();
             return;
@@ -97,7 +94,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             if (packet == null) {
                 return;
             }
-            sendThroughPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
+            streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -131,7 +128,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         if (packet == null) {
             return;
         }
-        sendThroughPipeline(msg, packet, this.packetHandler::write, () -> ctx.write(ReferenceCountUtil.retain(msg), promise));
+        streamToPipeline(msg, packet, this.packetHandler::write, () -> ctx.write(ReferenceCountUtil.retain(msg), promise));
     }
 
     public void checkRelocation() {

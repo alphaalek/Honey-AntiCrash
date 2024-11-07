@@ -200,8 +200,8 @@ async-decoder:
 monitor:
   # Packets which the player monitor should ignore.
   ignored-packets:
-    - "PacketPlayInFlying"
-    - "PacketPlayInKeepAlive"
+    - "KEEP_ALIVE"
+    - "PLAYER_MOVEMENT"
 
   # Should player monitor also be a packet logger (not detailed data).
   # OBS: remember you also can use /honey packetmonitor, if you want to use an advanced packet monitor for players.
@@ -234,8 +234,8 @@ packet-logger:
 
   # Packets which the packet logger should ignore.
   ignored-packets:
-    - "PacketPlayInFlying"
-    - "PacketPlayInKeepAlive"
+    - "KEEP_ALIVE"
+    - "PLAYER_MOVEMENT"
 
   # Should debug mode be enabled or not. Only makes sense to be used for development and troubleshooting, I don't recommend to toggle this on.
   debug-mode: false

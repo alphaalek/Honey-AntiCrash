@@ -11,7 +11,6 @@ import me.alek.honey.netty.nbt.TagType;
 import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
-import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.*;
@@ -52,23 +51,23 @@ public class PacketExecutors {
                 Reflection.getClass("{obc}.event.CraftEventFactory"), "stripEvents", NMS.getIChatBaseComponentClass());
 
         @Override
-        public boolean test(PacketContainer<CP> packetContainer) {
-            return packetContainer.getAnyWrapped().getData().isBookChannel();
+        public boolean test(PacketContainer<CP> packet) {
+            return packet.getAnyWrapped().getPayloadData().isBookChannel();
         }
 
         @Override
-        public Runnable getTask(PacketContainer<CP> packetContainer) {
-            WrappedImmutableItemStack item = packetContainer.getAnyWrapped().getData().getBookChannelItemStack();
+        public Runnable getTask(PacketContainer<CP> packet) {
+            WrappedImmutableItemStack item = packet.getAnyWrapped().getPayloadData().getBookChannelItemStack();
             if (item == null || item.getNBT() == null) {
                 // can't edit or sign book, if item or nbt is invalid
-                packetContainer.getAnyWrapped().release();
+                packet.getAnyWrapped().release();
                 return null;
             }
 
-            Runnable edit = handleBookChannel(packetContainer, item);
+            Runnable edit = handleBookChannel(packet, item);
             return Optional.ofNullable(edit)
                 .map(r -> (Runnable) () -> {
-                    packetContainer.getAnyWrapped().release();
+                    packet.getAnyWrapped().release();
                     r.run();
                 })
                 .orElse(null);
@@ -124,7 +123,7 @@ public class PacketExecutors {
                 return INVALID_BOOK_DATA.apply(bukkitPlayer);
             }
 
-            String channel = packet.getAnyWrapped().getData().getChannel();
+            String channel = packet.getAnyWrapped().getPayloadData().getChannel();
 
             if (channel.equals("MC|BEdit")) {
                 Runnable edit = handleBookEdit(packet.getPlayer(), item, heldItem);

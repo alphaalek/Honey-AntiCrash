@@ -17,6 +17,7 @@ import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.counter.DecayingWindowCounter;
 import me.alek.honey.util.statics.NumberUtils;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,10 +53,10 @@ public class HoneyLogger {
 
     private final class PacketLoggerHolder<WP extends WrappedPacket<WP>> {
 
-        private final PacketListenerAdapter<WP> packetLogger = new PacketListenerAdapter<WP>() {
+        private final PacketListenerAdapter<WP> packetLogger = new PacketListenerAdapter.InboundCommon<WP>() {
 
             @Override
-            public void onObjectPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
+            public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
                 if (monitorManager.hasMonitorers()) {
                     // notify monitor observers
                     logToMonitors(player, packet);
@@ -231,20 +232,20 @@ public class HoneyLogger {
         logPacket(packetContainer, playerName, this.detailed, 0);
     }
 
-    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName, boolean detailed, long comparingTime) {
+    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packet, String playerName, boolean detailed, long comparingTime) {
         if (ignoredPlayers.contains(playerName)
-                || ignoredPackets.contains(packetContainer.getObjectWrapped().getHandle().getClass().getSimpleName())) {
+                || ignoredPackets.contains(packet.getType().toString())) {
             return;
         }
 
         StringBuilder message = new StringBuilder();
-        if (comparingTime > packetContainer.getTimeCreated()) {
-            message.append("(" + (comparingTime - packetContainer.getTimeCreated()) + "ms ago): ");
+        if (comparingTime > packet.getTimeCreated()) {
+            message.append("(" + (comparingTime - packet.getTimeCreated()) + "ms ago): ");
         }
-        message.append(playerName + " sent " + packetContainer.getType());
+        message.append(playerName + " sent " + packet.getType());
 
-        if (detailed && !PacketTypes.isUnknown(packetContainer.getType())) {
-            message.append(": " + filterTooMuchData(formatPacketEntries(packetContainer)));
+        if (detailed && !PacketTypes.isUnknown(packet.getType())) {
+            message.append(": " + filterTooMuchData(formatPacketEntries(packet)));
         }
 
         getLogger().info(message.toString());
@@ -275,7 +276,7 @@ public class HoneyLogger {
         }
 
         Map<String, Object> entries = new HashMap<>();
-        for (Map.Entry<String, Object> entry : packet.getStructure().getAll().readFieldEntries().entrySet()) {
+        for (Map.Entry<String, Object> entry : packet.getAnyWrapped().getProperties().entrySet()) {
             if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS
                     && entry.getValue() != null
                     && entry.getValue().getClass().isArray()) {
@@ -307,7 +308,7 @@ public class HoneyLogger {
               .append("=");
             try {
                 Object val = e.getValue();
-                sb.append(String.valueOf(val)
+                sb.append(val.toString()
                         .replace("\t", "\\t")
                         .replace("\n", "!n"))
                   .append("<")

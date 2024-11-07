@@ -1,6 +1,7 @@
 package me.alek.honey.command.impl;
 
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.Notifications;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -74,7 +75,7 @@ public class PasteLogsCommand implements CommandImpl {
                 size++;
             }
             if (size == 0) {
-                sender.sendMessage(CommandManager.PREFIX + " §cThe player " + playerName + " doesn't have any violations.");
+                sender.sendMessage(Notifications.PREFIX + " §cThe player " + playerName + " doesn't have any violations.");
                 return;
             }
 
@@ -85,16 +86,16 @@ public class PasteLogsCommand implements CommandImpl {
                     .build();
             String URL = PastebinClient.post(ConfigurationOptions.General.PASTEBIN_DEVELOPER_KEY, request);
             if (URL == null) {
-                sender.sendMessage(CommandManager.PREFIX + " §cAn error occurred! :( Try again later.");
+                sender.sendMessage(Notifications.PREFIX + " §cAn error occurred! :( Try again later.");
                 return;
             }
             String[] splittedURL = URL.split("/");
             URL = "https://" + splittedURL[splittedURL.length - 2] + "/raw/" + splittedURL[splittedURL.length - 1];
 
-            sender.sendMessage(CommandManager.PREFIX + " §7Violation log for player " + playerName + " pasted to: §e" + URL);
+            sender.sendMessage(Notifications.PREFIX + " §7Violation log for player " + playerName + " pasted to: §e" + URL);
         } catch (Exception ex) {
             ex.printStackTrace();
-            sender.sendMessage(CommandManager.PREFIX + " §cA SQL error occurred :( " + (ex.getMessage() != null ? ex.getMessage() : ""));
+            sender.sendMessage(Notifications.PREFIX + " §cA SQL error occurred :( " + (ex.getMessage() != null ? ex.getMessage() : ""));
         }
     }
 

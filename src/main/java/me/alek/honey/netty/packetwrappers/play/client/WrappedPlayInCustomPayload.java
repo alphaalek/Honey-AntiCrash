@@ -17,6 +17,7 @@ import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayload<WP>> extends WrappedPacket<WP>, AutoReleasable {
 
-    PayloadData getData();
+    PayloadData getPayloadData();
 
     class ByteWrappedPlayInCustomPayload extends ByteWrappedPacket<ByteWrappedPlayInCustomPayload> implements WrappedPlayInCustomPayload<ByteWrappedPlayInCustomPayload> {
 
@@ -39,7 +40,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         }
 
         @Override
-        public PayloadData getData() {
+        public PayloadData getPayloadData() {
             return data;
         }
 
@@ -105,7 +106,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         }
 
         @Override
-        public PayloadData getData() {
+        public PayloadData getPayloadData() {
             return this.data;
         }
 
@@ -140,7 +141,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         private WrappedImmutableItemStack readItemStack(NetProtocol protocol, PacketDataSerializer copy) {
             WrappedImmutableItemStack item = copy.readItemStack(protocol);
 
-            if (item.getNBT() != null) {
+            if (item != null && item.getNBT() != null) {
                 ArrayTag<String> pages = item.getNBT().getArrayOf("pages", TagType.STRING);
                 if (channel.equals("MC|BEdit")) {
                     item.getNBT().clear();

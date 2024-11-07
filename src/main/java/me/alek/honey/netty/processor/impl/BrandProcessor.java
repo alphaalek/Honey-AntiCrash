@@ -13,7 +13,7 @@ public class BrandProcessor<CP extends WrappedPlayInCustomPayload<CP>> extends P
     }
 
     public void handleCustomPayload(HoneyPlayer player, PacketContainer<CP> packet) {
-        WrappedPlayInCustomPayload.PayloadData data = packet.getAnyWrapped().getData();
+        WrappedPlayInCustomPayload.PayloadData data = packet.getAnyWrapped().getPayloadData();
         String channel = data.getChannel();
         if (channel.equals("MC|Brand") || channel.equals("minecraft:brand")) {
             String brand = data.makeSerializerCopy().readString(Short.MAX_VALUE);
