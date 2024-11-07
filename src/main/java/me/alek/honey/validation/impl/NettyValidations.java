@@ -135,7 +135,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
 
                 PacketReader.Container<WP> reader = (PacketReader.Container<WP>) READERS.get(packet.getType().getHoneyID());
@@ -143,30 +143,30 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
                     Object[] values = reader.read(packet.getContainer());
                     for (Object value : values) {
                         if (value instanceof Float && NumberUtils.isInvalid((float) value)) {
-                            return ValidationServiceContext.FLAG;
+                            return ValidationViolationContext.FLAG;
                         }
                         if (value instanceof Double && NumberUtils.isInfinite((double) value)) {
-                            return ValidationServiceContext.FLAG;
+                            return ValidationViolationContext.FLAG;
                         }
                     }
 
-                    return ValidationServiceContext.PASS;
+                    return ValidationViolationContext.PASS;
                 }
 
                 for (double value : packet.getContainer().getStructure().getDoubles().readFieldValues()) {
                     if (NumberUtils.isInvalid(value)) {
-                        return ValidationServiceContext.FLAG;
+                        return ValidationViolationContext.FLAG;
                     }
                 }
 
                 for (float value : packet.getContainer().getStructure().getFloats().readFieldValues()) {
                     if (NumberUtils.isInvalid(value)) {
-                        return ValidationServiceContext.FLAG;
+                        return ValidationViolationContext.FLAG;
                     }
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -219,10 +219,10 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
-        public static <WP extends WrappedPacket<WP>> ValidationServiceContext check0(WP packet, ViolationKey key, ConfigurationOptions.ViolationSetting setting, ValidationPipelineContext context) {
+        public static <WP extends WrappedPacket<WP>> ValidationViolationContext check0(WP packet, ViolationKey key, ConfigurationOptions.ViolationSetting setting, ValidationPipelineContext context) {
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(LifecycleState.DECODE);
             if (setting.isEnabled() && decodeTime > 0) {
-                return ValidationServiceContext.Builder.validate().flag(decodeTime)
+                return ValidationViolationContext.Builder.validate().flag(decodeTime)
                         .onViolation(key, (keyInner, onViolation) -> {
                             if (onViolation != null) onViolation.run();
 
@@ -231,11 +231,11 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
                         .build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             return check0(packet, ViolationKey.of(this), getSetting(), context);
         }
 
@@ -265,7 +265,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             return NettyH.check0(packet, ViolationKey.of(this), getSetting(), context);
         }
 
@@ -295,8 +295,8 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
-            return ValidationServiceContext.PASS;
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+            return ValidationViolationContext.PASS;
         }
 
         @Override

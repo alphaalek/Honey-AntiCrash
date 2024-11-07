@@ -49,7 +49,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 // TODO: fix
                 /*
@@ -77,7 +77,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
                 */
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -106,7 +106,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 return ItemAnalysis.flagIf(player, packet.getCarriedItemStack(), generateKey(), context)
                         .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
@@ -123,7 +123,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
                         }).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -152,15 +152,15 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (player.bukkit.getOpenInventory().getType().equals(InventoryType.LECTERN)
                         && packet.getWindowClickType() == WrappedPlayInWindowClick.WindowClickType.QUICK_MOVE) {
-                    return ValidationServiceContext.FLAG;
+                    return ValidationViolationContext.FLAG;
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -189,16 +189,16 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (packet.getActionNumber() < 0
                         || packet.getStateId() < 0
                         || packet.getWindowId() < 0) {
-                    return ValidationServiceContext.FLAG;
+                    return ValidationViolationContext.FLAG;
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

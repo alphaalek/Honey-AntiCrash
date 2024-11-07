@@ -6,7 +6,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.ValidationServiceContext;
+import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -39,11 +39,11 @@ public class HeldItemValidations extends AbstractValidationPacketListener<Wrappe
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 int slot = packet.getSlot();
                 if (slot >= 36 || slot < 0) {
-                    return ValidationServiceContext.Builder.validate().cancel().flag().terminate()
+                    return ValidationViolationContext.Builder.validate().cancel().flag().terminate()
                             .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -53,7 +53,7 @@ public class HeldItemValidations extends AbstractValidationPacketListener<Wrappe
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -82,12 +82,12 @@ public class HeldItemValidations extends AbstractValidationPacketListener<Wrappe
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 return ItemAnalysis.flagIf(player, player.bukkit.getInventory().getItem(packet.getSlot()), ViolationKey.of(this), context);
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

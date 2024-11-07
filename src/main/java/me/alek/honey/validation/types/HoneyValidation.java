@@ -4,7 +4,7 @@ package me.alek.honey.validation.types;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.util.Identifiable;
 import me.alek.honey.validation.ValidationPipelineContext;
-import me.alek.honey.validation.ValidationServiceContext;
+import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.ViolationKey;
 
 public interface HoneyValidation<T> extends Identifiable {
@@ -17,7 +17,7 @@ public interface HoneyValidation<T> extends Identifiable {
 
     String getDescription();
 
-    ValidationServiceContext validate(HoneyPlayer player, T type, ValidationPipelineContext context);
+    ValidationViolationContext validate(HoneyPlayer player, T type, ValidationPipelineContext context);
 
     default boolean isViolation() {
         return false;

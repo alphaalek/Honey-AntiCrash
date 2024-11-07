@@ -37,7 +37,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<CP> packet, ValidationPipelineContext context, Callback callback) {
         String channel = packet.getAnyWrapped().getData().getChannel();
 
-        callback.addAction(Callback.Action.<ViolationKey, ValidationServiceContext>from((keyOuter, response) -> {
+        callback.addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
@@ -58,8 +58,8 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
-            return ValidationServiceContext.PASS;
+        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -88,12 +88,12 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getData().getSerializer().readableBytes()).build();
+                return ValidationViolationContext.Builder.validate().flag(packet.getData().getSerializer().readableBytes()).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -122,13 +122,13 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 WrappedImmutableItemStack item = packet.getData().getBookChannelItemStack();
                 if (item != null) {
                     int nbtSize;
                     if (item.getNBT() != null && (nbtSize = item.getNBT().toString().getBytes().length) > getSetting().max) {
-                        return ValidationServiceContext.Builder.validate().cancel().flag()
+                        return ValidationViolationContext.Builder.validate().cancel().flag()
                                 .onViolation(generateKey(), (keyInner, onViolation) -> {
                                     if (onViolation != null) {
                                         onViolation.run();
@@ -149,7 +149,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         private void clearItem(HoneyPlayer player) {
@@ -185,20 +185,20 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled() && packet.getData().isBookChannel()) {
                 if (packet.getData().getBookChannelItemStack() == null) {
-                    return ValidationServiceContext.FLAG;
+                    return ValidationViolationContext.FLAG;
                 }
 
                 ItemStack itemInHand = player.bukkit.getItemInHand();
                 if (itemInHand.getType() != MaterialMappings.getType("writable-book")
                         && itemInHand.getType() != Material.WRITTEN_BOOK) {
-                    return ValidationServiceContext.FLAG;
+                    return ValidationViolationContext.FLAG;
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -227,12 +227,12 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 String channel = packet.getData().getChannel();
                 if (channel.equalsIgnoreCase("register") &&
                         player.bukkit.getListeningPluginChannels().size() > getSetting().max) {
-                    return ValidationServiceContext.Builder.validate().cancel().flag()
+                    return ValidationViolationContext.Builder.validate().cancel().flag()
                             .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -242,7 +242,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

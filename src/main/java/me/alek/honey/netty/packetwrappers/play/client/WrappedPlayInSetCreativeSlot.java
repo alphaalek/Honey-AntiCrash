@@ -11,7 +11,9 @@ import me.alek.honey.util.protocol.NetProtocol;
 
 public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayInSetCreativeSlot> implements AutoReleasable {
 
+    @Property
     private final int slot;
+    @Property @Property.Unlock(methodSupplier = "getItemStack")
     private final LazyInit<WrappedImmutableItemStack> item;
     private final Runnable release;
 

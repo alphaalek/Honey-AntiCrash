@@ -5,6 +5,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
-public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapter<WP> {
+public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapter.Common<WP> {
 
     public static class ReaderInfo<B, T> {
 
@@ -63,10 +64,11 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
         addListener(type, state, listener, null);
     }
 
-    public void handle(HoneyPlayer player, PacketContainer.PipelineState state, PacketContainer<WP> packet) throws Exception {
+    @Override
+    public void onPacketStream(HoneyPlayer player, PacketBound bound, PacketContainer<WP> packet) throws Exception {
         if (packetListeners.has(packet.getType())) {
             for (ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info : packetListeners.get(packet.getType().getHoneyID())) {
-                if (info.state.equals(state)) {
+                if (info.state.equals(packet.getPipelineState())) {
                     try {
                         info.listener.accept(player, packet);
                     } catch (Exception ex) {
@@ -75,19 +77,5 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
                 }
             }
         }
-    }
-
-    public void onObjectPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
-        handle(player, PacketContainer.PipelineState.OBJECT, packet);
-    }
-
-    @Override
-    public void onObjectPacketSend(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
-        handle(player, PacketContainer.PipelineState.OBJECT, packet);
-    }
-
-    @Override
-    public void onBytePacketReceive(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
-        handle(player, PacketContainer.PipelineState.INITIAL_BYTE, packet);
     }
 }

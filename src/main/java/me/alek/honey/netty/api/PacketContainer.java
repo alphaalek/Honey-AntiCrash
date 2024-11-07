@@ -21,9 +21,9 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     PacketLifecycleTimings getEventloopStateTimings();
 
-    void initPostMinecraftDecode(Object packet, PacketType type);
+    void callPostMinecraftDecode(Object packet, PacketType type);
 
-    void initPreMinecraftDecode(PacketDataSerializer serializer);
+    void callPreMinecraftDecode(PacketDataSerializer serializer);
 
     NetProtocol getProtocolByBytePacketState();
 

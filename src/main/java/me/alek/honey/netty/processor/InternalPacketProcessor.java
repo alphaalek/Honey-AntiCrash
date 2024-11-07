@@ -85,6 +85,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             }
         }
 
+        @SuppressWarnings("unchecked")
         public void addListener(PacketListenerAdapter<?> listener, PacketContainer.PipelineState state, ListenerPriority priority) {
             StateBus bus = getStateBus(state);
             synchronized (bus.priorityMap) {
@@ -161,19 +162,19 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public void addPacketExecutor(PacketType packetType, PacketExecutor<? extends WrappedPacket<?>> packetExecutor) {
-        packetExecutors.get(packetType.getHoneyID(), ArrayList::new)
+    public void addPacketExecutor(PacketType type, PacketExecutor<? extends WrappedPacket<?>> packetExecutor) {
+        packetExecutors.get(type, ArrayList::new)
                 .add(packetExecutor);
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packetContainer) {
-        if (PacketTypes.isUnknown(packetContainer.getType())
-                || !packetExecutors.has(packetContainer.getType().getHoneyID())) {
+    public <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packet) {
+        if (PacketTypes.isUnknown(packet.getType())
+                || !packetExecutors.has(packet.getType())) {
             return null;
         }
 
-        List<PacketExecutor<? extends WrappedPacket<?>>> executors = packetExecutors.get(packetContainer.getType().getHoneyID());
+        List<PacketExecutor<? extends WrappedPacket<?>>> executors = packetExecutors.get(packet.getType());
         if (executors.isEmpty()) {
             return null;
         }
@@ -182,13 +183,13 @@ public class InternalPacketProcessor implements PacketProcessor {
             @SuppressWarnings("unchecked")
             PacketExecutor<WP> executor = (PacketExecutor<WP>) executorImpl;
 
-            if (executor.test(packetContainer)) {
+            if (executor.test(packet)) {
                 long start = System.nanoTime();
-                Runnable runnable = executor.getTask(packetContainer);
+                Runnable runnable = executor.getTask(packet);
                 long end = System.nanoTime();
 
                 if (runnable != null) {
-                    HoneyPlugin.get().getExecutionQueueProxy().registerTime(packetContainer.getPlayer(), end - start);
+                    HoneyPlugin.get().getExecutionQueueProxy().registerTime(packet.getPlayer(), end - start);
                     return runnable;
                 }
             }
@@ -203,7 +204,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                 continue;
             }
 
-            addToEventBus.accept(eventBusses.get(type.getHoneyID(), EventBus::new));
+            addToEventBus.accept(eventBusses.get(type, EventBus::new));
         }
     }
 
@@ -220,12 +221,12 @@ public class InternalPacketProcessor implements PacketProcessor {
     @Override
     public void removeListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, List<PacketType> types) {
         for (PacketType type : types) {
-            if (!eventBusses.has(type.getHoneyID())) continue;
+            if (!eventBusses.has(type)) continue;
 
-            eventBusses.get(type.getHoneyID()).removeListener(state, listener);
+            eventBusses.get(type).removeListener(state, listener);
 
-            if (eventBusses.get(type.getHoneyID()).isEmpty(state)) {
-                eventBusses.remove(type.getHoneyID());
+            if (eventBusses.get(type).isEmpty(state)) {
+                eventBusses.remove(type);
             }
         }
     }
@@ -237,6 +238,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -250,9 +252,9 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     private void call(PacketType type, Consumer<EventBus<? extends WrappedPacket<?>>> callToEventBus) {
-        int id;
+        int id = type.getHoneyID();
         if (PacketTypes.isUnknown(type)
-                || !eventBusses.has(id = type.getHoneyID())) {
+                || !eventBusses.has(id)) {
             return;
         }
 
@@ -276,7 +278,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> earlyInitializedPacket, Object packet, HoneyPlayer player, PacketType type) {
         if (earlyInitializedPacket != null) {
-            earlyInitializedPacket.initPostMinecraftDecode(packet, type);
+            earlyInitializedPacket.callPostMinecraftDecode(packet, type);
             return earlyInitializedPacket;
         }
 
@@ -327,7 +329,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public Callback getPostAction(PacketType type) {
-        return PacketTypes.isUnknown(type) ? null : postActions.get(type.getHoneyID());
+        return PacketTypes.isUnknown(type) ? null : postActions.get(type);
     }
 
     @Override
@@ -336,7 +338,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             return;
         }
 
-        Callback callback = postActions.get(type.getHoneyID(), Callback::new);
+        Callback callback = postActions.get(type, Callback::new);
         callback.addAction(action);
     }
 }

@@ -1,13 +1,12 @@
 package me.alek.honey.validation.item;
 
-import jdk.vm.ci.code.site.Call;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.util.Callback;
 import me.alek.honey.validation.ValidationPipelineContext;
-import me.alek.honey.validation.ValidationServiceContext;
+import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.ViolationKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -61,17 +60,17 @@ public class ItemAnalysis {
         }
     }
 
-    public static ValidationServiceContext flagIf(HoneyPlayer player, ItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
+    public static ValidationViolationContext flagIf(HoneyPlayer player, ItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
         return flagIf(player, WrappedImmutableItemStack.fromBukkit(item), keyOuter, context);
     }
 
-    public static ValidationServiceContext flagIf(HoneyPlayer player, WrappedImmutableItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
+    public static ValidationViolationContext flagIf(HoneyPlayer player, WrappedImmutableItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
         return flagIf(player, item, keyOuter, new Callback(), context);
     }
 
-    public static ValidationServiceContext flagIf(HoneyPlayer player, WrappedImmutableItemStack item, ViolationKey keyOuter, Callback callback, ValidationPipelineContext context) {
+    public static ValidationViolationContext flagIf(HoneyPlayer player, WrappedImmutableItemStack item, ViolationKey keyOuter, Callback callback, ValidationPipelineContext context) {
         if (ItemAnalysis.checkItem(player, item, callback)) {
-            return ValidationServiceContext.Builder.validate()
+            return ValidationViolationContext.Builder.validate()
                     .cancel()
                     .flag()
                     .onViolation(keyOuter, (keyInner, onViolation) -> {
@@ -81,7 +80,7 @@ public class ItemAnalysis {
                     }).build();
         }
 
-        return ValidationServiceContext.PASS;
+        return ValidationViolationContext.PASS;
     }
 
     public static boolean checkItem(HoneyPlayer player, ItemStack item, Callback context) {

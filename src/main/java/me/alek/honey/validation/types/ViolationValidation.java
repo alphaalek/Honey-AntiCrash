@@ -2,7 +2,7 @@ package me.alek.honey.validation.types;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.ValidationPipelineContext;
-import me.alek.honey.validation.ValidationServiceContext;
+import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.configuration.ConfigurationOptions;
 
 public interface ViolationValidation<T> extends HoneyValidation<T> {
@@ -19,12 +19,12 @@ public interface ViolationValidation<T> extends HoneyValidation<T> {
 
     interface IntViolation extends ViolationValidation<Integer> {
 
-        default ValidationServiceContext validate(HoneyPlayer player, Integer amount, ValidationPipelineContext container) {
+        default ValidationViolationContext validate(HoneyPlayer player, Integer amount, ValidationPipelineContext container) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(amount).build();
+                return ValidationViolationContext.Builder.validate().flag(amount).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         default boolean isDefaultPipeline() {

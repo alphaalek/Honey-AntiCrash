@@ -5,7 +5,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.ValidationServiceContext;
+import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -39,17 +39,17 @@ public class BlockDigValidations extends AbstractValidationPacketListener<Wrappe
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockDig packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockDig packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
                 if (blockPosition == null || blockPosition.getY() == -1) {
-                    return ValidationServiceContext.PASS;
+                    return ValidationViolationContext.PASS;
                 }
 
                 return BlockPlaceValidations.checkExceedingMaxDistance(player, ViolationKey.of(this), blockPosition, getSetting().max, context);
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

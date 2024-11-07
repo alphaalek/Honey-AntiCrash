@@ -65,6 +65,9 @@ public class WrappedImmutableItemStack {
             if (protocol.isOlderThan(NetProtocol.v1_13)) {
                 durability = buf.readShort();
             }
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
+                durability = -1;
+            }
 
             try {
                 return WrappedImmutableItemStack.read(protocol, buf, id, amount, durability);
@@ -181,13 +184,13 @@ public class WrappedImmutableItemStack {
         this.nbt = nbt;
     }
 
-    public WrappedImmutableItemStack(Material type, int amount, short damage, CompoundTag nbt) {
+    public WrappedImmutableItemStack(Material type, int amount, short durability, CompoundTag nbt) {
         this(type, amount, nbt);
 
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
             throw new IllegalStateException();
         }
-        this.durability = damage;
+        this.durability = durability;
     }
 
     public WrappedImmutableItemStack() {
@@ -271,5 +274,10 @@ public class WrappedImmutableItemStack {
             throw new UnsupportedOperationException();
         }
         return durability;
+    }
+
+    @Override
+    public String toString() {
+        return toCraftBukkit().toString();
     }
 }

@@ -6,20 +6,20 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class ValidationServiceContext implements Cloneable {
+public class ValidationViolationContext implements Cloneable {
 
-    public static ValidationServiceContext PASS = Builder
+    public static ValidationViolationContext PASS = Builder
             .validate()
             .pass()
             .build();
 
-    public static ValidationServiceContext FLAG = Builder
+    public static ValidationViolationContext FLAG = Builder
             .validate()
             .cancel()
             .flag()
             .build();
 
-    public List<ValidationServiceContext> subContainers = new ArrayList<>();
+    public List<ValidationViolationContext> subContainers = new ArrayList<>();
     public boolean cancelled;
     public boolean success;
     public boolean terminate;
@@ -38,9 +38,9 @@ public class ValidationServiceContext implements Cloneable {
     }
 
     @Override
-    public ValidationServiceContext clone() {
+    public ValidationViolationContext clone() {
         try {
-            return (ValidationServiceContext) super.clone();
+            return (ValidationViolationContext) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }
@@ -48,26 +48,26 @@ public class ValidationServiceContext implements Cloneable {
 
     public static class Builder {
 
-        private final ValidationServiceContext responseContainer;
+        private final ValidationViolationContext responseContainer;
 
         public static Builder validate() {
             return new Builder();
         }
 
         public Builder() {
-            responseContainer = new ValidationServiceContext();
+            responseContainer = new ValidationViolationContext();
         }
 
-        public Builder(ValidationServiceContext container) {
+        public Builder(ValidationViolationContext container) {
             this.responseContainer = container;
         }
 
-        public Builder(ValidationServiceContext container, List<ValidationServiceContext> subContainers) {
+        public Builder(ValidationViolationContext container, List<ValidationViolationContext> subContainers) {
             this(container);
             this.responseContainer.subContainers = subContainers;
         }
 
-        public Builder add(ValidationServiceContext... containers) {
+        public Builder add(ValidationViolationContext... containers) {
             responseContainer.subContainers.addAll(Arrays.asList(containers));
             return this;
         }
@@ -127,7 +127,7 @@ public class ValidationServiceContext implements Cloneable {
             return this;
         }
 
-        public ValidationServiceContext build() {
+        public ValidationViolationContext build() {
             return responseContainer;
         }
     }

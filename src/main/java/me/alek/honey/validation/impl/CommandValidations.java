@@ -113,10 +113,10 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
     }
 
     @Override
-    public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationPipelineContext context) {
+    public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationPipelineContext context) {
         String message = packet.getMessage();
         if (!message.startsWith("/")) {
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         BiConsumer<ViolationKey, Runnable> onViolationConsumer = (key, onViolation) -> {
@@ -128,7 +128,7 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
 
         for (String prohibitedCommand : prohibitedCommandsLiteral) {
             if (match(prohibitedCommand, message)) {
-                return ValidationServiceContext.Builder.validate().cancel().flag()
+                return ValidationViolationContext.Builder.validate().cancel().flag()
                         .onViolation(ViolationKey.of(this), onViolationConsumer)
                         .build();
             }
@@ -136,13 +136,13 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
 
         for (String prohibitedCommand : prohibitedCommandsRegex) {
             if (matchRegex(prohibitedCommand, message)) {
-                return ValidationServiceContext.Builder.validate().cancel().flag()
+                return ValidationViolationContext.Builder.validate().cancel().flag()
                         .onViolation(ViolationKey.of(this), onViolationConsumer)
                         .build();
             }
         }
 
-        return ValidationServiceContext.PASS;
+        return ValidationViolationContext.PASS;
     }
 
     @Override

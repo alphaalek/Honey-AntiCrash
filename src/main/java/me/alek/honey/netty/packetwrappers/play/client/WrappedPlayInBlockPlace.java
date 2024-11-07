@@ -27,14 +27,24 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
         MAIN_HAND, OFF_HAND
     }
 
+    @Property
     private final InteractionHand interactionHand;
+    @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
     private WrappedBlockPosition blockPosition;
+    @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
     private int faceId = -1;
+    @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
     private BlockFace face;
+    @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
     private Vector cursorPosition;
+    @Property(to = @NetProtocol.To(to = NetProtocol.v1_8_8)) @Property.Unlock(methodSupplier = "getItemStack")
     private LazyInit<WrappedImmutableItemStack> itemStack;
+    // @Property(from = @NetProtocol.From(from = NetProtocol.v1_14))
     private boolean insideBlock;
+    // TODO
+    // @Property(from = @NetProtocol.From(from = NetProtocol.v1_21_2))
     private boolean worldBorderHit;
+    @Property(from = @NetProtocol.From(from = NetProtocol.v1_19))
     private int sequence;
 
     private Runnable release;

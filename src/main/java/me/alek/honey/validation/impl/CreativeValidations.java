@@ -6,7 +6,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.ValidationServiceContext;
+import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -42,14 +42,14 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (player.bukkit.getGameMode() != GameMode.CREATIVE) {
-                    return ValidationServiceContext.Builder.validate().cancel().flag().build();
+                    return ValidationViolationContext.Builder.validate().cancel().flag().build();
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -78,11 +78,11 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 int slot = packet.getSlot();
                 if (slot > (player.bukkit.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
-                    return ValidationServiceContext.Builder.validate().cancel().flag()
+                    return ValidationViolationContext.Builder.validate().cancel().flag()
                             .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -92,7 +92,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -121,7 +121,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context)
                         .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
@@ -140,7 +140,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
                         }).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

@@ -18,6 +18,8 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -45,6 +47,11 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         public void release() {
             AutoReleasable.doRelease(this.data.getSerializer());
             this.data.release();
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return data.getProperties();
         }
     }
 
@@ -157,6 +164,13 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             if (this.release != null) {
                 this.release.run();
             }
+        }
+
+        public Map<String, Object> getProperties() {
+            Map<String, Object> properties = new HashMap<>();
+            properties.put("channel", this.channel);
+            properties.put("buffer", this.serializer.toString());
+            return properties;
         }
 
         public WrappedImmutableItemStack getBookChannelItemStack() {

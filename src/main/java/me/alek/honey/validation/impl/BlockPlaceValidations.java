@@ -7,7 +7,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.ValidationServiceContext;
+import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -44,7 +44,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         return visitor;
     }
 
-    public static ValidationServiceContext checkExceedingMaxDistance(HoneyPlayer player, ViolationKey key, WrappedBlockPosition blockPosition, int maxDistance, ValidationPipelineContext context) {
+    public static ValidationViolationContext checkExceedingMaxDistance(HoneyPlayer player, ViolationKey key, WrappedBlockPosition blockPosition, int maxDistance, ValidationPipelineContext context) {
 
         // check if the block position is close to the origin block position, just ignore this packet if it is
         Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
@@ -52,7 +52,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
         if (blockPosition.distance(originLocation) < 10
                 && LocationUtils.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         // check if the chunk which contain that block is unloaded or not, because then you are not allowed to interact with
@@ -60,7 +60,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         if (!MovementValidations.isChunkLoaded(blockPosition.toLocation(player.getWorld()))
                 || blockPosition.isInvalid()) {
             // dont flag because it might just be server lag, just cancel it
-            return ValidationServiceContext.Builder.validate().cancel().build();
+            return ValidationViolationContext.Builder.validate().cancel().build();
         }
 
         // checks distance between the player and the block placed
@@ -77,7 +77,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
                         player, maxDistance, blockPosition::distance)) {
 
             // add the distance to the development data
-            return ValidationServiceContext.Builder.validate().cancel().flag()
+            return ValidationViolationContext.Builder.validate().cancel().flag()
                     .onViolation(key, (keyInner, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
@@ -87,7 +87,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
                     .build();
         }
 
-        return ValidationServiceContext.PASS;
+        return ValidationViolationContext.PASS;
     }
 
     public static class BlockInteractA implements ViolationValidation<WrappedPlayInBlockPlace>, PacketValidation<WrappedPlayInBlockPlace> {
@@ -95,17 +95,17 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 WrappedBlockPosition blockPosition = packet.getBlockPosition();
                 if (blockPosition == null) {
-                    return ValidationServiceContext.PASS;
+                    return ValidationViolationContext.PASS;
                 }
 
                 return checkExceedingMaxDistance(player, ViolationKey.of(this), blockPosition, getSetting().max, context);
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -132,7 +132,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context)
                         .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
@@ -147,7 +147,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -176,21 +176,21 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 WrappedImmutableItemStack item = packet.getItemStack();
                 if (item == null) {
-                    return ValidationServiceContext.PASS;
+                    return ValidationViolationContext.PASS;
                 }
 
                 Material material = item.getType();
                 if (material.name().equals("PISTON_MOVING_PIECE")
                         || material.name().equals("PISTON_EXTENSION")) {
-                    return ValidationServiceContext.Builder.validate().cancel().flag().build();
+                    return ValidationViolationContext.Builder.validate().cancel().flag().build();
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

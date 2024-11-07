@@ -13,17 +13,17 @@ import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEdit> {
 
     private static final int PAGE_CHAR_LIMIT = 1024;
     private static final int TITLE_CHAR_LIMIT = 32;
     private static final int MAX_PAGES = 100;
 
+    @Property
     private final int slot;
+    @Property
     private final boolean signing;
+    @Property
     private final WrappedImmutableItemStack itemStack;
 
     public WrappedPlayInBookEdit(PacketDataSerializer buf, PacketContainer<WrappedPlayInBookEdit> packet) {

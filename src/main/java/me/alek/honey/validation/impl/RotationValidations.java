@@ -54,12 +54,12 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
             return false;
         }
 
-        context.put(ValidationServiceContext.Builder.class,
-                ValidationServiceContext.Builder.validate().flag(deltaYaw));
-        context.put(ValidationServiceContext.Builder.class,
-                ValidationServiceContext.Builder.validate().flag(deltaPitch));
+        context.put(ValidationViolationContext.Builder.class,
+                ValidationViolationContext.Builder.validate().flag(deltaYaw));
+        context.put(ValidationViolationContext.Builder.class,
+                ValidationViolationContext.Builder.validate().flag(deltaPitch));
 
-        callback.addAction(Callback.Action.<ViolationKey, ValidationServiceContext>from((keyOuter, responseCallback) -> {
+        callback.addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, responseCallback) -> {
             responseCallback.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
@@ -97,15 +97,15 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 float pitch = packet.getPitch();
                 if (pitch < -90 || pitch > 90) {
-                    return ValidationServiceContext.FLAG;
+                    return ValidationViolationContext.FLAG;
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -136,21 +136,21 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
         private static final ViolationManagement.HoneyKey pitchKey = ViolationManagement.HoneyKey.of(1, "pitch");
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (packet.getYaw() == 0 || MovementValidations.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
                     (location) -> (double) LocationUtils.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
-                return ValidationServiceContext.PASS.copy().terminate().build();
+                return ValidationViolationContext.PASS.copy().terminate().build();
             }
 
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().add(
-                        context.get(ValidationServiceContext.Builder.class, 0).withViolationKey(yawKey).build(),
-                        context.get(ValidationServiceContext.Builder.class, 1).withViolationKey(pitchKey).build()
+                return ValidationViolationContext.Builder.validate().add(
+                        context.get(ValidationViolationContext.Builder.class, 0).withViolationKey(yawKey).build(),
+                        context.get(ValidationViolationContext.Builder.class, 1).withViolationKey(pitchKey).build()
                 ).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -181,17 +181,17 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
         private static final ViolationManagement.HoneyKey pitchKey = ViolationManagement.HoneyKey.of(1, "pitch");
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (packet.getYaw() != 0) {
-                    return ValidationServiceContext.Builder.validate().add(
-                            context.get(ValidationServiceContext.Builder.class, 0).withViolationKey(yawKey).build(),
-                            context.get(ValidationServiceContext.Builder.class, 1).withViolationKey(pitchKey).build()
+                    return ValidationViolationContext.Builder.validate().add(
+                            context.get(ValidationViolationContext.Builder.class, 0).withViolationKey(yawKey).build(),
+                            context.get(ValidationViolationContext.Builder.class, 1).withViolationKey(pitchKey).build()
                     ).build();
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

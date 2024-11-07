@@ -7,6 +7,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
+import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -85,21 +86,44 @@ public class HoneyLogger {
     private final PacketLoggerHolder<? extends WrappedPacket<?>> holder = new PacketLoggerHolder<>();
 
     public HoneyLogger() {
-        reload();
+        reload(true);
     }
 
     public void reload() {
+        reload(false);
+    }
+
+    public void reload(boolean firstCall) {
         this.enabled = ConfigurationOptions.PacketLogger.ENABLED;
         this.detailed = ConfigurationOptions.PacketLogger.DETAILED;
         this.debug = ConfigurationOptions.PacketLogger.DEBUG;
         this.ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
         this.ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
 
-        boolean isRegistered = HoneyPlugin.get().getPacketLibrary().isRegistered(this.holder.packetLogger, PacketContainer.PipelineState.OBJECT);
-        if (!isRegistered) {
-            HoneyPlugin.get().getPacketLibrary().addListeners(this.holder.packetLogger, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, PacketTypes.getTypesAvailableForBound(PacketBound.SERVER).stream().collect(Collectors.toList()));
-            // TODO; for byte wrapped packets
+        if (!firstCall) {
+            // remove all previously registered loggers
+            for (PacketContainer.PipelineState state : PacketContainer.PipelineState.values()) {
+                HoneyPlugin.get().getPacketLibrary().removeListener(this.holder.packetLogger, state);
+            }
         }
+
+        List<PacketType> initialByteTypes = new ArrayList<>();
+        List<PacketType> finalByteTypes = new ArrayList<>();
+        List<PacketType> objectTypes = new ArrayList<>();
+        for (PacketType type : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
+            if (WrappedPacketFactoryCollection.hasByteWrappedPacket(type, PacketContainer.PipelineState.INITIAL_BYTE)) {
+                initialByteTypes.add(type);
+            } else if (WrappedPacketFactoryCollection.hasByteWrappedPacket(type, PacketContainer.PipelineState.FINAL_BYTE)) {
+                finalByteTypes.add(type);
+            } else {
+                // fallback to object wrapped
+                objectTypes.add(type);
+            }
+        }
+
+        HoneyPlugin.get().getPacketLibrary().addListeners(this.holder.packetLogger, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.HIGHEST, initialByteTypes);
+        HoneyPlugin.get().getPacketLibrary().addListeners(this.holder.packetLogger, PacketContainer.PipelineState.FINAL_BYTE, ListenerPriority.HIGHEST, finalByteTypes);
+        HoneyPlugin.get().getPacketLibrary().addListeners(this.holder.packetLogger, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, objectTypes);
     }
 
     public Logger getLogger() {
@@ -299,7 +323,7 @@ public class HoneyLogger {
                 break;
             }
 
-            sb.append(',').append(' ');
+            sb.append(", ");
         }
 
         return sb.toString();

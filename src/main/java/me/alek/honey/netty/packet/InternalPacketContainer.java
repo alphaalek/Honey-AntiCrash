@@ -38,7 +38,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     public InternalPacketContainer(Object handle, HoneyPlayer player, PacketType type, Callback postAction) {
         this(PipelineState.OBJECT, null, player, type, postAction);
-        initPostMinecraftDecode(handle, type);
+        callPostMinecraftDecode(handle, type);
     }
 
     public InternalPacketContainer(PipelineState createdState, PacketDataSerializer serializer, HoneyPlayer player, PacketType type, Callback postAction) {
@@ -66,7 +66,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public void initPostMinecraftDecode(Object handle, PacketType type) {
+    public void callPostMinecraftDecode(Object handle, PacketType type) {
         this.type = type;
         this.pipelineState = PipelineState.OBJECT;
 
@@ -82,7 +82,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public void initPreMinecraftDecode(PacketDataSerializer serializer) {
+    public void callPreMinecraftDecode(PacketDataSerializer serializer) {
         if (this.pipelineState == PipelineState.INITIAL_BYTE) {
             this.pipelineState = PipelineState.FINAL_BYTE;
             this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);

@@ -41,7 +41,7 @@ public class BookEditValidations extends AbstractValidationPacketListener<Wrappe
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInBookEdit packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBookEdit packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context)
                         .builder().onViolation(generateKey(), (innerKey, onViolation) -> {
@@ -54,7 +54,7 @@ public class BookEditValidations extends AbstractValidationPacketListener<Wrappe
                             }
                         }).build();
             }
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

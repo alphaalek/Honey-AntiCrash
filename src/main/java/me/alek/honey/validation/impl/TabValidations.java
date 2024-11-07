@@ -53,13 +53,13 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
         private static String[] prohibitedCommands;
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationPipelineContext context) {
             String message = packet.getMessage();
             String label = message.split(" ")[0];
 
             for (String prohibitedCommand : prohibitedCommands) {
                 if (CommandValidations.match(prohibitedCommand, label)) {
-                    return ValidationServiceContext.Builder.validate().cancel().flag()
+                    return ValidationViolationContext.Builder.validate().cancel().flag()
                             .onViolation(ViolationKey.of(this), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
@@ -70,7 +70,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -112,12 +112,12 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
         }
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayOutTabComplete packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayOutTabComplete packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getSuggestionsSize()).build();
+                return ValidationViolationContext.Builder.validate().flag(packet.getSuggestionsSize()).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -149,7 +149,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
         private static final ViolationManagement.HoneyKey totalKey = ViolationManagement.HoneyKey.of(1, "label");
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (labelSetting == null) {
                     if (!player.violationContext.getViolationDistributors().has(getID())) {
@@ -164,13 +164,13 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
 
                 int label = packet.getMessage().indexOf(" ");
                 int total = packet.getMessage().length();
-                return ValidationServiceContext.Builder.validate().add(
-                        ValidationServiceContext.Builder.validate().flag(label == -1 ? total : label).withViolationKey(labelKey).build(),
-                        ValidationServiceContext.Builder.validate().flag(total).withViolationKey(totalKey).build()
+                return ValidationViolationContext.Builder.validate().add(
+                        ValidationViolationContext.Builder.validate().flag(label == -1 ? total : label).withViolationKey(labelKey).build(),
+                        ValidationViolationContext.Builder.validate().flag(total).withViolationKey(totalKey).build()
                 ).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

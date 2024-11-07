@@ -11,7 +11,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.ValidationServiceContext;
+import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -47,12 +47,12 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getByteSize()).build();
+                return ValidationViolationContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getByteSize()).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -81,12 +81,12 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getByteSize()).build();
+                return ValidationViolationContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getByteSize()).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -115,12 +115,12 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getAccumulatedByteSize()).build();
+                return ValidationViolationContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getAccumulatedByteSize()).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -149,12 +149,12 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getAccumulatedByteSize()).build();
+                return ValidationViolationContext.Builder.validate().flag(packet.getContainer().getInitialByteWrapped().getAccumulatedByteSize()).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -183,8 +183,8 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
-            return ValidationServiceContext.PASS;
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -215,7 +215,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         private boolean waitingFlag;
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 int size = packet.getContainer().getInitialByteWrapped().getByteSize();
                 ByteBuf buf = packet.getContainer().getInitialByteWrapped().getBuf().getBuf();
@@ -247,11 +247,11 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
                 }
                 if (waitingFlag) {
                     waitingFlag = false;
-                    return ValidationServiceContext.Builder.validate().cancel().flag(getSetting().maxPerInterval).build();
+                    return ValidationViolationContext.Builder.validate().cancel().flag(getSetting().maxPerInterval).build();
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         public abstract boolean check(long sizeKey, int size, ByteBuf byteBuf);
@@ -299,7 +299,7 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
         private long lastFlag;
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPacket<?> packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()
                     && packet.getContainer().getInitialByteWrapped().getByteSize() > getSetting().threshold) {
                 long diff = System.currentTimeMillis() -
@@ -308,11 +308,11 @@ public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends Abstra
                 lastFlag = System.currentTimeMillis();
 
                 if (diff > getSetting().min) {
-                    return ValidationServiceContext.Builder.validate().flag().build();
+                    return ValidationViolationContext.Builder.validate().flag().build();
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         public abstract ConfigurationOptions.ViolationSetting getSetting();

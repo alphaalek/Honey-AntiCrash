@@ -81,12 +81,12 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
     public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag().build();
+                return ValidationViolationContext.Builder.validate().flag().build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
     }
 
@@ -157,7 +157,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()
                     && !PacketTypes.isUnknown(packet.getType())
                     && packetTypes.hasID(packet.getType().getHoneyID())) {
@@ -165,12 +165,12 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
                 for (ItemStack item : packet.getContainer().getStructure().getItems().readFieldValues()) {
                     CompoundTag nbt = NBTFactory.fromItem(item, false, true);
                     if (nbt != null && !nbt.isEmpty()) {
-                        return ValidationServiceContext.Builder.validate().flag(NBTFactory.getAmountOfTags(nbt)).build();
+                        return ValidationViolationContext.Builder.validate().flag(NBTFactory.getAmountOfTags(nbt)).build();
                     }
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
@@ -199,12 +199,12 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting(packet).isEnabled()) {
-                return ValidationServiceContext.Builder.validate().flag().withViolationKey(getKey(packet)).build();
+                return ValidationViolationContext.Builder.validate().flag().withViolationKey(getKey(packet)).build();
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override

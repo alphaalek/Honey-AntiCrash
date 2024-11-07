@@ -30,13 +30,13 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
         validations.add(validation);
     }
 
-    private ValidationServiceContext getResponseAndRegisterTimings(C validation, Function<C, ValidationServiceContext> getResponse, ConfigurationOptions.ViolationSetting setting) {
+    private ValidationViolationContext getResponseAndRegisterTimings(C validation, Function<C, ValidationViolationContext> getResponse, ConfigurationOptions.ViolationSetting setting) {
         int registryKey = -1;
         if (setting != null && setting.isEnabled()) {
             registryKey = HoneyPlugin.get().getValidationHandleTracker().registerTimeStart(validation);
         }
 
-        ValidationServiceContext response = getResponse.apply(validation);
+        ValidationViolationContext response = getResponse.apply(validation);
 
         if (setting != null && setting.isEnabled() && registryKey != -1) {
             HoneyPlugin.get().getValidationHandleTracker().registerTimeStop(validation, registryKey);
@@ -45,12 +45,12 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
         return response;
     }
 
-    private void clearPosts(ValidationServiceContext context) {
+    private void clearPosts(ValidationViolationContext context) {
         context.onViolation = null;
         context.onPunish = null;
     }
 
-    public void doStream(HoneyPlayer player, BiFunction<C, ValidationPipelineContext, ValidationServiceContext> getResponse, Cancellable cancellable) {
+    public void doStream(HoneyPlayer player, BiFunction<C, ValidationPipelineContext, ValidationViolationContext> getResponse, Cancellable cancellable) {
         ValidationPipelineContext container = new ValidationPipelineContext();
         doStream(
                 player,
@@ -60,7 +60,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
 
     public void doStream(HoneyPlayer player,
                          BiFunction<C, ViolationManagement.HoneyKey, ConfigurationOptions.ViolationSetting> getSetting,
-                         Function<C, ValidationServiceContext> getServiceContext,
+                         Function<C, ValidationViolationContext> getServiceContext,
                          Cancellable cancellable, ValidationPipelineContext validationContext, Callback callback) {
         if (!player.isStreamActive()) {
             cancellable.cancel();
@@ -79,13 +79,13 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
             ConfigurationOptions.ViolationSetting setting = getSetting.apply(validation, distributionKey);
 
             // start to check this validation
-            ValidationServiceContext defaultResponse = getResponseAndRegisterTimings(validation, getServiceContext, setting);
-            List<ValidationServiceContext> responsesList = new LinkedList<>(defaultResponse.subContainers);
+            ValidationViolationContext defaultResponse = getResponseAndRegisterTimings(validation, getServiceContext, setting);
+            List<ValidationViolationContext> responsesList = new LinkedList<>(defaultResponse.subContainers);
             responsesList.add(defaultResponse);
 
             // handle all the responses
             boolean terminated = false;
-            for (ValidationServiceContext context : responsesList) {
+            for (ValidationViolationContext context : responsesList) {
                 if (context.skipIndices != 0) {
                     skipping = context.skipIndices;
                 }

@@ -42,27 +42,27 @@ public class SignValidations extends AbstractValidationPacketListener<WrappedPla
         };
 
         @Override
-        public ValidationServiceContext validate(HoneyPlayer player, WrappedPlayInUpdateSign packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInUpdateSign packet, ValidationPipelineContext context) {
             List<JsonObject> legacyChatComponentPages = packet.getLegacyJsonPages();
             for (JsonObject page : legacyChatComponentPages) {
                 if (!page.has("text")) {
-                    return ValidationServiceContext.FLAG;
+                    return ValidationViolationContext.FLAG;
                 }
             }
 
             for (String line : packet.getLines()) {
                 if (line.length() > 47) {
-                    return ValidationServiceContext.FLAG;
+                    return ValidationViolationContext.FLAG;
                 }
 
                 for (String string : ILLEGAL_COMPONENT_STRINGS) {
                     if (line.toLowerCase().replace("\"", "").trim().contains(string)) {
-                        return ValidationServiceContext.FLAG;
+                        return ValidationViolationContext.FLAG;
                     }
                 }
             }
 
-            return ValidationServiceContext.PASS;
+            return ValidationViolationContext.PASS;
         }
 
         @Override
