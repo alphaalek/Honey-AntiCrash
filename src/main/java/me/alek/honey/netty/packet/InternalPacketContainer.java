@@ -106,11 +106,6 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public String toString() {
-        return "Packet:{Type:" + Optional.ofNullable(this.type).orElse(PacketTypes.UNKNOWN) + ",Player:" + getPlayerName() + "}";
-    }
-
-    @Override
     public PacketLifecycleTimings getEventloopStateTimings() {
         return this.eventLoopStateTracker;
     }
@@ -197,7 +192,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public Callback getPost() {
+    public Callback getPostAction() {
         return this.postAction;
     }
 
@@ -251,5 +246,10 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         }
 
         return this.player.packetHandler.getPlayerName();
+    }
+
+    @Override
+    public String toString() {
+        return "Packet:{Type:" + Optional.ofNullable(this.type).orElse(PacketTypes.UNKNOWN) + ",Player:" + getPlayerName() + "}";
     }
 }

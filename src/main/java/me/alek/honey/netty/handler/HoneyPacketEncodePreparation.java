@@ -111,7 +111,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
 
         ctx.write(msg, promise);
 
-        Callback postAction = packetContainer.getPost();
+        Callback postAction = packetContainer.getPostAction();
         if (postAction != null) {
             postAction.call(packetContainer);
         }

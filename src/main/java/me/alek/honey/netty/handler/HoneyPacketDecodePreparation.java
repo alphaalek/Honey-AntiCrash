@@ -189,7 +189,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             ctx.fireChannelRead(packetContainer.getObjectWrapped().getHandle());
         }
 
-        Callback postAction = packetContainer.getPost();
+        Callback postAction = packetContainer.getPostAction();
         if (postAction != null) {
             postAction.call(packetContainer);
         }

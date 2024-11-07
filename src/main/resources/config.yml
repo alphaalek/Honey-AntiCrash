@@ -48,7 +48,7 @@ hide-bypass-permission: "honey.hide.bypass"
 # Permission that ignore ALL Honey features.
 # It's only recommend to use this, if you are 100% sure, that players with this permission will never try to exploit your server.
 bypass-permission-enabled: false
-bypass-permission-serverthread-tracking: true # Recommended to have enabled for most servers.
+bypass-permission-serverthread-tracking: true # For production servers
 bypass-permission: "honey.bypass"
 
 # Permission which can get notifications by violated players. Can be toggled on/off by /honey notifications.
@@ -58,6 +58,7 @@ notify-permission: "honey.notify"
 # You can see here how to get a key: https://pastebin.com/doc_api
 # OBS: You have to enable MySQL below and have a valid connection, so Honey can store and retrieve the data to/from somewhere.
 pastebin-developer-key: ""
+
 
 # Discord webhook for notifications at player violations
 webhook:
@@ -73,7 +74,7 @@ decoder:
   # Should the default decoder be enabled.
   use-default: false
 
-  # Should nbt decode for PacketPlayInBlockPlace (versions < 1.9) & PacketPlayInWindowClick (versions < 1.17) be disabled
+  # Should nbt decode for PacketPlayInBlockPlace (pre 1.9) & PacketPlayInWindowClick (1.17+) be disabled
   disable-nbt: true
 
   # Should PacketPlayInSetCreativeSlot packets not be decoded if the player is not in creative mode.
@@ -348,10 +349,10 @@ item-analysis:
     max-book-author-length: 16
 
     # How many NBT bases may an item have. (the general representation of NBT data, covers lists, strings, doubles etc...)
-    max-nbt-bases: 100
+    max-nbt-bases: 512
 
     # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)
-    max-nbt-nesting: 3
+    max-nbt-nesting: 8
 
     # May skulls/heads not have invalid textures. Can be exploited to crash servers below Minecraft Version 1.10.2
     check-illegal-skull-textures: true

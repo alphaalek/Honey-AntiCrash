@@ -53,7 +53,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     WP getAnyWrapped();
 
-    Callback getPost();
+    Callback getPostAction();
 
     HoneyPlayer getPlayer();
 

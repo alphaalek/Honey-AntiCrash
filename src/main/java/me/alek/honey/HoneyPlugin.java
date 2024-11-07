@@ -232,7 +232,6 @@ public class HoneyPlugin implements HoneyAPI {
         // setup configuration and check if it is misconfigured
         this.plugin.saveDefaultConfig();
         this.configuration = new DedicatedConfiguration();
-
         if (this.configuration.isMisconfigured()) {
             if (this.plugin.getServer().getPluginManager().isPluginEnabled(this.plugin)) {
                 resetConfiguration();
@@ -240,6 +239,7 @@ public class HoneyPlugin implements HoneyAPI {
 
                 throw new RuntimeException(Lang.get("conflict.misconfiguration"));
             }
+
             return;
         }
 
@@ -273,7 +273,7 @@ public class HoneyPlugin implements HoneyAPI {
         this.packetNettyTracker = new TempIntervalTrackerManager();
         this.validationHandleTracker = new RegistryHandleTracker<>();
 
-        // setup checks
+        // setup validations
         for (BaseValidationContainer validation : ValidationContainerRegistry.initValidations(packetLibrary)) {
             validation.load();
         }
@@ -312,7 +312,8 @@ public class HoneyPlugin implements HoneyAPI {
                             HONEY_CHANNEL_INITIALIZER_CHANNEL_NAME,
                             HONEY_DECODER_CHANNEL_NAME,
                             HONEY_ENCODER_CHANNEL_NAME,
-                            HONEY_DEBUGGER_CHANNEL_NAME));
+                            HONEY_DEBUGGER_CHANNEL_NAME)
+            );
         }
     }
 
