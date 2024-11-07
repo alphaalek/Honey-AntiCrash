@@ -94,7 +94,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
     private final class DelegatedWrapper extends WrappedSynchronizedQueue<Object> {
 
         private final Supplier<Integer> tickAccessor = getTickAccessor();
-        private Class<?> tickTaskClass;
+        private Class<Object> tickTaskClass;
         private ConstructorInvoker<?> tickTaskConstructor;
 
         private Array<WrappedPacketTask> submitQueue = new Array<>();

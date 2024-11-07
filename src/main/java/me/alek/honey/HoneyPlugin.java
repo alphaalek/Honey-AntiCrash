@@ -20,6 +20,7 @@ import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketExecutors;
+import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.session.NoSessionEncryption;
@@ -148,7 +149,7 @@ public class HoneyPlugin implements HoneyAPI {
 
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) {
-                    if (player.isOp() && msg.getClass().getSimpleName().equals("PacketPlayInChat")) {
+                    if (player.isOp() && msg.getClass().equals(PacketTypes.Play.Client.CHAT_MESSAGE.getNmsClass())) {
                         String message = ReflectStructure.Provider.acquireStructure(msg.getClass())
                                 .withType(String.class).withTarget(msg)
                                 .readField(0);

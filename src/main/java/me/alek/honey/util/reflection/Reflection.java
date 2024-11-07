@@ -460,7 +460,7 @@ public class Reflection {
                    return;
                }
 
-               throw new Exception(ex);
+               throw ex;
            }
        }
 

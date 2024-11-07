@@ -64,7 +64,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannelProxy(ctx.channel());
         } catch (MissingHandlerException ex) {
-            ex.printStackTrace();
             ctx.close();
         }
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
@@ -103,12 +102,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             return;
         }
 
-        if (!buf.isReadable() || packetHandler.isResolving(PacketBound.SERVER)) {
+        if (!buf.isReadable() || this.packetHandler.isResolving(PacketBound.SERVER)) {
             ctx.fireChannelRead(buf);
             return;
         }
 
-        packetHandler.runDelayedTasks(PacketBound.SERVER);
+        this.packetHandler.runDelayedTasks(PacketBound.SERVER);
 
         PacketContainer<? extends WrappedPacket<?>> prevMarked = MARK.get();
         // check for too early dropped packet in the previous eventloop
@@ -116,8 +115,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         // the filter and decode preparation dropped this packet
         if (prevMarked != null && !PacketTypes.isUnknown(prevMarked.getType())) {
             FloodValidations.PACKET_DROP_PIPELINE.doStream(
-                    player,
-                    (validation, context) -> validation.validate(player, 1, context),
+                    this.player,
+                    (validation, context) -> validation.validate(this.player, 1, context),
                     prevMarked);
 
             prevMarked.releaseIfAutoReleasable();
@@ -127,13 +126,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         PacketContainer<? extends WrappedPacket<?>> packet = null;
         try {
             // initialize packet container
-            PacketType type = packetHandler.getPacketType(serializer, false);
-            packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, player, type, null);
+            PacketType type = this.packetHandler.getPacketType(serializer, false);
+            packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
             MARK.set(packet);
 
             // call listeners
             packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
-            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(player, packet);
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, packet);
             packet.getEventloopStateTimings().stopTimings();
 
             // we're done using this byte buffer, just release it so Netty can

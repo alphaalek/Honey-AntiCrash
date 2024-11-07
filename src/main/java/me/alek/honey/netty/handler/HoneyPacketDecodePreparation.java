@@ -226,9 +226,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return false;
             }
 
-            boolean hasWrappedPacket = WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE);
-            // check if we have to care about a wrapped initial byte packet for this type
-            if (!fresh && hasWrappedPacket) {
+            // check if we have to care about a wrapped final byte packet for this type
+            boolean hasFinalByteWrappedPacket = WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE);
+            if (!fresh && hasFinalByteWrappedPacket) {
                 serializer.readVarInt(); // skip packet-id
             }
 
@@ -236,7 +236,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             packet.getEventloopStateTimings().stopTimings();
 
             // handle final byte state
-            if (hasWrappedPacket) {
+            if (hasFinalByteWrappedPacket) {
                 packet.callPreMinecraftDecode(serializer);
                 HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(player, packet);
             }
@@ -259,9 +259,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
                     if (this.player.isStreamActive()) {
                         invokeRead(copy, ctx, wrapped, nonRecycledList);
-                        copy.releaseIfAutoReleasable();
                     }
 
+                    copy.releaseIfAutoReleasable();
                     InboundPacketFilter.MARK.remove();
                 });
 
