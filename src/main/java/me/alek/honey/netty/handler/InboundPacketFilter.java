@@ -31,9 +31,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
     private static final String CONNECTION_EVENT_CLASS_NAME = "io.papermc.paper.network.ConnectionEvent";
     private static final String COMPRESSION_THRESHOLD_SET_FIELD_NAME = "COMPRESSION_THRESHOLD_SET";
+    private static final Object PAPER_COMPRESSION_ENABLED_EVENT = getPaperCompressionEnabledEvent();
 
     public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
-    public static final Object PAPER_COMPRESSION_ENABLED_EVENT = getPaperCompressionEnabledEvent();
 
     private static Object getPaperCompressionEnabledEvent() {
         try {
@@ -60,6 +60,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         ctx.fireChannelActive();
+
+        if (ctx.channel().remoteAddress() == null) {
+            // null ping
+            ctx.close();
+            return;
+        }
 
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannelProxy(ctx.channel());

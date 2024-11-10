@@ -98,7 +98,7 @@ public class ViolationManagement {
                     return new ViolationDistributor(player,
                             new KeyedViolationLookupGenerator(key, setting));
                 } else {
-                    final AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
+                    AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
                     if (packetLimitHandler == null) {
                         throw new RuntimeException("No packet limit handler could be created.");
                     }
@@ -232,6 +232,7 @@ public class ViolationManagement {
             for (int i = 0; i < setting.keyedAnnotation.amount(); i++) {
                 map.put(HoneyKey.of(i), generateHandler(player));
             }
+
             return map;
         }
 
@@ -735,8 +736,7 @@ public class ViolationManagement {
                 if (System.currentTimeMillis() - intervalStart > getSetting().interval) {
                     intervalStart = System.currentTimeMillis();
                     currentlyCancelling = false;
-                }
-                else {
+                } else {
                     cancellable.cancel();
                 }
             }
