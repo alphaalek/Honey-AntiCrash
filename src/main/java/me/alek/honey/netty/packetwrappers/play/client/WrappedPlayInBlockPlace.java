@@ -54,6 +54,8 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
 
         NetProtocol protocol = packet.getProtocolByBytePacketState();
 
+        Bukkit.getLogger().info("Decoding using protocol " + protocol);
+
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
             this.interactionHand = InteractionHand.values()[serializer.readVarInt()];
             /*
