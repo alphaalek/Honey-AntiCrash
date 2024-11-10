@@ -226,8 +226,8 @@ public class HoneyLogger {
                 + filterTooMuchData(formatPacketEntries(packet)));
     }
 
-    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packetContainer, String playerName) {
-        logPacket(packetContainer, playerName, this.detailed, 0);
+    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packet, String playerName) {
+        logPacket(packet, playerName, this.detailed, 0);
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packet, String playerName, boolean detailed, long comparingTime) {

@@ -38,7 +38,7 @@ public class Settings {
             HoneyKey distributionKey = keyedViolationCheck.getKey(packet);
 
             ViolationManagement.ViolationDistributor distributor = player.violationContext.getDistributor(key, setting);
-            ViolationManagement.AbstractPacketLimitHandler handler = distributor.getPacketLimitHandler(distributionKey, false);
+            ViolationManagement.AbstractPacketLimitHandler handler = distributor.getPacketLimitHandler(distributionKey);
 
             if (handler != null && handler.getSetting() == setting) {
                 return setting;

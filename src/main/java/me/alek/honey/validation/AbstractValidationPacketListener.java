@@ -49,7 +49,7 @@ public abstract class AbstractValidationPacketListener<WP extends WrappedPacket<
     }
 
     @Override
-    public void onPacketStream(HoneyPlayer player, PacketBound bound, PacketContainer<WP> packet) throws Exception {
+    public void onPacketStream(HoneyPlayer player, PacketBound bound, PacketContainer<WP> packet) {
         if (!player.isStreamActive() || requiresPlayer() && !player.isBukkitReady()) {
             return;
         }
@@ -59,7 +59,7 @@ public abstract class AbstractValidationPacketListener<WP extends WrappedPacket<
         callback.addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, contextInner) -> {
             contextInner.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 context.getDevelopmentData(keyInner).addEmpty();
-                context.getDevelopmentData(keyInner).addValue(" Packet", packet.getType() + " (id: " + packet.getType().getMinecraftID().get() + ")");
+                context.getDevelopmentData(keyInner).addValue(" Packet", packet.getType() + " (id " + packet.getType().getMinecraftID().get() + ")");
                 context.getDevelopmentData(keyInner).addValue(" Buffer", Optional.ofNullable(packet.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes");
                 applyCommonDevelopmentData(context.getDevelopmentData(keyInner));
 

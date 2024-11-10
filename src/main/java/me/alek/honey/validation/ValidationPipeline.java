@@ -84,6 +84,8 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
             List<ValidationViolationContext> responsesList = new LinkedList<>(defaultResponse.subContainers);
             responsesList.add(defaultResponse);
 
+            HoneyKey fallbackKey = HoneyKey.of(validation);
+
             // handle all the responses
             boolean terminated = false;
             for (ValidationViolationContext context : responsesList) {
@@ -101,7 +103,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                     cancellable.cancel();
                 }
                 if (context.flag != -1 && player.isBukkitReady()) {
-                    ViolationKey violationKey = new ViolationKey(validation, context.violationKey);
+                    ViolationKey violationKey = new ViolationKey(validation, Optional.ofNullable(context.violationKey).orElse(fallbackKey));
                     ValidationPipelineContext.DevelopmentData developmentData = validationContext.getDevelopmentData(violationKey);
 
                     if (validation.isDefaultPipeline()) {

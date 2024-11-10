@@ -12,7 +12,7 @@ import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.processor.InternalPacketProcessor;
+import me.alek.honey.netty.packet.InternalPacketProcessor;
 import me.alek.honey.netty.processor.Processors;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
@@ -112,20 +112,20 @@ public class PacketLibrary {
         return packetProcessor;
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> adapter, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
-        packetProcessor.addListener(adapter, state, priority, types);
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
+        packetProcessor.addListener(listener, state, priority, types);
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> adapter, PacketContainer.PipelineState state, ListenerPriority priority, PacketType... types) {
-        addListeners(adapter, state, priority, Arrays.asList(types));
+    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, PacketType... types) {
+        addListeners(listener, state, priority, Arrays.asList(types));
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListener(PacketListenerAdapter<WP> adapter, PacketContainer.PipelineState state) {
-        removeListeners(adapter, state, PacketTypes.getTypesAvailable().stream().collect(Collectors.toList()));
+    public <WP extends WrappedPacket<WP>> void removeListener(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {
+        removeListeners(listener, state, PacketTypes.getTypesAvailable().stream().collect(Collectors.toList()));
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, List<PacketType> packetTypes) {
-        packetProcessor.removeListener(listener, state, packetTypes);
+    public <WP extends WrappedPacket<WP>> void removeListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, List<PacketType> types) {
+        packetProcessor.removeListener(listener, state, types);
     }
 
     public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {

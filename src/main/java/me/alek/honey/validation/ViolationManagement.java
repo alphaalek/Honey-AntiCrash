@@ -216,13 +216,8 @@ public class ViolationManagement {
             return this.player;
         }
 
-        public AbstractPacketLimitHandler getPacketLimitHandler(HoneyKey key, boolean orJustAny) {
-            AbstractPacketLimitHandler handler = packetLimitHandlerDelegateLookup.get(key.getRegistryId());
-            if (handler != null) {
-                return handler;
-            }
-
-            return orJustAny ? getAnyPacketLimitHandler() : null;
+        public AbstractPacketLimitHandler getPacketLimitHandler(HoneyKey key) {
+            return packetLimitHandlerDelegateLookup.get(key.getRegistryId());
         }
 
         public Array<AbstractPacketLimitHandler> getPacketLimitHandlers() {
@@ -241,17 +236,16 @@ public class ViolationManagement {
                         : cachedDefaultPacketLimitHandler;
             }
 
-            return getPacketLimitHandler(key, false);
+            return getPacketLimitHandler(key);
         }
 
-        public AbstractPacketLimitHandler createHandler(HoneyKey key, ConfigurationOptions.ViolationSetting setting) {
-            if (packetLimitHandlerDelegateLookup.has(key.getRegistryId())) {
-                return null;
+        public void createHandler(HoneyKey key, ConfigurationOptions.ViolationSetting setting) {
+            if (packetLimitHandlerDelegateLookup.has(key)) {
+                return;
             }
 
             AbstractPacketLimitHandler handler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
-            packetLimitHandlerDelegateLookup.set(key.getRegistryId(), handler);
-            return handler;
+            packetLimitHandlerDelegateLookup.set(key, handler);
         }
 
         public void setSetting(HoneyKey key, ConfigurationOptions.ViolationSetting setting) {

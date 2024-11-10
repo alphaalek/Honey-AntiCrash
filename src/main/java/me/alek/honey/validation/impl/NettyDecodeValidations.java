@@ -10,6 +10,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.util.Callback;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.types.PacketValidation;
@@ -18,6 +19,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.util.counter.DecayingListeningCounter;
 import me.alek.honey.util.IDRegistry;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +31,7 @@ import java.util.stream.Collectors;
 public class NettyDecodeValidations<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
 
     public NettyDecodeValidations(PacketLibrary library) {
-        super(library, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.HIGH, getPacketTypes());
     }
 
     public static List<PacketType> getPacketTypes() {

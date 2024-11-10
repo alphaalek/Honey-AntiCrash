@@ -158,7 +158,7 @@ public enum NetProtocol {
         return protocol;
     }
 
-    public static boolean matchProtocol(RangedPacketType range) {
+    public static boolean matchProtocol(NetProtocolRange.Ranged range) {
          return range.getRange().match(PROTOCOL);
     }
 

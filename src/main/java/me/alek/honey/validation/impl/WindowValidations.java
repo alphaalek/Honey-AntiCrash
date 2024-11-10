@@ -9,12 +9,14 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
@@ -31,7 +33,6 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
     private static List<PacketType> getPacketTypes() {
         return Collections.singletonList(PacketTypes.Play.Client.CLICK_WINDOW);
     }
-
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInWindowClick>> createValidationPipeline() {
         ValidationPipeline<PacketValidation<WrappedPlayInWindowClick>> pipeline = new ValidationPipeline<>();

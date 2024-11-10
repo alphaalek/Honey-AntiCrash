@@ -5,7 +5,7 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
-public class PacketListenerAdapter<WP extends WrappedPacket<WP>> {
+public class PacketListenerAdapter<WP extends WrappedPacket<WP>> implements PacketListener<WP> {
 
     public void onObjectPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) throws Exception {
 

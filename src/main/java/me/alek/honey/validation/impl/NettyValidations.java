@@ -34,7 +34,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
     public static final ValidationPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = ValidationPipeline.from(new NettyA(), new NettyC());
 
     public NettyValidations(PacketLibrary library) {
-        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, getPacketTypes());
+        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGH, getPacketTypes());
     }
 
     public static List<PacketType> getPacketTypes() {
@@ -73,41 +73,26 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
     public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final List<PacketType> IGNORE = Collections.singletonList(PacketTypes.Play.Client.PLAYER_MOVEMENT);
+
         private static final Array<PacketReader.Container<? extends WrappedPacket<?>>> READERS = new Array<>();
 
         static {
-            READERS.set(PacketTypes.Play.Client.PLAYER_POSITION.getHoneyID(), new PacketReader.Container<WrappedPlayInPosition>() {
-
-                @Override
-                public Object[] read(PacketContainer<WrappedPlayInPosition> packetContainer) {
-                    return new Object[]{
-                            packetContainer.getAnyWrapped().getX(),
-                            packetContainer.getAnyWrapped().getY(),
-                            packetContainer.getAnyWrapped().getZ()};
-                }
-            });
-            READERS.set(PacketTypes.Play.Client.PLAYER_POS_AND_ROT.getHoneyID(), new PacketReader.Container<WrappedPlayInPositionLook>() {
-
-                @Override
-                public Object[] read(PacketContainer<WrappedPlayInPositionLook> packetContainer) {
-                    return new Object[]{
-                            packetContainer.getAnyWrapped().getX(),
-                            packetContainer.getAnyWrapped().getY(),
-                            packetContainer.getAnyWrapped().getZ(),
-                            packetContainer.getAnyWrapped().getYaw(),
-                            packetContainer.getAnyWrapped().getPitch()};
-                }
-            });
-            READERS.set(PacketTypes.Play.Client.PLAYER_ROTATION.getHoneyID(), new PacketReader.Container<WrappedPlayInLook>() {
-
-                @Override
-                public Object[] read(PacketContainer<WrappedPlayInLook> packetContainer) {
-                    return new Object[]{
-                            packetContainer.getAnyWrapped().getYaw(),
-                            packetContainer.getAnyWrapped().getPitch()};
-                }
-            });
+            READERS.set(PacketTypes.Play.Client.PLAYER_POSITION, (PacketReader.Container<WrappedPlayInPosition>) packet -> new Object[]{
+                    packet.getAnyWrapped().getX(),
+                    packet.getAnyWrapped().getY(),
+                    packet.getAnyWrapped().getZ()}
+            );
+            READERS.set(PacketTypes.Play.Client.PLAYER_POS_AND_ROT, (PacketReader.Container<WrappedPlayInPositionLook>) packet -> new Object[]{
+                    packet.getAnyWrapped().getX(),
+                    packet.getAnyWrapped().getY(),
+                    packet.getAnyWrapped().getZ(),
+                    packet.getAnyWrapped().getYaw(),
+                    packet.getAnyWrapped().getPitch()}
+            );
+            READERS.set(PacketTypes.Play.Client.PLAYER_ROTATION, (PacketReader.Container<WrappedPlayInLook>) packet -> new Object[]{
+                    packet.getAnyWrapped().getYaw(),
+                    packet.getAnyWrapped().getPitch()}
+            );
         }
 
         public NettyB(PacketLibrary library) {
@@ -120,18 +105,17 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
 
         public static List<PacketType> getPacketTypes() {
-            List<PacketType> packetTypes = new ArrayList<>();
+            List<PacketType> types = new ArrayList<>();
 
-            for (PacketType packetType : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
-                ReflectStructure<Object, ?> structure = ReflectStructure.Provider.acquireStructure(packetType);
-                if (!structure.withDoubles().withStatic(false).getAccessors().isEmpty()
-                        || !structure.withFloats().withStatic(false).getAccessors().isEmpty()) {
-                    packetTypes.add(packetType);
+            for (PacketType type : PacketTypes.getTypesAvailableForBound(PacketBound.SERVER)) {
+                ReflectStructure<Object, ?> structure = new ReflectStructure<>(type.getNmsClass());
+                if (!structure.withDoubles().withStatic(false).withSuperClass(false).getAccessors().isEmpty()
+                        || !structure.withFloats().withStatic(false).withSuperClass(false).getAccessors().isEmpty()) {
+                    types.add(type);
                 }
             }
-            packetTypes.removeAll(IGNORE);
 
-            return packetTypes;
+            return types;
         }
 
         @Override

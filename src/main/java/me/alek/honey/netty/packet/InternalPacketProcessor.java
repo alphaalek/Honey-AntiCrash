@@ -1,4 +1,4 @@
-package me.alek.honey.netty.processor;
+package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -26,7 +26,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     private static class EventBus<WP extends WrappedPacket<WP>> {
 
         private class StateBus {
-            private final EnumMap<ListenerPriority, List<PacketListenerAdapter<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
+            private final EnumMap<ListenerPriority, List<PacketListener<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
             private final LinkedList<ListenerPriority> pipeline = new LinkedList<>();
         }
 
@@ -76,34 +76,34 @@ public class InternalPacketProcessor implements PacketProcessor {
             });
         }
 
-        public void callPipeline(PacketContainer.PipelineState state, Consumer<PacketListenerAdapter<WP>> consumer) {
+        public void callPipeline(PacketContainer.PipelineState state, Consumer<PacketListener<WP>> consumer) {
             StateBus bus = getStateBus(state);
             for (ListenerPriority priority : bus.pipeline) {
-                for (PacketListenerAdapter<WP> listener : bus.priorityMap.get(priority)) {
+                for (PacketListener<WP> listener : bus.priorityMap.get(priority)) {
                     consumer.accept(listener);
                 }
             }
         }
 
         @SuppressWarnings("unchecked")
-        public void addListener(PacketListenerAdapter<?> listener, PacketContainer.PipelineState state, ListenerPriority priority) {
+        public void addListener(PacketListener<?> listener, PacketContainer.PipelineState state, ListenerPriority priority) {
             StateBus bus = getStateBus(state);
             synchronized (bus.priorityMap) {
                 bus.priorityMap.computeIfAbsent(priority, __ -> new ArrayList<>())
-                        .add((PacketListenerAdapter<WP>) listener);
+                        .add((PacketListener<WP>) listener);
                 addToPipeline(state, priority);
             }
         }
 
-        public boolean removeListener(PacketContainer.PipelineState state, PacketListenerAdapter<?> listener) {
+        public boolean removeListener(PacketContainer.PipelineState state, PacketListener<?> listener) {
             StateBus bus = getStateBus(state);
             synchronized (bus.priorityMap) {
                 synchronized (bus.pipeline) {
                     for (ListenerPriority priority : new ArrayList<>(bus.pipeline)) {
-                        List<PacketListenerAdapter<WP>> listeners = bus.priorityMap.get(priority);
-                        Iterator<PacketListenerAdapter<WP>> listenerIterator = listeners.iterator();
+                        List<PacketListener<WP>> listeners = bus.priorityMap.get(priority);
+                        Iterator<PacketListener<WP>> listenerIterator = listeners.iterator();
                         while (listenerIterator.hasNext()) {
-                            PacketListenerAdapter<WP> busListener = listenerIterator.next();
+                            PacketListener<WP> busListener = listenerIterator.next();
                             if (busListener != listener) {
                                 continue;
                             }
@@ -155,10 +155,6 @@ public class InternalPacketProcessor implements PacketProcessor {
                 }
             }
         }
-
-        public boolean isEmpty(PacketContainer.PipelineState state) {
-            return getStateBus(state).priorityMap.isEmpty();
-        }
     }
 
     @Override
@@ -209,30 +205,34 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public synchronized void addListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
+    public synchronized void addListener(PacketListener<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
         addListener(bus -> bus.addListener(listener, state, priority), types);
     }
 
     @Override
-    public void removeListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, PacketType... types) {
+    public void removeListener(PacketListener<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, PacketType... types) {
         removeListener(listener, state, Arrays.asList(types));
     }
 
     @Override
-    public void removeListener(PacketListenerAdapter<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, List<PacketType> types) {
+    public void removeListener(PacketListener<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, List<PacketType> types) {
         for (PacketType type : types) {
-            if (!eventBusses.has(type)) continue;
+            if (!eventBusses.has(type)) {
+                continue;
+            }
 
             eventBusses.get(type).removeListener(state, listener);
 
-            if (eventBusses.get(type).isEmpty(state)) {
+            // check if there are no listeners for this type left
+            if (Arrays.stream(PacketContainer.PipelineState.values())
+                    .allMatch(s -> eventBusses.get(type).getStateBus(s).priorityMap.isEmpty())) {
                 eventBusses.remove(type);
             }
         }
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {
+    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListener<WP> listener, PacketContainer.PipelineState state) {
         for (EventBus<?> bus : eventBusses) {
             if (bus != null && existsInBus(bus, state, listener)) {
                 return true;
@@ -242,9 +242,9 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketContainer.PipelineState state, PacketListenerAdapter<WP> adapter) {
-        for (List<PacketListenerAdapter<WP2>> packetListeners : bus.getStateBus(state).priorityMap.values()) {
-            if (packetListeners.stream().anyMatch(a -> a.equals(adapter))) {
+    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketContainer.PipelineState state, PacketListener<WP> listener) {
+        for (List<PacketListener<WP2>> packetListeners : bus.getStateBus(state).priorityMap.values()) {
+            if (packetListeners.stream().anyMatch(a -> a.equals(listener))) {
                 return true;
             }
         }
@@ -252,13 +252,12 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     private void call(PacketType type, Consumer<EventBus<? extends WrappedPacket<?>>> callToEventBus) {
-        int id = type.getHoneyID();
         if (PacketTypes.isUnknown(type)
-                || !eventBusses.has(id)) {
+                || !eventBusses.has(type)) {
             return;
         }
 
-        callToEventBus.accept(eventBusses.get(id));
+        callToEventBus.accept(eventBusses.get(type));
     }
 
     @Override
