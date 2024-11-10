@@ -288,7 +288,10 @@ public class HoneyLogger {
     }
 
     public String formatPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {
-        Map<String, Object> entries = getPacketEntries(packet);
+        return formatPacketEntries(getPacketEntries(packet));
+    }
+
+    public String formatPacketEntries(Map<String, Object> entries) {
         if (entries.isEmpty()) {
             return "<empty>";
         }
@@ -303,15 +306,15 @@ public class HoneyLogger {
         for (;;) {
             Map.Entry<String, Object> e = i.next();
             sb.append(e.getKey())
-              .append("=");
+                    .append("=");
             try {
                 Object val = e.getValue();
                 sb.append(val.toString()
-                        .replace("\t", "\\t")
-                        .replace("\n", "!n"))
-                  .append("<")
-                  .append(BOXED.getOrDefault(val.getClass(), val.getClass()).getSimpleName())
-                  .append(">");
+                                .replace("\t", "\\t")
+                                .replace("\n", "!n"))
+                        .append("<")
+                        .append(BOXED.getOrDefault(val.getClass(), val.getClass()).getSimpleName())
+                        .append(">");
             } catch (Exception ignored) {
                 sb.append("null");
             }

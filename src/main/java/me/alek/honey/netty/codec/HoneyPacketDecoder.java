@@ -54,11 +54,11 @@ public class HoneyPacketDecoder {
                                 + PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketTypes.UNKNOWN) + ", "
                                 + state + " "
                                 + HoneyPlugin.get().getLogger().filterTooMuchData(
-                                ReflectStructure.Provider.acquireStructure(packet.getClass())
+                                        HoneyPlugin.get().getLogger().formatPacketEntries(ReflectStructure.Provider.acquireStructure(packet.getClass())
                                                 .withStatic(false)
                                                 .withTarget(packet)
                                                 .readFieldEntries()
-                                )
+                                ))
                 );
             }
         } catch (CodecException ex) {
