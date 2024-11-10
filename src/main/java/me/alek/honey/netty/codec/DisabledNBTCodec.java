@@ -3,6 +3,7 @@ package me.alek.honey.netty.codec;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 
 public class DisabledNBTCodec {
 

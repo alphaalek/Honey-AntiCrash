@@ -1,5 +1,6 @@
 package me.alek.honey.validation.impl;
 
+import me.alek.honey.HoneyKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
@@ -132,8 +133,8 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
     public static class RotationB<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ViolationManagement.HoneyKey yawKey = ViolationManagement.HoneyKey.of(0, "yaw");
-        private static final ViolationManagement.HoneyKey pitchKey = ViolationManagement.HoneyKey.of(1, "pitch");
+        private static final HoneyKey yawKey = HoneyKey.of(0, "yaw");
+        private static final HoneyKey pitchKey = HoneyKey.of(1, "pitch");
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -177,8 +178,8 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
     public static class RotationC<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ViolationManagement.HoneyKey yawKey = ViolationManagement.HoneyKey.of(0, "yaw");
-        private static final ViolationManagement.HoneyKey pitchKey = ViolationManagement.HoneyKey.of(1, "pitch");
+        private static final HoneyKey yawKey = HoneyKey.of(0, "yaw");
+        private static final HoneyKey pitchKey = HoneyKey.of(1, "pitch");
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {

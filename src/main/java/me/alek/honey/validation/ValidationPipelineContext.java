@@ -6,7 +6,6 @@ import org.bukkit.Location;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class ValidationPipelineContext {
 
@@ -14,7 +13,7 @@ public class ValidationPipelineContext {
 
     public DevelopmentData getDevelopmentData(ViolationKey key) {
         return developmentDataMap
-                .get(Optional.ofNullable(key.getKey()).map(ViolationManagement.HoneyKey::getRegistry).orElse(0), Array::new)
+                .get(key.getRegistryId(), Array::new)
                 .get(key.getValidation().getID(), DevelopmentData::new);
     }
 

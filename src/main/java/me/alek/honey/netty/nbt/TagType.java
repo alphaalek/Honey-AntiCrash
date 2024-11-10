@@ -8,7 +8,6 @@ import me.alek.honey.util.protocol.NetProtocolRange;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
-import org.checkerframework.checker.units.qual.C;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

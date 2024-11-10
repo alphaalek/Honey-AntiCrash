@@ -22,24 +22,24 @@ import java.util.function.Function;
 @SuppressWarnings("unchecked")
 public enum ViaProtocol {
 
-    v1_8(NetProtocol.v1_8, LegacyHolder.LEGACY ? "protocol1_8" : getPackageBetween(NetProtocol.v1_8, NetProtocol.v1_9, false), Array.from(PacketState.PLAY)),
-    v1_9(NetProtocol.v1_9, getPackageBetween(NetProtocol.v1_8, NetProtocol.v1_9, false), Array.from(PacketState.PLAY)),
+    v1_8(NetProtocol.v1_8, LegacyHolder.LEGACY ? "protocol1_8" : getPackageBetween(NetProtocol.v1_8, NetProtocol.v1_9), Array.from(PacketState.PLAY)),
+    v1_9(NetProtocol.v1_9, getPackageBetween(NetProtocol.v1_8, NetProtocol.v1_9), Array.from(PacketState.PLAY)),
     v1_9_3(NetProtocol.v1_9_3, LegacyHolder.LEGACY ? "protocol1_9_3to1_9_1_2" : getPackageBetween(NetProtocol.v1_9_1, NetProtocol.v1_9_3, false), Array.from(PacketState.PLAY)),
-    v1_12(NetProtocol.v1_12, getPackageBetween(NetProtocol.v1_11_1, NetProtocol.v1_12, false), Array.from(PacketState.PLAY)),
-    v1_12_1(NetProtocol.v1_12_1, getPackageBetween(NetProtocol.v1_12, NetProtocol.v1_12_1, false), Array.from(PacketState.PLAY)),
-    v1_13(NetProtocol.v1_13, getPackageBetween(NetProtocol.v1_12_2, NetProtocol.v1_13, false), Array.from(PacketState.PLAY)),
-    v1_14(NetProtocol.v1_14, getPackageBetween(NetProtocol.v1_13_2, NetProtocol.v1_14, false), Array.from(PacketState.PLAY)),
-    v1_14_4(NetProtocol.v1_14_4, getPackageBetween(NetProtocol.v1_14_3, NetProtocol.v1_14_4, false), Array.from(PacketState.PLAY)),
-    v1_15(NetProtocol.v1_15, getPackageBetween(NetProtocol.v1_14_4, NetProtocol.v1_15, false), Array.from(PacketState.PLAY)),
-    v1_16(NetProtocol.v1_16, getPackageBetween(NetProtocol.v1_15_2, NetProtocol.v1_16, false), Array.from(PacketState.PLAY)),
-    v1_16_2(NetProtocol.v1_16_2, getPackageBetween(NetProtocol.v1_16_1, NetProtocol.v1_16_2, false), Array.from(PacketState.PLAY)),
-    v1_17(NetProtocol.v1_17, getPackageBetween(NetProtocol.v1_16_4, NetProtocol.v1_17, false), Array.from(PacketState.PLAY)),
-    v1_17_1(NetProtocol.v1_17_1, getPackageBetween(NetProtocol.v1_17, NetProtocol.v1_17_1, false), Array.from(PacketState.PLAY)),
-    v1_18(NetProtocol.v1_18, getPackageBetween(NetProtocol.v1_17_1, NetProtocol.v1_18, false), Array.from(PacketState.PLAY)),
-    v1_19(NetProtocol.v1_19, getPackageBetween(NetProtocol.v1_18_2, NetProtocol.v1_19, false), Array.from(PacketState.PLAY)),
-    v1_19_1(NetProtocol.v1_19_1, getPackageBetween(NetProtocol.v1_19, NetProtocol.v1_19_1, false), Array.from(PacketState.PLAY)),
-    v1_19_3(NetProtocol.v1_19_3, getPackageBetween(NetProtocol.v1_19_1, NetProtocol.v1_19_3, false), Array.from(PacketState.PLAY)),
-    v1_19_4(NetProtocol.v1_19_4, getPackageBetween(NetProtocol.v1_19_3, NetProtocol.v1_19_4, false), Array.from(PacketState.PLAY)),
+    v1_12(NetProtocol.v1_12, getPackageBetween(NetProtocol.v1_11_1, NetProtocol.v1_12), Array.from(PacketState.PLAY)),
+    v1_12_1(NetProtocol.v1_12_1, getPackageBetween(NetProtocol.v1_12, NetProtocol.v1_12_1), Array.from(PacketState.PLAY)),
+    v1_13(NetProtocol.v1_13, getPackageBetween(NetProtocol.v1_12_2, NetProtocol.v1_13), Array.from(PacketState.PLAY)),
+    v1_14(NetProtocol.v1_14, getPackageBetween(NetProtocol.v1_13_2, NetProtocol.v1_14), Array.from(PacketState.PLAY)),
+    v1_14_4(NetProtocol.v1_14_4, getPackageBetween(NetProtocol.v1_14_3, NetProtocol.v1_14_4), Array.from(PacketState.PLAY)),
+    v1_15(NetProtocol.v1_15, getPackageBetween(NetProtocol.v1_14_4, NetProtocol.v1_15), Array.from(PacketState.PLAY)),
+    v1_16(NetProtocol.v1_16, getPackageBetween(NetProtocol.v1_15_2, NetProtocol.v1_16), Array.from(PacketState.PLAY)),
+    v1_16_2(NetProtocol.v1_16_2, getPackageBetween(NetProtocol.v1_16_1, NetProtocol.v1_16_2), Array.from(PacketState.PLAY)),
+    v1_17(NetProtocol.v1_17, getPackageBetween(NetProtocol.v1_16_4, NetProtocol.v1_17), Array.from(PacketState.PLAY)),
+    v1_17_1(NetProtocol.v1_17_1, getPackageBetween(NetProtocol.v1_17, NetProtocol.v1_17_1), Array.from(PacketState.PLAY)),
+    v1_18(NetProtocol.v1_18, getPackageBetween(NetProtocol.v1_17_1, NetProtocol.v1_18), Array.from(PacketState.PLAY)),
+    v1_19(NetProtocol.v1_19, getPackageBetween(NetProtocol.v1_18_2, NetProtocol.v1_19), Array.from(PacketState.PLAY)),
+    v1_19_1(NetProtocol.v1_19_1, getPackageBetween(NetProtocol.v1_19, NetProtocol.v1_19_1), Array.from(PacketState.PLAY)),
+    v1_19_3(NetProtocol.v1_19_3, getPackageBetween(NetProtocol.v1_19_1, NetProtocol.v1_19_3), Array.from(PacketState.PLAY)),
+    v1_19_4(NetProtocol.v1_19_4, getPackageBetween(NetProtocol.v1_19_3, NetProtocol.v1_19_4), Array.from(PacketState.PLAY)),
     v1_20_2(NetProtocol.v1_20_2, getPackageBetween(NetProtocol.v1_20, NetProtocol.v1_20_2, true), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
     v1_20_3(NetProtocol.v1_20_3, getPackageBetween(NetProtocol.v1_20_2, NetProtocol.v1_20_3, true), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
     v1_20_5(NetProtocol.v1_20_5, getPackageBetween(NetProtocol.v1_20_3, NetProtocol.v1_20_5, true), Array.fromData(PacketState.PLAY, PacketState.CONFIGURATION)),
@@ -89,13 +89,16 @@ public enum ViaProtocol {
         }
     }
 
+    private static String getPackageBetween(NetProtocol lower, NetProtocol upper) {
+        return getPackageBetween(lower, upper, false);
+    }
+
     public static ViaProtocol getViaProtocolFrom(NetProtocol protocol) {
-        for (ViaProtocol viaProtocol : values()) {
-            // acquire a protocol range from the mc-protocol matching this via-protocol to the mc-protocol just before the next via-protocol
-            // this means, that there has been no protocol change within this protocol range, so any mc-protocol within this range,
-            // will have the same protocol version
-            NetProtocolRange range = NetProtocolRange.between(viaProtocol.getProtocol(), viaProtocol.getNextProtocol().getProtocol().getBefore());
-            if (range.match(protocol) || viaProtocol.ordinal() == values().length - 1) {
+        List<ViaProtocol> protocols = Arrays.asList(values());
+        Collections.reverse(protocols);
+
+        for (ViaProtocol viaProtocol : protocols) {
+            if (viaProtocol.getProtocol().isOlderThanOrEqual(protocol)) {
                 return viaProtocol;
             }
         }

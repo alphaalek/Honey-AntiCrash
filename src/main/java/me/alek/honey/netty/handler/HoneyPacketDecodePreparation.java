@@ -1,6 +1,7 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
@@ -218,7 +219,12 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             if (packet == null) {
                 // this packet is not sent by the client (because it was not received by the filter),
                 // but instead invoked by some plugin (most likely ViaVersion)
-                packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, this.packetHandler.getPacketType(buf, false), null);
+                packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, this.packetHandler.getPacketType(buf, false, false), null);
+                // calls listeners that was not called, due to viaversion invoking this packet in the eventloop after the filter
+                PacketDataSerializer copiedSerializer = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
+                packet.callLateInitialByteListeners(copiedSerializer);
+                copiedSerializer.release();
+
                 InboundPacketFilter.MARK.set(packet);
                 fresh = true;
             }

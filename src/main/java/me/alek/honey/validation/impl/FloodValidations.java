@@ -1,5 +1,6 @@
 package me.alek.honey.validation.impl;
 
+import me.alek.honey.HoneyKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
@@ -223,8 +224,8 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
 
         @Override
-        public ViolationManagement.HoneyKey getKey(WP val) {
-            return ViolationManagement.HoneyKey.of(val.getType().getHoneyID());
+        public HoneyKey getKey(WP val) {
+            return HoneyKey.of(val.getType().getHoneyID());
         }
 
         @Override

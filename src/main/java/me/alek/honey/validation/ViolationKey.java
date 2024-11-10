@@ -1,23 +1,25 @@
 package me.alek.honey.validation;
 
+import me.alek.honey.HoneyKey;
 import me.alek.honey.validation.types.HoneyValidation;
 
 import java.util.Objects;
 
-public class ViolationKey {
+public class ViolationKey extends HoneyKey {
 
     public static ViolationKey of(HoneyValidation<?> validation) {
-        return new ViolationKey(validation, null);
+        return new ViolationKey(validation,  HoneyKey.of(validation.getID(), validation.getName()));
     }
 
-    public static ViolationKey of (HoneyValidation<?> validation, ViolationManagement.HoneyKey key) {
+    public static ViolationKey of (HoneyValidation<?> validation,  HoneyKey key) {
         return new ViolationKey(validation, key);
     }
 
     private final HoneyValidation<?> validation;
-    private final ViolationManagement.HoneyKey key;
+    private final HoneyKey key;
 
-    public ViolationKey(HoneyValidation<?> validation, ViolationManagement.HoneyKey key) {
+    public ViolationKey(HoneyValidation<?> validation, HoneyKey key) {
+        super(key.getRegistryId(), key.getIdentifier());
         this.validation = validation;
         this.key = key;
     }
@@ -26,7 +28,7 @@ public class ViolationKey {
         return validation;
     }
 
-    public ViolationManagement.HoneyKey getKey() {
+    public HoneyKey getKey() {
         return key;
     }
 

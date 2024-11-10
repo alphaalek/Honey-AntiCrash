@@ -247,7 +247,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 return super.add(value);
             }
 
-            PacketContainer<? extends WrappedPacket<?>> packet = HoneyPacketHandler.getPacketSendMarker().get();
+            PacketContainer<? extends WrappedPacket<?>> packet = HoneyPacketHandler.MARK.get();
             if (packet == null || !packet.getPlayer().isStreamActive()) {
                 return false;
             }

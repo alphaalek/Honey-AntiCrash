@@ -27,20 +27,33 @@ public enum NetProtocol {
 
     LATEST(-1), OLDEST(-1), UNKNOWN(-1);
 
+    private static final List<NetProtocol> invalid = Arrays.asList(LATEST, OLDEST, UNKNOWN);
     private static NetProtocol PROTOCOL;
+
+    public static NetProtocol get(NetProtocol protocol) {
+        if (protocol == LATEST) {
+            return getLatest();
+        } else if (protocol == OLDEST) {
+            return getOldest();
+        } else if (protocol == UNKNOWN) {
+            return null;
+        } else {
+            return protocol;
+        }
+    }
 
     public static NetProtocol getByName(String name) {
         return Arrays.stream(NetProtocol.values()).filter(p -> p.getName().equals(name)).findFirst().orElse(null);
+    }
+
+    public static List<NetProtocol> getProtocols() {
+        return Arrays.stream(NetProtocol.values()).filter(p -> p.protocolVersion != -1).collect(Collectors.toList());
     }
 
     private final int protocolVersion;
 
     NetProtocol(int protocol) {
         this.protocolVersion = protocol;
-    }
-
-    public static List<NetProtocol> getProtocols() {
-        return Arrays.stream(NetProtocol.values()).filter(p -> p.protocolVersion != -1).collect(Collectors.toList());
     }
 
     private static NetProtocol acquireProtocol() {
@@ -58,7 +71,9 @@ public enum NetProtocol {
     }
 
     public static NetProtocol getMajorFrom(int protocolVersion) {
-        for (NetProtocol protocol : getProtocols()) {
+        List<NetProtocol> protocols = getProtocols();
+        Collections.reverse(protocols);
+        for (NetProtocol protocol : protocols) {
             if (protocolVersion >= protocol.getProtocolVersion()
                     && (protocolVersion < protocol.getAfter().getProtocolVersion()
                         || protocol.getAfter().isEqual(protocol))) {
@@ -90,6 +105,10 @@ public enum NetProtocol {
         return toString().replace("_", ".");
     }
 
+
+    public int getProtocolVersion() {
+        return Optional.ofNullable(get(this)).map(p -> p.protocolVersion).orElse(-1);
+    }
     public boolean isOlderThan(NetProtocol target) {
         return getProtocolVersion() < target.getProtocolVersion();
     }
@@ -128,7 +147,7 @@ public enum NetProtocol {
     }
 
     public NetProtocol getAfter() {
-        if (ordinal() == LATEST.ordinal() - 1) {
+        if (ordinal() == getProtocols().size() - 1) {
             return this;
         }
         NetProtocol protocol = NetProtocol.values()[ordinal() + 1];
@@ -149,16 +168,6 @@ public enum NetProtocol {
 
     public static NetProtocol getOldest() {
         return getProtocols().get(0);
-    }
-
-    public int getProtocolVersion() {
-        if (this == LATEST) {
-            return getLatest().getProtocolVersion();
-        } else if (this == OLDEST) {
-            return getOldest().getProtocolVersion();
-        } else {
-            return protocolVersion;
-        }
     }
 
     @Retention(RetentionPolicy.RUNTIME)

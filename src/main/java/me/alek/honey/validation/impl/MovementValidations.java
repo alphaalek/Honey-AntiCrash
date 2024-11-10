@@ -1,5 +1,6 @@
 package me.alek.honey.validation.impl;
 
+import me.alek.honey.HoneyKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -187,8 +188,8 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
     public static class MovementB<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ViolationManagement.HoneyKey XZKey = ViolationManagement.HoneyKey.of(0, "2d");
-        private static final ViolationManagement.HoneyKey YKey = ViolationManagement.HoneyKey.of(1, "y");
+        private static final HoneyKey XZKey = HoneyKey.of(0, "2d");
+        private static final HoneyKey YKey = HoneyKey.of(1, "y");
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -426,13 +427,13 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
             private final Direction opp1;
             private final Direction opp2;
-            private final ViolationManagement.HoneyKey key = ViolationManagement.HoneyKey.of(ordinal(), name().toLowerCase());
+            private final HoneyKey key = HoneyKey.of(ordinal(), name().toLowerCase());
 
             public Direction getOther(Direction dir) {
                 return (dir == opp1) ? opp2 : opp1;
             }
 
-            public ViolationManagement.HoneyKey getKey() {
+            public HoneyKey getKey() {
                 return key;
             }
 
@@ -561,8 +562,8 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
     public static class MovementH<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP>{
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private static final ViolationManagement.HoneyKey twoDKey = ViolationManagement.HoneyKey.of(0, "2d");
-        private static final ViolationManagement.HoneyKey YKey = ViolationManagement.HoneyKey.of(1, "y");
+        private static final HoneyKey twoDKey = HoneyKey.of(0, "2d");
+        private static final HoneyKey YKey = HoneyKey.of(1, "y");
 
         private double lastDelta2D;
         private double lastDeltaY;

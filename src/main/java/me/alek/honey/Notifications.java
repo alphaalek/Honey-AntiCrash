@@ -132,7 +132,7 @@ public class Notifications {
                                ConfigurationOptions.ViolationSetting setting,
                                ViolationManagement.AbstractPacketLimitHandler packetLimitHandler,
                                ValidationPipelineContext.DevelopmentData developmentData,
-                               ViolationManagement.HoneyKey honeyKey) {
+                               HoneyKey honeyKey) {
                 MessageOffer offer = getOffer(player, type, honeyKey);
                 offer = offer.builder()
                         .offer(Placeholders.CONTEXT, packetLimitHandler::format)
@@ -160,13 +160,13 @@ public class Notifications {
             }
 
             @Override
-            public void warn(HoneyPlayer player, String type, ViolationManagement.HoneyKey honeyKey) {
+            public void warn(HoneyPlayer player, String type, HoneyKey honeyKey) {
                 observer.sendMessage(getMessage(punishFormat, getOffer(player, type, honeyKey)));
             }
         });
     }
 
-    public MessageOffer getOffer(HoneyPlayer player, String type, ViolationManagement.HoneyKey honeyKey) {
+    public MessageOffer getOffer(HoneyPlayer player, String type, HoneyKey honeyKey) {
         return new MessageOffer.Builder()
                 .offer(Placeholders.PLAYER, () -> player.name)
                 .offer(Placeholders.NETWORK, () -> formatNetworkStats(player))
@@ -357,7 +357,7 @@ public class Notifications {
         }
     }
 
-    public void notify(HoneyPlayer player, String notification, ViolationManagement.HoneyKey honeyKey, ConfigurationOptions.ViolationSetting setting, ViolationManagement.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
+    public void notify(HoneyPlayer player, String notification, HoneyKey honeyKey, ConfigurationOptions.ViolationSetting setting, ViolationManagement.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData) {
         for (Map.Entry<CommandSender, NotificationListener> observer : Sets.newHashSet(this.observerMap.entrySet())) {
             if (!hasNotifyPermission(observer.getKey())
                     || !player.isStreamActive()) {
@@ -368,7 +368,7 @@ public class Notifications {
         }
     }
 
-    public void warn(HoneyPlayer player, String warning, ViolationManagement.HoneyKey honeyKey) {
+    public void warn(HoneyPlayer player, String warning, HoneyKey honeyKey) {
         for (Map.Entry<CommandSender, NotificationListener> observer : Sets.newHashSet(this.observerMap.entrySet())) {
             if (!hasNotifyPermission(observer.getKey())
                     || !player.isStreamActive()) {
@@ -383,8 +383,8 @@ public class Notifications {
 
         void notify(String notification);
 
-        void notify(HoneyPlayer player, String notification, ConfigurationOptions.ViolationSetting setting, ViolationManagement.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, ViolationManagement.HoneyKey honeyKey);
+        void notify(HoneyPlayer player, String notification, ConfigurationOptions.ViolationSetting setting, ViolationManagement.AbstractPacketLimitHandler packetLimitHandler, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey honeyKey);
 
-        void warn(HoneyPlayer player, String notification, ViolationManagement.HoneyKey honeyKey);
+        void warn(HoneyPlayer player, String notification, HoneyKey honeyKey);
     }
 }

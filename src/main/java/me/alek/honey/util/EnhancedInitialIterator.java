@@ -3,19 +3,19 @@ package me.alek.honey.util;
 import java.util.Iterator;
 import java.util.function.Function;
 
-public class EnhancedInitialIterator<T> implements Iterable<T> {
+public class EnhancedInitialIterator<T, I extends Iterable<T>> implements Iterable<T> {
 
-    private final Iterable<T> iterable;
-    private final Function<Iterable<T>, LazyInit<T>> initial;
+    private final I iterable;
+    private final Function<I, LazyInit<T>> initial;
 
-    public EnhancedInitialIterator(Iterable<T> iterable, Function<Iterable<T>, LazyInit<T>> initial) {
+    public EnhancedInitialIterator(I iterable, Function<I, LazyInit<T>> initial) {
         this.iterable = iterable;
         this.initial = initial;
     }
 
     @Override
     public Iterator<T> iterator() {
-        return new Iterator<T>() {
+        return new Iterator<>() {
 
             private volatile boolean hasCalledInitial;
             private final LazyInit<T> initial = EnhancedInitialIterator.this.initial.apply(iterable);

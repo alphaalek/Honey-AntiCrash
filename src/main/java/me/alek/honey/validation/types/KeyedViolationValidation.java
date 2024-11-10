@@ -1,5 +1,6 @@
 package me.alek.honey.validation.types;
 
+import me.alek.honey.HoneyKey;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.validation.ViolationManagement;
 
@@ -13,7 +14,7 @@ public interface KeyedViolationValidation<T> extends ViolationValidation<T> {
         return true;
     }
 
-    ViolationManagement.HoneyKey getKey(T val);
+    HoneyKey getKey(T val);
 
     ConfigurationOptions.ViolationSetting getSetting(T val);
 }

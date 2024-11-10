@@ -15,9 +15,11 @@ import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -28,7 +30,7 @@ public class HoneyPacketHandler {
     @SuppressWarnings("unchecked")
     public static final ThreadLocal<Queue<Runnable>>[] DELAYED_TASKS = new ThreadLocal[]{new ThreadLocal<>(), new ThreadLocal<>()};
 
-    private static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> packetSendMarker = new ThreadLocal<>();
+    public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
     private final Channel channel;
     private final HoneyPlayer player;
@@ -126,7 +128,7 @@ public class HoneyPacketHandler {
         }
     }
 
-    public PacketType getPacketType(ByteBuf buf, boolean resetToStartIndex) {
+    public PacketType getPacketType(ByteBuf buf, boolean resetToStartIndex, boolean useVia) {
         int startIndex = buf.readerIndex();
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         int id = serializer.readVarInt();
@@ -139,16 +141,17 @@ public class HoneyPacketHandler {
 
         // check if the client protocol version is not the same as the server protocol version
         // if it is not the same, then we will acquire the packet type with ViaVersion
-        if (ViaProtocol.ViaValidator.VALIDATOR.find().get()
+        if (useVia
+                && ViaProtocol.ViaValidator.VALIDATOR.find().get()
                 && state != PacketState.HANDSHAKE // client-info (handshake SET_PROTOCOL) has been called
-                && !player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())) {
+                && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())) {
 
-            if (viaProtocol == null) {
-                viaProtocol = ViaProtocol.getViaProtocolFrom(player.clientInfo.getProtocol());
+            if (this.viaProtocol == null) {
+                this.viaProtocol = ViaProtocol.getViaProtocolFrom(this.player.clientInfo.getProtocol());
             }
 
-            if (viaProtocol.hasState(PacketBound.SERVER, state)) {
-                type = viaProtocol.getServerboundMappings(state).get(id);
+            if (this.viaProtocol.hasState(PacketBound.SERVER, state)) {
+                type = this.viaProtocol.getServerboundMappings(state).get(id);
             }
         }
 
@@ -158,10 +161,6 @@ public class HoneyPacketHandler {
         }
 
         return type;
-    }
-
-    public static ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> getPacketSendMarker() {
-        return packetSendMarker;
     }
 
     private boolean isCancelled(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
@@ -194,7 +193,7 @@ public class HoneyPacketHandler {
         }
 
         protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
-        packetSendMarker.set(packetContainer);
+        MARK.set(packetContainer);
 
         return true;
     }

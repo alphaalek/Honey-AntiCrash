@@ -1,5 +1,6 @@
 package me.alek.honey.validation;
 
+import me.alek.honey.HoneyKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.validation.types.*;
@@ -59,7 +60,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
     }
 
     public void doStream(HoneyPlayer player,
-                         BiFunction<C, ViolationManagement.HoneyKey, ConfigurationOptions.ViolationSetting> getSetting,
+                         BiFunction<C, HoneyKey, ConfigurationOptions.ViolationSetting> getSetting,
                          Function<C, ValidationViolationContext> getServiceContext,
                          Cancellable cancellable, ValidationPipelineContext validationContext, Callback callback) {
         if (!player.isStreamActive()) {
@@ -75,7 +76,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
 
             // ---------------------
             // pre requisites
-            ViolationManagement.HoneyKey distributionKey = ViolationManagement.HoneyKey.of(validation);
+            HoneyKey distributionKey = HoneyKey.of(validation);
             ConfigurationOptions.ViolationSetting setting = getSetting.apply(validation, distributionKey);
 
             // start to check this validation

@@ -14,10 +14,6 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.bukkit.Bukkit;
 
-import javax.annotation.Nullable;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 public class PrintValidationBridge {

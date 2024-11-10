@@ -1,5 +1,7 @@
 package me.alek.honey.validation;
 
+import me.alek.honey.HoneyKey;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +26,7 @@ public class ValidationViolationContext implements Cloneable {
     public boolean success;
     public boolean terminate;
     public int skipIndices;
-    public ViolationManagement.HoneyKey violationKey;
+    public HoneyKey violationKey;
     public Consumer<ViolationKey> onViolation;
     public Runnable onPunish;
     public double flag = -1;
@@ -101,7 +103,7 @@ public class ValidationViolationContext implements Cloneable {
             return this;
         }
 
-        public Builder withViolationKey(ViolationManagement.HoneyKey key) {
+        public Builder withViolationKey(HoneyKey key) {
             responseContainer.violationKey = key;
             return this;
         }

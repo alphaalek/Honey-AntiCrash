@@ -1,5 +1,6 @@
 package me.alek.honey.validation.impl;
 
+import me.alek.honey.HoneyKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
@@ -145,21 +146,21 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static ConfigurationOptions.ViolationSetting labelSetting;
-        private static final ViolationManagement.HoneyKey labelKey = ViolationManagement.HoneyKey.of(0, "total");
-        private static final ViolationManagement.HoneyKey totalKey = ViolationManagement.HoneyKey.of(1, "label");
+        private static final HoneyKey labelKey = HoneyKey.of(0, "total");
+        private static final HoneyKey totalKey = HoneyKey.of(1, "label");
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInTabComplete packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (labelSetting == null) {
                     if (!player.violationContext.getViolationDistributors().has(getID())) {
-                        player.violationContext.getDistributor(ViolationManagement.HoneyKey.of(this), getSetting());
+                        player.violationContext.getDistributor(generateKey(), getSetting());
                     }
 
                     labelSetting = getSetting().clone();
                     labelSetting.threshold = ConfigurationOptions.TabComplete.TabC.LABEL_THRESHOLD;
 
-                    player.violationContext.setSetting(ViolationManagement.HoneyKey.of(this), labelKey, labelSetting);
+                    player.violationContext.setSetting(HoneyKey.of(this), labelKey, labelSetting);
                 }
 
                 int label = packet.getMessage().indexOf(" ");

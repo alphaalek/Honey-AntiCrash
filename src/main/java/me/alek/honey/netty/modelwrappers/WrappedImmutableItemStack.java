@@ -6,6 +6,7 @@ import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.nbt.AbstractTag;
 import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.netty.nbt.NBTFactory;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -20,7 +21,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.io.IOException;
 import java.util.Optional;
 
-public class WrappedImmutableItemStack {
+public class WrappedImmutableItemStack implements Cloneable {
+
+    public static final WrappedImmutableItemStack AIR = new WrappedImmutableItemStack();
 
     public static class ProtocolType implements Type.In<WrappedImmutableItemStack> {
 
@@ -72,7 +75,6 @@ public class WrappedImmutableItemStack {
             try {
                 return WrappedImmutableItemStack.read(protocol, buf, id, amount, durability);
             } catch (Exception ex) {
-                ex.printStackTrace();
                 return null;
             }
         }
@@ -115,7 +117,7 @@ public class WrappedImmutableItemStack {
 
     public static WrappedImmutableItemStack fromBukkit(ItemStack bukkitStack) {
         if (bukkitStack == null || bukkitStack.getType() == Material.AIR) {
-            return new WrappedImmutableItemStack();
+            return AIR.clone();
         }
 
         Object nmsItem = null;
@@ -135,7 +137,7 @@ public class WrappedImmutableItemStack {
 
     public static WrappedImmutableItemStack fromNMS(Object stack) {
         if (stack == null) {
-            return new WrappedImmutableItemStack();
+            return AIR.clone();
         }
 
         ItemStack bukkitStack = ItemReflection.asCraftMirror(stack);
@@ -279,5 +281,14 @@ public class WrappedImmutableItemStack {
     @Override
     public String toString() {
         return toCraftBukkit().toString();
+    }
+
+    @Override
+    public WrappedImmutableItemStack clone() {
+        try {
+            return (WrappedImmutableItemStack) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

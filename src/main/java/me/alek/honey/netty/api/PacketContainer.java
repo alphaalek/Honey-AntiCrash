@@ -25,6 +25,8 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     void callPreMinecraftDecode(PacketDataSerializer serializer);
 
+    void callLateInitialByteListeners(PacketDataSerializer serializer);
+
     NetProtocol getProtocolByBytePacketState();
 
     ObjectPacketStructure getStructure();

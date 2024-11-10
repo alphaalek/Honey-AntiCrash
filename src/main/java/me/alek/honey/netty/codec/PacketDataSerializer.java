@@ -15,6 +15,7 @@ import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +27,7 @@ import java.nio.channels.ScatteringByteChannel;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -70,7 +72,8 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public WrappedImmutableItemStack readItemStack(NetProtocol protocol) {
-        return Types.ITEM_STACK.forProtocol(protocol).read(this);
+        return Optional.ofNullable(Types.ITEM_STACK.forProtocol(protocol).read(this))
+                .orElse(WrappedImmutableItemStack.AIR);
     }
 
     public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {

@@ -14,6 +14,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.ViolationManagement;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -62,21 +63,21 @@ public class HoneyPlayer implements Identifiable {
     private final TickCache<Boolean> bypassEverything = new TickCache<>();
     private final TickCache<Boolean> bypassServerThreadTracking = new TickCache<>();
 
-    public EnhancedInitialIterator<PostponeValidation> postponedChecks = new EnhancedInitialIterator<>(
+    public EnhancedInitialIterator<PostponeValidation, LinkedList<PostponeValidation>> postponedChecks = new EnhancedInitialIterator<>(
             new LinkedList<>(
-                new ArrayList<>(Arrays.asList(
+                Arrays.asList(
                         new PostponeRateIgnoreTerminator(),
                         new PostponeRateCheck(),
                         new PostponeRateAccelCheck(),
                         new PostponeRateAccelQuotientCheck(),
                         new PostponeMaxPerXTickCheck()
-                ))
+                )
             ),
-            i -> new LazyInit<>(() -> ((LinkedList<PostponeValidation>)i).peek())
+            i -> new LazyInit<>(i::peek)
     );
 
     public HoneyPlayer(Channel channel, HoneyPacketHandler handler) {
-        PLAYERS.set(registryID, this);
+        PLAYERS.set(this.registryID, this);
         this.channel = channel;
         this.packetHandler = handler;
     }
@@ -86,7 +87,7 @@ public class HoneyPlayer implements Identifiable {
     }
 
     public void remove() {
-        online = false;
+        this.online = false;
 
         for (BaseValidationContainer validationContainer : ValidationContainerRegistry.getValidations()) {
             validationContainer.cleanup(this);
@@ -100,7 +101,7 @@ public class HoneyPlayer implements Identifiable {
 
         HoneyPlugin.get().getMonitorManager().removeFromMonitors(this);
 
-        leaveCallback.call(this);
+        this.leaveCallback.call(this);
         HONEY_PLAYER_LOOKUP.remove(uuid);
         PLAYERS.remove(registryID);
         IDRegistry.PLAYERS.remove(registryID);
@@ -169,19 +170,19 @@ public class HoneyPlayer implements Identifiable {
         }
 
         HoneyPlugin.get().sync(() -> {
-            if (bukkit != null) {
+            if (this.bukkit != null) {
                 if (ex.getMessage() != null) {
-                    bukkit.kickPlayer(ex.getMessage());
+                    this.bukkit.kickPlayer(ex.getMessage());
                 } else {
-                    bukkit.kickPlayer("Disconnected");
+                    this.bukkit.kickPlayer("Disconnected");
                 }
             }
         });
-        punished = true;
+        this.punished = true;
     }
 
     public boolean isStreamActive() {
-        return !punished && (!isBukkitReady() || online) && channel.isOpen();
+        return !this.punished && (!isBukkitReady() || this.online) && this.channel.isOpen();
     }
 
     public boolean isBukkitReady() {
@@ -195,23 +196,23 @@ public class HoneyPlayer implements Identifiable {
     }
 
     public boolean bypassServerThreadTracking() {
-        return bypassServerThreadTracking.get(() -> {
+        return this.bypassServerThreadTracking.get(() -> {
             return ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
                     && isBukkitReady()
-                    && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
+                    && this.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
         });
     }
 
     public boolean bypassEverything() {
-        return bypassEverything.get(() -> {
+        return this.bypassEverything.get(() -> {
             return ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
                     && isBukkitReady()
-                    && bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
+                    && this.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
         });
     }
 
     public boolean isOnlineBukkit() {
-        return bukkit.isOnline();
+        return this.bukkit.isOnline();
     }
 
     public World getWorld() {
@@ -219,36 +220,36 @@ public class HoneyPlayer implements Identifiable {
     }
 
     public Location getLocation() {
-        return bukkit.getLocation();
+        return this.bukkit.getLocation();
     }
 
     public void sendMessage(String message) {
-        bukkit.sendMessage(message);
+        this.bukkit.sendMessage(message);
     }
 
     public ItemStack getItemInMainHand() {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-            return bukkit.getInventory().getItemInHand();
+            return this.bukkit.getInventory().getItemInHand();
         } else {
-            return bukkit.getInventory().getItemInMainHand();
+            return this.bukkit.getInventory().getItemInMainHand();
         }
     }
 
     public void setItemInMainHand(ItemStack item) {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-            bukkit.getInventory().setItemInHand(item);
+            this.bukkit.getInventory().setItemInHand(item);
         } else {
-            bukkit.getInventory().setItemInMainHand(item);
+            this.bukkit.getInventory().setItemInMainHand(item);
         }
     }
 
     @Override
     public String toString() {
-        return packetHandler.getPlayerName();
+        return this.packetHandler.getPlayerName();
     }
 
     @Override
     public int getID() {
-        return registryID;
+        return this.registryID;
     }
 }

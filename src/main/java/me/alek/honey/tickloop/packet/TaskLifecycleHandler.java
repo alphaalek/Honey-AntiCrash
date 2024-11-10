@@ -167,7 +167,6 @@ public class TaskLifecycleHandler {
             }
         }
 
-        // we have to make sure it's not an unmapped packet
         if (!PacketTypes.isUnknown(packet.getType())) {
             monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
         }

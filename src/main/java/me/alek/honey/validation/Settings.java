@@ -1,5 +1,6 @@
 package me.alek.honey.validation;
 
+import me.alek.honey.HoneyKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.validation.types.HoneyValidation;
 import me.alek.honey.validation.types.KeyedViolationValidation;
@@ -24,17 +25,17 @@ public class Settings {
         return ((ViolationValidation<?>) validation).getSetting();
     }
 
-    public static <WP extends WrappedPacket<WP>> ConfigurationOptions.ViolationSetting getSetting(HoneyPlayer player, HoneyValidation<?> validation, ViolationManagement.HoneyKey key, WP packet) {
+    public static <WP extends WrappedPacket<WP>> ConfigurationOptions.ViolationSetting getSetting(HoneyPlayer player, HoneyValidation<?> validation, HoneyKey key, WP packet) {
         if (!validation.isViolation()) {
             return null;
         }
 
         ViolationValidation<?> violationCheck = (ViolationValidation<?>) validation;
         if (packet != null && violationCheck.isKeyed()) {
-            @SuppressWarnings("unvalidationed")
+            @SuppressWarnings("unchecked")
             KeyedViolationValidation<WP> keyedViolationCheck = (KeyedViolationValidation<WP>) violationCheck;
             ConfigurationOptions.ViolationSetting setting = keyedViolationCheck.getSetting(packet);
-            ViolationManagement.HoneyKey distributionKey = keyedViolationCheck.getKey(packet);
+            HoneyKey distributionKey = keyedViolationCheck.getKey(packet);
 
             ViolationManagement.ViolationDistributor distributor = player.violationContext.getDistributor(key, setting);
             ViolationManagement.AbstractPacketLimitHandler handler = distributor.getPacketLimitHandler(distributionKey, false);

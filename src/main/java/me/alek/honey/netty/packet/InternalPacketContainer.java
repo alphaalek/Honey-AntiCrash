@@ -17,6 +17,7 @@ import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.Optional;
 
@@ -86,6 +87,14 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         if (this.pipelineState == PipelineState.INITIAL_BYTE) {
             this.pipelineState = PipelineState.FINAL_BYTE;
             this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
+        }
+    }
+
+    @Override
+    public void callLateInitialByteListeners(PacketDataSerializer serializer) {
+        if (WrappedPacketFactoryCollection.hasByteWrappedPacket(this.type, PacketContainer.PipelineState.INITIAL_BYTE)) {
+            this.initialByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(this.type, PipelineState.INITIAL_BYTE, serializer, this);
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(player, this);
         }
     }
 

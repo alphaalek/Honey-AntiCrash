@@ -10,19 +10,17 @@ import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.counter.DecayingWindowCounter;
 import me.alek.honey.util.statics.NumberUtils;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class HoneyLogger {
 
@@ -189,7 +187,7 @@ public class HoneyLogger {
 
     public void logToMonitors(HoneyPlayer player, PacketContainer<?> packet) {
         if (player.isBukkitReady() && monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
-                && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getObjectWrapped().getHandle().getClass().getSimpleName()))) {
+                && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getType().toString()))) {
             synchronized (this) {
                 Queue<PacketType> recentPackets = HoneyLogger.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
 
