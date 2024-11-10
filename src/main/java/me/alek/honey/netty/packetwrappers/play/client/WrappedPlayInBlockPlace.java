@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBlockPlace> implements AutoReleasable {
+public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBlockPlace> {
 
     private static final List<BlockFace> CARTESIAN_FACES = Arrays.asList(BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
 
@@ -37,8 +37,8 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     private BlockFace face;
     @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
     private Vector cursorPosition;
-    @Property(to = @NetProtocol.To(to = NetProtocol.v1_8_8)) @Property.Unlock(methodSupplier = "getItemStack")
-    private LazyInit<WrappedImmutableItemStack> itemStack;
+    @Property(to = @NetProtocol.To(to = NetProtocol.v1_8_8))
+    private WrappedImmutableItemStack itemStack;
     // @Property(from = @NetProtocol.From(from = NetProtocol.v1_14))
     private boolean insideBlock;
     // TODO
@@ -46,8 +46,6 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     private boolean worldBorderHit;
     @Property(from = @NetProtocol.From(from = NetProtocol.v1_19))
     private int sequence;
-
-    private Runnable release;
 
     public WrappedPlayInBlockPlace(PacketDataSerializer serializer, PacketContainer<WrappedPlayInBlockPlace> packet) {
         super(serializer, packet);
@@ -84,8 +82,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
                 this.interactionHand = InteractionHand.MAIN_HAND;
 
                 PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-                this.itemStack = new LazyInit<>(() -> decodeExternally(() -> copy.readItemStack(protocol)));
-                this.release = () -> AutoReleasable.doRelease(copy);
+                this.itemStack = copy.readItemStack(protocol);
             }
 
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_11)) {
@@ -97,13 +94,6 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
 
         if (this.face != null && this.faceId != -1) {
             this.face = CARTESIAN_FACES.get(this.faceId % CARTESIAN_FACES.size());
-        }
-    }
-
-    @Override
-    public void release() {
-        if (this.release != null) {
-            this.release.run();
         }
     }
 
@@ -128,7 +118,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     }
 
     public WrappedImmutableItemStack getItemStack() {
-        return Optional.ofNullable(this.itemStack).map(LazyInit::get).orElse(null);
+        return this.itemStack;
     }
 
     public boolean isInsideBlock() {

@@ -52,7 +52,7 @@ public class HoneyPacketDecoder {
                         "Found " + remaining
                                 + " (" + (end + byteBuf.readableBytes()) + "/" + end + ") extra bytes while decoding packet "
                                 + PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketTypes.UNKNOWN) + ", "
-                                + state + " "
+                                + state + ": "
                                 + HoneyPlugin.get().getLogger().filterTooMuchData(
                                         HoneyPlugin.get().getLogger().formatPacketEntries(ReflectStructure.Provider.acquireStructure(packet.getClass())
                                                 .withStatic(false)

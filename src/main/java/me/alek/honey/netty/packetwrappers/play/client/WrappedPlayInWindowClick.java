@@ -11,7 +11,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.Map;
 
-public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWindowClick> implements AutoReleasable {
+public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWindowClick> {
 
     public enum WindowClickType {
         PICKUP, QUICK_MOVE, SWAP, CLONE, THROW, QUICK_CRAFT, PICKUP_ALL;
@@ -31,10 +31,9 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
     private final WindowClickType windowClickType;
     @Property(from = @NetProtocol.From(from = NetProtocol.v1_17))
     private Map<Integer, WrappedImmutableItemStack> slots;
-    @Property @Property.Unlock(methodSupplier = "getCarriedItemStack")
-    private final LazyInit<WrappedImmutableItemStack> carriedItemStack;
+    @Property
+    private final WrappedImmutableItemStack carriedItemStack;
 
-    private final Runnable release;
 
     public WrappedPlayInWindowClick(PacketDataSerializer serializer, PacketContainer<WrappedPlayInWindowClick> packet) {
         super(serializer, packet);
@@ -67,13 +66,7 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
         }
 
         PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.carriedItemStack = new LazyInit<>(() -> decodeExternally(() -> copy.readItemStack(protocol)));
-        release = () -> AutoReleasable.doRelease(copy);
-    }
-
-    @Override
-    public void release() {
-        this.release.run();
+        this.carriedItemStack = copy.readItemStack(protocol);
     }
 
     public int getWindowId() {
@@ -105,6 +98,6 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
     }
 
     public WrappedImmutableItemStack getCarriedItemStack() {
-        return this.carriedItemStack.get();
+        return this.carriedItemStack;
     }
 }

@@ -9,13 +9,12 @@ import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 
-public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayInSetCreativeSlot> implements AutoReleasable {
+public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayInSetCreativeSlot> {
 
     @Property
     private final int slot;
-    @Property @Property.Unlock(methodSupplier = "getItemStack")
-    private final LazyInit<WrappedImmutableItemStack> item;
-    private final Runnable release;
+    @Property
+    private final WrappedImmutableItemStack item;
 
     public WrappedPlayInSetCreativeSlot(PacketDataSerializer serializer, PacketContainer<WrappedPlayInSetCreativeSlot> packet) {
         super(serializer, packet);
@@ -29,8 +28,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
         }
 
         PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.item = new LazyInit<>(() -> decodeExternally(() -> copy.readItemStack(protocol)));
-        this.release = () -> AutoReleasable.doRelease(copy);
+        this.item = copy.readItemStack(protocol);
     }
 
     public int getSlot() {
@@ -38,11 +36,6 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
     }
 
     public WrappedImmutableItemStack getItemStack() {
-        return this.item.get();
-    }
-
-    @Override
-    public void release() {
-        this.release.run();
+        return this.item;
     }
 }
