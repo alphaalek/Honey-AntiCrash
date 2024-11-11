@@ -85,7 +85,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
             }
         }
 
-        if (this.face != null && this.faceId != -1) {
+        if (this.face == null && this.faceId != -1) {
             this.face = CARTESIAN_FACES.get(this.faceId % CARTESIAN_FACES.size());
         }
     }
