@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ItemReflection {
 
+
     private static final ConstructorInvoker<?> itemStackConstructor;
 
     private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(NMS.getCraftItemStackClass(), "asNMSCopy", ItemStack.class);

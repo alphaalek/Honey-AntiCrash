@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBufInputStream;
 import me.alek.honey.netty.api.IStructureModifier;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Type;
-import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -13,7 +12,6 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -138,6 +136,12 @@ public class NBTFactory {
         }
     }
 
+    private static final ReflectStructure<Object, ?> ITEM_STACK_STRUCTURE = new ReflectStructure<>(NMS.getItemStackClass());
+    private static final ReflectStructure<Object, AbstractTag<?, ?, ?>> TAG_STRUCTURE_FORCE_CREATION = ITEM_STACK_STRUCTURE
+            .withType(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(false));
+    private static final ReflectStructure<Object, AbstractTag<?, ?, ?>> TAG_STRUCTURE_NO_FORCE_CREATION = ITEM_STACK_STRUCTURE
+            .withType(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(true));
+
     public static CompoundTag fromItem(ItemStack item, boolean createIfNone, boolean forceCreation) {
         if (item == null || item.getType() == Material.AIR) {
             return null;
@@ -148,9 +152,8 @@ public class NBTFactory {
             return null;
         }
 
-        ReflectStructure<Object, ?> reflectStructure = ReflectStructure.Provider.acquireStructure(nmsItem.getClass());
-        IStructureModifier<AbstractTag<?, ?, ?>> structureModifier = reflectStructure
-                .withTypeWithoutCache(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(forceCreation))
+        IStructureModifier<AbstractTag<?, ?, ?>> structureModifier =
+                (forceCreation ? TAG_STRUCTURE_FORCE_CREATION : TAG_STRUCTURE_NO_FORCE_CREATION)
                 .withTarget(nmsItem);
 
         AbstractTag<?, ?, ?> base = structureModifier.readField(0);

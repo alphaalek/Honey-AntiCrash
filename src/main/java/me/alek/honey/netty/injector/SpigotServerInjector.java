@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.handler.MinecraftHandlers;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.reflection.NMS;
 
@@ -161,15 +162,7 @@ public class SpigotServerInjector {
     }
 
     public Object getNetworkManagerFor(Channel channel) {
-        synchronized (networkManagers) {
-            for (Object networkManager : networkManagers) {
-                if (channel.equals(NMS.getChannelFromNetworkManager(networkManager))) {
-                    return networkManager;
-                }
-            }
-        }
-
-        return channel.pipeline().get("packet_handler");
+        return channel.pipeline().get(MinecraftHandlers.MANAGER);
     }
 
     public void removeNetworkManager(Object networkManager) {
