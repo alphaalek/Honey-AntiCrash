@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.util.IDRegistry;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -81,7 +82,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 int slot = packet.getSlot();
-                if (slot > (player.bukkit.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
+                if (slot > 45 || slot < -1) {
                     return ValidationViolationContext.Builder.validate().cancel().flag()
                             .onViolation(generateKey(), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
