@@ -23,7 +23,7 @@ public class WrappedPacketFactoryCollection {
     private final static EnumMap<PacketContainer.PipelineState, Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>>> BYTE_WRAPPERS = new EnumMap<>(PacketContainer.PipelineState.class);
 
     public static void loadWrappers() {
-        loadByteWrapper(PacketTypes.Play.Client.USE_ITEM_ON, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInBlockPlace::new);
+        loadByteWrapper(PacketTypes.Play.Client.BLOCK_PLACE, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInBlockPlace::new);
         loadByteWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInSetCreativeSlot::new);
         loadByteWrapper(PacketTypes.Play.Client.CLICK_WINDOW, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInWindowClick::new);
         loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);

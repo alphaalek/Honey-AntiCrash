@@ -41,9 +41,9 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             case SERVER:
                 PacketContainer<WP> packet = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
                 InboundPacketFilter.MARK.remove();
-                return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().read(this.packetHandler.getPlayer(), msg, packet);
+                return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(this.packetHandler.getPlayer(), msg, packet);
             case CLIENT:
-                return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().write(this.packetHandler.getPlayer(), msg);
+                return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().writeObjectPacket(this.packetHandler.getPlayer(), msg);
         }
 
         throw new IllegalStateException();

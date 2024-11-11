@@ -134,7 +134,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().read(player, packet, earlyPacketContainer);
+            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(player, packet, earlyPacketContainer);
 
             Runnable packetExecutorTask;
             if (!finalPacketContainer.isCancelled()) {
@@ -219,7 +219,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             if (packet == null) {
                 // this packet is not sent by the client (because it was not received by the filter),
                 // but instead invoked by some plugin (most likely ViaVersion)
-                packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, this.packetHandler.getPacketType(buf, false, false), null);
+                packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, this.packetHandler.getPacketType(buf, false, PacketBound.SERVER, false), null);
                 // calls listeners that was not called, due to viaversion invoking this packet in the eventloop after the filter
                 PacketDataSerializer copiedSerializer = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
                 packet.callLateInitialByteListeners(copiedSerializer);

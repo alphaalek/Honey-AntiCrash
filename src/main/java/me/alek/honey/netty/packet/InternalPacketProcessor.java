@@ -5,7 +5,6 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.api.PacketProcessor;
-import me.alek.honey.netty.packet.*;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -275,55 +274,45 @@ public class InternalPacketProcessor implements PacketProcessor {
         call(packet.getType(), bus -> bus.callBytePacketProcess(player, PacketContainer.PipelineState.FINAL_BYTE, packet));
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initializePacketContainer(PacketContainer<WP> earlyInitializedPacket, Object packet, HoneyPlayer player, PacketType type) {
+    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleObjectCommon(HoneyPlayer player, PacketBound bound, Object objectPacket, PacketContainer<WP> earlyInitializedPacket) {
+        Optional<PacketType> typeFromClass = PacketTypes.getPacketType(objectPacket.getClass(), player.packetHandler.getProtocolState(bound));
+        if (!typeFromClass.isPresent()) {
+            return null;
+        }
+        PacketType type = typeFromClass.get();
+        if (PacketTypes.isUnknown(type)) {
+            return null;
+        }
+
+        PacketContainer<WP> packet;
         if (earlyInitializedPacket != null) {
-            earlyInitializedPacket.callPostMinecraftDecode(packet, type);
-            return earlyInitializedPacket;
+            earlyInitializedPacket.callPostMinecraftDecode(objectPacket, type);
+            packet = earlyInitializedPacket;
+        } else {
+            packet = new InternalPacketContainer<>(objectPacket, player, type, getPostAction(type));
         }
 
-        return new InternalPacketContainer<>(packet, player, type, getPostAction(type));
-    }
-
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleCommon(HoneyPlayer player, PacketBound bound, Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        PacketType type = null;
-        if (bound.equals(PacketBound.SERVER) && earlyInitializedPacket != null) {
-            type = earlyInitializedPacket.getType();
-        }
-        if (PacketTypes.isUnknown(type)
-                // check if the packet has been rewritten and the type has changed by ViaVersion
-                || !type.getNmsClass().equals(packet.getClass())) {
-            Optional<PacketType> optionalType = PacketTypes.getPacketType(packet.getClass(), player.packetHandler.getProtocolState(bound));
-            if (!optionalType.isPresent()) {
-                return null;
-            }
-            type = optionalType.get();
-        }
-
-        PacketContainer<WP> packetContainer = initializePacketContainer(
-                earlyInitializedPacket, packet, player, type);
-
-        if (PacketTypes.isUnknown(type)
-                || packetContainer.getState().equals(PacketState.PLAY) && !packetContainer.getPlayer().isBukkitReady()) {
-            return packetContainer;
+        if (packet.getState().equals(PacketState.PLAY) && !packet.getPlayer().isBukkitReady()) {
+            return packet;
         }
 
         try {
-            callObjectPacketProcessListeners(player, packetContainer);
+            callObjectPacketProcessListeners(player, packet);
         } catch (Exception ex) {
-            packetContainer.cancel();
+            packet.cancel();
         }
 
-        return packetContainer;
+        return packet;
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> read(HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
-        return handleCommon(player, PacketBound.SERVER, packet, earlyInitializedPacket);
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> readObjectPacket(HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
+        return handleObjectCommon(player, PacketBound.SERVER, packet, earlyInitializedPacket);
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> write(HoneyPlayer player, Object packet) {
-        return handleCommon(player, PacketBound.CLIENT, packet, null);
+    public <WP extends WrappedPacket<WP>> PacketContainer<WP> writeObjectPacket(HoneyPlayer player, Object packet) {
+        return handleObjectCommon(player, PacketBound.CLIENT, packet, null);
     }
 
     @Override

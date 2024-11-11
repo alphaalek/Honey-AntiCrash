@@ -143,6 +143,15 @@ public enum PacketTypes implements PacketType {
         }
     }
 
+    public static Array<PacketType> getTypesAvailableFor(NetProtocol protocol, PacketState state, PacketBound bound) {
+        if (protocol.equals(NetProtocol.getProtocol())) {
+            return getTypesAvailableFor(state, bound);
+        }
+
+        return Array.from(getAllPacketTypes().stream()
+                .filter(t -> t.getBound().equals(bound) && t.getState().equals(state)).toArray());
+    }
+
     public static Array<PacketType> getTypesAvailableFor(PacketState state, PacketBound bound) {
         return state.getTypes()[bound.ordinal()];
     }
@@ -163,16 +172,19 @@ public enum PacketTypes implements PacketType {
         return types;
     }
 
-    public static PacketType getTypeFromKey(PacketState state, PacketBound bound, Object key) {
-        String id = key.toString().split(":")[1];
-        for (PacketType type : getTypesAvailableFor(state, bound)) {
+    public static PacketType getTypeFromKey(NetProtocol protocol, PacketState state, PacketBound bound, String key) {
+        for (PacketType type : getTypesAvailableFor(protocol, state, bound)) {
             if (type.getKeyName() != null
-                    && type.getKeyName().equals(id)) {
+                    && type.getKeyName().equals(key)) {
                 return type;
             }
         }
 
         return PacketTypes.UNKNOWN;
+    }
+
+    public static PacketType getTypeFromKey(PacketState state, PacketBound bound, String key) {
+        return getTypeFromKey(NetProtocol.getProtocol(), state, bound, key);
     }
 
     public enum NameGetStrategy {
@@ -290,7 +302,7 @@ public enum PacketTypes implements PacketType {
 
         public enum Client implements RangedPacketType {
             COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, null, NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, "custom_query", NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
             CUSTOM_QUERY_ANSWER(CUSTOM_QUERY_ANSWER_CLASS, "custom_query_answer", NetProtocolRange.since(NetProtocol.v1_20_2)),
             ENCRYPTION_BEGIN(ENCRYPTION_BEGIN_CLASS, "key"),
             LOGIN_ACKNOWLEDGED(LOGIN_ACKNOWLEDGED_CLASS, "login_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
@@ -569,7 +581,7 @@ public enum PacketTypes implements PacketType {
         private static final Class<?> STEER_VEHICLE_CLASS = Reflection.getClass("{play}.PacketPlayInSteerVehicle");
         private static final Class<?> TAB_COMPLETE_CLASS = Reflection.getClass("{play}.PacketPlayInTabComplete");
         private static final Class<?> UPDATE_SIGN_CLASS = Reflection.getClass("{play}.PacketPlayInUpdateSign");
-        private static final Class<?> USE_ITEM_ON_CLASS = Reflection.getClass("{play}.PacketPlayInBlockPlace");
+        private static final Class<?> BLOCK_PLACE_CLASS = Reflection.getClass("{play}.PacketPlayInBlockPlace");
         private static Class<?> ADVANCEMENTS_CLASS;
         private static Class<?> AUTO_RECIPE_CLASS;
         private static Class<?> BOAT_MOVE_CLASS;
@@ -753,7 +765,7 @@ public enum PacketTypes implements PacketType {
             UPDATE_COMMAND_BLOCK(UPDATE_COMMAND_BLOCK_CLASS, "set_command_block", NetProtocolRange.since(NetProtocol.v1_13)),
             UPDATE_SIGN(UPDATE_SIGN_CLASS, "sign_update"),
             USE_ITEM(USE_ITEM_CLASS, "use_item", NetProtocolRange.since(NetProtocol.v1_9)),
-            USE_ITEM_ON(USE_ITEM_ON_CLASS, "use_item_on"),
+            BLOCK_PLACE(BLOCK_PLACE_CLASS, "use_item_on"),
             VEHICLE_MOVE(VEHICLE_MOVE_CLASS, "move_vehicle", NetProtocolRange.since(NetProtocol.v1_9)),
             ;
 
@@ -898,7 +910,7 @@ public enum PacketTypes implements PacketType {
         private static Class<?> MAP_BULK_CHUNK_CLASS;
         private static Class<?> MAP_CHUNK_CLASS;
         private static Class<?> MOUNT_CLASS;
-        private static Class<?> NAMED_ENTITY_SPAWN_CLASS;
+        private static Class<?> SPAWN_NAMED_ENTITY_CLASS;
         private static Class<?> NBT_QUERY_CLASS;
         private static Class<?> OPEN_BOOK_CLASS;
         private static Class<?> OPEN_WINDOW_HORSE_CLASS;
@@ -935,7 +947,7 @@ public enum PacketTypes implements PacketType {
         private static Class<?> SET_TITLE_TEXT_CLASS;
         private static Class<?> SPAWN_ENTITY_LIVING_CLASS;
         private static Class<?> SPAWN_ENTITY_PAINTING_CLASS;
-        private static Class<?> SPAWN_ENTITY_WEATHER_CLASS;
+        private static Class<?> SPAWN_GLOBAL_ENTITY_CLASS;
         private static Class<?> START_CONFIGURATION_CLASS;
         private static Class<?> STOP_SOUND_CLASS;
         private static Class<?> STORE_COOKIE_CLASS;
@@ -973,7 +985,7 @@ public enum PacketTypes implements PacketType {
                 PLAYER_SLEEP_CLASS = Reflection.getClass("{play}.PacketPlayOutBed");
             }
             if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_15_2)) {
-                SPAWN_ENTITY_WEATHER_CLASS = Reflection.getClass("{play}.PacketPlayOutSpawnEntityWeather");
+                SPAWN_GLOBAL_ENTITY_CLASS = Reflection.getClass("{play}.PacketPlayOutSpawnEntityWeather");
             }
             if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_16_5)) {
                 COMBAT_EVENT_CLASS = Reflection.getClass("{play}.PacketPlayOutCombatEvent");
@@ -1107,7 +1119,7 @@ public enum PacketTypes implements PacketType {
                 TRANSFER_CLASS = Reflection.getClass("{common}.ClientboundTransferPacket");
             }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
-                NAMED_ENTITY_SPAWN_CLASS = Reflection.getClass("{play}.PacketPlayOutNamedEntitySpawn");
+                SPAWN_NAMED_ENTITY_CLASS = Reflection.getClass("{play}.PacketPlayOutNamedEntitySpawn");
             }
             if (protocolVersion.isOlderThan(NetProtocol.v1_20_4)) {
                 RESOURCE_PACK_SEND_CLASS = Reflection.getUnsureClass("{play}.PacketPlayOutResourcePackSend", "{common}.ClientboundResourcePackPacket");
@@ -1178,7 +1190,6 @@ public enum PacketTypes implements PacketType {
             MAP_ITEM_DATA(MAP_ITEM_DATA_CLASS, "map_item_data"),
             MOUNT(MOUNT_CLASS, "set_passengers", NetProtocolRange.since(NetProtocol.v1_9)),
             MULTI_BLOCK_CHANGE(MULTI_BLOCK_CHANGE_CLASS, "section_blocks_update"),
-            NAMED_ENTITY_SPAWN(NAMED_ENTITY_SPAWN_CLASS, null, NetProtocolRange.until(NetProtocol.v1_20_1)),
             NBT_QUERY(NBT_QUERY_CLASS, "tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
             OPEN_BOOK(OPEN_BOOK_CLASS, "open_book", NetProtocolRange.since(NetProtocol.v1_14)),
             OPEN_SIGN_EDITOR(OPEN_SIGN_EDITOR_CLASS, "open_sign_editor"),
@@ -1187,7 +1198,7 @@ public enum PacketTypes implements PacketType {
             OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, "merchant_offers", NetProtocolRange.since(NetProtocol.v1_14)),
             PING(PING_CLASS, "ping", NetProtocolRange.since(NetProtocol.v1_17)),
             PLAYER_CHAT(PLAYER_CHAT_CLASS, "player_chat"),
-            PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, null, NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
+            PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, "player_chat_header", NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
             PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, "player_combat_end", NetProtocolRange.since(NetProtocol.v1_17)),
             PLAYER_COMBAT_ENTER(PLAYER_COMBAT_ENTER_CLASS, "player_combat_enter", NetProtocolRange.since(NetProtocol.v1_17)),
             PLAYER_COMBAT_KILL(PLAYER_COMBAT_KILL_CLASS, "player_combat_kill", NetProtocolRange.since(NetProtocol.v1_17)),
@@ -1227,10 +1238,11 @@ public enum PacketTypes implements PacketType {
             SET_TITLE_TEXT(SET_TITLE_TEXT_CLASS, "set_title_text", NetProtocolRange.since(NetProtocol.v1_17)),
             SOUND(SOUND_CLASS, "sound"),
             SPAWN_ENTITY(SPAWN_ENTITY_CLASS, "add_entity"),
-            SPAWN_ENTITY_LIVING(SPAWN_ENTITY_LIVING_CLASS, null, NetProtocolRange.until(NetProtocol.v1_18_2)),
+            SPAWN_ENTITY_LIVING(SPAWN_ENTITY_LIVING_CLASS, "add_mob", NetProtocolRange.until(NetProtocol.v1_18_2)),
             SPAWN_ENTITY_PAINTING(SPAWN_ENTITY_PAINTING_CLASS, "add_painting", NetProtocolRange.until(NetProtocol.v1_18_2)),
-            SPAWN_ENTITY_WEATHER(SPAWN_ENTITY_WEATHER_CLASS, null, NetProtocolRange.until(NetProtocol.v1_15_2)),
+            SPAWN_GLOBAL_ENTITY(SPAWN_GLOBAL_ENTITY_CLASS, "add_global_entity", NetProtocolRange.until(NetProtocol.v1_15_2)),
             SPAWN_EXPERIENCE_ORB(SPAWN_EXPERIENCE_ORB_CLASS, "add_experience_orb"),
+            SPAWN_NAMED_ENTITY(SPAWN_NAMED_ENTITY_CLASS, "add_player", NetProtocolRange.until(NetProtocol.v1_20_1)),
             SPAWN_POSITION(SPAWN_POSITION_CLASS, "set_default_spawn_position"),
             START_CONFIGURATION(START_CONFIGURATION_CLASS, "start_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
             STATISTICS(STATISTICS_CLASS, "award_stats"),

@@ -32,7 +32,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
     }
 
     private static List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Play.Client.USE_ITEM_ON);
+        return Collections.singletonList(PacketTypes.Play.Client.BLOCK_PLACE);
     }
 
     @Override
@@ -133,7 +133,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.USE_ITEM_ON) {
+            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context)
                         .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
                             if (onViolation != null) {
@@ -177,7 +177,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.USE_ITEM_ON) {
+            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
                 WrappedImmutableItemStack item = packet.getItemStack();
                 if (item == null) {
                     return ValidationViolationContext.PASS;

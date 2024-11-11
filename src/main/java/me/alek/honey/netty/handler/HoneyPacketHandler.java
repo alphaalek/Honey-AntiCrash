@@ -15,7 +15,6 @@ import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -128,17 +127,15 @@ public class HoneyPacketHandler {
         }
     }
 
-    public PacketType getPacketType(ByteBuf buf, boolean resetToStartIndex, boolean useVia) {
+    public PacketType getPacketType(ByteBuf buf, boolean resetToStartIndex, PacketBound bound, boolean useVia) {
         int startIndex = buf.readerIndex();
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         int id = serializer.readVarInt();
         if (resetToStartIndex) {
             buf.readerIndex(startIndex);
         }
-        Bukkit.getLogger().info("Id " + id);
 
-        PacketState state = getProtocolState(PacketBound.SERVER);
-        PacketType type = null;
+        PacketState state = getProtocolState(bound);
 
         // check if the client protocol version is not the same as the server protocol version
         // if it is not the same, then we will acquire the packet type with ViaVersion
@@ -151,20 +148,10 @@ public class HoneyPacketHandler {
                 this.viaProtocol = ViaProtocol.getViaProtocolFrom(this.player.clientInfo.getProtocol());
             }
 
-            if (this.viaProtocol.hasState(PacketBound.SERVER, state)) {
-                type = this.viaProtocol.getServerboundMappings(state).get(id);
-                if (type == null) {
-
-                }
-            }
+            return this.viaProtocol.getTypes(bound, state).get(id);
         }
 
-        if (type == null) {
-            // we didn't acquire the type from ViaVersion type-mapping, just get it by the server
-            type = getPacketType(PacketBound.SERVER, id);
-        }
-
-        return type;
+        return getPacketType(PacketBound.SERVER, id);
     }
 
     private boolean isCancelled(PacketContainer<? extends WrappedPacket<?>> packetContainer) {

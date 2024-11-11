@@ -69,7 +69,9 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public void callPostMinecraftDecode(Object handle, PacketType type) {
         if (this.type != type) {
-            Bukkit.broadcastMessage("Wrong type! " + this.type + " " + type);
+            // rewritten new type by ViaVersion
+            this.initialByteWrapped = null;
+            this.finalByteWrapped = null;
         }
         this.type = type;
         this.pipelineState = PipelineState.OBJECT;

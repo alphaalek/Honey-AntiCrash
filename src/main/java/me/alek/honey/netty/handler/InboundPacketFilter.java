@@ -132,8 +132,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         PacketContainer<? extends WrappedPacket<?>> packet = null;
         try {
             // initialize packet container
-            PacketType type = this.packetHandler.getPacketType(serializer, false, true);
-            Bukkit.getLogger().info("Type " + type);
+            PacketType type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, true);
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
             MARK.set(packet);
 
