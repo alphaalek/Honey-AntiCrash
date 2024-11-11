@@ -250,19 +250,11 @@ public class HoneyLogger {
     }
 
     public String filterTooMuchData(Object data) {
+        byte[] bytes = String.valueOf(data).getBytes();
         if (ConfigurationOptions.PacketLogger.FILTER_TOO_MUCH_DATA
-                && data.toString().getBytes().length > MAX_PACKET_LOGGING_DATA) {
-            StringBuilder newData = new StringBuilder();
-            String source = data.toString();
-            int c = 0, i = 0;
-            while (c < MAX_PACKET_LOGGING_DATA) {
-                String str = String.valueOf(source.charAt(i++));
-                newData.append(str);
-                c += str.getBytes().length;
-            }
-
-            newData.append(" (!) Too much data (!)");
-            return newData.toString();
+                && bytes.length > MAX_PACKET_LOGGING_DATA) {
+            return new String(Arrays.copyOfRange(bytes, 0, MAX_PACKET_LOGGING_DATA))
+                    + " (!) Too much data (!)";
         }
 
         return data.toString();
