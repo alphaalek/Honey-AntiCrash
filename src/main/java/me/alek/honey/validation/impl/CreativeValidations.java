@@ -83,7 +83,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
                 int slot = packet.getSlot();
                 if (slot > (player.bukkit.getOpenInventory().countSlots() + 3) || (slot < -1 && slot != -999)) {
                     return ValidationViolationContext.Builder.validate().cancel().flag()
-                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
+                            .onViolation(generateKey(), (key, onViolation) -> {
                                 if (onViolation != null) onViolation.run();
 
                                 context.getDevelopmentData(key).addPoint("Slot", slot);

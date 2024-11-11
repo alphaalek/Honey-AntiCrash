@@ -84,7 +84,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
             List<ValidationViolationContext> responsesList = new LinkedList<>(defaultResponse.subContainers);
             responsesList.add(defaultResponse);
 
-            HoneyKey fallbackKey = HoneyKey.of(validation);
+            HoneyKey fallbackKey = ViolationKey.of(validation);
 
             // handle all the responses
             boolean terminated = false;

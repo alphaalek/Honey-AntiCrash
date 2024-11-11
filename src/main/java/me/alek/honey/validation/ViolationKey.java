@@ -8,10 +8,10 @@ import java.util.Objects;
 public class ViolationKey extends HoneyKey {
 
     public static ViolationKey of(HoneyValidation<?> validation) {
-        return new ViolationKey(validation,  HoneyKey.of(validation.getID(), validation.getName()));
+        return new ViolationKey(validation, HoneyKey.of(validation.getID(), validation.getName()));
     }
 
-    public static ViolationKey of (HoneyValidation<?> validation,  HoneyKey key) {
+    public static ViolationKey of(HoneyValidation<?> validation, HoneyKey key) {
         return new ViolationKey(validation, key);
     }
 

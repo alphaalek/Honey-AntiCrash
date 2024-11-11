@@ -102,8 +102,6 @@ public enum ViaProtocol {
 
             this.serverboundTypes[state.ordinal()] = initTypes(PacketBound.SERVER, state);
             this.clientboundTypes[state.ordinal()] = initTypes(PacketBound.CLIENT, state);
-
-            Bukkit.getLogger().info("Loaded " + state + " " + this + " " + this.serverboundTypes[state.ordinal()]);
         }
     }
 
