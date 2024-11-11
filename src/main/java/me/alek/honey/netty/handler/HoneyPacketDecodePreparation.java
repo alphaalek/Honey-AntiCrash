@@ -246,7 +246,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 packet.callPreMinecraftDecode(serializer);
             }
 
-            serializer.resetReaderIndex();
+            serializer.readerIndex(0);
 
             List<Object> nonRecycledList = new ArrayList<>();
             if (!ConfigurationOptions.AsyncDecoder.ENABLED
