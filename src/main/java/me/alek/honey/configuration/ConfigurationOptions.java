@@ -1223,7 +1223,7 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.BLOCK_PLACE)
+            @Flood(PacketTypes.Play.Client.USE_ITEM_ON)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.block-place"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class BlockPlace extends ViolationSetting implements VlIntervalRequiredContentsSetting {
@@ -1322,7 +1322,7 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood({PacketTypes.Play.Client.PLAYER_POSITION, PacketTypes.Play.Client.PLAYER_POS_AND_ROT})
+            @Flood({PacketTypes.Play.Client.PLAYER_POSITION, PacketTypes.Play.Client.PLAYER_POS_ROT})
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.position"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class Position extends ViolationSetting implements VlIntervalRequiredContentsSetting {

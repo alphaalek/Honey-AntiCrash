@@ -4,8 +4,10 @@ import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packet.type.RangedPacketType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.protocol.NetProtocolRange;
 import me.alek.honey.util.reflection.NMS;
 
 import java.util.List;
@@ -32,8 +34,9 @@ public class LazyInit<T> {
     public static LazyInit<Integer> getMinecraftIDInit(PacketType type) {
         return new LazyInit<>(() -> {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-                if (type.getKeyName1_20_5() == null) {
-                    throw new IllegalStateException("Modern protocol for packet mapping without minecraft key");
+                if (type instanceof RangedPacketType
+                        && !((RangedPacketType) type).getRange().match()) {
+                    throw new IllegalArgumentException("Illegal type for server version");
                 }
 
                 Object streamCodec = CodecFactory.getStreamCodec1_20_6(type.getBound(), type.getState());
@@ -50,7 +53,7 @@ public class LazyInit<T> {
                             .withType(NMS.getMinecraftKeyClass()).withTarget(packetType)
                             .readField(0);
 
-                    PacketType typeFromCodec = PacketTypes.getTypeFromMinecraftKey(type.getState(), type.getBound(), minecraftKey);
+                    PacketType typeFromCodec = PacketTypes.getTypeFromKey(type.getState(), type.getBound(), minecraftKey);
                     if (typeFromCodec.equals(type)) {
                         return i;
                     }

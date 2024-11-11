@@ -1,12 +1,9 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
-import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
-import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 
 public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayInSetCreativeSlot> {
@@ -19,7 +16,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
     public WrappedPlayInSetCreativeSlot(PacketDataSerializer serializer, PacketContainer<WrappedPlayInSetCreativeSlot> packet) {
         super(serializer, packet);
 
-        NetProtocol protocol = packet.getProtocolByBytePacketState();
+        NetProtocol protocol = packet.getProtocolByPacketState();
 
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
             this.slot = serializer.readUnsignedShort();
@@ -27,8 +24,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayI
             this.slot = serializer.readShort();
         }
 
-        PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.item = copy.readItemStack(protocol);
+        this.item = serializer.readItemStack(protocol);
     }
 
     public int getSlot() {

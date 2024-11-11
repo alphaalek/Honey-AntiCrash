@@ -171,7 +171,7 @@ public class HoneyPlayer implements Identifiable {
 
         HoneyPlugin.get().sync(() -> {
             if (this.bukkit != null) {
-                if (ex.getMessage() != null) {
+                if (ex != null && ex.getMessage() != null) {
                     this.bukkit.kickPlayer(ex.getMessage());
                 } else {
                     this.bukkit.kickPlayer("Disconnected");

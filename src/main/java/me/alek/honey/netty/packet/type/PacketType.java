@@ -13,7 +13,7 @@ public interface PacketType extends Identifiable {
 
     LazyInit<Integer> getMinecraftID();
 
-    String getKeyName1_20_5();
+    String getKeyName();
 
     int getHoneyID();
 

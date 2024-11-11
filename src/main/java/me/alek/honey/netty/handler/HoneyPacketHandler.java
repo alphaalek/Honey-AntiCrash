@@ -135,6 +135,7 @@ public class HoneyPacketHandler {
         if (resetToStartIndex) {
             buf.readerIndex(startIndex);
         }
+        Bukkit.getLogger().info("Id " + id);
 
         PacketState state = getProtocolState(PacketBound.SERVER);
         PacketType type = null;
@@ -152,6 +153,9 @@ public class HoneyPacketHandler {
 
             if (this.viaProtocol.hasState(PacketBound.SERVER, state)) {
                 type = this.viaProtocol.getServerboundMappings(state).get(id);
+                if (type == null) {
+
+                }
             }
         }
 

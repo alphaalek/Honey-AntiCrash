@@ -276,7 +276,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
         private boolean hasPacketCap(PacketContainer<? extends WrappedPacket<?>> packet) {
             return packet.getType() == PacketTypes.Play.Client.PLAYER_MOVEMENT
                     || packet.getType() == PacketTypes.Play.Client.PLAYER_POSITION
-                    || packet.getType() == PacketTypes.Play.Client.PLAYER_POS_AND_ROT
+                    || packet.getType() == PacketTypes.Play.Client.PLAYER_POS_ROT
                     || packet.getType() == PacketTypes.Play.Client.GROUND
                     || packet.getType() == PacketTypes.Play.Client.BOAT_MOVE
                     || packet.getType() == PacketTypes.Play.Client.VEHICLE_MOVE;

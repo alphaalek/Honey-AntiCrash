@@ -64,6 +64,10 @@ public class NetProtocolRange {
         return protocol.isBetween(bound, to);
     }
 
+    public boolean match() {
+        return match(NetProtocol.getProtocol());
+    }
+
     public interface Ranged {
 
         NetProtocolRange getRange();

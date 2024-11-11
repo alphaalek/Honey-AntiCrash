@@ -9,7 +9,7 @@ public enum PacketBound {
 
     CLIENT;
 
-    private final Enum<?> nmsEnum = Reflection.getEnumAtIndex(NMS.getEnumProtocolDirectionClass(), ordinal());
+    private final <?> nmsEnum = Reflection.getEnumAtIndex(NMS.getEnumProtocolDirectionClass(), ordinal());
 
     public String getProtocolHandlerName() {
         return this == SERVER ? MinecraftHandlers.DECODER : MinecraftHandlers.ENCODER;

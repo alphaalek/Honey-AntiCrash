@@ -244,7 +244,6 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             // handle final byte state
             if (hasFinalByteWrappedPacket) {
                 packet.callPreMinecraftDecode(serializer);
-                HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(player, packet);
             }
 
             serializer.resetReaderIndex();

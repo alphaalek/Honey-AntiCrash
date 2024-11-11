@@ -29,7 +29,7 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
     public WrappedPlayInBookEdit(PacketDataSerializer buf, PacketContainer<WrappedPlayInBookEdit> packet) {
         super(buf, packet);
 
-        NetProtocol protocol = packet.getProtocolByBytePacketState();
+        NetProtocol protocol = packet.getProtocolByPacketState();
 
         if (protocol.isOlderThan(NetProtocol.v1_17)) {
             this.itemStack = buf.readItemStack(protocol);

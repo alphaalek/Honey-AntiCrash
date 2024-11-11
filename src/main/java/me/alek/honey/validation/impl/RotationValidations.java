@@ -10,7 +10,6 @@ import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.MovementPacketWrapper;
-import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
@@ -31,7 +30,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
     }
 
     private static List<PacketType> getPacketTypes() {
-        return Arrays.asList(PacketTypes.Play.Client.PLAYER_ROTATION, PacketTypes.Play.Client.PLAYER_POS_AND_ROT);
+        return Arrays.asList(PacketTypes.Play.Client.PLAYER_ROTATION, PacketTypes.Play.Client.PLAYER_POS_ROT);
     }
 
     @Override

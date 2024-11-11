@@ -9,15 +9,12 @@ import me.alek.honey.util.Array;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.protocol.NetProtocolRange;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 @SuppressWarnings("unchecked")
 public enum ViaProtocol {
@@ -54,10 +51,9 @@ public enum ViaProtocol {
         }
     }
 
-    private static class DefaultConstantsHolder {
+    private static class Holder {
 
         private static final Enum<?>[][][] defaultEnumConstants = new Enum[PacketState.values().length][PacketBound.values().length][0];
-
     }
 
     private static final String PACKAGE = "com.viaversion.viaversion";
@@ -66,7 +62,7 @@ public enum ViaProtocol {
         ViaProtocol defaultProtocol = getViaProtocolFrom(NetProtocol.getProtocol());
         for (PacketBound bound : PacketBound.values()) {
             for (PacketState state : defaultProtocol.getUnsortedStates()[bound.ordinal()]) {
-                DefaultConstantsHolder.defaultEnumConstants[state.ordinal()][bound.ordinal()] = defaultProtocol.getEnumConstants(bound, state);
+                Holder.defaultEnumConstants[state.ordinal()][bound.ordinal()] = defaultProtocol.getEnumConstants(bound, state);
             }
         }
 
@@ -116,10 +112,15 @@ public enum ViaProtocol {
     }
 
     public void load() {
-        for (PacketState state : states[0].compact()) {
+        for (PacketState state : states[PacketBound.SERVER.ordinal()].compact()) {
             this.serverboundMappings[state.ordinal()] = getMappings(PacketBound.SERVER, state);
+        }
+        for (PacketState state : states[PacketBound.CLIENT.ordinal()].compact()) {
             this.clientboundMappings[state.ordinal()] = getMappings(PacketBound.CLIENT, state);
         }
+
+        Bukkit.getLogger().info("Loaded mappings " + this);
+        Bukkit.getLogger().info(serverboundMappings[PacketState.PLAY.ordinal()] + "");
     }
 
 
@@ -150,7 +151,8 @@ public enum ViaProtocol {
         }
 
         Enum<?>[] constants = getEnumConstants(bound, state);
-        Enum<?>[] defaultConstants = DefaultConstantsHolder.defaultEnumConstants[state.ordinal()][bound.ordinal()];
+        Enum<?>[] defaultConstants = Holder.defaultEnumConstants[state.ordinal()][bound.ordinal()];
+        // join this via protocol packets with the default packets and map matching types
         Arrays.stream(constants).forEach(c -> {
             Arrays.stream(defaultConstants).forEach(dc -> {
                 if (c.toString().equals(dc.toString())) {

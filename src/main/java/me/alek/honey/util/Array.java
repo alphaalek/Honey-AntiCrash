@@ -1,6 +1,7 @@
 package me.alek.honey.util;
 
 import org.apache.commons.lang3.Validate;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -288,7 +289,12 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean has(Identifiable identifiable) {
-        return has(identifiable.getAsInt());
+        try {
+            return has(identifiable.getAsInt());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException();
+        }
     }
 
     public void clear() {

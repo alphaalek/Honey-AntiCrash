@@ -57,7 +57,7 @@ public class WrappedImmutableItemStack implements Cloneable {
             } else {
                 id = buf.readShort();
             }
-            if (id < 1) {
+            if (id < 0) {
                 return null;
             }
 
@@ -94,6 +94,11 @@ public class WrappedImmutableItemStack implements Cloneable {
                 Types.NBT.forProtocol(protocol).read(serializer))
                 .map(AbstractTag::asCompound)
                 .orElse(null);
+
+        if (type == Material.AIR) {
+            // done reading this item stack, but just ignore all other components if the type is air
+            return AIR.clone();
+        }
 
         // create stack
         if (durability != -1) {

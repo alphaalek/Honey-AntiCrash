@@ -1,12 +1,9 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
-import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
-import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.Map;
@@ -38,7 +35,7 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
     public WrappedPlayInWindowClick(PacketDataSerializer serializer, PacketContainer<WrappedPlayInWindowClick> packet) {
         super(serializer, packet);
 
-        NetProtocol protocol = packet.getProtocolByBytePacketState();
+        NetProtocol protocol = packet.getProtocolByPacketState();
 
         // TODO
         if (false /*protocol.isNewerThanOrEqual(NetProtocol.v1_21_2) */) {
@@ -65,8 +62,7 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
             );
         }
 
-        PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-        this.carriedItemStack = copy.readItemStack(protocol);
+        this.carriedItemStack = serializer.readItemStack(protocol);
     }
 
     public int getWindowId() {

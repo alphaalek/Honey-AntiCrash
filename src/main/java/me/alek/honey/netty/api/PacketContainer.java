@@ -27,7 +27,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     void callLateInitialByteListeners(PacketDataSerializer serializer);
 
-    NetProtocol getProtocolByBytePacketState();
+    NetProtocol getProtocolByPacketState();
 
     ObjectPacketStructure getStructure();
 

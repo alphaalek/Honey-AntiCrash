@@ -68,6 +68,9 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public void callPostMinecraftDecode(Object handle, PacketType type) {
+        if (this.type != type) {
+            Bukkit.broadcastMessage("Wrong type! " + this.type + " " + type);
+        }
         this.type = type;
         this.pipelineState = PipelineState.OBJECT;
 
@@ -87,6 +90,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         if (this.pipelineState == PipelineState.INITIAL_BYTE) {
             this.pipelineState = PipelineState.FINAL_BYTE;
             this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(this.player, this);
         }
     }
 
@@ -94,15 +98,13 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     public void callLateInitialByteListeners(PacketDataSerializer serializer) {
         if (WrappedPacketFactoryCollection.hasByteWrappedPacket(this.type, PacketContainer.PipelineState.INITIAL_BYTE)) {
             this.initialByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(this.type, PipelineState.INITIAL_BYTE, serializer, this);
-            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(player, this);
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, this);
         }
     }
 
     @Override
-    public NetProtocol getProtocolByBytePacketState() {
-        if (this.pipelineState == PipelineState.OBJECT) {
-            throw new IllegalStateException("Object state"); // illegal state to call this
-        } else if (this.pipelineState == PipelineState.INITIAL_BYTE && this.player.clientInfo != null) {
+    public NetProtocol getProtocolByPacketState() {
+        if (this.pipelineState == PipelineState.INITIAL_BYTE && this.player.clientInfo != null) {
             return this.player.clientInfo.getProtocol(); // use the client version to check for different protocols
         } else {
             return NetProtocol.getProtocol(); // if modified by ViaVersion, using either client or server should read same packet data

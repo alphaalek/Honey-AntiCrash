@@ -56,7 +56,7 @@ public class TaskLifecycleHandler {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13_1)
                     || packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
                     && packet.getType() != PacketTypes.Play.Client.PLAYER_POSITION
-                    && packet.getType() != PacketTypes.Play.Client.PLAYER_POS_AND_ROT
+                    && packet.getType() != PacketTypes.Play.Client.PLAYER_POS_ROT
                     && packet.getType() != PacketTypes.Play.Client.GROUND
                     && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
                     && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {

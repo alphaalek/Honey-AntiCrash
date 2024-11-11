@@ -94,7 +94,7 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
 
                 if (field.isAnnotationPresent(Property.class)) {
                     Property property = field.getAnnotation(Property.class);
-                    if (NetProtocolRange.matchProtocol(property.to(), property.from())) {
+                    if (NetProtocolRange.matchProtocol(getContainer().getProtocolByPacketState(), property.to(), property.from())) {
 
                         Object val;
                         if (field.isAnnotationPresent(Property.Unlock.class)) {

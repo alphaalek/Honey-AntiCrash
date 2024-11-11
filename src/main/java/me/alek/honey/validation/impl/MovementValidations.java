@@ -15,7 +15,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.play.client.MovementPacketWrapper;
 import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutPosition;
-import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
@@ -50,7 +49,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
     private static List<PacketType> getPacketTypes() {
         return Arrays.asList(
                 PacketTypes.Play.Client.PLAYER_POSITION,
-                PacketTypes.Play.Client.PLAYER_POS_AND_ROT,
+                PacketTypes.Play.Client.PLAYER_POS_ROT,
                 PacketTypes.Play.Client.GROUND,
                 PacketTypes.Play.Client.PLAYER_MOVEMENT
         );

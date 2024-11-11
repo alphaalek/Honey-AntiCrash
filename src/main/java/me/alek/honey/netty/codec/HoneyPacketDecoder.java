@@ -22,7 +22,7 @@ public class HoneyPacketDecoder {
         try {
             if (EmulatorCodec.LEGACY) {
                 packet = protocol.decodeLegacy(byteBuf, state, (type, callback) -> {
-                    if (type.equals(PacketTypes.Play.Client.BLOCK_PLACE)
+                    if (type.equals(PacketTypes.Play.Client.USE_ITEM_ON)
                             && ConfigurationOptions.Decoder.DISABLE_NBT
                             && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                         callback.apply(DisabledNBTCodec.BLOCK_PLACE);
@@ -42,6 +42,7 @@ public class HoneyPacketDecoder {
             }
 
             if (packet == null) {
+                // failed to decode packet object for this byte buffer
                 return null;
             }
 
@@ -52,17 +53,19 @@ public class HoneyPacketDecoder {
                         "Found " + remaining
                                 + " (" + (end + byteBuf.readableBytes()) + "/" + end + ") extra bytes while decoding packet "
                                 + PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketTypes.UNKNOWN) + ", "
-                                + state + ": "
+                                + state + " (" + NetProtocol.getProtocol().getName() + "): "
                                 + HoneyPlugin.get().getLogger().filterTooMuchData(
-                                        HoneyPlugin.get().getLogger().formatPacketEntries(ReflectStructure.Provider.acquireStructure(packet.getClass())
+                                        HoneyPlugin.get().getLogger().formatPacketEntries(
+                                                ReflectStructure.Provider.acquireStructure(packet.getClass())
                                                 .withStatic(false)
                                                 .withTarget(packet)
                                                 .readFieldEntries()
-                                ))
+                                        )
+                                )
                 );
             }
         } catch (CodecException ex) {
-            throw new DecoderException("Failed to create packet with ID " + ex.getPacketID() + ", " + state);
+            throw new DecoderException("Failed to create packet with ID " + ex.getPacketID() + ", " + state, ex);
         }
 
         if (!PacketTypes.getPacketType(packet.getClass(), state).isPresent()) {

@@ -25,7 +25,6 @@ import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -82,7 +81,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
                     packet.getAnyWrapped().getY(),
                     packet.getAnyWrapped().getZ()}
             );
-            READERS.set(PacketTypes.Play.Client.PLAYER_POS_AND_ROT, (PacketReader.Container<WrappedPlayInPositionLook>) packet -> new Object[]{
+            READERS.set(PacketTypes.Play.Client.PLAYER_POS_ROT, (PacketReader.Container<WrappedPlayInPositionLook>) packet -> new Object[]{
                     packet.getAnyWrapped().getX(),
                     packet.getAnyWrapped().getY(),
                     packet.getAnyWrapped().getZ(),

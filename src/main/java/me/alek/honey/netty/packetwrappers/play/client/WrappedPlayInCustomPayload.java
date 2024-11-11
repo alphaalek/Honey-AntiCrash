@@ -17,7 +17,6 @@ import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +35,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             super(buf, packet);
             String channel = Types.UTF8.read(buf, 20);
             PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
-            this.data = new PayloadData(channel, serializer, packet.getProtocolByBytePacketState());
+            this.data = new PayloadData(channel, serializer, packet.getProtocolByPacketState());
         }
 
         @Override

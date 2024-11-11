@@ -108,7 +108,7 @@ public enum MaterialMappings {
         }
 
         for (MaterialMappings mapping : mappingsOfKey.get(key)) {
-            if (mapping.getType() != null && mapping.getRange().match(NetProtocol.getProtocol())) {
+            if (mapping.getType() != null && mapping.getRange().match()) {
                 return mapping.getType();
             }
         }

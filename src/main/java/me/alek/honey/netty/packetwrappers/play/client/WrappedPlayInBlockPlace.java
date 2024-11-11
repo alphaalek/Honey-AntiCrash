@@ -1,23 +1,17 @@
 package me.alek.honey.netty.packetwrappers.play.client;
 
-import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
-import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBlockPlace> {
 
@@ -50,7 +44,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     public WrappedPlayInBlockPlace(PacketDataSerializer serializer, PacketContainer<WrappedPlayInBlockPlace> packet) {
         super(serializer, packet);
 
-        NetProtocol protocol = packet.getProtocolByBytePacketState();
+        NetProtocol protocol = packet.getProtocolByPacketState();
 
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
             this.interactionHand = InteractionHand.values()[serializer.readVarInt()];
@@ -81,8 +75,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
                 }
                 this.interactionHand = InteractionHand.MAIN_HAND;
 
-                PacketDataSerializer copy = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-                this.itemStack = copy.readItemStack(protocol);
+                this.itemStack = serializer.readItemStack(protocol);
             }
 
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_11)) {
