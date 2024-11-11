@@ -12,6 +12,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -19,6 +20,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class NBTFactory {
 
@@ -165,7 +167,7 @@ public class NBTFactory {
                 structureModifier.writeField(0, nbt);
                 return nbt;
             } catch (Exception ex) {
-                ex.printStackTrace();
+                Bukkit.getLogger().log(Level.SEVERE, "Failed to create tag", ex);
             }
         }
 
