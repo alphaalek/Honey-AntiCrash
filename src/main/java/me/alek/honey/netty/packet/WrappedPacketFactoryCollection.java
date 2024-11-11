@@ -8,10 +8,10 @@ import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacketFactory;
-import me.alek.honey.netty.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
-import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
-import me.alek.honey.netty.packetwrappers.play.client.*;
-import me.alek.honey.netty.packetwrappers.play.server.*;
+import me.alek.honey.netty.packetwrappers.impl.handshake.WrappedHandshakeInSetProtocol;
+import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
+import me.alek.honey.netty.packetwrappers.impl.play.client.*;
+import me.alek.honey.netty.packetwrappers.impl.play.server.*;
 import me.alek.honey.util.Array;
 
 import java.util.EnumMap;

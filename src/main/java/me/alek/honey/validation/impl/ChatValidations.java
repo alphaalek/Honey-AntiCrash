@@ -13,7 +13,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInChat;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInChat;
 import me.alek.honey.util.IDRegistry;
 
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packetwrappers.play.client;
+package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
@@ -8,6 +8,7 @@ import me.alek.honey.netty.nbt.PrimitiveTag;
 import me.alek.honey.netty.nbt.TagType;
 import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.protocol.InteractionHand;
 import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Material;
@@ -20,7 +21,7 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
     private static final int MAX_PAGES = 100;
 
     @Property
-    private final int slot;
+    private final InteractionHand interactionHand;
     @Property
     private final boolean signing;
     @Property
@@ -34,9 +35,9 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
         if (protocol.isOlderThan(NetProtocol.v1_17)) {
             this.itemStack = buf.readItemStack(protocol);
             this.signing = buf.readBoolean();
-            this.slot = buf.readVarInt();
+            this.interactionHand = InteractionHand.values()[buf.readVarInt()];
         } else {
-            this.slot = buf.readVarInt();
+            this.interactionHand = InteractionHand.values()[buf.readVarInt()];
 
             int pageCount = buf.readVarInt();
             if (pageCount > MAX_PAGES) {
@@ -65,8 +66,8 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
         }
     }
 
-    public int getSlot() {
-        return this.slot;
+    public InteractionHand getInteractionHand() {
+        return this.interactionHand;
     }
 
     public boolean isSigning() {

@@ -3,15 +3,6 @@ package me.alek.honey.async;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.injector.ServerPacketManager;
-import me.alek.honey.netty.packet.PacketFactory;
-import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.Reflection;
-import me.alek.honey.netty.UnsafeChannelCloser;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutDisconnect;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;

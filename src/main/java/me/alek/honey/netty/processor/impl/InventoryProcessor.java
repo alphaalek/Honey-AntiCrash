@@ -6,10 +6,10 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.processor.ProcessorContext;
 import me.alek.honey.netty.processor.ProcessorContextContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInClientCommand;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCloseWindow;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInWindowClick;
-import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutOpenWindow;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInClientCommand;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCloseWindow;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInWindowClick;
+import me.alek.honey.netty.packetwrappers.impl.play.server.WrappedPlayOutOpenWindow;
 import me.alek.honey.util.protocol.NetProtocol;
 
 public class InventoryProcessor<WP extends WrappedPacket<WP>> extends ProcessorContextContainer<WP, InventoryProcessor.InventoryEmulator> {

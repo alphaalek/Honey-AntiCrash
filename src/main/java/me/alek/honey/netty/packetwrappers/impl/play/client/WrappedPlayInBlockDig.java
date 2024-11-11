@@ -1,9 +1,8 @@
-package me.alek.honey.netty.packetwrappers.play.client;
+package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class WrappedPlayInBlockDig extends ObjectWrappedPacket<WrappedPlayInBlockDig> {
 

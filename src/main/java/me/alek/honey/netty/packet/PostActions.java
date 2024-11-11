@@ -11,10 +11,10 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.packetwrappers.handshake.client.WrappedHandshakeInSetProtocol;
+import me.alek.honey.netty.packetwrappers.impl.handshake.WrappedHandshakeInSetProtocol;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
+import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 
 public class PostActions {
 

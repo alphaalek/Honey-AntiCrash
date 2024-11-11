@@ -13,7 +13,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.login.client.WrappedLoginInLoginStart;
+import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

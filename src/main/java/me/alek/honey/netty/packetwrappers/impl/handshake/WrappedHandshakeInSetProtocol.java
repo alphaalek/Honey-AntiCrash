@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packetwrappers.handshake.client;
+package me.alek.honey.netty.packetwrappers.impl.handshake;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;

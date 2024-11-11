@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packetwrappers.play.server;
+package me.alek.honey.netty.packetwrappers.impl.play.server;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;

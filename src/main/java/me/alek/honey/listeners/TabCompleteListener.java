@@ -4,7 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
-import me.alek.honey.netty.packetwrappers.play.server.WrappedPlayOutTabComplete;
+import me.alek.honey.netty.packetwrappers.impl.play.server.WrappedPlayOutTabComplete;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

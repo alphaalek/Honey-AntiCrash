@@ -8,7 +8,7 @@ import me.alek.honey.netty.api.ListenerPriority;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBookEdit;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBookEdit;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.validation.*;

@@ -15,7 +15,7 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInBlockPlace;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBlockPlace;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
 import org.bukkit.Location;

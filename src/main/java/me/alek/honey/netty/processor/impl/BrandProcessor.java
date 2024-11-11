@@ -3,7 +3,7 @@ package me.alek.honey.netty.processor.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.netty.processor.Processor;
 
 public class BrandProcessor<CP extends WrappedPlayInCustomPayload<CP>> extends Processor<CP> {

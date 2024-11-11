@@ -1,12 +1,12 @@
-package me.alek.honey.netty.packetwrappers.play.client;
+package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.protocol.InteractionHand;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
@@ -16,10 +16,6 @@ import java.util.List;
 public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBlockPlace> {
 
     private static final List<BlockFace> CARTESIAN_FACES = Arrays.asList(BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
-
-    public enum InteractionHand {
-        MAIN_HAND, OFF_HAND
-    }
 
     @Property
     private final InteractionHand interactionHand;

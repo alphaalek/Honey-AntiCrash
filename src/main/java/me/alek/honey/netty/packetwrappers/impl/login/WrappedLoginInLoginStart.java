@@ -1,10 +1,9 @@
-package me.alek.honey.netty.packetwrappers.login.client;
+package me.alek.honey.netty.packetwrappers.impl.login;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public class WrappedLoginInLoginStart extends ObjectWrappedPacket<WrappedLoginInLoginStart> {
 

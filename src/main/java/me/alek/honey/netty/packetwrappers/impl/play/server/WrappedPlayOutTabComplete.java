@@ -1,10 +1,9 @@
-package me.alek.honey.netty.packetwrappers.play.server;
+package me.alek.honey.netty.packetwrappers.impl.play.server;
 
 import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;

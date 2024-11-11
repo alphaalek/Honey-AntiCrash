@@ -1,4 +1,4 @@
-package me.alek.honey.netty.packetwrappers.play.client;
+package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.api.PacketContainer;

@@ -10,7 +10,7 @@ import me.alek.honey.netty.nbt.PrimitiveTag;
 import me.alek.honey.netty.nbt.TagType;
 import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.play.client.WrappedPlayInCustomPayload;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.*;

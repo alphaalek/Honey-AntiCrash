@@ -171,6 +171,10 @@ public class NBTFactory {
             }
         }
 
+        if (base != null && base.getType().getCollection() != TagType.Collection.COMPOUND) {
+            throw new IllegalStateException("Item with invalid compound tag");
+        }
+
         return (CompoundTag) base;
     }
 
