@@ -70,7 +70,7 @@ public abstract class AbstractArrayTag<T extends AbstractTag<?, ?, T>, TAG exten
     }
 
     public <E> Stream<E> streamOfValues() {
-        return stream().map(T::getValue).map(v -> (E) v);
+        return stream().map(AbstractTag::getValue).map(v -> (E) v);
     }
 
     @Override

@@ -1,10 +1,10 @@
 package me.alek.honey;
 
+import com.avaje.ebean.EbeanServer;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -98,12 +98,12 @@ public class DummyPlugin implements Plugin {
     }
 
     @Override
-    public ChunkGenerator getDefaultWorldGenerator(String s, String s1) {
+    public EbeanServer getDatabase() {
         return null;
     }
 
     @Override
-    public BiomeProvider getDefaultBiomeProvider(String s, String s1) {
+    public ChunkGenerator getDefaultWorldGenerator(String s, String s1) {
         return null;
     }
 

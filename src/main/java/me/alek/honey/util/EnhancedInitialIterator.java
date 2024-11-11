@@ -15,7 +15,7 @@ public class EnhancedInitialIterator<T, I extends Iterable<T>> implements Iterab
 
     @Override
     public Iterator<T> iterator() {
-        return new Iterator<>() {
+        return new Iterator<T>() {
 
             private volatile boolean hasCalledInitial;
             private final LazyInit<T> initial = EnhancedInitialIterator.this.initial.apply(iterable);
