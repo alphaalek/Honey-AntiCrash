@@ -852,6 +852,16 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class PickItem {
+
+        @Setting
+        @Violation(prefixPaths = "pick-item.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class PickItemA extends ViolationSetting {
+
+        }
+    }
+
+    @Setting
     public static class BookEdit {
 
         @Setting
@@ -1203,7 +1213,7 @@ public class ConfigurationOptions {
 
             }
 
-            @Flood(PacketTypes.Play.Client.ANIMATION)
+            @Flood(PacketTypes.Play.Client.SWING)
             @Setting
             @Violation(prefixPaths = {"packet-flood.d", "packet-flood.d.arm-animation"}, packetHandler = PacketLimitHandlerType.INTERVAL)
             public static class ArmAnimation extends ViolationSetting implements VlIntervalRequiredContentsSetting {

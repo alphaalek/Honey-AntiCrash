@@ -667,11 +667,9 @@ tab-complete:
 set-creative-slot:
   a:
     enabled: true
-    vls-amount: 3
 
   b:
     enabled: true
-    vls-amount: 3
 
   c:
     enabled: true
@@ -683,6 +681,11 @@ sign:
 
 # |--- book edit ---|
 book-edit:
+  a:
+    enabled: true
+
+# |--- pick item ---|
+pick-item:
   a:
     enabled: true
 

@@ -73,6 +73,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
         return true;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
         return ValidationPipeline.from(new RotationA<>(), new RotationB<>(), new RotationC<>());
@@ -98,11 +99,8 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled()) {
-                float pitch = packet.getPitch();
-                if (pitch < -90 || pitch > 90) {
-                    return ValidationViolationContext.FLAG;
-                }
+            if (getSetting().isEnabled() && (packet.getPitch() < -90 || packet.getPitch() > 90)) {
+                return ValidationViolationContext.FLAG;
             }
 
             return ValidationViolationContext.PASS;
@@ -182,13 +180,11 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled()) {
-                if (packet.getYaw() != 0) {
-                    return ValidationViolationContext.Builder.validate().add(
-                            context.get(ValidationViolationContext.Builder.class, 0).withViolationKey(yawKey).build(),
-                            context.get(ValidationViolationContext.Builder.class, 1).withViolationKey(pitchKey).build()
-                    ).build();
-                }
+            if (getSetting().isEnabled() && packet.getYaw() != 0) {
+                return ValidationViolationContext.Builder.validate().add(
+                        context.get(ValidationViolationContext.Builder.class, 0).withViolationKey(yawKey).build(),
+                        context.get(ValidationViolationContext.Builder.class, 1).withViolationKey(pitchKey).build()
+                ).build();
             }
 
             return ValidationViolationContext.PASS;

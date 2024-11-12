@@ -13,6 +13,10 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -126,9 +130,10 @@ public enum ViaProtocol {
 
         Enum<?>[] constants = getEnumConstants(bound, state);
         for (Enum<?> constant : constants) {
-            PacketType type = PacketTypes.getTypeFromKey(this.protocol, state, bound, constant.name().toLowerCase());
-            if (type == null) {
-                throw new IllegalStateException("Could not get packet type from key " + constant.name().toLowerCase());
+            PacketType type = PacketTypes.getTypeFromViaKey(this.protocol, state, bound, constant.name().toLowerCase());
+            if (PacketTypes.isUnknown(type)) {
+                Bukkit.getLogger().info(PacketTypes.getTypesAvailableFor(protocol, state, bound) + "");
+                throw new IllegalStateException("Could not find matching via packet type: name " + constant.name().toLowerCase() + ", bound: " + bound + ", state: " + state);
             }
 
             types.set(constant.ordinal(), type);
@@ -187,6 +192,28 @@ public enum ViaProtocol {
 
     public Array<PacketType> getClientboundTypes(PacketState state) {
         return clientboundTypes[state.ordinal()];
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface ViaUnique {
+
+        String name();
+
+        Target target() default Target.BOTH;
+
+        enum Target {
+            LEGACY, MODERN, BOTH;
+
+            public static boolean match(Target target) {
+                switch (target) {
+                    case BOTH: return true;
+                    case LEGACY: return LegacyHolder.LEGACY;
+                    case MODERN: return !LegacyHolder.LEGACY;
+                    default: throw new IllegalArgumentException("Invalid target");
+                }
+            }
+        }
     }
 
     public static class ViaValidator implements ServiceValidator {

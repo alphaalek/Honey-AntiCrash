@@ -1,13 +1,15 @@
 package me.alek.honey.util.protocol;
 
-import me.alek.honey.netty.packet.type.RangedPacketType;
 import org.bukkit.Bukkit;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public enum NetProtocol {
@@ -56,13 +58,19 @@ public enum NetProtocol {
         this.protocolVersion = protocol;
     }
 
+    private static List<NetProtocol> getReversedProtocols() {
+        List<NetProtocol> protocols = getProtocols();
+        Collections.reverse(protocols);
+        return protocols;
+    }
+
     private static NetProtocol acquireProtocol() {
         if (PROTOCOL != null) {
             return PROTOCOL;
         }
 
-        for (NetProtocol version : getProtocols()) {
-            if (Bukkit.getVersion().contains(version.getName())) {
+        for (NetProtocol version : getReversedProtocols()) {
+            if (Bukkit.getServer().getVersion().contains(version.getName())) {
                 return version;
             }
         }
@@ -71,9 +79,7 @@ public enum NetProtocol {
     }
 
     public static NetProtocol getMajorFrom(int protocolVersion) {
-        List<NetProtocol> protocols = getProtocols();
-        Collections.reverse(protocols);
-        for (NetProtocol protocol : protocols) {
+        for (NetProtocol protocol : getReversedProtocols()) {
             if (protocolVersion >= protocol.getProtocolVersion()
                     && (protocolVersion < protocol.getAfter().getProtocolVersion()
                         || protocol.getAfter().isEqual(protocol))) {
