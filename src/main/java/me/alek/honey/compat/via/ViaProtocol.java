@@ -20,6 +20,7 @@ import java.lang.annotation.Target;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
 @SuppressWarnings("unchecked")
 public enum ViaProtocol {
@@ -130,13 +131,22 @@ public enum ViaProtocol {
 
         Enum<?>[] constants = getEnumConstants(bound, state);
         for (Enum<?> constant : constants) {
-            PacketType type = PacketTypes.getTypeFromViaKey(this.protocol, state, bound, constant.name().toLowerCase());
-            if (PacketTypes.isUnknown(type)) {
-                Bukkit.getLogger().info(PacketTypes.getTypesAvailableFor(protocol, state, bound) + "");
-                throw new IllegalStateException("Could not find matching via packet type: name " + constant.name().toLowerCase() + ", bound: " + bound + ", state: " + state);
+            String name = constant.name().toLowerCase();
+            PacketType viaType = PacketTypes.getTypeFromViaKey(this.protocol, state, bound, name);
+            if (PacketTypes.isUnknown(viaType)) {
+                PacketType type = PacketTypes.getTypeFromKey(state, bound, name);
+                try {
+                    if (type != null && type.getClass().getField(type.toString()).getAnnotation(ViaIgnoreIfMissing.class) != null) {
+                        continue;
+                    }
+                } catch (Exception ex) {
+                    Bukkit.getLogger().log(Level.SEVERE, "Failed to acquire packet type via data from via key for type " + type, ex);
+                }
+
+                throw new IllegalStateException("Could not find matching via packet type: protocol: " + this.protocol + ", name: " + name + ", bound: " + bound + ", state: " + state + ", ordinal: " + constant.ordinal());
             }
 
-            types.set(constant.ordinal(), type);
+            types.set(constant.ordinal(), viaType);
         }
 
         if (types.isEmpty() && ordinal() > 0) {
@@ -196,11 +206,21 @@ public enum ViaProtocol {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
+    public @interface ViaIgnoreIfMissing {
+
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
     public @interface ViaUnique {
 
         String name();
 
         Target target() default Target.BOTH;
+
+        NetProtocol.To to() default @NetProtocol.To(to = NetProtocol.LATEST);
+
+        NetProtocol.From from() default @NetProtocol.From(from = NetProtocol.OLDEST);
 
         enum Target {
             LEGACY, MODERN, BOTH;
@@ -214,6 +234,13 @@ public enum ViaProtocol {
                 }
             }
         }
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface MultiViaUnique {
+
+        ViaUnique[] uniques();
     }
 
     public static class ViaValidator implements ServiceValidator {

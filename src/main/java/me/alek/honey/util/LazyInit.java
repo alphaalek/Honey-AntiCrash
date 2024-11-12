@@ -53,7 +53,7 @@ public class LazyInit<T> {
                             .withType(NMS.getMinecraftKeyClass()).withTarget(packetType)
                             .readField(0);
 
-                    PacketType typeFromCodec = PacketTypes.getTypeFromKey(type.getState(), type.getBound(), minecraftKey.toString().split(":")[1]);
+                    PacketType typeFromCodec = PacketTypes.getTypeFromKey(NetProtocol.getProtocol(), type.getState(), type.getBound(), minecraftKey.toString().split(":")[1]);
                     if (typeFromCodec.equals(type)) {
                         return i;
                     }

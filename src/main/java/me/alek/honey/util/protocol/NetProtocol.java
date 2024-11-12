@@ -29,7 +29,6 @@ public enum NetProtocol {
 
     LATEST(-1), OLDEST(-1), UNKNOWN(-1);
 
-    private static final List<NetProtocol> invalid = Arrays.asList(LATEST, OLDEST, UNKNOWN);
     private static NetProtocol PROTOCOL;
 
     public static NetProtocol get(NetProtocol protocol) {

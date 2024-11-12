@@ -1,8 +1,15 @@
 package me.alek.honey.util.protocol;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class NetProtocolRange {
 
     public static final NetProtocolRange ALL = NetProtocolRange.since(NetProtocol.getOldest());
+
+    public static NetProtocolRange all() {
+        return NetProtocolRange.since(NetProtocol.getOldest());
+    }
 
     public static NetProtocolRange since(NetProtocol protocol) {
         return new NetProtocolRange(protocol, NetProtocol.getLatest());
@@ -39,29 +46,32 @@ public class NetProtocolRange {
 
     private final NetProtocol bound;
     private final NetProtocol to;
+    private final List<NetProtocolRange> exclude = new ArrayList<>();
 
     private NetProtocolRange(NetProtocol bound, NetProtocol to) {
-        if (bound == NetProtocol.OLDEST) {
-            bound = NetProtocol.getOldest();
-        }
-        this.bound = bound;
-
-        if (to == NetProtocol.LATEST) {
-            to = NetProtocol.getLatest();
-        }
-        this.to = to;
+        this.bound = NetProtocol.get(bound);
+        this.to = NetProtocol.get(to);
     }
 
     public NetProtocol getBound() {
-        return bound;
+        return this.bound;
     }
 
     public NetProtocol getTo() {
-        return to;
+        return this.to;
+    }
+
+    public NetProtocolRange exclude(NetProtocol protocol) {
+        return exclude(NetProtocolRange.only(protocol));
+    }
+
+    public NetProtocolRange exclude(NetProtocolRange range) {
+        this.exclude.add(range);
+        return this;
     }
 
     public boolean match(NetProtocol protocol) {
-        return protocol.isBetween(bound, to);
+        return protocol.isBetween(this.bound, this.to) && this.exclude.stream().noneMatch(p -> p.match(protocol));
     }
 
     public boolean match() {

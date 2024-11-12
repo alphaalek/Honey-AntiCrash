@@ -134,7 +134,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             // initialize packet container
             PacketType type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, true);
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
-            Bukkit.getLogger().info("Type: " + type);
             MARK.set(packet);
 
             // call listeners
@@ -169,7 +168,11 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                         "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
                                 + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
             }
-            serializer.release();
+
+            // retry (context above)
+            if (serializer.refCnt() > 0) {
+                serializer.release();
+            }
 
             this.player.failPacket(ex, packet);
         }

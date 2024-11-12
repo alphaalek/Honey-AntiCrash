@@ -148,8 +148,6 @@ public class HoneyPacketHandler {
                 this.viaProtocol = ViaProtocol.getViaProtocolFrom(this.player.clientInfo.getProtocol());
             }
 
-            Bukkit.getLogger().info(this.viaProtocol + " " + this.player.clientInfo.getProtocol() + " " + id + " " + this.viaProtocol.getTypes(bound, state));
-
             return this.viaProtocol.getTypes(bound, state).get(id);
         }
 
