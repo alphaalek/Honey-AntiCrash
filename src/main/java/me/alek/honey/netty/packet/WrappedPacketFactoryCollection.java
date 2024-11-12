@@ -30,6 +30,8 @@ public class WrappedPacketFactoryCollection {
         loadByteWrapper(PacketTypes.Play.Client.BOOK_EDIT, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInBookEdit::new);
         loadByteWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.INITIAL_BYTE, WrappedHandshakeInSetProtocol::new);
 
+        loadByteWrapper(PacketTypes.Play.Client.PICK_ITEM, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInPickItem::new);
+
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_DIGGING, WrappedPlayInBlockDig::new);
         loadObjectWrapper(PacketTypes.Play.Client.CHAT_MESSAGE, WrappedPlayInChat::new);
         loadObjectWrapper(PacketTypes.Play.Client.CHAT_COMMAND, WrappedPlayInChat::new);

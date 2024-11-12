@@ -31,7 +31,7 @@ validation.tab.b=Buffer of tab complete suggestions exceeded
 validation.tab.c=Length of tab complete exceeded
 
 validation.creative.a=Spoofed creative mode
-validation.creative.b=Exceeding max slots in inventory
+validation.creative.b=Clicking on illegal slot
 validation.creative.c=Clicking on illegal item
 
 validation.window.a=Exceeding max slots of inventory
@@ -88,6 +88,8 @@ validation.payload.d=Illegal usage of book channel
 validation.payload.e=Too many registered plugin channels
 
 validation.book-edit.a=Illegal book
+
+validation.pick-item.a=Using illegal slot
 
 command.desc.help=Sends all the commands you can use.
 command.desc.monitor=Monitor either server performance or player impact.

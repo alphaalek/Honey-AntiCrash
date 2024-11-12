@@ -852,6 +852,16 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class PickItem {
+
+        @Setting
+        @Violation(prefixPaths = "pick-item.a", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class PickItemA extends ViolationSetting {
+
+        }
+    }
+
+    @Setting
     public static class BookEdit {
 
         @Setting

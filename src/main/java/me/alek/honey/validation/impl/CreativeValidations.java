@@ -80,17 +80,14 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled()) {
-                int slot = packet.getSlot();
-                if (slot > 45 || slot < -1) {
-                    return ValidationViolationContext.Builder.validate().cancel().flag()
-                            .onViolation(generateKey(), (key, onViolation) -> {
-                                if (onViolation != null) onViolation.run();
+            if (getSetting().isEnabled() && (packet.getSlot() > 45 || packet.getSlot() < -1)) {
+                // TODO: check if slot 0-4 can be used (crafting input + output)
+                return ValidationViolationContext.FLAG.builder()
+                        .onViolation(generateKey(), (innerKey, onViolation) -> {
+                            if (onViolation != null) onViolation.run();
 
-                                context.getDevelopmentData(key).addPoint("Slot", slot);
-                            })
-                            .build();
-                }
+                            context.getDevelopmentData(innerKey).addPoint("Slot", packet.getSlot());
+                        }).build();
             }
 
             return ValidationViolationContext.PASS;
