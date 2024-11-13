@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -186,7 +187,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object o) {
         if (!read(ctx, o)) {
             // not async
-            InboundPacketFilter.MARK.get().releaseIfAutoReleasable();
+            PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
+            if (packet != null) {
+                packet.releaseIfAutoReleasable();
+            }
         }
 
         InboundPacketFilter.MARK.remove();
@@ -202,6 +206,8 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return false;
             }
             ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
+
+            // TODO handle object packet
             return false;
         }
 
@@ -215,34 +221,34 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         PacketContainer<? extends WrappedPacket<?>> packet = null;
         try {
             packet = InboundPacketFilter.MARK.get();
-            boolean fresh = false;
-            if (packet == null) {
+            PacketType type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, false);
+
+            if (packet == null || packet.getType() != type) {
                 // this packet is not sent by the client (because it was not received by the filter),
                 // but instead invoked by some plugin (most likely ViaVersion)
-                packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, this.packetHandler.getPacketType(buf, false, PacketBound.SERVER, false), null);
-                // calls listeners that was not called, due to viaversion invoking this packet in the eventloop after the filter
+                if (packet == null) {
+                    serializer.markReaderIndex();
+                    packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, type, null);
+                    serializer.resetReaderIndex();
+                    InboundPacketFilter.MARK.set(packet);
+                } else {
+                    packet.handleRewritten(type, PacketContainer.PipelineState.FINAL_BYTE);
+                }
+
+                // calls listeners that was not called, due to some plugin invoking this packet in the eventloop after the filter
                 PacketDataSerializer copiedSerializer = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
                 packet.callLateInitialByteListeners(copiedSerializer);
                 copiedSerializer.release();
-
-                InboundPacketFilter.MARK.set(packet);
-                fresh = true;
             }
             if (PacketTypes.isUnknown(packet.getType())) {
                 return false;
-            }
-
-            // check if we have to care about a wrapped final byte packet for this type
-            boolean hasFinalByteWrappedPacket = WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE);
-            if (!fresh && hasFinalByteWrappedPacket) {
-                serializer.readVarInt(); // skip packet-id
             }
 
             // stops in-between timings
             packet.getEventloopStateTimings().stopTimings();
 
             // handle final byte state
-            if (hasFinalByteWrappedPacket) {
+            if (WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE)) {
                 packet.callPreMinecraftDecode(serializer);
             }
 
@@ -273,12 +279,10 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return true;
             }
         } catch (Exception ex) {
-            if (packet != null) {
-                if (HoneyPlugin.get().getLogger().isDebug()) {
-                    Bukkit.getLogger().log(Level.WARNING,
-                            "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
-                                    + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
-                }
+            if (packet != null && HoneyPlugin.get().getLogger().isDebug()) {
+                Bukkit.getLogger().log(Level.WARNING,
+                        "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
+                                + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
             }
             serializer.release();
 

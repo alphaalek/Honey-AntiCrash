@@ -19,8 +19,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
 
     @Property
     private final InteractionHand interactionHand;
-    @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
-    private WrappedBlockPosition blockPosition;
+    private final WrappedBlockPosition blockPosition;
     @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
     private int faceId = -1;
     @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
@@ -29,11 +28,9 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     private Vector cursorPosition;
     @Property(to = @NetProtocol.To(to = NetProtocol.v1_8_8))
     private WrappedImmutableItemStack itemStack;
-    // @Property(from = @NetProtocol.From(from = NetProtocol.v1_14))
-    private boolean insideBlock;
     // TODO
     // @Property(from = @NetProtocol.From(from = NetProtocol.v1_21_2))
-    private boolean worldBorderHit;
+    private boolean insideBlock;
     @Property(from = @NetProtocol.From(from = NetProtocol.v1_19))
     private int sequence;
 
@@ -44,12 +41,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
 
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
             this.interactionHand = InteractionHand.values()[serializer.readVarInt()];
-            /*
             this.blockPosition = serializer.readBlockPosition();
-            this.faceId = serializer.readVarInt();
-            this.cursorPosition = new Vector(serializer.readFloat(), serializer.readFloat(), serializer.readFloat());
-            this.insideBlock = serializer.readBoolean();
-            */
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_19)) {
                 // TODO
                 /*
@@ -82,7 +74,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
         }
 
         if (this.face == null && this.faceId != -1) {
-            this.face = CARTESIAN_FACES.get(this.faceId % CARTESIAN_FACES.size());
+            this.face = CARTESIAN_FACES.get(this.faceId);
         }
     }
 
@@ -112,10 +104,6 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
 
     public boolean isInsideBlock() {
         return this.insideBlock;
-    }
-
-    public boolean isWorldBorderHit() {
-        return this.worldBorderHit;
     }
 
     public int getSequence() {

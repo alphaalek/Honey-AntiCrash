@@ -31,10 +31,8 @@ import java.util.function.Function;
 public class PacketExecutors {
 
     public static void register() {
-        PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
-
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
-            packetProcessor.addPacketExecutor(PacketTypes.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor<>());
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPacketExecutor(PacketTypes.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor<>());
         }
     }
 
@@ -183,6 +181,8 @@ public class PacketExecutors {
                 try {
                     Object chatComponent = chatComponentTextConstructor.invoke(page.getValue());
                     String serialized = (String) chatComponentSerializerInvoker.invoke(null, chatComponent);
+
+                    Bukkit.broadcastMessage("Serializing " + page.getValue() + " " + chatComponent + " " + serialized);
 
                     pages.set(i, new PrimitiveTag<>(TagType.STRING, serialized));
                 } catch (Exception ex) {

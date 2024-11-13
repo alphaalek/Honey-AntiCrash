@@ -411,20 +411,16 @@ netty:
     threshold: 45000
     decay: 350
     decay-amount: 3000
-    vls-amount: 1
 
   b:
     enabled: true
-    vls-amount: 1
 
   c:
     enabled: true
-    vls-amount: 1
-    threshold: 6250
+    threshold: 7500
 
   d:
     enabled: true
-    vls-amount: 1
     threshold: 18500
 
   e:
@@ -433,7 +429,6 @@ netty:
     threshold: 32500
     decay: 650
     decay-amount: 7500
-    vls-amount: 1
 
   f:
     enabled: true
@@ -441,17 +436,14 @@ netty:
     threshold: 1200000
     decay: 650
     decay-amount: 350000
-    vls-amount: 1
 
   g:
     enabled: true
     threshold: 700000
-    vls-amount: 1
 
   h:
     enabled: true
     threshold: 500
-    vls-amount: 1
 
   i:
     enabled: true
@@ -512,7 +504,6 @@ custom-payload:
   b:
     enabled: true
     threshold: 10000
-    vls-amount: 1
 
   c:
     enabled: true
@@ -533,7 +524,6 @@ held-item:
 
   b:
     enabled: true
-    vls-amount: 1
 
 # |--- position ---|
 position:
@@ -592,7 +582,6 @@ position:
     enabled: true
     max-per-interval: 100
     interval: 2500
-    vls-amount: 1
 
   j:
     enabled: true
@@ -632,7 +621,6 @@ block-interact:
 
   b:
     enabled: true
-    vls-amount: 1
 
   c:
     enabled: true
@@ -705,7 +693,6 @@ window-click:
 
   b:
     enabled: true
-    vls-amount: 1
 
   c:
     enabled: true

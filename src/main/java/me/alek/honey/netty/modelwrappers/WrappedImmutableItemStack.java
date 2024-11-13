@@ -80,8 +80,15 @@ public class WrappedImmutableItemStack implements Cloneable {
         }
     }
 
-    private static final ConstructorInvoker<ItemMeta> defaultMetaConstructor =
-            Reflection.getConstructor(NMS.getCraftMetaItemClass(), NMS.getNBTTagCompoundClass());
+    private static final ConstructorInvoker<ItemMeta> defaultMetaConstructor;
+
+    static {
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_5)) {
+            defaultMetaConstructor = Reflection.getConstructor(NMS.getCraftMetaItemClass(), NMS.getNBTTagCompoundClass());
+        } else {
+            defaultMetaConstructor = null;
+        }
+    }
 
     public static WrappedImmutableItemStack read(NetProtocol protocol, PacketDataSerializer serializer, int itemId, int amount, short durability) throws IOException {
         Material type = ItemReflection.getMaterialFromId(itemId);
@@ -231,7 +238,13 @@ public class WrappedImmutableItemStack implements Cloneable {
         } else if (this.cachedSpecificMeta != null) {
             return this.cachedSpecificMeta;
         }
-        return (this.cachedDefaultMeta = orNewMeta(defaultMetaConstructor.invoke(this.nbt.getHandle())));
+
+        // TODO
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_5)) {
+            return (this.cachedDefaultMeta = orNewMeta(defaultMetaConstructor.invoke(this.nbt.getHandle())));
+        } else {
+            return (this.cachedDefaultMeta = getSpecificMeta());
+        }
     }
 
     public ItemMeta getSpecificMeta() {

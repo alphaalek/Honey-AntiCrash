@@ -81,7 +81,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
                     .onViolation(key, (keyInner, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 
-                        context.getDevelopmentData(keyInner).addPoint("BlockPos", blockPosition);
+                        context.getDevelopmentData(keyInner).addPoint("Position", blockPosition);
                         context.getDevelopmentData(keyInner).addPoint("Distance", (distance == -1 ? "Invalid" : distance));
                     })
                     .build();
@@ -102,7 +102,8 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
                     return ValidationViolationContext.PASS;
                 }
 
-                return checkExceedingMaxDistance(player, ViolationKey.of(this), blockPosition, getSetting().max, context);
+                // TODO
+                // return checkExceedingMaxDistance(player, generateKey(), blockPosition, getSetting().max, context);
             }
 
             return ValidationViolationContext.PASS;
@@ -118,7 +119,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
         @Override
         public String getDescription() {
-            return Lang.get("validation.block.a");
+            return Lang.get("validation.block-interact.a");
         }
 
         @Override
@@ -133,7 +134,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
+            if (getSetting().isEnabled()) {
                 return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context)
                         .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
                             if (onViolation != null) {
@@ -162,7 +163,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
         @Override
         public String getDescription() {
-            return Lang.get("validation.block.b");
+            return Lang.get("validation.block-interact.b");
         }
 
         @Override
@@ -177,7 +178,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getType() == PacketTypes.Play.Client.BLOCK_PLACE) {
+            if (getSetting().isEnabled()) {
                 WrappedImmutableItemStack item = packet.getItemStack();
                 if (item == null) {
                     return ValidationViolationContext.PASS;
@@ -205,7 +206,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
         @Override
         public String getDescription() {
-            return Lang.get("validation.block.c");
+            return Lang.get("validation.block-interact.c");
         }
 
         @Override

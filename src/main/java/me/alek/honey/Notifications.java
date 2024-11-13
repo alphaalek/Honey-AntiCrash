@@ -286,21 +286,24 @@ public class Notifications {
         }
 
         StringBuilder messageBuilder = new StringBuilder(packetFilterPre);
-        if (postponedSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE) {
+        if (postponedSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE && postponedSize != 0) {
             messageBuilder.append(" ").append(packetFilterPostponeFormat.getMessage(
                     new MessageOffer.Builder()
                             .offer(Placeholders.AMOUNT, () -> postponedSize)
                             .offer(Placeholders.CURRENT_AMOUNT, () -> player.postponedPackets)
                             .build()));
         }
-        if (cancelledSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL) {
+        if (cancelledSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL && cancelledSize != 0) {
             messageBuilder.append(" ").append(packetFilterCancelFormat.getMessage(
                     new MessageOffer.Builder()
                             .offer(Placeholders.AMOUNT, () -> cancelledSize)
                             .build()));
         }
 
-        sendActionBar(player, messageBuilder.toString());
+        String text = messageBuilder.toString();
+        if (!text.isEmpty()) {
+            sendActionBar(player, text);
+        }
     }
 
     public void showQuarantinedAsyncWorker(HoneyPlayer player, long time) {

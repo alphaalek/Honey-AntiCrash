@@ -271,19 +271,11 @@ public class ConfigurationOptions {
         }
     }
 
-    public interface VlSimpleRequiredContentsSetting extends VlRequiredContentsSetting {
-
-        default Set<VlSettingImplType> getRequiredTypes() {
-            return Collections.singleton(VlSettingImplType.VLS_AMOUNT);
-        }
-    }
-
     public interface VlTriggerThrottleRequiredContentsSetting extends VlRequiredContentsSetting {
 
         default Set<VlSettingImplType> getRequiredTypes() {
             return Sets.newHashSet(
-                    VlSettingImplType.THROTTLE_AFTER,
-                    VlSettingImplType.VLS_AMOUNT
+                    VlSettingImplType.THROTTLE_AFTER
             );
         }
     }
@@ -293,8 +285,7 @@ public class ConfigurationOptions {
         default Set<VlSettingImplType> getRequiredTypes() {
             return Sets.newHashSet(
                     VlSettingImplType.MAX_PER_INTERVAL,
-                    VlSettingImplType.INTERVAL,
-                    VlSettingImplType.VLS_AMOUNT
+                    VlSettingImplType.INTERVAL
             );
         }
     }
@@ -305,8 +296,7 @@ public class ConfigurationOptions {
             return Sets.newHashSet(
                     ConfigurationOptions.VlSettingImplType.INTERVAL,
                     ConfigurationOptions.VlSettingImplType.THRESHOLD,
-                    ConfigurationOptions.VlSettingImplType.UNTIL,
-                    ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+                    ConfigurationOptions.VlSettingImplType.UNTIL
             );
         }
     }
@@ -317,8 +307,7 @@ public class ConfigurationOptions {
             return Sets.newHashSet(
                     VlSettingImplType.DECAY,
                     VlSettingImplType.DECAY_AMOUNT,
-                    VlSettingImplType.THRESHOLD,
-                    VlSettingImplType.VLS_AMOUNT
+                    VlSettingImplType.THRESHOLD
             );
         }
     }
@@ -330,8 +319,7 @@ public class ConfigurationOptions {
                     VlSettingImplType.DECAY,
                     VlSettingImplType.DECAY_AMOUNT,
                     VlSettingImplType.UNTIL,
-                    VlSettingImplType.THRESHOLD,
-                    VlSettingImplType.VLS_AMOUNT
+                    VlSettingImplType.THRESHOLD
             );
         }
     }
@@ -340,8 +328,7 @@ public class ConfigurationOptions {
 
         default Set<VlSettingImplType> getRequiredTypes() {
             return Sets.newHashSet(
-                    VlSettingImplType.THRESHOLD,
-                    VlSettingImplType.VLS_AMOUNT
+                    VlSettingImplType.THRESHOLD
             );
         }
     }
@@ -670,7 +657,7 @@ public class ConfigurationOptions {
 
     @Setting
     @Violation(prefixPaths = "commands", packetHandler = PacketLimitHandlerType.SIMPLE)
-    public static class Commands extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+    public static class Commands extends ViolationSetting {
 
         public static List<String> PROHIBITED_TAB_COMPLETE_COMMANDS;
         public static List<String> PROHIBITED_COMMANDS_LITERAL;
@@ -802,7 +789,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "held-item.a", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class HeldItemA extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+        public static class HeldItemA extends ViolationSetting {
 
         }
 
@@ -828,7 +815,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "window-click.a", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class WindowA extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+        public static class WindowA extends ViolationSetting {
 
         }
 
@@ -840,13 +827,13 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "window-click.c", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class WindowC extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+        public static class WindowC extends ViolationSetting {
 
         }
 
         @Setting
         @Violation(prefixPaths = "window-click.d", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class WindowD extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+        public static class WindowD extends ViolationSetting {
 
         }
     }
@@ -888,13 +875,13 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "block-interact.c", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class BlockInteractC extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+        public static class BlockInteractC extends ViolationSetting {
 
         }
 
         @Setting
         @Violation(prefixPaths = "block-interact.d", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class BlockInteractD extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+        public static class BlockInteractD extends ViolationSetting {
 
         }
     }
@@ -1009,7 +996,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "rotation.a", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class RotationA extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+        public static class RotationA extends ViolationSetting {
 
         }
 
@@ -1033,13 +1020,13 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "set-creative-slot.a", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class CreativeA extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+        public static class CreativeA extends ViolationSetting {
 
         }
 
         @Setting
         @Violation(prefixPaths = "set-creative-slot.b", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class CreativeB extends ViolationSetting implements VlSimpleRequiredContentsSetting {
+        public static class CreativeB extends ViolationSetting {
 
         }
 

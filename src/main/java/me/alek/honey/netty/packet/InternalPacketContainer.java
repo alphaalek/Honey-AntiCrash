@@ -17,6 +17,7 @@ import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private ObjectWrappedPacket<WP> objectWrapped;
     private ByteWrappedPacket<WP> initialByteWrapped;
     private ByteWrappedPacket<WP> finalByteWrapped;
+    private boolean callingLateInitialByteWrapped;
     private final Callback postAction;
     private final HoneyPlayer player;
     private final long timeCreated = System.currentTimeMillis();
@@ -66,14 +68,19 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public void callPostMinecraftDecode(Object handle, PacketType type) {
+    public void handleRewritten(PacketType type, PipelineState state) {
         if (this.type != type) {
             // rewritten new type by ViaVersion
             this.initialByteWrapped = null;
             this.finalByteWrapped = null;
         }
         this.type = type;
-        this.pipelineState = PipelineState.OBJECT;
+        this.pipelineState = state;
+    }
+
+    @Override
+    public void callPostMinecraftDecode(Object handle, PacketType type) {
+        handleRewritten(type, PipelineState.OBJECT);
 
         if (PacketTypes.isUnknown(type)
                 || !type.getNmsClass().equals(handle.getClass())) {
@@ -90,7 +97,9 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     public void callPreMinecraftDecode(PacketDataSerializer serializer) {
         if (this.pipelineState == PipelineState.INITIAL_BYTE) {
             this.pipelineState = PipelineState.FINAL_BYTE;
-            this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
+            if (this.finalByteWrapped == null) {
+                this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
+            }
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(this.player, this);
         }
     }
@@ -98,14 +107,18 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public void callLateInitialByteListeners(PacketDataSerializer serializer) {
         if (WrappedPacketFactoryCollection.hasByteWrappedPacket(this.type, PacketContainer.PipelineState.INITIAL_BYTE)) {
-            this.initialByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(this.type, PipelineState.INITIAL_BYTE, serializer, this);
+            this.callingLateInitialByteWrapped = true;
+            if (this.initialByteWrapped == null) {
+                this.initialByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(this.type, PipelineState.INITIAL_BYTE, serializer, this);
+            }
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, this);
+            this.callingLateInitialByteWrapped = false;
         }
     }
 
     @Override
     public NetProtocol getProtocolByPacketState() {
-        if (this.pipelineState == PipelineState.INITIAL_BYTE && this.player.clientInfo != null) {
+        if (!callingLateInitialByteWrapped && this.pipelineState == PipelineState.INITIAL_BYTE && this.player.clientInfo != null) {
             return this.player.clientInfo.getProtocol(); // use the client version to check for different protocols
         } else {
             return NetProtocol.getProtocol(); // if modified by ViaVersion, using either client or server should read same packet data

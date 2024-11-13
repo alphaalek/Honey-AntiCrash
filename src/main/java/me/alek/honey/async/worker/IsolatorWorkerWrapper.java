@@ -70,7 +70,7 @@ public class IsolatorWorkerWrapper<T> implements Worker<T> {
     public void submit(ChainedCallable<T> callable) {
         try {
             if (!pendingTasks.offer(callable, 0, TimeUnit.MILLISECONDS)) {
-                Bukkit.getLogger().info("Couldn't offer task to worker");
+                Bukkit.getLogger().severe("Couldn't offer task to worker");
             }
         } catch (Exception ex) {
             ex.printStackTrace();

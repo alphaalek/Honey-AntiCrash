@@ -355,7 +355,7 @@ public enum PacketTypes implements PacketType {
             @ViaProtocol.ViaIgnoreIfMissing
             COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
             @ViaProtocol.ViaIgnoreIfMissing
-            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, "custom_query_answer", NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_20_1)),
+            CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, "custom_query_answer", NetProtocolRange.since(NetProtocol.v1_13)),
             @ViaProtocol.ViaUnique(name = "encryption_key")
             ENCRYPTION_BEGIN(ENCRYPTION_BEGIN_CLASS, "key"),
             @ViaProtocol.ViaIgnoreIfMissing
@@ -638,9 +638,9 @@ public enum PacketTypes implements PacketType {
         private static final Class<?> STEER_VEHICLE_CLASS = Reflection.getClass("{play}.PacketPlayInSteerVehicle");
         private static final Class<?> TAB_COMPLETE_CLASS = Reflection.getClass("{play}.PacketPlayInTabComplete");
         private static final Class<?> UPDATE_SIGN_CLASS = Reflection.getClass("{play}.PacketPlayInUpdateSign");
-        private static final Class<?> BLOCK_PLACE_CLASS = Reflection.getClass("{play}.PacketPlayInBlockPlace");
         private static Class<?> ADVANCEMENTS_CLASS;
         private static Class<?> AUTO_RECIPE_CLASS;
+        private static Class<?> BLOCK_PLACE_CLASS;
         private static Class<?> BOAT_MOVE_CLASS;
         private static Class<?> BOOK_EDIT_CLASS;
         private static Class<?> CHAT_ACKNOWLEDGED_CLASS;
@@ -663,7 +663,7 @@ public enum PacketTypes implements PacketType {
         private static Class<?> PICK_ITEM_CLASS;
         private static Class<?> PING_REQUEST_CLASS;
         private static Class<?> PLAYER_MOVEMENT_CLASS;
-        private static Class<?> PLAYER_POS_ROT;
+        private static Class<?> PLAYER_POS_ROT_CLASS;
         private static Class<?> PLAYER_POSITION_CLASS;
         private static Class<?> PLAYER_ROTATION_CLASS;
         private static Class<?> PONG_RESPONSE_CLASS;
@@ -683,18 +683,22 @@ public enum PacketTypes implements PacketType {
         private static Class<?> VEHICLE_MOVE_CLASS;
 
         static {
+            if (protocolVersion.isEqual(NetProtocol.v1_8_8)) {
+                BLOCK_PLACE_CLASS = Reflection.getClass("{play}.PacketPlayInBlockPlace");
+            }
             if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_16_5)) {
-                TRANSACTION_CLASS = Reflection.getClass("{play}.PacketPlayInTransaction");
                 PLAYER_MOVEMENT_CLASS = Reflection.getClass("{play}.PacketPlayInFlying");
-                PLAYER_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
                 PLAYER_POSITION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPosition");
-                PLAYER_POS_ROT = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
+                PLAYER_POS_ROT_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
+                PLAYER_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
+                TRANSACTION_CLASS = Reflection.getClass("{play}.PacketPlayInTransaction");
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_9)) {
-                VEHICLE_MOVE_CLASS = Reflection.getClass("{play}.PacketPlayInVehicleMove");
+                USE_ITEM_CLASS = Reflection.getClass("{play}.PacketPlayInBlockPlace");
                 BOAT_MOVE_CLASS = Reflection.getClass("{play}.PacketPlayInBoatMove");
-                USE_ITEM_CLASS = Reflection.getClass("{play}.PacketPlayInUseItem");
+                BLOCK_PLACE_CLASS = Reflection.getClass("{play}.PacketPlayInUseItem");
                 TELEPORT_CONFIRM_CLASS = Reflection.getClass("{play}.PacketPlayInTeleportAccept");
+                VEHICLE_MOVE_CLASS = Reflection.getClass("{play}.PacketPlayInVehicleMove");
             }
             if (protocolVersion.isEqual(NetProtocol.v1_12)) {
                 PREPARE_CRAFTING_GRID_CLASS = Reflection.getClass("{play}.PacketPlayInPrepareCraftingGrid");
@@ -729,7 +733,7 @@ public enum PacketTypes implements PacketType {
             }
             if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_17)) {
                 PLAYER_POSITION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPosition");
-                PLAYER_POS_ROT = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
+                PLAYER_POS_ROT_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
                 PLAYER_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
                 GROUND_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$d");
                 PONG_RESPONSE_CLASS = Reflection.getUnsureClass("{play}.ServerboundPongPacket", "{common}.ServerboundPongPacket");
@@ -811,6 +815,7 @@ public enum PacketTypes implements PacketType {
             ENTITY_ACTION(ENTITY_ACTION_CLASS, "player_command"),
             @ViaProtocol.ViaUnique(name = "entity_nbt_request", target = ViaProtocol.ViaUnique.Target.LEGACY)
             ENTITY_NBT_QUERY(ENTITY_NBT_QUERY_CLASS, "entity_tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
+            @ViaProtocol.ViaUnique(name = "player_movement", target = ViaProtocol.ViaUnique.Target.LEGACY)
             GROUND(GROUND_CLASS, "move_player_status_only", NetProtocolRange.since(NetProtocol.v1_17)),
             @ViaProtocol.ViaUnique(name = "held_item_change", target = ViaProtocol.ViaUnique.Target.LEGACY)
             HELD_ITEM_CHANGE(HELD_ITEM_CHANGE_CLASS, "set_carried_item"),
@@ -830,18 +835,18 @@ public enum PacketTypes implements PacketType {
             @ViaProtocol.ViaUnique(name = "player_position", target = ViaProtocol.ViaUnique.Target.LEGACY)
             PLAYER_POSITION(PLAYER_POSITION_CLASS, "move_player_pos"),
             @ViaProtocol.ViaUnique(name = "player_position_and_rotation", target = ViaProtocol.ViaUnique.Target.LEGACY)
-            PLAYER_POS_ROT(Play.PLAYER_POS_ROT, "move_player_pos_rot"),
+            PLAYER_POS_ROT(Play.PLAYER_POS_ROT_CLASS, "move_player_pos_rot"),
             @ViaProtocol.ViaUnique(name = "player_rotation", target = ViaProtocol.ViaUnique.Target.LEGACY)
             PLAYER_ROTATION(PLAYER_ROTATION_CLASS, "move_player_rot"),
             PONG(PONG_RESPONSE_CLASS, "pong", NetProtocolRange.since(NetProtocol.v1_17)),
             @ViaProtocol.ViaUnique(name = "crafting_recipe_placement", target = ViaProtocol.ViaUnique.Target.MODERN)
             PREPARE_CRAFTING_GRID(PREPARE_CRAFTING_GRID_CLASS, "prepare_crafting_grid", NetProtocolRange.only(NetProtocol.v1_12)),
             @ViaProtocol.MultiViaUnique(uniques = {
-                    @ViaProtocol.ViaUnique(name = "seen_recipe", target = ViaProtocol.ViaUnique.Target.LEGACY),
+                    @ViaProtocol.ViaUnique(name = "recipe_book_data", target = ViaProtocol.ViaUnique.Target.LEGACY),
                     @ViaProtocol.ViaUnique(name = "recipe_book_update", target = ViaProtocol.ViaUnique.Target.MODERN)
             })
             RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, "recipe_book_change_settings", NetProtocolRange.since(NetProtocol.v1_12)),
-            @ViaProtocol.ViaUnique(name = "recipe_book_data", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.ViaUnique(name = "seen_recipe", target = ViaProtocol.ViaUnique.Target.LEGACY)
             RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, "recipe_book_seen_recipe", NetProtocolRange.since(NetProtocol.v1_16_2)),
             @ViaProtocol.ViaUnique(name = "resource_pack_status", target = ViaProtocol.ViaUnique.Target.LEGACY)
             RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, "resource_pack"),
@@ -1291,8 +1296,6 @@ public enum PacketTypes implements PacketType {
             @ViaProtocol.ViaUnique(name = "destroy_entities", target = ViaProtocol.ViaUnique.Target.LEGACY, to = @NetProtocol.To(to = NetProtocol.v1_16_5))
             ENTITIES_DESTROY(ENTITY_DESTROY_CLASS, "remove_entities", NetProtocolRange.all().exclude(NetProtocol.v1_17)),
             ENTITY_DESTROY(ENTITY_DESTROY_CLASS, "remove_entity", NetProtocolRange.only(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "destroy_entities", target = ViaProtocol.ViaUnique.Target.LEGACY)
-            ENTITY_REMOVE(ENTITY_DESTROY_CLASS, "remove_entities"),
             @ViaProtocol.ViaUnique(name = "entity_effect", target = ViaProtocol.ViaUnique.Target.LEGACY)
             ENTITY_EFFECT(ENTITY_EFFECT_CLASS, "update_mob_effect"),
             @ViaProtocol.ViaUnique(name = "entity_equipment", target = ViaProtocol.ViaUnique.Target.LEGACY)

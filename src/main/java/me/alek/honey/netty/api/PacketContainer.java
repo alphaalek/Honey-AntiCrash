@@ -21,6 +21,8 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     PacketLifecycleTimings getEventloopStateTimings();
 
+    void handleRewritten(PacketType type, PipelineState state);
+
     void callPostMinecraftDecode(Object packet, PacketType type);
 
     void callPreMinecraftDecode(PacketDataSerializer serializer);

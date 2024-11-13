@@ -128,7 +128,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             prevMarked.releaseIfAutoReleasable();
         }
 
-        PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
+        PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketContainer<? extends WrappedPacket<?>> packet = null;
         try {
             // initialize packet container
@@ -141,12 +141,10 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, packet);
             packet.getEventloopStateTimings().stopTimings();
 
-            // we're done using this byte buffer, just release it so Netty can
-            // clear the allocated memory used
-            serializer.release();
-
-            if (!packet.isCancelled()) {
-                list.add(buf.readBytes(buf.readableBytes()));
+            if (!packetHandler.isCancelled(packet)) {
+                list.add(serializer
+                        .readerIndex(0)
+                        .retain(Math.max(serializer.refCnt(), 1) + 1));
             } else {
                 list.add(Unpooled.buffer());
                 packet.releaseIfAutoReleasable();
@@ -169,7 +167,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                                 + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
             }
 
-            // retry (context above)
             if (serializer.refCnt() > 0) {
                 serializer.release();
             }

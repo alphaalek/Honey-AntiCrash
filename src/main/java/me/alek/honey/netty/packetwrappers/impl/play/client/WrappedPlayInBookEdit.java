@@ -16,9 +16,10 @@ import org.bukkit.inventory.ItemStack;
 
 public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEdit> {
 
-    private static final int PAGE_CHAR_LIMIT = 1024;
-    private static final int TITLE_CHAR_LIMIT = 32;
-    private static final int MAX_PAGES = 100;
+    public static final int PAGE_CHAR_LIMIT = 1024;
+    public static final int TITLE_CHAR_LIMIT = 16;
+    public static final int MAX_PAGES = 100;
+    public static final int MAX_PAGES_1_13_2 = 50;
 
     @Property
     private final InteractionHand interactionHand;
@@ -40,8 +41,9 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
             this.interactionHand = InteractionHand.values()[buf.readVarInt()];
 
             int pageCount = buf.readVarInt();
-            if (pageCount > MAX_PAGES) {
-                throw new IllegalStateException("Too many pages: " + pageCount + ", limit: " + MAX_PAGES);
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_14) && pageCount > MAX_PAGES
+                    || protocol.isOlderThan(NetProtocol.v1_14) && pageCount > MAX_PAGES_1_13_2) {
+                throw new IllegalStateException("Too many pages: " + pageCount + ", limit: " + (protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_PAGES : MAX_PAGES_1_13_2));
             }
 
             CompoundTag tag = new CompoundTag();
