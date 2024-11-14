@@ -137,9 +137,11 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             MARK.set(packet);
 
             // call listeners
-            packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
-            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, packet);
-            packet.getEventloopStateTimings().stopTimings();
+            if (!player.bypassEverything()) {
+                packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
+                HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, packet);
+                packet.getEventloopStateTimings().stopTimings();
+            }
 
             if (!packetHandler.isCancelled(packet)) {
                 list.add(serializer
