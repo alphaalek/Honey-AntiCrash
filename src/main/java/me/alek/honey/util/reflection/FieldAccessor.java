@@ -27,6 +27,19 @@ public class FieldAccessor<T> implements IReflectionMember<T> {
         }
     }
 
+    public void set(Object object, T value) {
+        try {
+            field.set(object, value);
+        } catch (Exception ex) {
+            throw new RuntimeException("Reflection error (field set): name: " + field.getName() + " value: " + value.getClass().getSimpleName()
+                    + " instance: " + object.getClass().getSimpleName(), ex);
+        }
+    }
+
+    public boolean has(Object object) {
+        return field.getDeclaringClass().isAssignableFrom(object.getClass());
+    }
+
     @Override
     public Class<T> getType() {
         return (Class<T>) field.getType();
@@ -47,16 +60,8 @@ public class FieldAccessor<T> implements IReflectionMember<T> {
         return field.getModifiers();
     }
 
-    public void set(Object object, T value) {
-        try {
-            field.set(object, value);
-        } catch (Exception ex) {
-            throw new RuntimeException("Reflection error (field set): name: " + field.getName() + " value: " + value.getClass().getSimpleName()
-                    + " instance: " + object.getClass().getSimpleName(), ex);
-        }
-    }
-
-    public boolean has(Object object) {
-        return field.getDeclaringClass().isAssignableFrom(object.getClass());
+    @Override
+    public String toString() {
+        return field.toString();
     }
 }

@@ -25,7 +25,7 @@ public enum ItemValidationRegistry {
     UNBREAKABLE_ITEM(ItemValidations.UnbreakableItemItemValidation::new),
     CUSTOM_POTION_EFFECTS(ItemValidations.CustomPotionEffectsItemValidation::new, Material.POTION),
     ATTRIBUTE_MODIFIERS(ItemValidations.AttributeModifiersItemValidation::new),
-    BOOK_NO_TEXT_COMPONENT(ItemValidations.BookTranslationComponents::new,
+    BOOK_NO_TEXT_COMPONENT(ItemValidations.BookComponentsValidation::new,
             Material.WRITTEN_BOOK, MaterialMappings.getTypeIfAny("writable-book")),
     MAP_RANGE(ItemValidations.MapRangeItemValidation::new, MaterialMappings.getTypeIfAny("empty-map"), MaterialMappings.getTypeIfAny("filled-map")),
 

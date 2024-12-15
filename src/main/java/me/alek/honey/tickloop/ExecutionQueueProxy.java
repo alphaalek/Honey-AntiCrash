@@ -273,7 +273,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             return true;
         }
 
-        private boolean hasPacketCap(PacketContainer<? extends WrappedPacket<?>> packet) {
+        private boolean isPositionPacket(PacketContainer<? extends WrappedPacket<?>> packet) {
             return packet.getType() == PacketTypes.Play.Client.PLAYER_MOVEMENT
                     || packet.getType() == PacketTypes.Play.Client.PLAYER_POSITION
                     || packet.getType() == PacketTypes.Play.Client.PLAYER_POS_ROT
@@ -343,7 +343,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             // evaluate the difference in time
             long deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13_1)
-                    && hasPacketCap(recentPacket)) {
+                    && isPositionPacket(recentPacket)) {
                 deltaTime = Math.min(deltaTime, ConfigurationOptions.Postpone.MAX_POSITION_TIME_REGISTER * Timespan.MILLIS_TO_NANO_MULTIPLIER);
             }
             registerTime(recentPacket.getPlayer(), deltaTime);
@@ -374,13 +374,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
     public List<HoneyPlayer> getTrackersOrdered() {
         List<HoneyPlayer> trackersList = new ArrayList<>(getTrackers());
         trackersList.removeIf(player -> getPlayerRate(player, Timespan.FIVE_SECOND, false) == 0);
-        trackersList.sort(new Comparator<HoneyPlayer>() {
-
-            @Override
-            public int compare(HoneyPlayer o1, HoneyPlayer o2) {
-                return Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.FIVE_SECOND, true), getTimeToAverageWithoutQuotient(o2, Timespan.FIVE_SECOND, true));
-            }
-        });
+        trackersList.sort((o1, o2) -> Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.FIVE_SECOND, true), getTimeToAverageWithoutQuotient(o2, Timespan.FIVE_SECOND, true)));
 
         return trackersList;
     }

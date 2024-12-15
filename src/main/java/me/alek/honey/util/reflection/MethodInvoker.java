@@ -51,4 +51,9 @@ public class MethodInvoker<T> implements IReflectionMember<T> {
     public int getModifiers() {
         return method.getModifiers();
     }
+
+    @Override
+    public String toString() {
+        return method.toString();
+    }
 }

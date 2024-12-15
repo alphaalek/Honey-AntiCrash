@@ -21,6 +21,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -59,8 +60,8 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
                 .withType(CommandMap.class)
                 .withTarget(Bukkit.getServer());
         CommandMap commandMap = craftServerModifier.readField(0);
-        List<String> knownCommands = new ArrayList<>();
 
+        List<String> knownCommands = new ArrayList<>();
         for (String command : commands) {
             String label = getLabel(command);
             String nameFormat = getNameFormat(command);
@@ -77,24 +78,22 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
         }
 
         String[] prohibitedCommands = new String[knownCommands.size()];
-        int index = 0;
+        int i = 0;
         for (String command : knownCommands) {
-            prohibitedCommands[index] = command;
-            index++;
+            prohibitedCommands[i] = command;
+            i++;
         }
 
         return prohibitedCommands;
     }
 
     public static boolean match(String commandCheck, String commandSent) {
-        commandCheck = commandCheck.toLowerCase();
         String format = getNameFormat(commandSent);
-
         String[] args = commandSent.split(" ");
         if (args.length == 1) {
-            return format.equalsIgnoreCase(commandCheck);
+            return format.equalsIgnoreCase(commandCheck.toLowerCase());
         } else {
-            return format.startsWith(commandCheck);
+            return format.startsWith(commandCheck.toLowerCase());
         }
     }
 

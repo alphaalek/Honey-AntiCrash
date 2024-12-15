@@ -557,22 +557,22 @@ public class PacketDataSerializer extends ByteBuf {
 
     @Override
     public int forEachByte(ByteBufProcessor byteBufProcessor) {
-        return 0;
+        return this.handle.forEachByte(byteBufProcessor);
     }
 
     @Override
     public int forEachByte(int i, int i1, ByteBufProcessor byteBufProcessor) {
-        return 0;
+        return this.handle.forEachByte(i, i1, byteBufProcessor);
     }
 
     @Override
     public int forEachByteDesc(ByteBufProcessor byteBufProcessor) {
-        return 0;
+        return this.handle.forEachByteDesc(byteBufProcessor);
     }
 
     @Override
     public int forEachByteDesc(int i, int i1, ByteBufProcessor byteBufProcessor) {
-        return 0;
+        return this.handle.forEachByteDesc(i, i1, byteBufProcessor);
     }
 
     public ByteBuf copy() {

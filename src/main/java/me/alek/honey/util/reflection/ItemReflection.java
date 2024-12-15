@@ -174,6 +174,12 @@ public class ItemReflection {
                 .writeField(0, tag);
     }
 
+    public static Object getItemTag(Object item) {
+        return ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
+                .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
+                .readField(0);
+    }
+
     public static void setItemMeta(Object item) {
         craftItemSetMeta.invoke(null, item, createItemMeta(item));
     }

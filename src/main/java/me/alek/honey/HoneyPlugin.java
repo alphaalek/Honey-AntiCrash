@@ -275,9 +275,11 @@ public class HoneyPlugin implements HoneyAPI {
         this.validationHandleTracker = new RegistryHandleTracker<>();
 
         // setup validations
-        for (BaseValidationContainer validation : ValidationContainerRegistry.initValidations(packetLibrary)) {
-            validation.load();
-        }
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, () -> {
+            for (BaseValidationContainer validation : ValidationContainerRegistry.initValidations(packetLibrary)) {
+                validation.load();
+            }
+        });
         PacketExecutors.register();
         ItemAnalysis.reload();
         PrintValidationBridge.inject();

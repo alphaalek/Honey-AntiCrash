@@ -3,7 +3,6 @@ package me.alek.honey.netty.packet;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.api.PacketProcessor;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.netty.nbt.PrimitiveTag;
@@ -11,6 +10,7 @@ import me.alek.honey.netty.nbt.TagType;
 import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.*;
@@ -95,13 +95,20 @@ public class PacketExecutors {
                 return null;
             }
 
+            // can't figure out why this breaks the page to show the json representation instead of the literal page, when this below is
+            // what is done in 1.9+ server code. But works fine when disabled, so I'm just accepting it I guess.
+
+            /*
             if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
                 ArrayTag<String> pages = item.getNBT().getArrayOf("pages", TagType.STRING);
+
                 if (!serializeTextComponents(pages)) {
                     return null;
                 }
+
                 item.clearSpecificMetaCache();
             }
+            */
 
             return () -> handleItem(player, item, true, (oldMeta, newMeta) -> {
                 heldItem.setType(Material.WRITTEN_BOOK);
@@ -147,7 +154,7 @@ public class PacketExecutors {
 
             BookMeta newItemMeta = (BookMeta) item.getSpecificMeta();
             BookMeta heldItemMeta = (BookMeta) heldItem.getItemMeta();
-            stripEvents(newItemMeta);
+            stripComponentEvents(newItemMeta);
 
             if (PlayerEditBookEvent.getHandlerList().getRegisteredListeners().length > 0) {
                 PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(
@@ -163,15 +170,16 @@ public class PacketExecutors {
             successCallback.accept(heldItemMeta, newItemMeta);
         }
 
-        private void stripEvents(BookMeta meta) {
+        private void stripComponentEvents(BookMeta meta) {
             List<Object> pages = ItemReflection.getPages(meta);
+            if (pages != null) {
+                List<Object> newPages = new ArrayList<>();
+                for (Object page : pages) {
+                    newPages.add(stripEventsInvoker.invoke(null, page));
+                }
 
-            List<Object> newPages = new ArrayList<>();
-            for (Object page : pages) {
-                newPages.add(stripEventsInvoker.invoke(null, page));
+                ItemReflection.setPages(meta, newPages);
             }
-
-            ItemReflection.setPages(meta, newPages);
         }
 
         private boolean serializeTextComponents(ArrayTag<String> pages) {
@@ -181,8 +189,6 @@ public class PacketExecutors {
                 try {
                     Object chatComponent = chatComponentTextConstructor.invoke(page.getValue());
                     String serialized = (String) chatComponentSerializerInvoker.invoke(null, chatComponent);
-
-                    Bukkit.broadcastMessage("Serializing " + page.getValue() + " " + chatComponent + " " + serialized);
 
                     pages.set(i, new PrimitiveTag<>(TagType.STRING, serialized));
                 } catch (Exception ex) {

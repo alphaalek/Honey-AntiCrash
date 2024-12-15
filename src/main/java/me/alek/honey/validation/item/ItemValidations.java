@@ -172,24 +172,39 @@ public class ItemValidations {
         }
     }
 
-    public static class BookTranslationComponents implements ItemAnalysis.ItemValidation {
+    public static class BookComponentsValidation implements ItemAnalysis.ItemValidation {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             List<Object> pages = ItemReflection.getPages((BookMeta) item.getSpecificMeta());
+            if (pages == null) {
+                return false;
+            }
 
-            // TODO: use nbt instead
-            for (Object page : pages) {
-                if (NMS.getIChatBaseComponentClass().isAssignableFrom(page.getClass())) {
-                    JsonElement json = ItemReflection.chatComponentToJson(page);
-                    if (json.isJsonObject() && !json.getAsJsonObject().has("text")) {
-                        return true;
+            try {
+                for (Object page : pages) {
+                    if (NMS.getIChatBaseComponentClass().isAssignableFrom(page.getClass())) {
+                        JsonElement json = ItemReflection.chatComponentToJson(page);
+                        if (!json.getAsJsonObject().has("text")) {
+                            return true;
+                        }
+                        JsonElement siblings = json.getAsJsonObject().get("extra");
+                        for (JsonElement sibling : siblings.getAsJsonArray()) {
+                            if (!sibling.getAsJsonObject().has("text") || sibling.getAsJsonObject().get("siblings").getAsJsonArray().size() > 0) {
+                                return true;
+                            }
+                        }
                     }
                 }
+            } catch (Exception ex) {
+                // malformed json structure ?
+                return true;
             }
 
             return false;
         }
+
+
 
         @Override
         public ItemValidationFilterStrategy getFilter() {
