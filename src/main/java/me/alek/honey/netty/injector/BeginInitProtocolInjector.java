@@ -5,9 +5,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.Version;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.LibraryVersion;
+import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.NMS;
 
 import java.util.Map;
 
@@ -22,31 +22,31 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
 
         Version version = nettyArtifacts.getOrDefault("netty-common", nettyArtifacts.get("netty-all"));
         if (version != null) {
-
-            String stringVersion = version.artifactVersion();
-            stringVersion = stringVersion.replaceAll("[^\\d.]", "");
-
-            if (stringVersion.endsWith(".")) {
-                stringVersion = stringVersion.substring(0, stringVersion.length() - 1);
+            String strVer = version.artifactVersion()
+                    .replaceAll("[^\\d.]", "");
+            if (strVer.endsWith(".")) {
+                strVer = strVer.substring(0, strVer.length() - 1);
             }
-            return new LibraryVersion(stringVersion);
+            return new LibraryVersion(strVer);
         }
+
         return null;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (!(msg instanceof Channel) || NMS.isFakeChannel((Channel) msg)) return;
-
+        if (!(msg instanceof Channel) || NMS.isFakeChannel((Channel) msg)) {
+            return;
+        }
         Channel channel = (Channel) msg;
-        //Resolve netty version only once.
+
+        // resolve netty version
         if (NETTY_VERSION == null && !CHECKED_NETTY_VERSION) {
             NETTY_VERSION = resolveNettyVersion();
             CHECKED_NETTY_VERSION = true;
         }
 
         String channelInitName = HoneyPlugin.get().getPacketLibrary().getChannelInitName();
-
         // Depends on netty version, if we can't resolve that, we just check server version.
         if ((NETTY_VERSION != null && NETTY_VERSION.isNewerThan(MODERN_NETTY_VERSION))
                 || NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12)) {

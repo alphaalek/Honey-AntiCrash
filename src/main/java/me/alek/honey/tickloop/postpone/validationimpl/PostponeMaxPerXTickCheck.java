@@ -8,13 +8,13 @@ import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.PostponeTerminationException;
 import me.alek.honey.tracker.TimedNode;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.tracker.temp.NotSyncTempIntervalQueue;
+import me.alek.honey.tracker.temp.AsyncTempIntervalQueue;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 
 public class PostponeMaxPerXTickCheck implements PostponeValidation {
 
-    private final NotSyncTempIntervalQueue tickTracker = new NotSyncTempIntervalQueue(diff -> diff >= ConfigurationOptions.Postpone.MAX_PER_X_AMOUNT, false);
+    private final AsyncTempIntervalQueue tickTracker = new AsyncTempIntervalQueue(diff -> diff >= ConfigurationOptions.Postpone.MAX_PER_X_AMOUNT, false);
 
     @Override
     public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException {

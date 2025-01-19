@@ -3,10 +3,10 @@ package me.alek.honey.netty.codec;
 import com.google.common.collect.BiMap;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
-import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
@@ -86,7 +86,7 @@ public class LegacyProtocol extends WrappedObject<LegacyProtocol> {
                     .withInts().withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "getInt", 0, Object.class);
         } else {
             Object protocolMap = getProtocolInfo(handle, bound);
-            classToIdMap = ((BiMap<Integer, Class<? extends Object>>)protocolMap).inverse();
+            classToIdMap = ((BiMap<Integer, Class<? extends Object>>) protocolMap).inverse();
 
             getPacketIdModifier = (MethodInvoker<Integer>) (MethodInvoker<?>) ReflectStructure.Provider.acquireStructure(Map.class)
                     .withTarget(classToIdMap).getMethod(getPacketIdCachedInvoker, "get", 0, Object.class);

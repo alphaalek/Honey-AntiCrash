@@ -2,8 +2,8 @@ package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.tracker.Timespan;
-import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.util.TPSProvider;
+import me.alek.honey.util.statics.NumberUtils;
 
 public class ServerMonitorer implements ScheduledMonitorer {
 
@@ -19,12 +19,12 @@ public class ServerMonitorer implements ScheduledMonitorer {
 
     private String getPacketTaskPercentage(Timespan timespan) {
         return NumberUtils.format(
-                (((double)HoneyPlugin.get().getExecutionQueueProxy().getTotal(timespan, true)) / timespan.getNanoTimespan()) * 100, 1) + "%";
+                (((double) HoneyPlugin.get().getExecutionQueueProxy().getTotal(timespan, true)) / timespan.getNanoTimespan()) * 100, 1) + "%";
     }
 
     private double getPacketRatePerQueueExecution(Timespan timespan) {
         double rate = NumberUtils.format(
-                HoneyPlugin.get().getLogger().getPacketRatePerQueueExecution(timespan),1);
+                HoneyPlugin.get().getLogger().getPacketRatePerQueueExecution(timespan), 1);
 
         return Double.isNaN(rate) ? 0 : rate;
     }

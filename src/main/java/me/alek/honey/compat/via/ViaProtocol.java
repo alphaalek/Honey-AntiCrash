@@ -227,10 +227,14 @@ public enum ViaProtocol {
 
             public static boolean match(Target target) {
                 switch (target) {
-                    case BOTH: return true;
-                    case LEGACY: return LegacyHolder.LEGACY;
-                    case MODERN: return !LegacyHolder.LEGACY;
-                    default: throw new IllegalArgumentException("Invalid target");
+                    case BOTH:
+                        return true;
+                    case LEGACY:
+                        return LegacyHolder.LEGACY;
+                    case MODERN:
+                        return !LegacyHolder.LEGACY;
+                    default:
+                        throw new IllegalArgumentException("Invalid target");
                 }
             }
         }

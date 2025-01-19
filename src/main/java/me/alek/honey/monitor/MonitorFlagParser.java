@@ -214,22 +214,18 @@ public class MonitorFlagParser {
             }
             if (elem.equals(LogicalOperator.NOT)) {
                 conditions.addCondition(new FlagRunner.Condition(IDRegistry.from(chipstateIndex), flags, LogicalOperator.NOT));
-            }
-            else if (elem.equals(LogicalOperator.AND)) {
+            } else if (elem.equals(LogicalOperator.AND)) {
                 conditions.addCondition(new FlagRunner.Condition(IDRegistry.from(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.AND));
-            }
-            else if (elem.equals(LogicalOperator.OR)) {
+            } else if (elem.equals(LogicalOperator.OR)) {
                 conditions.addCondition(new FlagRunner.Condition(IDRegistry.from(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.OR));
-            }
-            else if (elem.equals(LogicalOperator.PARANTHESIS_START)) {
+            } else if (elem.equals(LogicalOperator.PARANTHESIS_START)) {
                 Array<Object> in = getElementsInParanthesis(elements.from(i));
                 i += in.size();
 
                 chipstateIndex++;
                 FlagRunner.Conditions newChipstateConditions = new FlagRunner.Conditions();
                 flags.add(new FlagRunner.Env(getFlagsWithin(in, newChipstateConditions), newChipstateConditions));
-            }
-            else if (elem.equals(LogicalOperator.PARANTHESIS_END)) {
+            } else if (elem.equals(LogicalOperator.PARANTHESIS_END)) {
                 return flags;
             }
         }
@@ -266,8 +262,7 @@ public class MonitorFlagParser {
         Array<Object> array = Array.from(next);
         if (next.equals(LogicalOperator.NOT)) {
             array.add(getElementsInNextChipstate(elements, 1));
-        }
-        else if (next.equals(LogicalOperator.PARANTHESIS_START)) {
+        } else if (next.equals(LogicalOperator.PARANTHESIS_START)) {
             for (int i = 1; i < remaining.size(); i++) {
                 Object element = remaining.get(i);
                 array.add(element);

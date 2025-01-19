@@ -2,12 +2,12 @@ package me.alek.honey;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.impl.play.server.WrappedPlayOutChat;
+import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.tracker.TimedManualHandleTracker;
 import me.alek.honey.tracker.Timespan;
@@ -181,7 +181,7 @@ public class Notifications {
         observerMap.remove(observer);
 
         if (observer instanceof Player) {
-            cancelledPackets.remove(((Player)observer).getUniqueId());
+            cancelledPackets.remove(((Player) observer).getUniqueId());
         }
     }
 
@@ -199,19 +199,19 @@ public class Notifications {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             IStructureModifier<Integer> craftPlayerModifier =
                     ReflectStructure.Provider.acquireStructure(NMS.getCraftPlayerClass())
-                    .withInts().withTarget(player.bukkit);
+                            .withInts().withTarget(player.bukkit);
 
             return craftPlayerModifier.invokeMethod(null, "getPing", 0);
         }
         IStructureModifier<Object> craftPlayerModifier =
                 ReflectStructure.Provider.acquireStructure(NMS.getCraftPlayerClass())
-                .withType(NMS.getEntityPlayerClass()).withTarget(player.bukkit);
+                        .withType(NMS.getEntityPlayerClass()).withTarget(player.bukkit);
 
         Object entityPlayer = craftPlayerModifier.invokeMethod(null, "getHandle", 0);
 
         IStructureModifier<Integer> entityPlayerModifier =
                 ReflectStructure.Provider.acquireStructure(entityPlayer.getClass())
-                .withInts().withTarget(entityPlayer);
+                        .withInts().withTarget(entityPlayer);
 
         return entityPlayerModifier.readField(null, "ping", 0);
     }

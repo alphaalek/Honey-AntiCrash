@@ -10,9 +10,9 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.util.Callback;
 
 import java.lang.reflect.Method;

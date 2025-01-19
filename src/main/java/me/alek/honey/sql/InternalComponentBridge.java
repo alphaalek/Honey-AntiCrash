@@ -1,12 +1,12 @@
 package me.alek.honey.sql;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.sql.exceptions.SQLFactoryException;
 import me.alek.honey.sql.exceptions.SQLPlayerNotFoundException;
 import me.alek.honey.sql.model.PlayerEntry;
 import me.alek.honey.sql.model.ViolationEntry;
+import me.alek.honey.validation.ValidationPipelineContext;
 
 import java.util.List;
 

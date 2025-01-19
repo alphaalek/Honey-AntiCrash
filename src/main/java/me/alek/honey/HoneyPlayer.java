@@ -2,8 +2,8 @@ package me.alek.honey;
 
 import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
@@ -64,13 +64,13 @@ public class HoneyPlayer implements Identifiable {
 
     public EnhancedInitialIterator<PostponeValidation, LinkedList<PostponeValidation>> postponedChecks = new EnhancedInitialIterator<>(
             new LinkedList<>(
-                Arrays.asList(
-                        new PostponeRateIgnoreTerminator(),
-                        new PostponeRateCheck(),
-                        new PostponeRateAccelCheck(),
-                        new PostponeRateAccelQuotientCheck(),
-                        new PostponeMaxPerXTickCheck()
-                )
+                    Arrays.asList(
+                            new PostponeRateIgnoreTerminator(),
+                            new PostponeRateCheck(),
+                            new PostponeRateAccelCheck(),
+                            new PostponeRateAccelQuotientCheck(),
+                            new PostponeMaxPerXTickCheck()
+                    )
             ),
             Queue::peek
     );

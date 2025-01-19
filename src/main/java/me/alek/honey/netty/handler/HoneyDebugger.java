@@ -25,7 +25,7 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
         this.player = player;
     }
 
-    public HoneyPlayer getPlayer(){
+    public HoneyPlayer getPlayer() {
         return player;
     }
 

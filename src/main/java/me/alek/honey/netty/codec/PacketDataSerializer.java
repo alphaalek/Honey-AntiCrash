@@ -6,16 +6,11 @@ import io.netty.buffer.ByteBufProcessor;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.ItemReflection;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
 import java.io.InputStream;

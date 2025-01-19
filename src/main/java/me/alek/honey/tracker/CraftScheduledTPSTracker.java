@@ -48,7 +48,7 @@ public class CraftScheduledTPSTracker extends TempIntervalTracker {
 
         new Thread(() -> {
             expectedTick.set(System.currentTimeMillis());
-            for (;;) {
+            for (; ; ) {
                 if (SparkTPSProvider.SparkValidator.VALIDATOR.find().get()) {
                     bukkitRunnable.cancel();
                     break;

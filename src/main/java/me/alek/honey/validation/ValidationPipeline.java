@@ -3,10 +3,10 @@ package me.alek.honey.validation;
 import me.alek.honey.HoneyKey;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.validation.types.*;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.util.Callback;
+import me.alek.honey.validation.types.HoneyValidation;
 
 import java.util.Arrays;
 import java.util.LinkedList;

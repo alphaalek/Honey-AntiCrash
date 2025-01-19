@@ -108,11 +108,11 @@ public abstract class AbstractArrayTag<T extends AbstractTag<?, ?, T>, TAG exten
     }
 
 
-    public GeneticArrayTypes.ArrayOfArrayTag asArrayOfArray() {
+    public <T extends AbstractTag<?, ?, T>> GeneticArrayTypes.ArrayOfArrayTag<T> asArrayOfArray() {
         if (typeOf.getCollection() != TagType.Collection.ARRAY) {
             return null;
         }
-        return (GeneticArrayTypes.ArrayOfArrayTag) this;
+        return (GeneticArrayTypes.ArrayOfArrayTag<T>) this;
     }
 
     public GeneticArrayTypes.ArrayOfCompoundTag asArrayOfCompound() {

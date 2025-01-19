@@ -16,7 +16,6 @@ import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.util.Optional;
 
@@ -204,13 +203,13 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public void releaseIfAutoReleasable() {
         if (this.initialByteWrapped instanceof AutoReleasable) {
-            ((AutoReleasable)this.initialByteWrapped).release();
+            ((AutoReleasable) this.initialByteWrapped).release();
         }
         if (this.finalByteWrapped instanceof AutoReleasable) {
-            ((AutoReleasable)this.finalByteWrapped).release();
+            ((AutoReleasable) this.finalByteWrapped).release();
         }
         if (this.objectWrapped instanceof AutoReleasable) {
-            ((AutoReleasable)this.objectWrapped).release();
+            ((AutoReleasable) this.objectWrapped).release();
         }
     }
 
@@ -265,7 +264,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     public String getPlayerName() {
         // if this is called before LOGIN_START post action, the player name is not yet updated
         if (this.type == PacketTypes.Login.Client.HELLO) {
-            return ((WrappedLoginInLoginStart)getAnyWrapped()).getName();
+            return ((WrappedLoginInLoginStart) getAnyWrapped()).getName();
         }
 
         return this.player.packetHandler.getPlayerName();

@@ -3,9 +3,8 @@ package me.alek.honey;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
-import me.alek.honey.netty.processor.ListenerPriority;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -13,6 +12,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.counter.DecayingWindowCounter;
@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 
 public class HoneyLogger {
 
-    public static Map<Class<?>, Class<?>> BOXED = new HashMap<Class<?>, Class<?>>(){{
+    public static Map<Class<?>, Class<?>> BOXED = new HashMap<Class<?>, Class<?>>() {{
         put(Integer.class, int.class);
         put(Float.class, float.class);
         put(Short.class, short.class);
@@ -154,7 +154,7 @@ public class HoneyLogger {
     }
 
     public String getPacketRateGrade(int rate, int prevRate) {
-        double grade = ((double)rate) / (((double)prevRate) / 8);
+        double grade = ((double) rate) / (((double) prevRate) / 8);
         if (prevRate == 0) grade = 1;
 
         if (grade > 1.025) return "§a+" + NumberUtils.format(Math.abs(1 - grade) * 100) + "%";
@@ -173,7 +173,7 @@ public class HoneyLogger {
             return 0;
         }
 
-        return ((double)packetRatePerQueueExecution.getTotal(timespan)) / length;
+        return ((double) packetRatePerQueueExecution.getTotal(timespan)) / length;
     }
 
     public void registerQueueExecutionPacket() {
@@ -220,10 +220,10 @@ public class HoneyLogger {
 
         getLogger().info(
                 "Auto dump for packet sent by "
-                + packet.getPlayerName() + ": "
-                + formatPacketType(packet.getType())
-                + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(LifecycleState.SERVER_HANDLE) + "ms) "
-                + filterTooMuchData(formatPacketEntries(packet)));
+                        + packet.getPlayerName() + ": "
+                        + formatPacketType(packet.getType())
+                        + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(LifecycleState.SERVER_HANDLE) + "ms) "
+                        + filterTooMuchData(formatPacketEntries(packet)));
     }
 
     public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packet, String playerName) {
@@ -299,7 +299,7 @@ public class HoneyLogger {
 
         StringBuilder sb = new StringBuilder();
         sb.append('{');
-        for (;;) {
+        for (; ; ) {
             Map.Entry<String, Object> e = i.next();
             sb.append(e.getKey())
                     .append("=");

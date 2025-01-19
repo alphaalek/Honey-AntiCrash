@@ -2,7 +2,6 @@ package me.alek.honey.netty.injector;
 
 import io.netty.channel.Channel;
 import me.alek.honey.util.Provider;
-import org.bukkit.Bukkit;
 
 import java.util.function.Consumer;
 

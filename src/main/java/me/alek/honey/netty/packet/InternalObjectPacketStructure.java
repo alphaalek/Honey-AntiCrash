@@ -1,10 +1,10 @@
 package me.alek.honey.netty.packet;
 
-import me.alek.honey.netty.structure.IStructureModifier;
-import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
+import me.alek.honey.netty.structure.IStructureModifier;
+import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;

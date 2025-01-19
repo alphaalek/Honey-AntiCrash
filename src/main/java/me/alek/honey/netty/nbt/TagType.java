@@ -251,7 +251,6 @@ public enum TagType {
             TagFactory factory;
             try {
                 factory = new TagFactory() {
-
                     final ConstructorInvoker<?> constructor = Reflection.getConstructor(delegateClass);
 
                     @Override

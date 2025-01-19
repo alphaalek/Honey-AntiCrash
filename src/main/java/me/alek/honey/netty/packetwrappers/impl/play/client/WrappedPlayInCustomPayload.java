@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
@@ -13,6 +12,7 @@ import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.netty.nbt.PrimitiveTag;
 import me.alek.honey.netty.nbt.TagType;
 import me.alek.honey.netty.nbt.array.ArrayTag;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
@@ -178,7 +178,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
                         for (PrimitiveTag<String> page : pages) {
                             JsonElement element = JSON_PARSER.parse(page.getValue());
                             if (element.isJsonObject()) {
-                                page.setValue(((JsonObject)element).get("text").getAsString());
+                                page.setValue(((JsonObject) element).get("text").getAsString());
                             } else {
                                 page.setValue(element.getAsString());
                             }

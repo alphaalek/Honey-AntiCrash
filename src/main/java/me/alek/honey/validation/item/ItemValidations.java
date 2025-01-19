@@ -6,8 +6,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.modelwrappers.WrappedRenderData;
 import me.alek.honey.netty.nbt.CompoundTag;
-import me.alek.honey.netty.nbt.PrimitiveTag;
 import me.alek.honey.netty.nbt.NBTFactory;
+import me.alek.honey.netty.nbt.PrimitiveTag;
 import me.alek.honey.netty.nbt.TagType;
 import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -203,7 +203,6 @@ public class ItemValidations {
 
             return false;
         }
-
 
 
         @Override
@@ -439,11 +438,11 @@ public class ItemValidations {
                             .replace("\"", "")
                             .toLowerCase();
 
-                    final Matcher matcher = URL_PATTERN.matcher(formatted);
+                    Matcher matcher = URL_PATTERN.matcher(formatted);
                     if (!matcher.find()) {
                         return true;
                     }
-                    final String url = formatted.substring(matcher.end() + 1).split("\n")[0];
+                    String url = formatted.substring(matcher.end() + 1).split("\n")[0];
                     if (!url.startsWith("http://textures.minecraft.net") && !url.startsWith("https://textures.minecraft.net")) {
                         return true;
                     }

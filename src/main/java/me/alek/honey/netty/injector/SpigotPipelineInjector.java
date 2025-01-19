@@ -117,12 +117,12 @@ public class SpigotPipelineInjector {
 
             if (
                 // inject filter after decompress
-                channel.pipeline().get(MinecraftHandlers.DECOMPRESS) != null
-                        && handlers.indexOf(MinecraftHandlers.DECOMPRESS) > handlers.indexOf(HoneyPlugin.get().getPacketLibrary().getFilterName())
-                ||
-                // inject filter before ViaVersion
-                channel.pipeline().get(ViaHandlers.DECODER) != null
-                        && handlers.indexOf(ViaHandlers.DECODER) < handlers.indexOf(HoneyPlugin.get().getPacketLibrary().getFilterName())
+                    channel.pipeline().get(MinecraftHandlers.DECOMPRESS) != null
+                            && handlers.indexOf(MinecraftHandlers.DECOMPRESS) > handlers.indexOf(HoneyPlugin.get().getPacketLibrary().getFilterName())
+                            ||
+                            // inject filter before ViaVersion
+                            channel.pipeline().get(ViaHandlers.DECODER) != null
+                                    && handlers.indexOf(ViaHandlers.DECODER) < handlers.indexOf(HoneyPlugin.get().getPacketLibrary().getFilterName())
             ) {
                 InboundPacketFilter filter = HoneyPlugin.get().getPacketLibrary().getPacketManager().getFilter(channel);
 

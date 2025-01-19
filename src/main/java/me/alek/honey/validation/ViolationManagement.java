@@ -22,7 +22,9 @@ public class ViolationManagement {
 
     private static ViolationManagement INSTANCE;
 
-    public ViolationManagement() { INSTANCE = this; }
+    public ViolationManagement() {
+        INSTANCE = this;
+    }
 
     public void reload() {
         // loop through all the players and update their packet limit handlers
@@ -162,7 +164,7 @@ public class ViolationManagement {
 
         public Map<HoneyKey, AbstractPacketLimitHandler> generateMap(HoneyPlayer player) {
             if (setting.keyedAnnotation == null || setting.keyedAnnotation.amount() <= 0) {
-                return new HashMap<HoneyKey, AbstractPacketLimitHandler>(){{
+                return new HashMap<HoneyKey, AbstractPacketLimitHandler>() {{
                     put(HoneyKey.of(limitsKey.getRegistryId()), generateHandler(player));
                 }};
             }
@@ -205,9 +207,9 @@ public class ViolationManagement {
             }
 
             return Arrays.stream(
-                    packetLimitHandlerDelegateLookup
-                            .compact()
-                            .getHandle(AbstractPacketLimitHandler[]::new))
+                            packetLimitHandlerDelegateLookup
+                                    .compact()
+                                    .getHandle(AbstractPacketLimitHandler[]::new))
                     .findAny()
                     .orElse(null);
         }
@@ -352,7 +354,7 @@ public class ViolationManagement {
             developmentData.addHeader("Settings", (handlerType == PacketLimitHandlerType.SIMPLE ? null : setting.getPacketLimitHandlerType().name().toLowerCase().replace("_", " ")));
 
             for (Map.Entry<String, Object> valueEntry : setting.getValues()) {
-                 developmentData.addLine(valueEntry.getKey() + ": " +valueEntry.getValue());
+                developmentData.addLine(valueEntry.getKey() + ": " + valueEntry.getValue());
             }
         }
 
@@ -606,7 +608,7 @@ public class ViolationManagement {
         @Override
         public String format() {
             return "§7flags: §e" + flaggedCopy + "§7/§e" + getSetting().maxPerInterval + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls, §e"
-                    + (getSetting().interval < 1000 ? getSetting().interval + "§7ms" : ((double)getSetting().interval)/1000 + "§7s");
+                    + (getSetting().interval < 1000 ? getSetting().interval + "§7ms" : ((double) getSetting().interval) / 1000 + "§7s");
         }
 
         private synchronized void clearInterval() {

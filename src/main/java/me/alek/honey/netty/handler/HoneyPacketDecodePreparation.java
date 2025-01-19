@@ -8,11 +8,11 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
+import me.alek.honey.netty.packet.LifecycleState;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -77,14 +77,14 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
 
         if (this.player.isBukkitReady()) {
             HoneyPlugin.get().getNettyPacketTracker().registerTime(player,
-                      packet.getEventloopStateTimings().getTimeFor(LifecycleState.HONEY_HANDLE)
-                    + packet.getEventloopStateTimings().getTimeFor(LifecycleState.IN_BETWEEN)
-                    + packet.getEventloopStateTimings().getTimeFor(LifecycleState.DECODE)
+                    packet.getEventloopStateTimings().getTimeFor(LifecycleState.HONEY_HANDLE)
+                            + packet.getEventloopStateTimings().getTimeFor(LifecycleState.IN_BETWEEN)
+                            + packet.getEventloopStateTimings().getTimeFor(LifecycleState.DECODE)
             );
         }
     }
 
-    private void invokeRead(PacketContainer<? extends WrappedPacket<?>> earlyPacketContainer, ChannelHandlerContext ctx, ByteBuf buf, List<Object> list)  {
+    private void invokeRead(PacketContainer<? extends WrappedPacket<?>> earlyPacketContainer, ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
         if (!buf.isReadable()) {
             return;
         }

@@ -62,11 +62,11 @@ public class PacketExecutors {
 
             Runnable edit = handleBookChannel(packet, item);
             return Optional.ofNullable(edit)
-                .map(r -> (Runnable) () -> {
-                    packet.getAnyWrapped().release();
-                    r.run();
-                })
-                .orElse(null);
+                    .map(r -> (Runnable) () -> {
+                        packet.getAnyWrapped().release();
+                        r.run();
+                    })
+                    .orElse(null);
         }
 
         private Runnable handleBookEdit(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {

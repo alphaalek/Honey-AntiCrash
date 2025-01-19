@@ -42,7 +42,7 @@ public class BukkitEventInternal implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLoginDisallow(PlayerLoginEvent event) {
-        if(!event.getResult().equals(PlayerLoginEvent.Result.ALLOWED)) {
+        if (!event.getResult().equals(PlayerLoginEvent.Result.ALLOWED)) {
             unregister(event.getPlayer());
         }
     }

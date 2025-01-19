@@ -2,11 +2,11 @@ package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;

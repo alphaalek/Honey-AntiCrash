@@ -165,11 +165,16 @@ public class ItemAnalysis {
 
     private static boolean checkFilter(ItemValidation validation, WrappedImmutableItemStack item) {
         switch (validation.getFilter()) {
-            case ALL: return true;
-            case WITH_NBT: return item.hasNBT();
-            case WITH_META: return item.hasDefaultItemMeta();
-            case WITH_SPECIFIC_META: return item.hasSpecificItemMeta();
-            default: throw new IllegalArgumentException();
+            case ALL:
+                return true;
+            case WITH_NBT:
+                return item.hasNBT();
+            case WITH_META:
+                return item.hasDefaultItemMeta();
+            case WITH_SPECIFIC_META:
+                return item.hasSpecificItemMeta();
+            default:
+                throw new IllegalArgumentException();
         }
     }
 

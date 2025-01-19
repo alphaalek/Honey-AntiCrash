@@ -2,12 +2,12 @@ package me.alek.honey.validation;
 
 import me.alek.honey.HoneyKey;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.validation.types.HoneyValidation;
-import me.alek.honey.validation.types.KeyedViolationValidation;
-import me.alek.honey.validation.types.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
+import me.alek.honey.validation.types.HoneyValidation;
+import me.alek.honey.validation.types.KeyedViolationValidation;
+import me.alek.honey.validation.types.ViolationValidation;
 
 public class Settings {
 

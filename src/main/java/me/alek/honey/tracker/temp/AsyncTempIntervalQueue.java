@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.function.Predicate;
 
-public class NotSyncTempIntervalQueue {
+public class AsyncTempIntervalQueue {
 
     private final Queue<Long> FIXED = new LinkedList<>();
     private final Deque<TimedNode<Long>> TIMED = new LinkedList<>();
@@ -19,11 +19,11 @@ public class NotSyncTempIntervalQueue {
     private boolean collected;
     private long total;
 
-    public NotSyncTempIntervalQueue(Timespan timespan, boolean isFixed) {
+    public AsyncTempIntervalQueue(Timespan timespan, boolean isFixed) {
         this(diff -> diff > timespan.getNanoTimespan(), isFixed);
     }
 
-    public NotSyncTempIntervalQueue(Predicate<Long> exceeds, boolean isFixed) {
+    public AsyncTempIntervalQueue(Predicate<Long> exceeds, boolean isFixed) {
         this.exceeds = exceeds;
         this.isFixed = isFixed;
     }

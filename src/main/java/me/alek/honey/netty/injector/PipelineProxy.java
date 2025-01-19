@@ -2,7 +2,6 @@ package me.alek.honey.netty.injector;
 
 import io.netty.channel.*;
 import io.netty.util.concurrent.EventExecutorGroup;
-import me.alek.honey.HoneyPlugin;
 
 import java.net.SocketAddress;
 import java.util.Iterator;

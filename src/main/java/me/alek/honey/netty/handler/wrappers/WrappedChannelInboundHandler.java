@@ -8,7 +8,7 @@ public class WrappedChannelInboundHandler implements ChannelInboundHandler {
     private final ChannelInboundHandler handler;
 
     public WrappedChannelInboundHandler(ChannelInboundHandler delegate) {
-        this.handler= delegate;
+        this.handler = delegate;
     }
 
     public ChannelInboundHandler getDelegate() {

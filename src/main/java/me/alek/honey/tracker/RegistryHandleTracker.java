@@ -1,8 +1,8 @@
 package me.alek.honey.tracker;
 
 import com.google.common.collect.Sets;
-import me.alek.honey.util.Identifiable;
 import me.alek.honey.util.Array;
+import me.alek.honey.util.Identifiable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -76,7 +76,7 @@ public class RegistryHandleTracker<T extends Identifiable> implements KeyedHandl
 
     @Override
     public double getAverageTimePerToAverageQuotient(T key) {
-        return getAverageTimePer(key) / (((double)totalTime) / totalIndex);
+        return getAverageTimePer(key) / (((double) totalTime) / totalIndex);
     }
 
     public long getHandleTime(T key) {

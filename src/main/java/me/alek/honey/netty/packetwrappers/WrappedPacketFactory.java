@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packetwrappers;
 
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.packet.PacketContainer;
 
 import java.util.function.BiFunction;
 

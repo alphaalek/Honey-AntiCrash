@@ -17,10 +17,10 @@ import me.alek.honey.listeners.TeleportListener;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
-import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.session.NoSessionEncryption;
 import me.alek.honey.session.Session;
@@ -129,12 +129,13 @@ public class HoneyPlugin implements HoneyAPI {
     private void registerFailedHoneyLoadEvents() {
         HandlerList handlerList = PlayerJoinEvent.getHandlerList();
         Plugin fakePlugin = new DummyPlugin();
-        handlerList.register(new RegisteredListener(new Listener() {}, (listener, event) -> {
+        handlerList.register(new RegisteredListener(new Listener() {
+        }, (listener, event) -> {
             if (!(event instanceof PlayerJoinEvent)) {
                 return;
             }
 
-            Player player = ((PlayerJoinEvent)event).getPlayer();
+            Player player = ((PlayerJoinEvent) event).getPlayer();
             if (player.isOp()) {
                 player.sendMessage(Lang.get("failed.load.session.error"));
             }
@@ -285,7 +286,7 @@ public class HoneyPlugin implements HoneyAPI {
 
         // setup commands
         this.commandManager = new CommandManager(plugin);
-        ((JavaPlugin)this.plugin).getCommand("asyncdecoderdebug").setExecutor(new DebugCommand());
+        ((JavaPlugin) this.plugin).getCommand("asyncdecoderdebug").setExecutor(new DebugCommand());
 
         // setup metrics
         new Metrics(this.plugin, 19028);
@@ -464,7 +465,7 @@ public class HoneyPlugin implements HoneyAPI {
         return this.latestVersion;
     }
 
-    public boolean isUsingOldVersion(){
+    public boolean isUsingOldVersion() {
         return this.isUsingOldVersion;
     }
 

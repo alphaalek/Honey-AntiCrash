@@ -1,8 +1,8 @@
 package me.alek.honey.netty.packetwrappers;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 
 import java.util.Map;

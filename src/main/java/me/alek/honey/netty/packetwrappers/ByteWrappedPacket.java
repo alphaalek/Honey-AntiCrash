@@ -1,8 +1,8 @@
 package me.alek.honey.netty.packetwrappers;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.protocol.NetProtocolRange;
@@ -89,13 +89,11 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
     public Map<String, Object> getProperties() {
         if (getClass() != ByteWrappedPacket.class) {
             Map<String, Object> properties = new HashMap<>();
-
             for (Field field : getClass().getDeclaredFields()) {
-
                 if (field.isAnnotationPresent(Property.class)) {
                     Property property = field.getAnnotation(Property.class);
-                    if (NetProtocolRange.matchProtocol(getContainer().getProtocolByPacketState(), property.to(), property.from())) {
 
+                    if (NetProtocolRange.matchProtocol(getContainer().getProtocolByPacketState(), property.to(), property.from())) {
                         Object val;
                         if (field.isAnnotationPresent(Property.Unlock.class)) {
                             String methodSupplierName = field.getAnnotation(Property.Unlock.class).methodSupplier();
@@ -108,7 +106,6 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
                     }
                 }
             }
-
             return properties;
         }
 

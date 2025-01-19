@@ -1,20 +1,16 @@
 package me.alek.honey.netty;
 
-import me.alek.honey.netty.processor.ListenerPriority;
-import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.injector.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.SpigotServerInjector;
-import me.alek.honey.netty.packet.PacketListenerAdapter;
-import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
-import me.alek.honey.netty.packet.PostActions;
-import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packet.*;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.InternalPacketProcessor;
-import me.alek.honey.netty.processor.TypeProcessors;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.processor.ListenerPriority;
+import me.alek.honey.netty.processor.PacketProcessor;
+import me.alek.honey.netty.processor.TypeProcessors;
 import org.bukkit.Bukkit;
 
 import java.util.Arrays;
@@ -33,7 +29,9 @@ public class PacketLibrary {
     private static PacketLibrary INSTANCE;
 
     public static PacketLibrary set(PacketLibrarySettings settings) {
-        if (INSTANCE != null) return INSTANCE;
+        if (INSTANCE != null) {
+            return INSTANCE;
+        }
 
         return new PacketLibrary(settings);
     }
@@ -50,17 +48,16 @@ public class PacketLibrary {
         PacketTypes.load();
         WrappedPacketFactoryCollection.loadWrappers();
 
-        packetProcessor = new InternalPacketProcessor();
-        packetManager = new ServerPacketManager();
+        this.packetProcessor = new InternalPacketProcessor();
+        this.packetManager = new ServerPacketManager();
 
-        pipelineInjector = new SpigotPipelineInjector();
-
-        serverInjector = new SpigotServerInjector();
+        this.pipelineInjector = new SpigotPipelineInjector();
+        this.serverInjector = new SpigotServerInjector();
         if (serverInjector.isServerBound()) {
-            serverInjector.inject();
+            this.serverInjector.inject();
         } else {
             // late bind, so we inject a bit later
-            Bukkit.getScheduler().scheduleSyncDelayedTask(settings.getPlugin(), serverInjector::inject);
+            Bukkit.getScheduler().scheduleSyncDelayedTask(settings.getPlugin(), this.serverInjector::inject);
         }
 
         PostActions.setup();
@@ -69,51 +66,51 @@ public class PacketLibrary {
     }
 
     public SpigotServerInjector getServerInjector() {
-        return serverInjector;
+        return this.serverInjector;
     }
 
     public SpigotPipelineInjector getPipelineInjector() {
-        return pipelineInjector;
+        return this.pipelineInjector;
     }
 
     public ServerPacketManager getPacketManager() {
-        return packetManager;
+        return this.packetManager;
     }
 
     public String getFilterName() {
-        return settings.getFilterName();
+        return this.settings.getFilterName();
     }
 
     public String getConnectorName() {
-        return settings.getConnectorName();
+        return this.settings.getConnectorName();
     }
 
     public String getChannelInitName() {
-        return settings.getChannelInitName();
+        return this.settings.getChannelInitName();
     }
 
     public String getDecoderName() {
-        return settings.getDecoderName();
+        return this.settings.getDecoderName();
     }
 
     public String getEncoderName() {
-        return settings.getEncoderName();
+        return this.settings.getEncoderName();
     }
 
     public String getDebuggerName() {
-        return settings.getDebuggerName();
+        return this.settings.getDebuggerName();
     }
 
     public PacketLibrarySettings getSettings() {
-        return settings;
+        return this.settings;
     }
 
     public PacketProcessor getPacketProcessor() {
-        return packetProcessor;
+        return this.packetProcessor;
     }
 
     public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
-        packetProcessor.addListener(listener, state, priority, types);
+        this.packetProcessor.addListener(listener, state, priority, types);
     }
 
     public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, PacketType... types) {
@@ -125,19 +122,19 @@ public class PacketLibrary {
     }
 
     public <WP extends WrappedPacket<WP>> void removeListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, List<PacketType> types) {
-        packetProcessor.removeListener(listener, state, types);
+        this.packetProcessor.removeListener(listener, state, types);
     }
 
     public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {
-        return packetProcessor.isRegistered(listener, state);
+        return this.packetProcessor.isRegistered(listener, state);
     }
 
     public boolean isEnabled() {
-        return enabled;
+        return this.enabled;
     }
 
     public void disable() {
-        enabled = false;
-        serverInjector.eject();
+        this.enabled = false;
+        this.serverInjector.eject();
     }
 }

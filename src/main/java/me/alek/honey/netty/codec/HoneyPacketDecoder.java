@@ -55,13 +55,13 @@ public class HoneyPacketDecoder {
                                 + HoneyPlugin.get().getLogger().formatPacketType(PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketTypes.UNKNOWN)) + ", "
                                 + state + " (" + NetProtocol.getProtocol().getName() + "): "
                                 + HoneyPlugin.get().getLogger().filterTooMuchData(
-                                        HoneyPlugin.get().getLogger().formatPacketEntries(
-                                                ReflectStructure.Provider.acquireStructure(packet.getClass())
+                                HoneyPlugin.get().getLogger().formatPacketEntries(
+                                        ReflectStructure.Provider.acquireStructure(packet.getClass())
                                                 .withStatic(false)
                                                 .withTarget(packet)
                                                 .readFieldEntries()
-                                        )
                                 )
+                        )
                 );
             }
         } catch (CodecException ex) {

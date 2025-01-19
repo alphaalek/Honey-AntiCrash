@@ -1,6 +1,5 @@
 package me.alek.honey.netty;
 
-import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.plugin.Plugin;
 
 public class PacketLibrarySettings {
@@ -43,7 +42,7 @@ public class PacketLibrarySettings {
         return channelInitName;
     }
 
-    public String getDecoderName(){
+    public String getDecoderName() {
         return decoderName;
     }
 
