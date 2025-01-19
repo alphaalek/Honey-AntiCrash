@@ -3,8 +3,8 @@ package me.alek.honey;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.monitor.MonitorSendAt;
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.processor.ListenerPriority;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
@@ -56,9 +56,6 @@ public class HoneyLogger {
             @Override
             public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
                 if (monitorManager.hasMonitorers()) {
-                    // notify monitor observers
-                    logToMonitors(player, packet);
-
                     if (player.isBukkitReady()) {
                         long time = System.currentTimeMillis();
                         // register to packet rate
@@ -68,6 +65,9 @@ public class HoneyLogger {
                         }
                         totalPacketRate.count(time);
                     }
+
+                    // notify monitor observers
+                    logToMonitors(player, packet);
                 }
 
                 // log the packet
@@ -221,7 +221,7 @@ public class HoneyLogger {
         getLogger().info(
                 "Auto dump for packet sent by "
                 + packet.getPlayerName() + ": "
-                + packet.getType()
+                + formatPacketType(packet.getType())
                 + " (" + packet.getEventloopStateTimings().getTimeForMillisFormatted(LifecycleState.SERVER_HANDLE) + "ms) "
                 + filterTooMuchData(formatPacketEntries(packet)));
     }
@@ -240,7 +240,7 @@ public class HoneyLogger {
         if (comparingTime > packet.getTimeCreated()) {
             message.append("(" + (comparingTime - packet.getTimeCreated()) + "ms ago): ");
         }
-        message.append(playerName + " sent " + packet.getType());
+        message.append(playerName + " sent " + formatPacketType(packet.getType()));
 
         if (detailed && !PacketTypes.isUnknown(packet.getType())) {
             message.append(": " + filterTooMuchData(formatPacketEntries(packet)));
@@ -277,6 +277,10 @@ public class HoneyLogger {
         }
 
         return entries;
+    }
+
+    public String formatPacketType(PacketType type) {
+        return type.toString() + (ConfigurationOptions.PacketLogger.EARLY ? "<" + type.getState().toString().toLowerCase() + ">" : "");
     }
 
     public String formatPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {

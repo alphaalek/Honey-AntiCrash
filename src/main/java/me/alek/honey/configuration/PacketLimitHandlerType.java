@@ -10,57 +10,57 @@ public enum PacketLimitHandlerType {
     CHIPSTATE_THROTTLE(Collections.emptySet()),
 
     TRIGGER_THROTTLE(Sets.newHashSet(
-            ConfigurationOptions.VlSettingImplType.THROTTLE_AFTER,
-            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+            ConfigurationOptions.ViolationSettingType.THROTTLE_AFTER,
+            ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
     )),
 
     INTERVAL(Sets.newHashSet(
-            ConfigurationOptions.VlSettingImplType.INTERVAL,
-            ConfigurationOptions.VlSettingImplType.MAX_PER_INTERVAL,
-            ConfigurationOptions.VlSettingImplType.CLEAR_INTERVAL,
-            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+            ConfigurationOptions.ViolationSettingType.INTERVAL,
+            ConfigurationOptions.ViolationSettingType.MAX_PER_INTERVAL,
+            ConfigurationOptions.ViolationSettingType.CLEAR_INTERVAL,
+            ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
     )),
 
     INTERVAL_THROTTLE(Sets.newHashSet(
-            ConfigurationOptions.VlSettingImplType.INTERVAL,
-            ConfigurationOptions.VlSettingImplType.THRESHOLD,
-            ConfigurationOptions.VlSettingImplType.UNTIL,
-            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+            ConfigurationOptions.ViolationSettingType.INTERVAL,
+            ConfigurationOptions.ViolationSettingType.THRESHOLD,
+            ConfigurationOptions.ViolationSettingType.UNTIL,
+            ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
     )),
 
     SINGLE_OVERFLOW(Sets.newHashSet(
-            ConfigurationOptions.VlSettingImplType.THRESHOLD,
-            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+            ConfigurationOptions.ViolationSettingType.THRESHOLD,
+            ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
     )),
 
     BUFFER_OVERFLOW(Sets.newHashSet(
-            ConfigurationOptions.VlSettingImplType.DECAY,
-            ConfigurationOptions.VlSettingImplType.DECAY_AMOUNT,
-            ConfigurationOptions.VlSettingImplType.THRESHOLD,
-            ConfigurationOptions.VlSettingImplType.CLEAR_BUFFER,
-            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+            ConfigurationOptions.ViolationSettingType.DECAY,
+            ConfigurationOptions.ViolationSettingType.DECAY_AMOUNT,
+            ConfigurationOptions.ViolationSettingType.THRESHOLD,
+            ConfigurationOptions.ViolationSettingType.CLEAR_BUFFER,
+            ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
     )),
 
     BUFFER_THROTTLE(Sets.newHashSet(
-            ConfigurationOptions.VlSettingImplType.DECAY,
-            ConfigurationOptions.VlSettingImplType.DECAY_AMOUNT,
-            ConfigurationOptions.VlSettingImplType.THRESHOLD,
-            ConfigurationOptions.VlSettingImplType.UNTIL,
-            ConfigurationOptions.VlSettingImplType.CLEAR_BUFFER,
-            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+            ConfigurationOptions.ViolationSettingType.DECAY,
+            ConfigurationOptions.ViolationSettingType.DECAY_AMOUNT,
+            ConfigurationOptions.ViolationSettingType.THRESHOLD,
+            ConfigurationOptions.ViolationSettingType.UNTIL,
+            ConfigurationOptions.ViolationSettingType.CLEAR_BUFFER,
+            ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
     )),
 
     SIMPLE(Sets.newHashSet(
-            ConfigurationOptions.VlSettingImplType.VLS_AMOUNT
+            ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
     ));
 
-    private final Set<ConfigurationOptions.VlSettingImplType> vlSettingImplTypes;
+    private final Set<ConfigurationOptions.ViolationSettingType> vlSettingImplTypes;
 
-    PacketLimitHandlerType(Set<ConfigurationOptions.VlSettingImplType> vlSettingImplTypes) {
+    PacketLimitHandlerType(Set<ConfigurationOptions.ViolationSettingType> vlSettingImplTypes) {
         this.vlSettingImplTypes = vlSettingImplTypes;
     }
 
-    public Set<ConfigurationOptions.VlSettingImplType> getVlSettingImplTypes() {
+    public Set<ConfigurationOptions.ViolationSettingType> getVlSettingImplTypes() {
         return vlSettingImplTypes;
     }
 

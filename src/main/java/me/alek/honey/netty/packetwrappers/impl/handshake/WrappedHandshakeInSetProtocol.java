@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packetwrappers.impl.handshake;
 
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;

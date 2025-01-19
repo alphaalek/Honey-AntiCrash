@@ -2,8 +2,7 @@ package me.alek.honey.netty.processor;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -15,9 +14,9 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
-public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapter.Common<WP> {
+public class TypeProcessor<WP extends WrappedPacket<WP>> extends PacketListenerAdapter.Common<WP> {
 
-    public static class ReaderInfo<B, T> {
+    public static class ReaderInfo<T> {
 
         public static final BiConsumer<HoneyPlayer, Throwable> DEFAULT_THROWABLE_DEBUGGER = (player, thrown) -> {
             HoneyPlugin.get().getPlugin().getLogger().log(Level.SEVERE, "Error occurred in processor for packet sent by " + player, thrown);
@@ -38,13 +37,13 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
         }
     }
 
-    private final Array<List<ReaderInfo<PacketContainer<WP>, PacketContainer<WP>>>> packetListeners = new Array<>();
+    private final Array<List<ReaderInfo<PacketContainer<WP>>>> packetListeners = new Array<>();
 
     @SuppressWarnings("unchecked")
     public <T extends WrappedPacket<T>> void addListener(PacketType type, PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
-        List<ReaderInfo<PacketContainer<WP>, PacketContainer<WP>>> readerInfos = packetListeners.get(type, LinkedList::new);
+        List<ReaderInfo<PacketContainer<WP>>> readerInfos = packetListeners.get(type, LinkedList::new);
 
-        ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info;
+        ReaderInfo<PacketContainer<WP>> info;
         if (onException != null) {
             info = new ReaderInfo<>(
                     state,
@@ -65,9 +64,9 @@ public class Processor<WP extends WrappedPacket<WP>> extends PacketListenerAdapt
     }
 
     @Override
-    public void onPacketStream(HoneyPlayer player, PacketBound bound, PacketContainer<WP> packet) throws Exception {
+    public void onPacketStream(HoneyPlayer player, PacketBound bound, PacketContainer<WP> packet) {
         if (packetListeners.has(packet.getType())) {
-            for (ReaderInfo<PacketContainer<WP>, PacketContainer<WP>> info : packetListeners.get(packet.getType().getHoneyID())) {
+            for (ReaderInfo<PacketContainer<WP>> info : packetListeners.get(packet.getType().getHoneyID())) {
                 if (info.state.equals(packet.getPipelineState())) {
                     try {
                         info.listener.accept(player, packet);

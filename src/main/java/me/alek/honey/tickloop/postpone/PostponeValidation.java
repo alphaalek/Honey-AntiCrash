@@ -2,7 +2,7 @@ package me.alek.honey.tickloop.postpone;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.TimedManualHandleTracker;
 import me.alek.honey.tracker.Timespan;

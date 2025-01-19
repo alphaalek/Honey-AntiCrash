@@ -1,4 +1,4 @@
-package me.alek.honey.util.chain;
+package me.alek.honey.util.functions;
 
 import java.util.function.Consumer;
 import java.util.function.Function;

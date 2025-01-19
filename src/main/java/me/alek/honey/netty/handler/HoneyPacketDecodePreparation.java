@@ -8,7 +8,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.LifecycleState;
@@ -255,7 +255,9 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             serializer.readerIndex(0);
 
             List<Object> nonRecycledList = new ArrayList<>();
-            if (!ConfigurationOptions.AsyncDecoder.ENABLED
+            // TODO
+            // force sync packet stream until fixed
+            if (true || !ConfigurationOptions.AsyncDecoder.ENABLED
                     || !this.player.isBukkitReady()
                     || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
                 invokeRead(packet, ctx, buf, nonRecycledList);

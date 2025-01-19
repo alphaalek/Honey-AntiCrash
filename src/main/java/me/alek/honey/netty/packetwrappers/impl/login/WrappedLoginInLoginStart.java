@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packetwrappers.impl.login;
 
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;

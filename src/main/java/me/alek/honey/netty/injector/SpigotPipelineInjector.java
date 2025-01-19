@@ -8,7 +8,7 @@ import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.async.WorkerPool;
 import me.alek.honey.compat.protocollib.ProtocolLib;
 import me.alek.honey.compat.via.ViaHandlers;
-import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -152,7 +152,7 @@ public class SpigotPipelineInjector {
             if (decoder != null) {
                 async = decoder.getAsyncPacketStream();
             } else {
-                async = encoder.getAsync();
+                async = encoder.getAsyncPacketStream();
             }
         }
 
@@ -259,7 +259,7 @@ public class SpigotPipelineInjector {
                 decoder.getAsyncPacketStream().farewell();
             } else if (HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel) != null) {
                 HoneyPacketEncodePreparation encoder = HoneyPlugin.get().getPacketLibrary().getPacketManager().getEncoder(channel);
-                encoder.getAsync().farewell();
+                encoder.getAsyncPacketStream().farewell();
             }
         }
     }

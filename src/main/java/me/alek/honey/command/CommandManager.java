@@ -71,9 +71,13 @@ public class CommandManager implements CommandExecutor {
             if (ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED) {
                 disabledFeatures.append("No-Bypass Permission, ");
             }
+            // TODO
+            // disabled until fixed
+            /*
             if (!ConfigurationOptions.AsyncDecoder.ENABLED) {
                 disabledFeatures.append("Async Decoder, ");
             }
+            */
             if (!ConfigurationOptions.ItemAnalysis.General.ENABLED) {
                 disabledFeatures.append("Item Analysis, ");
             }

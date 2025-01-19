@@ -21,9 +21,8 @@ public class Session {
         InMemoryCompiler.IMCSourceCode source = SessionDecrypterProvider.getSource();
         InMemoryCompiler compiler = new InMemoryCompiler(Collections.singletonList(source), true).get();
 
-        final CompilerFeedback compilerFeedback = compiler.compile();
+        CompilerFeedback compilerFeedback = compiler.compile();
         if (compilerFeedback != null && compilerFeedback.isSuccess()) {
-
             try {
                 sessionDecrypterClass = compiler.getCompiledClass("me.alek.honey.session.SessionDecrypter");
 

@@ -1,7 +1,7 @@
 package me.alek.honey.netty.nbt;
 
 import io.netty.buffer.ByteBufInputStream;
-import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.nbt.array.AbstractArrayTag;

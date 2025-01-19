@@ -2,8 +2,8 @@ package me.alek.honey;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.IStructureModifier;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.structure.IStructureModifier;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
@@ -280,8 +280,8 @@ public class Notifications {
         int postponedSize = postponed.size();
         int cancelledSize = cancelled.size();
 
-        if (postponedSize < ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE
-                && cancelledSize < ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL) {
+        if ((postponedSize < ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE || postponedSize == 0)
+                && (cancelledSize < ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL || cancelledSize == 0)) {
             return;
         }
 

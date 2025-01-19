@@ -136,7 +136,7 @@ public enum ViaProtocol {
             if (PacketTypes.isUnknown(viaType)) {
                 PacketType type = PacketTypes.getTypeFromKey(state, bound, name);
                 try {
-                    if (type != null && type.getClass().getField(type.toString()).getAnnotation(ViaIgnoreIfMissing.class) != null) {
+                    if (type != null && type.getClass().getField(type.toString()).getAnnotation(IgnoreIfMissing.class) != null) {
                         continue;
                     }
                 } catch (Exception ex) {
@@ -206,13 +206,13 @@ public enum ViaProtocol {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    public @interface ViaIgnoreIfMissing {
+    public @interface IgnoreIfMissing {
 
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    public @interface ViaUnique {
+    public @interface Unique {
 
         String name();
 
@@ -238,9 +238,9 @@ public enum ViaProtocol {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    public @interface MultiViaUnique {
+    public @interface MultipleUnique {
 
-        ViaUnique[] uniques();
+        Unique[] uniques();
     }
 
     public static class ViaValidator implements ServiceValidator {

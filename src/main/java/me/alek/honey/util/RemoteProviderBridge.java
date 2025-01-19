@@ -1,6 +1,6 @@
 package me.alek.honey.util;
 
-import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.reflection.MethodInvoker;
 
@@ -64,19 +64,19 @@ public interface RemoteProviderBridge<T, P extends Provider<T, P, A>, A extends 
     class Factory {
 
         public static <T> RemoteProviderBridge<T, Provider.ProviderNoInput<T>, RemoteProviderBridge.ProviderNoInput<T>> createWithNoInput() {
-            return new RemoteProviderBridge.ProviderNoInput<T>();
+            return new RemoteProviderBridge.ProviderNoInput<>();
         }
 
         public static <T, I1> RemoteProviderBridge<T, Provider.ProviderOneInput<T, I1>, RemoteProviderBridge.ProviderOneInput<T, I1>> createWithOneInput() {
-            return new RemoteProviderBridge.ProviderOneInput<T, I1>();
+            return new RemoteProviderBridge.ProviderOneInput<>();
         }
 
         public static <T, I1, I2> RemoteProviderBridge<T, Provider.ProviderTwoInput<T, I1, I2>, RemoteProviderBridge.ProviderTwoInput<T, I1, I2>> createWithTwoInput() {
-            return new RemoteProviderBridge.ProviderTwoInput<T, I1, I2>();
+            return new RemoteProviderBridge.ProviderTwoInput<>();
         }
 
         public static <T> RemoteProviderBridge<T, Provider.ProviderGenericInput<T>, RemoteProviderBridge.ProviderGenericInput<T>> createWithGenericInput() {
-            return new RemoteProviderBridge.ProviderGenericInput<T>();
+            return new RemoteProviderBridge.ProviderGenericInput<>();
         }
     }
 }

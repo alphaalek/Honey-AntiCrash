@@ -11,10 +11,9 @@ import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.InternalPacketContainer;
@@ -62,8 +61,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         ctx.fireChannelActive();
 
         if (ctx.channel().remoteAddress() == null) {
-            // null ping
-            ctx.close();
+            // null ping (1.8.8- bug)
+            UnsafeChannelCloser.closeForcibly(ctx.channel());
             return;
         }
 
@@ -85,10 +84,10 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
     public synchronized void channelInactive(ChannelHandlerContext ctx) {
         ctx.fireChannelInactive();
 
-        if (!hasCalledChannelInactive) {
+        if (!this.hasCalledChannelInactive) {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().decrementTaskSupplierCount(ctx.channel());
         }
-        hasCalledChannelInactive = true;
+        this.hasCalledChannelInactive = true;
 
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(ctx.channel());
     }
@@ -113,19 +112,20 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             return;
         }
 
-        this.packetHandler.runDelayedTasks(PacketBound.SERVER);
+        this.packetHandler.executeDelayedTasks(PacketBound.SERVER);
 
-        PacketContainer<? extends WrappedPacket<?>> prevMarked = MARK.get();
+        PacketContainer<? extends WrappedPacket<?>> prev = MARK.get();
         // check for too early dropped packet in the previous eventloop
         // if the filter mark has a value, it means that a channel handler between
         // the filter and decode preparation dropped this packet
-        if (prevMarked != null && !PacketTypes.isUnknown(prevMarked.getType())) {
+        // and did not clear the marker properly
+        if (prev != null && !PacketTypes.isUnknown(prev.getType())) {
             FloodValidations.PACKET_DROP_PIPELINE.doStream(
                     this.player,
-                    (validation, context) -> validation.validate(this.player, 1, context),
-                    prevMarked);
+                    (validation, context) -> validation.validate(this.player, context),
+                    prev);
 
-            prevMarked.releaseIfAutoReleasable();
+            prev.releaseIfAutoReleasable();
         }
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
@@ -137,13 +137,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             MARK.set(packet);
 
             // call listeners
-            if (!player.bypassEverything()) {
+            if (!this.player.bypassEverything()) {
                 packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
                 HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, packet);
                 packet.getEventloopStateTimings().stopTimings();
             }
 
-            if (!packetHandler.isCancelled(packet)) {
+            if (!this.packetHandler.isCancelled(packet)) {
                 list.add(serializer
                         .readerIndex(0)
                         .retain(Math.max(serializer.refCnt(), 1) + 1));

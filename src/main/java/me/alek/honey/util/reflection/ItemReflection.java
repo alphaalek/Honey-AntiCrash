@@ -2,10 +2,9 @@ package me.alek.honey.util.reflection;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;

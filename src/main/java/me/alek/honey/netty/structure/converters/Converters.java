@@ -2,7 +2,7 @@ package me.alek.honey.netty.structure.converters;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;

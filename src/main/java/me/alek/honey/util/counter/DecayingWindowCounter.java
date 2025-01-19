@@ -8,19 +8,7 @@ public class DecayingWindowCounter {
 
     public static DecayingWindowCounter EMPTY = new DecayingWindowCounter();
 
-    private final int[] marks;
-    private final Map<Integer, DecayingListeningCounter> delegatedCounters = new HashMap<>();
-
-    public DecayingWindowCounter(int... marks) {
-        marks = sortMarks(marks);
-        for (int i = 0; i < marks.length; i++) {
-            long collectInterval = marks[i];
-            delegatedCounters.put(i, new DecayingListeningCounter(() -> collectInterval));
-        }
-        this.marks = marks;
-    }
-
-    private int[] sortMarks(int... prevMarks) {
+    private static int[] sortMarks(int... prevMarks) {
         int[] marks = new int[prevMarks.length];
         boolean[] marked = new boolean[prevMarks.length];
 
@@ -39,6 +27,18 @@ public class DecayingWindowCounter {
         }
 
         return marks;
+    }
+
+    private final int[] marks;
+    private final Map<Integer, DecayingListeningCounter> delegatedCounters = new HashMap<>();
+
+    public DecayingWindowCounter(int... marks) {
+        marks = sortMarks(marks);
+        for (int i = 0; i < marks.length; i++) {
+            long collectInterval = marks[i];
+            delegatedCounters.put(i, new DecayingListeningCounter(() -> collectInterval));
+        }
+        this.marks = marks;
     }
 
     public void count(long time) {
@@ -66,7 +66,7 @@ public class DecayingWindowCounter {
     }
 
     public int size(int mark) {
-        if (mark > marks.length) {
+        if (mark >= marks.length) {
             if (EMPTY.equals(this)) {
                 return 0;
             } else {

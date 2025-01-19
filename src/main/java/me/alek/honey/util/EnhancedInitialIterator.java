@@ -6,9 +6,9 @@ import java.util.function.Function;
 public class EnhancedInitialIterator<T, I extends Iterable<T>> implements Iterable<T> {
 
     private final I iterable;
-    private final Function<I, LazyInit<T>> initial;
+    private final Function<I, T> initial;
 
-    public EnhancedInitialIterator(I iterable, Function<I, LazyInit<T>> initial) {
+    public EnhancedInitialIterator(I iterable, Function<I, T> initial) {
         this.iterable = iterable;
         this.initial = initial;
     }
@@ -18,7 +18,7 @@ public class EnhancedInitialIterator<T, I extends Iterable<T>> implements Iterab
         return new Iterator<T>() {
 
             private volatile boolean hasCalledInitial;
-            private final LazyInit<T> initial = EnhancedInitialIterator.this.initial.apply(iterable);
+            private final LazyInit<T> initial = new LazyInit<>(() -> EnhancedInitialIterator.this.initial.apply(iterable));
             private final LazyInit<Iterator<T>> itr = new LazyInit<>(() -> {
                 Iterator<T> itr = iterable.iterator();
                 itr.next();
@@ -27,21 +27,21 @@ public class EnhancedInitialIterator<T, I extends Iterable<T>> implements Iterab
 
             @Override
             public boolean hasNext() {
-                if (!hasCalledInitial) {
-                    return initial.get() != null;
+                if (!this.hasCalledInitial) {
+                    return this.initial.get() != null;
                 }
 
-                return itr.get().hasNext();
+                return this.itr.get().hasNext();
             }
 
             @Override
             public T next() {
-                if (!hasCalledInitial) {
-                    hasCalledInitial = true;
-                    return initial.get();
+                if (!this.hasCalledInitial) {
+                    this.hasCalledInitial = true;
+                    return this.initial.get();
                 }
 
-                return itr.get().next();
+                return this.itr.get().next();
             }
         };
     }

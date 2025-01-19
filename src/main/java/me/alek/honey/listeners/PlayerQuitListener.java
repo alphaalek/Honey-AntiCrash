@@ -10,9 +10,8 @@ public class PlayerQuitListener implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         HoneyPlayer player = HoneyPlayer.getPlayer(event.getPlayer().getUniqueId());
-        if (player == null) {
-            return;
+        if (player != null) {
+            player.remove();
         }
-        player.remove();
     }
 }

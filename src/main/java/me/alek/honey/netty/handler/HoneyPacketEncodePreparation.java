@@ -9,8 +9,8 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
@@ -49,7 +49,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
         return packetHandler;
     }
 
-    public AsyncPacketStream getAsync() {
+    public AsyncPacketStream getAsyncPacketStream() {
         return async;
     }
 
@@ -59,7 +59,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
             return;
         }
 
-        packetHandler.runDelayedTasks(PacketBound.CLIENT);
+        packetHandler.executeDelayedTasks(PacketBound.CLIENT);
 
         if (!packetHandler.isPacket(msg)) {
             if (!packetHandler.handleNonPacket(msg)) {

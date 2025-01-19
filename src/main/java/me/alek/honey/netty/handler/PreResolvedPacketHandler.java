@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -106,7 +106,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             return;
         }
 
-        this.packetHandler.runDelayedTasks(PacketBound.CLIENT);
+        this.packetHandler.executeDelayedTasks(PacketBound.CLIENT);
         checkRelocation();
 
         if (!this.packetHandler.isPacket(msg)) {

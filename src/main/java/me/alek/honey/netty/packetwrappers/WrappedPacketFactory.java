@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packetwrappers;
 
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 
 import java.util.function.BiFunction;
@@ -12,7 +12,7 @@ public interface WrappedPacketFactory<TP extends WrappedPacket<WP>, WP extends W
     Holder<?> holder = new Holder<>();
 
     @SuppressWarnings("unchecked")
-    public static <WP extends WrappedPacket<WP>> Holder<WP> acquireHolder() {
+    static <WP extends WrappedPacket<WP>> Holder<WP> acquireHolder() {
         return (Holder<WP>) holder;
     }
 

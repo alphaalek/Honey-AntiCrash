@@ -1,6 +1,5 @@
 package me.alek.honey.netty.packet;
 
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 import java.util.function.Predicate;

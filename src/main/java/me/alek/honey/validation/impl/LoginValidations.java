@@ -2,8 +2,8 @@ package me.alek.honey.validation.impl;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.processor.ListenerPriority;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.validation.AbstractValidationPacketListener;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ValidationPipeline;
@@ -28,7 +28,7 @@ public class LoginValidations extends AbstractValidationPacketListener<WrappedLo
     }
 
     private static List<PacketType> getPacketTypes() {
-        return Collections.singletonList(PacketTypes.Login.Client.LOGIN_START);
+        return Collections.singletonList(PacketTypes.Login.Client.HELLO);
     }
 
     @Override

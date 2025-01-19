@@ -116,7 +116,7 @@ public class ConfigurationOptions {
             setting.keyedAnnotation = clazz.getAnnotation(Keyed.class);
         }
 
-        final Set<VlSettingImplType> requiredVlSettingImplTypes = new HashSet<>();
+        final Set<ViolationSettingType> requiredVlSettingImplTypes = new HashSet<>();
         if (setting instanceof VlRequiredContentsSetting) {
             VlRequiredContentsSetting vlRequiredContentsSetting = (VlRequiredContentsSetting) setting;
             requiredVlSettingImplTypes.addAll(vlRequiredContentsSetting.getRequiredTypes());
@@ -129,11 +129,11 @@ public class ConfigurationOptions {
                 Bukkit.getLogger().severe("Config setting misconfiguration (" + clazz + "), missing: " + prefixPath);
                 throw new RuntimeException();
             }
-            Iterator<VlSettingImplType> requiredVlSettingImplTypesIterator = requiredVlSettingImplTypes.iterator();
+            Iterator<ViolationSettingType> requiredVlSettingImplTypesIterator = requiredVlSettingImplTypes.iterator();
 
             // loop through all the required paths for this violation setting, and check if they are present
             while (requiredVlSettingImplTypesIterator.hasNext()) {
-                VlSettingImplType vlSettingImplType = requiredVlSettingImplTypesIterator.next();
+                ViolationSettingType vlSettingImplType = requiredVlSettingImplTypesIterator.next();
 
                 String requiredPath = prefixPath + "." + vlSettingImplType.getPathName();
                 // check if this required path is in the memory section
@@ -237,10 +237,10 @@ public class ConfigurationOptions {
     @Target(ElementType.FIELD)
     public @interface VlSettingImpl {
 
-        VlSettingImplType value();
+        ViolationSettingType value();
     }
 
-    public enum VlSettingImplType {
+    public enum ViolationSettingType {
         MAX_PER_INTERVAL, INTERVAL, MIN_VLS, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, MIN, MAX, ENABLED, THROTTLE_AFTER;
 
         public String getPathName() {
@@ -250,119 +250,119 @@ public class ConfigurationOptions {
 
     public interface VlRequiredContentsSetting {
 
-        Set<VlSettingImplType> getRequiredTypes();
+        Set<ViolationSettingType> getRequiredTypes();
 
     }
 
     public interface VlMaxRequiredContentsSetting extends VlRequiredContentsSetting {
 
-        default Set<VlSettingImplType> getRequiredTypes() {
+        default Set<ViolationSettingType> getRequiredTypes() {
             return Sets.newHashSet(
-                    VlSettingImplType.VLS_AMOUNT,
-                    VlSettingImplType.MAX
+                    ViolationSettingType.VLS_AMOUNT,
+                    ViolationSettingType.MAX
             );
         }
     }
 
     public interface VlSimpleMaxRequiredContentsSetting extends VlRequiredContentsSetting {
 
-        default Set<VlSettingImplType> getRequiredTypes() {
-            return Collections.singleton(VlSettingImplType.MAX);
+        default Set<ViolationSettingType> getRequiredTypes() {
+            return Collections.singleton(ViolationSettingType.MAX);
         }
     }
 
     public interface VlTriggerThrottleRequiredContentsSetting extends VlRequiredContentsSetting {
 
-        default Set<VlSettingImplType> getRequiredTypes() {
+        default Set<ViolationSettingType> getRequiredTypes() {
             return Sets.newHashSet(
-                    VlSettingImplType.THROTTLE_AFTER
+                    ViolationSettingType.THROTTLE_AFTER
             );
         }
     }
 
     public interface VlIntervalRequiredContentsSetting extends VlRequiredContentsSetting {
 
-        default Set<VlSettingImplType> getRequiredTypes() {
+        default Set<ViolationSettingType> getRequiredTypes() {
             return Sets.newHashSet(
-                    VlSettingImplType.MAX_PER_INTERVAL,
-                    VlSettingImplType.INTERVAL
+                    ViolationSettingType.MAX_PER_INTERVAL,
+                    ViolationSettingType.INTERVAL
             );
         }
     }
 
     public interface VlIntervalThrottleRequiredContentsSetting extends VlRequiredContentsSetting {
 
-        default Set<VlSettingImplType> getRequiredTypes() {
+        default Set<ViolationSettingType> getRequiredTypes() {
             return Sets.newHashSet(
-                    ConfigurationOptions.VlSettingImplType.INTERVAL,
-                    ConfigurationOptions.VlSettingImplType.THRESHOLD,
-                    ConfigurationOptions.VlSettingImplType.UNTIL
+                    ViolationSettingType.INTERVAL,
+                    ViolationSettingType.THRESHOLD,
+                    ViolationSettingType.UNTIL
             );
         }
     }
 
     public interface VlBufferOverflowRequiredContentsSetting extends VlRequiredContentsSetting {
 
-        default Set<VlSettingImplType> getRequiredTypes() {
+        default Set<ViolationSettingType> getRequiredTypes() {
             return Sets.newHashSet(
-                    VlSettingImplType.DECAY,
-                    VlSettingImplType.DECAY_AMOUNT,
-                    VlSettingImplType.THRESHOLD
+                    ViolationSettingType.DECAY,
+                    ViolationSettingType.DECAY_AMOUNT,
+                    ViolationSettingType.THRESHOLD
             );
         }
     }
 
     public interface VlBufferThrottleRequiredContentsSetting extends VlRequiredContentsSetting {
 
-        default Set<VlSettingImplType> getRequiredTypes() {
+        default Set<ViolationSettingType> getRequiredTypes() {
             return Sets.newHashSet(
-                    VlSettingImplType.DECAY,
-                    VlSettingImplType.DECAY_AMOUNT,
-                    VlSettingImplType.UNTIL,
-                    VlSettingImplType.THRESHOLD
+                    ViolationSettingType.DECAY,
+                    ViolationSettingType.DECAY_AMOUNT,
+                    ViolationSettingType.UNTIL,
+                    ViolationSettingType.THRESHOLD
             );
         }
     }
 
     public interface VlSingleOverflowRequiredContentsSetting extends VlRequiredContentsSetting {
 
-        default Set<VlSettingImplType> getRequiredTypes() {
+        default Set<ViolationSettingType> getRequiredTypes() {
             return Sets.newHashSet(
-                    VlSettingImplType.THRESHOLD
+                    ViolationSettingType.THRESHOLD
             );
         }
     }
 
     public static class ViolationSetting implements Cloneable {
 
-        @VlSettingImpl(VlSettingImplType.MAX_PER_INTERVAL)
+        @VlSettingImpl(ViolationSettingType.MAX_PER_INTERVAL)
         public double maxPerInterval = 1;
-        @VlSettingImpl(VlSettingImplType.INTERVAL)
+        @VlSettingImpl(ViolationSettingType.INTERVAL)
         public int interval;
-        @VlSettingImpl(VlSettingImplType.MIN_VLS)
+        @VlSettingImpl(ViolationSettingType.MIN_VLS)
         public int minVls = 1;
-        @VlSettingImpl(VlSettingImplType.VLS_AMOUNT)
+        @VlSettingImpl(ViolationSettingType.VLS_AMOUNT)
         public int vlsAmount = 1;
-        @VlSettingImpl(VlSettingImplType.THRESHOLD)
+        @VlSettingImpl(ViolationSettingType.THRESHOLD)
         public double threshold;
-        @VlSettingImpl(VlSettingImplType.UNTIL)
+        @VlSettingImpl(ViolationSettingType.UNTIL)
         public double until;
-        @VlSettingImpl(VlSettingImplType.DECAY)
+        @VlSettingImpl(ViolationSettingType.DECAY)
         public int decay;
-        @VlSettingImpl(VlSettingImplType.THROTTLE_AFTER)
+        @VlSettingImpl(ViolationSettingType.THROTTLE_AFTER)
         public int throttleAfter = 500;
-        @VlSettingImpl(VlSettingImplType.DECAY_AMOUNT)
+        @VlSettingImpl(ViolationSettingType.DECAY_AMOUNT)
         public int decayAmount;
-        @VlSettingImpl(VlSettingImplType.MIN)
+        @VlSettingImpl(ViolationSettingType.MIN)
         public int min;
-        @VlSettingImpl(VlSettingImplType.MAX)
+        @VlSettingImpl(ViolationSettingType.MAX)
         public int max;
 
-        @VlSettingImpl(VlSettingImplType.CLEAR_BUFFER)
+        @VlSettingImpl(ViolationSettingType.CLEAR_BUFFER)
         public boolean clearBuffer;
-        @VlSettingImpl(VlSettingImplType.CLEAR_INTERVAL)
+        @VlSettingImpl(ViolationSettingType.CLEAR_INTERVAL)
         public boolean clearInterval;
-        @VlSettingImpl(VlSettingImplType.ENABLED)
+        @VlSettingImpl(ViolationSettingType.ENABLED)
         public boolean enabled = true;
         public Keyed keyedAnnotation;
 
@@ -979,13 +979,13 @@ public class ConfigurationOptions {
         public static class MovementJ extends ViolationSetting implements VlRequiredContentsSetting {
 
             @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
+            public Set<ViolationSettingType> getRequiredTypes() {
                 return Sets.newHashSet(
-                        VlSettingImplType.MAX,
-                        VlSettingImplType.MIN,
-                        VlSettingImplType.INTERVAL,
-                        VlSettingImplType.MAX_PER_INTERVAL,
-                        VlSettingImplType.VLS_AMOUNT
+                        ViolationSettingType.MAX,
+                        ViolationSettingType.MIN,
+                        ViolationSettingType.INTERVAL,
+                        ViolationSettingType.MAX_PER_INTERVAL,
+                        ViolationSettingType.VLS_AMOUNT
                 );
             }
         }
@@ -1130,12 +1130,12 @@ public class ConfigurationOptions {
         public static class NettyL extends ViolationSetting implements VlIntervalRequiredContentsSetting {
 
             @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
+            public Set<ViolationSettingType> getRequiredTypes() {
                 return Sets.newHashSet(
-                        VlSettingImplType.MAX_PER_INTERVAL,
-                        VlSettingImplType.INTERVAL,
-                        VlSettingImplType.VLS_AMOUNT,
-                        VlSettingImplType.MAX
+                        ViolationSettingType.MAX_PER_INTERVAL,
+                        ViolationSettingType.INTERVAL,
+                        ViolationSettingType.VLS_AMOUNT,
+                        ViolationSettingType.MAX
                 );
             }
 
@@ -1158,12 +1158,12 @@ public class ConfigurationOptions {
         public static class NettyO extends ViolationSetting implements VlIntervalRequiredContentsSetting {
 
             @Override
-            public Set<VlSettingImplType> getRequiredTypes() {
+            public Set<ViolationSettingType> getRequiredTypes() {
                 return Sets.newHashSet(
-                        VlSettingImplType.MAX_PER_INTERVAL,
-                        VlSettingImplType.INTERVAL,
-                        VlSettingImplType.VLS_AMOUNT,
-                        VlSettingImplType.MAX
+                        ViolationSettingType.MAX_PER_INTERVAL,
+                        ViolationSettingType.INTERVAL,
+                        ViolationSettingType.VLS_AMOUNT,
+                        ViolationSettingType.MAX
                 );
             }
         }

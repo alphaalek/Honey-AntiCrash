@@ -2,7 +2,7 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ItemReflection;

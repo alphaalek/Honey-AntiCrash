@@ -7,7 +7,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.via.ViaProtocol;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
@@ -18,7 +18,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -26,6 +25,7 @@ import java.util.Queue;
 
 public class HoneyPacketHandler {
 
+    public static final String UNKNOWN = "Unknown";
     @SuppressWarnings("unchecked")
     public static final ThreadLocal<Queue<Runnable>>[] DELAYED_TASKS = new ThreadLocal[]{new ThreadLocal<>(), new ThreadLocal<>()};
 
@@ -38,7 +38,7 @@ public class HoneyPacketHandler {
     private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
     private EmulatorCodec<Object, PacketDataSerializer> clientboundProtocol;
     private EmulatorCodec<Object, PacketDataSerializer> serverboundProtocol;
-    private String playerName = "Unknown";
+    private String playerName = UNKNOWN;
 
     private boolean resolvingClientbound;
     private boolean resolvingServerbound;
@@ -194,7 +194,7 @@ public class HoneyPacketHandler {
         return !isCancelled(packetContainer);
     }
 
-    public void runDelayedTasks(PacketBound bound) {
+    public void executeDelayedTasks(PacketBound bound) {
         Queue<Runnable> process = DELAYED_TASKS[bound.ordinal()].get();
         if (process == null) {
             DELAYED_TASKS[bound.ordinal()].set(new LinkedList<>());

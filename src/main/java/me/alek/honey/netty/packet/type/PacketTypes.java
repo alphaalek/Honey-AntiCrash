@@ -206,16 +206,16 @@ public enum PacketTypes implements PacketType {
         for (PacketType type : getTypesAvailableFor(protocol, state, bound)) {
             try {
                 Field field = type.getClass().getField(((Enum<?>)type).name());
-                ViaProtocol.MultiViaUnique multiVia = field.getAnnotation(ViaProtocol.MultiViaUnique.class);
+                ViaProtocol.MultipleUnique multiVia = field.getAnnotation(ViaProtocol.MultipleUnique.class);
                 if (multiVia != null) {
-                    for (ViaProtocol.ViaUnique via : multiVia.uniques()) {
+                    for (ViaProtocol.Unique via : multiVia.uniques()) {
                         if (checkVia(via, protocol, key)) {
                             return type;
                         }
                     }
                 }
 
-                ViaProtocol.ViaUnique via = field.getAnnotation(ViaProtocol.ViaUnique.class);
+                ViaProtocol.Unique via = field.getAnnotation(ViaProtocol.Unique.class);
                 if (via != null && checkVia(via, protocol, key)) {
                     return type;
                 }
@@ -232,9 +232,9 @@ public enum PacketTypes implements PacketType {
         return PacketTypes.UNKNOWN;
     }
 
-    private static boolean checkVia(ViaProtocol.ViaUnique via, NetProtocol protocol, String key) {
+    private static boolean checkVia(ViaProtocol.Unique via, NetProtocol protocol, String key) {
         return NetProtocolRange.matchProtocol(protocol, via.to(), via.from())
-                && ViaProtocol.ViaUnique.Target.match(via.target())
+                && ViaProtocol.Unique.Target.match(via.target())
                 && via.name().equals(key);
     }
 
@@ -286,7 +286,7 @@ public enum PacketTypes implements PacketType {
 
         public enum Client implements PacketType {
 
-            @ViaProtocol.ViaUnique(name = "client_intention")
+            @ViaProtocol.Unique(name = "client_intention")
             SET_PROTOCOL(SET_PROTOCOL_CLASS, "intention");
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
@@ -352,15 +352,15 @@ public enum PacketTypes implements PacketType {
         }
 
         public enum Client implements RangedPacketType {
-            @ViaProtocol.ViaIgnoreIfMissing
+            @ViaProtocol.IgnoreIfMissing
             COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            @ViaProtocol.ViaIgnoreIfMissing
+            @ViaProtocol.IgnoreIfMissing
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLIENT_CLASS, "custom_query_answer", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "encryption_key")
+            @ViaProtocol.Unique(name = "encryption_key")
             ENCRYPTION_BEGIN(ENCRYPTION_BEGIN_CLASS, "key"),
-            @ViaProtocol.ViaIgnoreIfMissing
+            @ViaProtocol.IgnoreIfMissing
             LOGIN_ACKNOWLEDGED(LOGIN_ACKNOWLEDGED_CLASS, "login_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            LOGIN_START(LOGIN_START_CLASS, "hello");
+            HELLO(LOGIN_START_CLASS, "hello");
 
             private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
             private final String keyName;
@@ -433,11 +433,11 @@ public enum PacketTypes implements PacketType {
         public enum Server implements RangedPacketType {
             DISCONNECT(DISCONNECT_CLASS, "login_disconnect"),
             ENCRYPTION_REQUEST(ENCRYPTION_REQUEST_CLASS, "hello"),
-            @ViaProtocol.ViaUnique(name = "login_finished", target = ViaProtocol.ViaUnique.Target.MODERN)
+            @ViaProtocol.Unique(name = "login_finished", target = ViaProtocol.Unique.Target.MODERN)
             LOGIN_SUCCESS(LOGIN_SUCCESS_CLASS, "game_profile"),
-            @ViaProtocol.ViaIgnoreIfMissing
+            @ViaProtocol.IgnoreIfMissing
             COOKIE_REQUEST(COOKIE_REQUEST_CLASS, "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            @ViaProtocol.ViaIgnoreIfMissing
+            @ViaProtocol.IgnoreIfMissing
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, "custom_query", NetProtocolRange.since(NetProtocol.v1_13)),
             SET_COMPRESSION(SET_COMPRESSION_CLASS, "login_compression");
 
@@ -771,112 +771,112 @@ public enum PacketTypes implements PacketType {
 
         public enum Client implements RangedPacketType {
 
-            @ViaProtocol.ViaUnique(name = "advancement_tab", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "advancement_tab", target = ViaProtocol.Unique.Target.LEGACY)
             ADVANCEMENTS(ADVANCEMENTS_CLASS, "seen_advancements", NetProtocolRange.since(NetProtocol.v1_12)),
-            @ViaProtocol.ViaUnique(name = "animation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "animation", target = ViaProtocol.Unique.Target.LEGACY)
             SWING(SWING_CLASS, "swing"),
-            @ViaProtocol.ViaUnique(name = "craft_recipe_request", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "craft_recipe_request", target = ViaProtocol.Unique.Target.LEGACY)
             AUTO_RECIPE(AUTO_RECIPE_CLASS, "place_recipe", NetProtocolRange.since(NetProtocol.v1_12)),
-            @ViaProtocol.ViaUnique(name = "player_block_placement", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "player_block_placement", target = ViaProtocol.Unique.Target.LEGACY)
             BLOCK_PLACE(BLOCK_PLACE_CLASS, "use_item_on"),
-            @ViaProtocol.ViaUnique(name = "steer_boat", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "steer_boat", target = ViaProtocol.Unique.Target.LEGACY)
             BOAT_MOVE(BOAT_MOVE_CLASS, "paddle_boat", NetProtocolRange.since(NetProtocol.v1_9)),
             BOOK_EDIT(BOOK_EDIT_CLASS, "edit_book", NetProtocolRange.since(NetProtocol.v1_13)),
             CHAT_ACKNOWLEDGED(CHAT_ACKNOWLEDGED_CLASS, "chat_ack", NetProtocolRange.since(NetProtocol.v1_19_1)),
             CHAT_COMMAND(CHAT_COMMAND_CLASS, "chat_command", NetProtocolRange.since(NetProtocol.v1_19)),
             CHAT_COMMAND_SIGNED(CHAT_COMMAND_SIGNED_CLASS, "chat_command_signed", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            @ViaProtocol.ViaUnique(name = "chat_message", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "chat_message", target = ViaProtocol.Unique.Target.LEGACY)
             CHAT_MESSAGE(CHAT_MESSAGE_CLASS, "chat"),
             CHAT_PREVIEW(CHAT_PREVIEW_CLIENT_CLASS, "chat_preview", NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
             CHAT_SESSION_UPDATE(CHAT_SESSION_UPDATE_CLASS, "chat_session_update", NetProtocolRange.since(NetProtocol.v1_19_3)),
             CHUNK_BATCH_RECEIVED(CHUNK_BATCH_RECEIVED_CLASS, "chunk_batch_received", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            @ViaProtocol.ViaUnique(name = "click_window", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "click_window", target = ViaProtocol.Unique.Target.LEGACY)
             CLICK_WINDOW(CLICK_WINDOW_CLASS, "container_click"),
-            @ViaProtocol.ViaUnique(name = "click_window_button", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "click_window_button", target = ViaProtocol.Unique.Target.LEGACY)
             CLICK_WINDOW_BUTTON(CLICK_WINDOW_BUTTON_CLASS, "container_button_click"),
-            @ViaProtocol.ViaUnique(name = "client_status", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "client_status", target = ViaProtocol.Unique.Target.LEGACY)
             CLIENT_COMMAND(CLIENT_COMMAND_CLASS, "client_command"),
-            @ViaProtocol.ViaUnique(name = "client_settings", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "client_settings", target = ViaProtocol.Unique.Target.LEGACY)
             CLIENT_INFORMATION(CLIENT_INFORMATION_CLASS, "client_information"),
-            @ViaProtocol.ViaUnique(name = "close_window", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "close_window", target = ViaProtocol.Unique.Target.LEGACY)
             CLOSE_WINDOW(CLOSE_WINDOW_CLASS, "container_close"),
             CONFIGURATION_START_ACKNOWLEDGED(CONFIGURATION_START_ACKNOWLEDGED_CLASS, "configuration_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
             CONTAINER_SLOT_STATE_CHANGED(CONTAINER_SLOT_STATE_CHANGED_CLASS, "container_slot_state_changed", NetProtocolRange.since(NetProtocol.v1_20_4)),
             COOKIE_RESPONSE(COOKIE_RESPONSE_CLASS, "cookie_response", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            @ViaProtocol.ViaUnique(name = "creative_inventory_action", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "creative_inventory_action", target = ViaProtocol.Unique.Target.LEGACY)
             CREATIVE_INVENTORY_ACTION(CREATIVE_INVENTORY_ACTION_CLASS, "set_creative_mode_slot"),
-            @ViaProtocol.ViaUnique(name = "plugin_message", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "plugin_message", target = ViaProtocol.Unique.Target.LEGACY)
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_CLASS, "custom_payload"),
             DEBUG_SAMPLE_SUBSCRIPTION(DEBUG_SAMPLE_SUBSCRIPTION_CLASS, "debug_sample_subscription", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            @ViaProtocol.ViaUnique(name = "set_difficulty", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "set_difficulty", target = ViaProtocol.Unique.Target.LEGACY)
             DIFFICULTY_CHANGE(DIFFICULTY_CHANGE_CLASS, "change_difficulty", NetProtocolRange.since(NetProtocol.v1_14)),
             DIFFICULTY_LOCK(DIFFICULTY_LOCK_CLASS, "lock_difficulty", NetProtocolRange.since(NetProtocol.v1_14)),
-            @ViaProtocol.ViaUnique(name = "entity_action", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_action", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_ACTION(ENTITY_ACTION_CLASS, "player_command"),
-            @ViaProtocol.ViaUnique(name = "entity_nbt_request", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_nbt_request", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_NBT_QUERY(ENTITY_NBT_QUERY_CLASS, "entity_tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "player_movement", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "player_movement", target = ViaProtocol.Unique.Target.LEGACY)
             GROUND(GROUND_CLASS, "move_player_status_only", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "held_item_change", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "held_item_change", target = ViaProtocol.Unique.Target.LEGACY)
             HELD_ITEM_CHANGE(HELD_ITEM_CHANGE_CLASS, "set_carried_item"),
-            @ViaProtocol.ViaUnique(name = "interact_entity", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "interact_entity", target = ViaProtocol.Unique.Target.LEGACY)
             INTERACT_ENTITY(INTERACT_ENTITY_CLASS, "interact"),
             ITEM_NAME(ITEM_NAME_CLASS, "rename_item", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "generate_jigsaw", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "generate_jigsaw", target = ViaProtocol.Unique.Target.LEGACY)
             GENERATE_JIGSAW(GENERATE_JIGSAW_CLASS, "jigsaw_generate", NetProtocolRange.since(NetProtocol.v1_16)),
             KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, "keep_alive"),
             PICK_ITEM(PICK_ITEM_CLASS, "pick_item", NetProtocolRange.since(NetProtocol.v1_13)),
             PING(PING_REQUEST_CLASS, "ping_request", NetProtocolRange.since(NetProtocol.v1_20_2)),
             PLAYER_ABILITIES(PLAYER_ABILITIES_CLASS, "player_abilities"),
-            @ViaProtocol.ViaUnique(name = "player_digging", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "player_digging", target = ViaProtocol.Unique.Target.LEGACY)
             PLAYER_DIGGING(PLAYER_DIGGING_CLASS, "player_action"),
-            @ViaProtocol.ViaUnique(name = "player_movement", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "player_movement", target = ViaProtocol.Unique.Target.LEGACY)
             PLAYER_MOVEMENT(PLAYER_MOVEMENT_CLASS, "move_player_status_only", NetProtocolRange.until(NetProtocol.v1_16_5)),
-            @ViaProtocol.ViaUnique(name = "player_position", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "player_position", target = ViaProtocol.Unique.Target.LEGACY)
             PLAYER_POSITION(PLAYER_POSITION_CLASS, "move_player_pos"),
-            @ViaProtocol.ViaUnique(name = "player_position_and_rotation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "player_position_and_rotation", target = ViaProtocol.Unique.Target.LEGACY)
             PLAYER_POS_ROT(Play.PLAYER_POS_ROT_CLASS, "move_player_pos_rot"),
-            @ViaProtocol.ViaUnique(name = "player_rotation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "player_rotation", target = ViaProtocol.Unique.Target.LEGACY)
             PLAYER_ROTATION(PLAYER_ROTATION_CLASS, "move_player_rot"),
             PONG(PONG_RESPONSE_CLASS, "pong", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "crafting_recipe_placement", target = ViaProtocol.ViaUnique.Target.MODERN)
+            @ViaProtocol.Unique(name = "crafting_recipe_placement", target = ViaProtocol.Unique.Target.MODERN)
             PREPARE_CRAFTING_GRID(PREPARE_CRAFTING_GRID_CLASS, "prepare_crafting_grid", NetProtocolRange.only(NetProtocol.v1_12)),
-            @ViaProtocol.MultiViaUnique(uniques = {
-                    @ViaProtocol.ViaUnique(name = "recipe_book_data", target = ViaProtocol.ViaUnique.Target.LEGACY),
-                    @ViaProtocol.ViaUnique(name = "recipe_book_update", target = ViaProtocol.ViaUnique.Target.MODERN)
+            @ViaProtocol.MultipleUnique(uniques = {
+                    @ViaProtocol.Unique(name = "recipe_book_data", target = ViaProtocol.Unique.Target.LEGACY),
+                    @ViaProtocol.Unique(name = "recipe_book_update", target = ViaProtocol.Unique.Target.MODERN)
             })
             RECIPE_DISPLAYED(RECIPE_DISPLAYED_CLASS, "recipe_book_change_settings", NetProtocolRange.since(NetProtocol.v1_12)),
-            @ViaProtocol.ViaUnique(name = "seen_recipe", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "seen_recipe", target = ViaProtocol.Unique.Target.LEGACY)
             RECIPE_SETTINGS(RECIPE_SETTINGS_CLASS, "recipe_book_seen_recipe", NetProtocolRange.since(NetProtocol.v1_16_2)),
-            @ViaProtocol.ViaUnique(name = "resource_pack_status", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "resource_pack_status", target = ViaProtocol.Unique.Target.LEGACY)
             RESOURCE_PACK_STATUS(RESOURCE_PACK_STATUS_CLASS, "resource_pack"),
             SELECT_TRADE(SELECT_TRADE_CLASS, "select_trade", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "set_beacon_effect", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "set_beacon_effect", target = ViaProtocol.Unique.Target.LEGACY)
             SET_BEACON_EFFECT(SET_BEACON_EFFECT_CLASS, "set_beacon", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "update_command_block_minecart", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_command_block_minecart", target = ViaProtocol.Unique.Target.LEGACY)
             SET_COMMAND_MINECART(SET_COMMAND_MINECART_CLASS, "set_command_minecart", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "update_jigsaw_block", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_jigsaw_block", target = ViaProtocol.Unique.Target.LEGACY)
             SET_JIGSAW(SET_JIGSAW_CLASS, "set_jigsaw_block", NetProtocolRange.since(NetProtocol.v1_14)),
-            @ViaProtocol.ViaUnique(name = "spectate", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "spectate", target = ViaProtocol.Unique.Target.LEGACY)
             SPECTATE(SPECTATE_CLASS, "teleport_to_entity"),
-            @ViaProtocol.ViaUnique(name = "steer_vehicle", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "steer_vehicle", target = ViaProtocol.Unique.Target.LEGACY)
             STEER_VEHICLE(STEER_VEHICLE_CLASS, "player_input"),
-            @ViaProtocol.ViaUnique(name = "update_structure_block", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_structure_block", target = ViaProtocol.Unique.Target.LEGACY)
             STRUCT(STRUCT_CLASS, "set_structure_block", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "tab_complete", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "tab_complete", target = ViaProtocol.Unique.Target.LEGACY)
             TAB_COMPLETE(TAB_COMPLETE_CLASS, "command_suggestion"),
-            @ViaProtocol.ViaUnique(name = "teleport_confirm", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "teleport_confirm", target = ViaProtocol.Unique.Target.LEGACY)
             TELEPORT_CONFIRM(TELEPORT_CONFIRM_CLASS, "accept_teleportation", NetProtocolRange.since(NetProtocol.v1_9)),
-            @ViaProtocol.ViaUnique(name = "query_block_nbt", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "query_block_nbt", target = ViaProtocol.Unique.Target.LEGACY)
             TILE_NBT_QUERY(TILE_NBT_QUERY_CLASS, "block_entity_tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "window_confirmation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "window_confirmation", target = ViaProtocol.Unique.Target.LEGACY)
             TRANSACTION(TRANSACTION_CLASS, "container_ack", NetProtocolRange.until(NetProtocol.v1_16_5)),
-            @ViaProtocol.ViaUnique(name = "update_command_block", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_command_block", target = ViaProtocol.Unique.Target.LEGACY)
             UPDATE_COMMAND_BLOCK(UPDATE_COMMAND_BLOCK_CLASS, "set_command_block", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "update_sign", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_sign", target = ViaProtocol.Unique.Target.LEGACY)
             UPDATE_SIGN(UPDATE_SIGN_CLASS, "sign_update"),
             USE_ITEM(USE_ITEM_CLASS, "use_item", NetProtocolRange.since(NetProtocol.v1_9)),
-            @ViaProtocol.ViaUnique(name = "vehicle_move", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "vehicle_move", target = ViaProtocol.Unique.Target.LEGACY)
             VEHICLE_MOVE(VEHICLE_MOVE_CLASS, "move_vehicle", NetProtocolRange.since(NetProtocol.v1_9)),
             ;
 
@@ -1239,261 +1239,261 @@ public enum PacketTypes implements PacketType {
         public enum Server implements RangedPacketType {
 
             ABILITIES(ABILITIES_SERVER_CLASS, "player_abilities"),
-            @ViaProtocol.ViaUnique(name = "actionbar", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "actionbar", target = ViaProtocol.Unique.Target.LEGACY)
             ACTION_BAR(ACTION_BAR_CLASS, "set_action_bar_text", NetProtocolRange.since(NetProtocol.v1_17)),
             ADD_VIBRATION_SIGNAL(ADD_VIBRATION_SIGNAL_CLASS, "add_vibration_signal", NetProtocolRange.between(NetProtocol.v1_17, NetProtocol.v1_18_2)),
-            @ViaProtocol.ViaUnique(name = "advancements", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "advancements", target = ViaProtocol.Unique.Target.LEGACY)
             ADVANCEMENTS(ADVANCEMENTS_SERVER_CLASS, "update_advancements", NetProtocolRange.since(NetProtocol.v1_12)),
-            @ViaProtocol.ViaUnique(name = "attach_entity", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "attach_entity", target = ViaProtocol.Unique.Target.LEGACY)
             ATTACH_ENTITY(ATTACH_ENTITY_CLASS, "set_entity_link"),
-            @ViaProtocol.ViaUnique(name = "craft_recipe_response", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "craft_recipe_response", target = ViaProtocol.Unique.Target.LEGACY)
             AUTO_RECIPE(AUTO_RECIPE_SERVER_CLASS, "place_ghost_recipe", NetProtocolRange.since(NetProtocol.v1_12_1)),
-            @ViaProtocol.ViaUnique(name = "block_action", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "block_action", target = ViaProtocol.Unique.Target.LEGACY)
             BLOCK_ACTION(BLOCK_ACTION_CLASS, "block_event"),
-            @ViaProtocol.ViaUnique(name = "block_break_animation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "block_break_animation", target = ViaProtocol.Unique.Target.LEGACY)
             BLOCK_BREAK_ANIMATION(BLOCK_BREAK_ANIMATION_CLASS, "block_destruction"),
-            @ViaProtocol.ViaUnique(name = "acknowledge_player_digging", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "acknowledge_player_digging", target = ViaProtocol.Unique.Target.LEGACY)
             BLOCK_BROKE_ACK(BLOCK_BROKE_ACK_CLASS, "block_break_ack", NetProtocolRange.between(NetProtocol.v1_14, NetProtocol.v1_18_2)),
-            @ViaProtocol.ViaUnique(name = "block_change", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "block_change", target = ViaProtocol.Unique.Target.LEGACY)
             BLOCK_UPDATE(BLOCK_UPDATE_CLASS, "block_update"),
             BLOCK_CHANGED_ACK(BLOCK_CHANGED_ACK_CLASS, "block_changed_ack", NetProtocolRange.since(NetProtocol.v1_19)),
-            @ViaProtocol.ViaUnique(name = "bossbar", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "bossbar", target = ViaProtocol.Unique.Target.LEGACY)
             BOSS_BAR(BOSS_BAR_CLASS, "boss_event", NetProtocolRange.since(NetProtocol.v1_9)),
             BUNDLE(BUNDLE_CLASS, "bundle", NetProtocolRange.since(NetProtocol.v1_19_4)),
             BUNDLE_DELIMITER(BUNDLE_DELIMITER_CLASS, "bundle_delimiter", NetProtocolRange.since(NetProtocol.v1_19_4)),
-            @ViaProtocol.ViaUnique(name = "camera", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "camera", target = ViaProtocol.Unique.Target.LEGACY)
             CAMERA(CAMERA_CLASS, "set_camera"),
             CHAT_PREVIEW(CHAT_PREVIEW_SERVER_CLASS, "chat_preview", NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
-            @ViaProtocol.ViaUnique(name = "chunk_biomes", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "chunk_biomes", target = ViaProtocol.Unique.Target.LEGACY)
             CHUNK_BIOMES(CHUNK_BIOMES_CLASS, "chunks_biomes", NetProtocolRange.since(NetProtocol.v1_19_4)),
             CHUNK_BATCH_FINISHED(CHUNK_BATCH_FINISHED_CLASS, "chunk_batch_finished", NetProtocolRange.since(NetProtocol.v1_20_2)),
             CHUNK_BATCH_START(CHUNK_BATCH_START_CLASS, "chunk_batch_start", NetProtocolRange.since(NetProtocol.v1_20_2)),
             CLEAR_TITLES(CLEAR_TITLES_CLASS, "clear_titles", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "close_window", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "close_window", target = ViaProtocol.Unique.Target.LEGACY)
             CLOSE_WINDOW(CLOSE_WINDOW_SERVER_CLASS, "container_close"),
-            @ViaProtocol.ViaUnique(name = "collect_item", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "collect_item", target = ViaProtocol.Unique.Target.LEGACY)
             COLLECT_ITEM(COLLECT_ITEM_CLASS, "take_item_entity"),
-            @ViaProtocol.ViaUnique(name = "combat_event", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "combat_event", target = ViaProtocol.Unique.Target.LEGACY)
             COMBAT_EVENT(COMBAT_EVENT_CLASS, "player_combat", NetProtocolRange.until(NetProtocol.v1_16_5)),
-            @ViaProtocol.ViaUnique(name = "declare_commands", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "declare_commands", target = ViaProtocol.Unique.Target.LEGACY)
             COMMANDS(COMMANDS_CLASS, "commands", NetProtocolRange.since(NetProtocol.v1_13)),
             COOKIE_REQUEST(COOKIE_REQUEST_CLASS, "cookie_request", NetProtocolRange.since(NetProtocol.v1_20_6)),
             CUSTOM_CHAT_COMPLETIONS(CUSTOM_CHAT_COMPLETIONS_CLASS, "custom_chat_completions", NetProtocolRange.since(NetProtocol.v1_19_1)),
-            @ViaProtocol.ViaUnique(name = "plugin_message", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "plugin_message", target = ViaProtocol.Unique.Target.LEGACY)
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, "custom_payload"),
-            @ViaProtocol.ViaUnique(name = "named_sound", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "named_sound", target = ViaProtocol.Unique.Target.LEGACY)
             CUSTOM_SOUND_EFFECT(CUSTOM_SOUND_EFFECT_CLASS, "custom_sound", NetProtocolRange.between(NetProtocol.v1_9, NetProtocol.v1_19_2)),
             DAMAGE_EVENT(DAMAGE_EVENT_CLASS, "damage_event", NetProtocolRange.since(NetProtocol.v1_19_4)),
             DEBUG_SAMPLE(DEBUG_SAMPLE_CLASS, "debug_sample", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            @ViaProtocol.ViaUnique(name = "delete_chat_message", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "delete_chat_message", target = ViaProtocol.Unique.Target.LEGACY)
             DELETE_CHAT_MESSAGE(DELETE_CHAT_MESSAGE_CLASS, "delete_chat", NetProtocolRange.since(NetProtocol.v1_19_1)),
             DISCONNECT(DISCONNECT_CLASS, "disconnect"),
             DISGUISED_CHAT(DISGUISED_CHAT_CLASS, "disguised_chat", NetProtocolRange.since(NetProtocol.v1_19_3)),
-            @ViaProtocol.ViaUnique(name = "entity_movement", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_movement", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY(ENTITY_CLASS, "move_entity", NetProtocolRange.until(NetProtocol.v1_16_5)),
-            @ViaProtocol.ViaUnique(name = "entity_animation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_animation", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_ANIMATION(ENTITY_ANIMATION_CLASS, "animate"),
-            @ViaProtocol.ViaUnique(name = "destroy_entities", target = ViaProtocol.ViaUnique.Target.LEGACY, to = @NetProtocol.To(to = NetProtocol.v1_16_5))
+            @ViaProtocol.Unique(name = "destroy_entities", target = ViaProtocol.Unique.Target.LEGACY, to = @NetProtocol.To(to = NetProtocol.v1_16_5))
             ENTITIES_DESTROY(ENTITY_DESTROY_CLASS, "remove_entities", NetProtocolRange.all().exclude(NetProtocol.v1_17)),
             ENTITY_DESTROY(ENTITY_DESTROY_CLASS, "remove_entity", NetProtocolRange.only(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "entity_effect", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_effect", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_EFFECT(ENTITY_EFFECT_CLASS, "update_mob_effect"),
-            @ViaProtocol.ViaUnique(name = "entity_equipment", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_equipment", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_EQUIPMENT(ENTITY_EQUIPMENT_CLASS, "set_equipment"),
-            @ViaProtocol.ViaUnique(name = "entity_head_look", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_head_look", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_LOOK(ENTITY_LOOK_CLASS, "move_entity_rot"),
-            @ViaProtocol.ViaUnique(name = "entity_metadata", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_metadata", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_METADATA(ENTITY_METADATA_CLASS, "set_entity_data"),
-            @ViaProtocol.ViaUnique(name = "entity_position", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_position", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_POSITION(ENTITY_MOVE_CLASS, "move_entity_pos"),
-            @ViaProtocol.ViaUnique(name = "entity_position_and_rotation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_position_and_rotation", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_POS_ROT(ENTITY_MOVE_LOOK_CLASS, "move_entity_pos_rot"),
-            @ViaProtocol.ViaUnique(name = "entity_rotation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_rotation", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_ROTATION(ENTITY_ROTATION_CLASS, "rotate_head"),
-            @ViaProtocol.ViaUnique(name = "entity_sound", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_sound", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_SOUND(ENTITY_SOUND_CLASS, "sound_entity", NetProtocolRange.since(NetProtocol.v1_14)),
-            @ViaProtocol.ViaUnique(name = "entity_status", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_status", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_STATUS(ENTITY_STATUS_CLASS, "entity_event"),
-            @ViaProtocol.ViaUnique(name = "entity_teleport", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_teleport", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_TELEPORT(ENTITY_TELEPORT_CLASS, "teleport_entity"),
-            @ViaProtocol.ViaUnique(name = "entity_velocity", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_velocity", target = ViaProtocol.Unique.Target.LEGACY)
             ENTITY_VELOCITY(ENTITY_VELOCITY_CLASS, "set_entity_motion"),
             EXPERIENCE(EXPERIENCE_CLASS, "set_experience"),
-            @ViaProtocol.ViaUnique(name = "explosion", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "explosion", target = ViaProtocol.Unique.Target.LEGACY)
             EXPLOSION(EXPLOSION_CLASS, "explode"),
             GAME_STATE_CHANGE(GAME_STATE_CHANGE_CLASS, "game_event"),
-            @ViaProtocol.MultiViaUnique(uniques = {
-                    @ViaProtocol.ViaUnique(name = "held_item_change", target = ViaProtocol.ViaUnique.Target.LEGACY),
-                    @ViaProtocol.ViaUnique(name = "set_equipped_item", target = ViaProtocol.ViaUnique.Target.MODERN)
+            @ViaProtocol.MultipleUnique(uniques = {
+                    @ViaProtocol.Unique(name = "held_item_change", target = ViaProtocol.Unique.Target.LEGACY),
+                    @ViaProtocol.Unique(name = "set_equipped_item", target = ViaProtocol.Unique.Target.MODERN)
             })
             HELD_ITEM_CHANGE(HELD_ITEM_CHANGE_SERVER_CLASS, "set_carried_item"),
-            @ViaProtocol.ViaUnique(name = "hit_animation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "hit_animation", target = ViaProtocol.Unique.Target.LEGACY)
             HURT_ANIMATION(HURT_ANIMATION_CLASS, "hurt_animation", NetProtocolRange.since(NetProtocol.v1_19_4)),
-            @ViaProtocol.ViaUnique(name = "world_border_init", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "world_border_init", target = ViaProtocol.Unique.Target.LEGACY)
             INITIALIZE_BORDER(INITIALIZE_BORDER_CLASS, "initialize_border", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "join_game", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "join_game", target = ViaProtocol.Unique.Target.LEGACY)
             JOIN_GAME(JOIN_GAME_CLASS, "login"),
             KEEP_ALIVE(KEEP_ALIVE_SERVER_CLASS, "keep_alive"),
-            @ViaProtocol.ViaUnique(name = "update_light", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_light", target = ViaProtocol.Unique.Target.LEGACY)
             LIGHT_UPDATE(LIGHT_UPDATE_CLASS, "light_update", NetProtocolRange.since(NetProtocol.v1_14)),
-            @ViaProtocol.ViaUnique(name = "face_player", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "face_player", target = ViaProtocol.Unique.Target.LEGACY)
             LOOK_AT(LOOK_AT_CLASS, "player_look_at", NetProtocolRange.since(NetProtocol.v1_13)),
             MAP_BULK_CHUNK(MAP_BULK_CHUNK_CLASS, "map_bulk_chunk", NetProtocolRange.until(NetProtocol.v1_8_8)),
-            @ViaProtocol.MultiViaUnique(uniques = {
-                    @ViaProtocol.ViaUnique(name = "chunk_data", target = ViaProtocol.ViaUnique.Target.LEGACY),
-                    @ViaProtocol.ViaUnique(name = "level_chunk", target = ViaProtocol.ViaUnique.Target.MODERN, to = @NetProtocol.To(to = NetProtocol.v1_17_1)),
+            @ViaProtocol.MultipleUnique(uniques = {
+                    @ViaProtocol.Unique(name = "chunk_data", target = ViaProtocol.Unique.Target.LEGACY),
+                    @ViaProtocol.Unique(name = "level_chunk", target = ViaProtocol.Unique.Target.MODERN, to = @NetProtocol.To(to = NetProtocol.v1_17_1)),
             })
             MAP_CHUNK(MAP_CHUNK_CLASS, "level_chunk_with_light"),
-            @ViaProtocol.ViaUnique(name = "map_data", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "map_data", target = ViaProtocol.Unique.Target.LEGACY)
             MAP_ITEM_DATA(MAP_ITEM_DATA_CLASS, "map_item_data"),
             MOUNT(MOUNT_CLASS, "set_passengers", NetProtocolRange.since(NetProtocol.v1_9)),
-            @ViaProtocol.MultiViaUnique(uniques = {
-                    @ViaProtocol.ViaUnique(name = "multi_block_change", target = ViaProtocol.ViaUnique.Target.LEGACY),
-                    @ViaProtocol.ViaUnique(name = "chunk_blocks_update", target = ViaProtocol.ViaUnique.Target.MODERN)
+            @ViaProtocol.MultipleUnique(uniques = {
+                    @ViaProtocol.Unique(name = "multi_block_change", target = ViaProtocol.Unique.Target.LEGACY),
+                    @ViaProtocol.Unique(name = "chunk_blocks_update", target = ViaProtocol.Unique.Target.MODERN)
             })
             MULTI_BLOCK_CHANGE(MULTI_BLOCK_CHANGE_CLASS, "section_blocks_update"),
-            @ViaProtocol.ViaUnique(name = "nbt_query", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "nbt_query", target = ViaProtocol.Unique.Target.LEGACY)
             NBT_QUERY(NBT_QUERY_CLASS, "tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
             OPEN_BOOK(OPEN_BOOK_CLASS, "open_book", NetProtocolRange.since(NetProtocol.v1_14)),
             OPEN_SIGN_EDITOR(OPEN_SIGN_EDITOR_CLASS, "open_sign_editor"),
-            @ViaProtocol.ViaUnique(name = "open_window", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "open_window", target = ViaProtocol.Unique.Target.LEGACY)
             OPEN_WINDOW(OPEN_WINDOW_CLASS, "open_screen"),
-            @ViaProtocol.ViaUnique(name = "open_horse_window", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "open_horse_window", target = ViaProtocol.Unique.Target.LEGACY)
             OPEN_WINDOW_HORSE(OPEN_WINDOW_HORSE_CLASS, "horse_screen_open", NetProtocolRange.since(NetProtocol.v1_14)),
-            @ViaProtocol.ViaUnique(name = "trade_list", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "trade_list", target = ViaProtocol.Unique.Target.LEGACY)
             OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, "merchant_offers", NetProtocolRange.since(NetProtocol.v1_14)),
             PING(PING_CLASS, "ping", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.MultiViaUnique(uniques = {
-                    @ViaProtocol.ViaUnique(name = "chat_message", target = ViaProtocol.ViaUnique.Target.LEGACY),
-                    @ViaProtocol.ViaUnique(name = "chat", target = ViaProtocol.ViaUnique.Target.MODERN)
+            @ViaProtocol.MultipleUnique(uniques = {
+                    @ViaProtocol.Unique(name = "chat_message", target = ViaProtocol.Unique.Target.LEGACY),
+                    @ViaProtocol.Unique(name = "chat", target = ViaProtocol.Unique.Target.MODERN)
             })
             PLAYER_CHAT(PLAYER_CHAT_CLASS, "player_chat"),
             PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, "player_chat_header", NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
-            @ViaProtocol.ViaUnique(name = "combat_end", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "combat_end", target = ViaProtocol.Unique.Target.LEGACY)
             PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, "player_combat_end", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "combat_enter", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "combat_enter", target = ViaProtocol.Unique.Target.LEGACY)
             PLAYER_COMBAT_ENTER(PLAYER_COMBAT_ENTER_CLASS, "player_combat_enter", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "combat_kill", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "combat_kill", target = ViaProtocol.Unique.Target.LEGACY)
             PLAYER_COMBAT_KILL(PLAYER_COMBAT_KILL_CLASS, "player_combat_kill", NetProtocolRange.since(NetProtocol.v1_17)),
             PLAYER_INFO(PLAYER_INFO_CLASS, "player_info", NetProtocolRange.until(NetProtocol.v1_19_2)),
             PLAYER_INFO_REMOVE(PLAYER_INFO_REMOVE_CLASS, "player_info_remove", NetProtocolRange.since(NetProtocol.v1_19_3)),
             PLAYER_INFO_UPDATE(PLAYER_INFO_UPDATE_CLASS, "player_info_update", NetProtocolRange.since(NetProtocol.v1_19_3)),
             PLAYER_POSITION(PLAYER_POSITION_SERVER_CLASS, "player_position"),
-            @ViaProtocol.ViaUnique(name = "use_bed", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "use_bed", target = ViaProtocol.Unique.Target.LEGACY)
             PLAYER_SLEEP(PLAYER_SLEEP_CLASS, "player_sleep", NetProtocolRange.until(NetProtocol.v1_13_2)),
             PONG(PONG_CLASS, "pong_response", NetProtocolRange.since(NetProtocol.v1_20_2)),
             PROJECTILE_POWER(PROJECTILE_POWER_CLASS, "projectile_power", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            @ViaProtocol.ViaUnique(name = "unlock_recipes", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "unlock_recipes", target = ViaProtocol.Unique.Target.LEGACY)
             RECIPES(RECIPES_CLASS, "recipe", NetProtocolRange.since(NetProtocol.v1_12)),
-            @ViaProtocol.ViaUnique(name = "declare_recipes", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "declare_recipes", target = ViaProtocol.Unique.Target.LEGACY)
             RECIPE_UPDATE(RECIPE_UPDATE_CLASS, "update_recipes", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "remove_entity_effect", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "remove_entity_effect", target = ViaProtocol.Unique.Target.LEGACY)
             REMOVE_ENTITY_EFFECT(REMOVE_ENTITY_EFFECT_CLASS, "remove_mob_effect"),
             RESET_SCORE(RESET_SCORE_CLASS, "reset_score", NetProtocolRange.since(NetProtocol.v1_20_4)),
             RESOURCE_PACK_POP(RESOURCE_PACK_POP_CLASS, "resource_pack_pop", NetProtocolRange.since(NetProtocol.v1_20_4)),
             RESOURCE_PACK_PUSH(RESOURCE_PACK_PUSH_CLASS, "resource_pack_push", NetProtocolRange.since(NetProtocol.v1_20_4)),
             RESOURCE_PACK_SEND(RESOURCE_PACK_SEND_CLASS, "resource_pack", NetProtocolRange.until(NetProtocol.v1_20_2)),
             RESPAWN(RESPAWN_CLASS, "respawn"),
-            @ViaProtocol.ViaUnique(name = "display_scoreboard", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "display_scoreboard", target = ViaProtocol.Unique.Target.LEGACY)
             SCOREBOARD_DISPLAY_OBJECTIVE(SCOREBOARD_DISPLAY_OBJECTIVE_CLASS, "set_display_objective"),
-            @ViaProtocol.ViaUnique(name = "scoreboard_objective", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "scoreboard_objective", target = ViaProtocol.Unique.Target.LEGACY)
             SCOREBOARD_OBJECTIVE(SCOREBOARD_OBJECTIVE_CLASS, "set_objective"),
-            @ViaProtocol.ViaUnique(name = "update_score", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_score", target = ViaProtocol.Unique.Target.LEGACY)
             SCOREBOARD_SCORE(SCOREBOARD_SCORE_CLASS, "set_score"),
-            @ViaProtocol.ViaUnique(name = "teams", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "teams", target = ViaProtocol.Unique.Target.LEGACY)
             SCOREBOARD_TEAM(SCOREBOARD_TEAM_CLASS, "set_player_team"),
             SELECT_ADVANCEMENT_TAB(SELECT_ADVANCEMENT_TAB_CLASS, "select_advancements_tab", NetProtocolRange.since(NetProtocol.v1_12)),
             SERVER_DATA(SERVER_DATA_CLASS, "server_data", NetProtocolRange.since(NetProtocol.v1_19)),
-            @ViaProtocol.ViaUnique(name = "server_difficulty", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "server_difficulty", target = ViaProtocol.Unique.Target.LEGACY)
             SERVER_DIFFICULTY(SERVER_DIFFICULTY_CLASS, "change_difficulty"),
-            @ViaProtocol.ViaUnique(name = "world_border_size", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "world_border_size", target = ViaProtocol.Unique.Target.LEGACY)
             SET_BORDER_SIZE(SET_BORDER_SIZE_CLASS, "set_border_size", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "world_border_warning_delay", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "world_border_warning_delay", target = ViaProtocol.Unique.Target.LEGACY)
             SET_BORDER_WARNING_DELAY(SET_BORDER_WARNING_DELAY_CLASS, "set_border_warning_delay", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "world_border_warning_distance", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "world_border_warning_distance", target = ViaProtocol.Unique.Target.LEGACY)
             SET_BORDER_WARNING_DISTANCE(SET_BORDER_WARNING_DISTANCE_CLASS, "set_border_warning_distance", NetProtocolRange.since(NetProtocol.v1_17)),
             SET_COMPRESSION(SET_COMPRESSION_CLASS, "set_compression", NetProtocolRange.until(NetProtocol.v1_8_8)),
             SET_COOLDOWN(SET_COOLDOWN_CLASS, "cooldown", NetProtocolRange.since(NetProtocol.v1_9)),
             SET_DISPLAY_CHAT_PREVIEW(SET_DISPLAY_CHAT_PREVIEW_CLASS, "set_display_chat_preview", NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
             SET_SIMULATION_DISTANCE(SET_SIMULATION_DISTANCE_CLASS, "set_simulation_distance", NetProtocolRange.since(NetProtocol.v1_18)),
-            @ViaProtocol.ViaUnique(name = "set_slot", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "set_slot", target = ViaProtocol.Unique.Target.LEGACY)
             SET_SLOT(SET_SLOT_CLASS, "container_set_slot"),
-            @ViaProtocol.ViaUnique(name = "title_subtitle", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "title_subtitle", target = ViaProtocol.Unique.Target.LEGACY)
             SET_SUBTITLE_TEXT(SET_SUBTITLE_TEXT_CLASS, "set_subtitle_text", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "title_times", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "title_times", target = ViaProtocol.Unique.Target.LEGACY)
             SET_TITLES_ANIMATION(SET_TITLES_ANIMATION_CLASS, "set_titles_animation", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "title_text", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "title_text", target = ViaProtocol.Unique.Target.LEGACY)
             SET_TITLE_TEXT(SET_TITLE_TEXT_CLASS, "set_title_text", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.MultiViaUnique(uniques = {
-                    @ViaProtocol.ViaUnique(name = "named_sound", target = ViaProtocol.ViaUnique.Target.LEGACY, to = @NetProtocol.To(to = NetProtocol.v1_8_8)),
-                    @ViaProtocol.ViaUnique(name = "custom_sound", target = ViaProtocol.ViaUnique.Target.MODERN, to = @NetProtocol.To(to = NetProtocol.v1_8_8))
+            @ViaProtocol.MultipleUnique(uniques = {
+                    @ViaProtocol.Unique(name = "named_sound", target = ViaProtocol.Unique.Target.LEGACY, to = @NetProtocol.To(to = NetProtocol.v1_8_8)),
+                    @ViaProtocol.Unique(name = "custom_sound", target = ViaProtocol.Unique.Target.MODERN, to = @NetProtocol.To(to = NetProtocol.v1_8_8))
                     // Is this a ViaVersion naming bug?
                     // These are the names of the CUSTOM_SOUND packet which came in 1.9
             })
             SOUND(SOUND_CLASS, "sound"),
-            @ViaProtocol.ViaUnique(name = "spawn_entity", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "spawn_entity", target = ViaProtocol.Unique.Target.LEGACY)
             SPAWN_ENTITY(SPAWN_ENTITY_CLASS, "add_entity"),
-            @ViaProtocol.ViaUnique(name = "spawn_mob", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "spawn_mob", target = ViaProtocol.Unique.Target.LEGACY)
             SPAWN_ENTITY_LIVING(SPAWN_ENTITY_LIVING_CLASS, "add_mob", NetProtocolRange.until(NetProtocol.v1_18_2)),
-            @ViaProtocol.ViaUnique(name = "spawn_painting", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "spawn_painting", target = ViaProtocol.Unique.Target.LEGACY)
             SPAWN_ENTITY_PAINTING(SPAWN_ENTITY_PAINTING_CLASS, "add_painting", NetProtocolRange.until(NetProtocol.v1_18_2)),
-            @ViaProtocol.ViaUnique(name = "spawn_global_entity", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "spawn_global_entity", target = ViaProtocol.Unique.Target.LEGACY)
             SPAWN_GLOBAL_ENTITY(SPAWN_GLOBAL_ENTITY_CLASS, "add_global_entity", NetProtocolRange.until(NetProtocol.v1_15_2)),
-            @ViaProtocol.ViaUnique(name = "spawn_experience_orb", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "spawn_experience_orb", target = ViaProtocol.Unique.Target.LEGACY)
             SPAWN_EXPERIENCE_ORB(SPAWN_EXPERIENCE_ORB_CLASS, "add_experience_orb"),
-            @ViaProtocol.ViaUnique(name = "spawn_player", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "spawn_player", target = ViaProtocol.Unique.Target.LEGACY)
             SPAWN_NAMED_ENTITY(SPAWN_NAMED_ENTITY_CLASS, "add_player", NetProtocolRange.until(NetProtocol.v1_20_1)),
-            @ViaProtocol.ViaUnique(name = "spawn_particle", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "spawn_particle", target = ViaProtocol.Unique.Target.LEGACY)
             SPAWN_PARTICLE(SPAWN_PARTICLE_CLASS, "level_particles"),
-            @ViaProtocol.ViaUnique(name = "spawn_position", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "spawn_position", target = ViaProtocol.Unique.Target.LEGACY)
             SPAWN_POSITION(SPAWN_POSITION_CLASS, "set_default_spawn_position"),
             START_CONFIGURATION(START_CONFIGURATION_CLASS, "start_configuration", NetProtocolRange.since(NetProtocol.v1_20_2)),
-            @ViaProtocol.ViaUnique(name = "statistics", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "statistics", target = ViaProtocol.Unique.Target.LEGACY)
             STATISTICS(STATISTICS_CLASS, "award_stats"),
             STOP_SOUND(STOP_SOUND_CLASS, "stop_sound", NetProtocolRange.since(NetProtocol.v1_13)),
             STORE_COOKIE(STORE_COOKIE_CLASS, "store_cookie", NetProtocolRange.since(NetProtocol.v1_20_6)),
             SYSTEM_CHAT(SYSTEM_CHAT_CLASS, "system_chat", NetProtocolRange.since(NetProtocol.v1_19)),
-            @ViaProtocol.ViaUnique(name = "tab_complete", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "tab_complete", target = ViaProtocol.Unique.Target.LEGACY)
             TAB_COMPLETE(TAB_COMPLETE_SERVER_CLASS, "command_suggestions"),
             TAB_LIST(TAB_LIST_CLASS, "tab_list"),
             TICKING_STATE(TICKING_STATE_CLASS, "ticking_state", NetProtocolRange.since(NetProtocol.v1_20_4)),
             TICKING_STEP(TICKING_STEP_CLASS, "ticking_step", NetProtocolRange.since(NetProtocol.v1_20_4)),
             TILE_ENTITY_DATA(TILE_ENTITY_DATA_CLASS, "block_entity_data"),
-            @ViaProtocol.ViaUnique(name = "time_update", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "time_update", target = ViaProtocol.Unique.Target.LEGACY)
             TIME_UPDATE(TIME_UPDATE_CLASS, "set_time"),
-            @ViaProtocol.ViaUnique(name = "title", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "title", target = ViaProtocol.Unique.Target.LEGACY)
             TITLE(TITLE_CLASS, "set_titles", NetProtocolRange.until(NetProtocol.v1_16_5)),
-            @ViaProtocol.ViaUnique(name = "window_confirmation", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "window_confirmation", target = ViaProtocol.Unique.Target.LEGACY)
             TRANSACTION(TRANSACTION_SERVER_CLASS, "container_ack", NetProtocolRange.until(NetProtocol.v1_16_5)),
             TRANSFER(TRANSFER_CLASS, "transfer", NetProtocolRange.since(NetProtocol.v1_20_6)),
-            @ViaProtocol.ViaUnique(name = "unload_chunk", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "unload_chunk", target = ViaProtocol.Unique.Target.LEGACY)
             UNLOAD_CHUNK(UNLOAD_CHUNK_CLASS, "forget_level_chunk", NetProtocolRange.since(NetProtocol.v1_9)),
-            @ViaProtocol.ViaUnique(name = "entity_properties", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "entity_properties", target = ViaProtocol.Unique.Target.LEGACY)
             UPDATE_ENTITY_ATTRIBUTES(UPDATE_ATTRIBUTES_CLASS, "update_attributes"),
             UPDATE_ENABLED_FEATURES(UPDATE_ENABLED_FEATURES_CLASS, "update_enabled_features", NetProtocolRange.between(NetProtocol.v1_19_3, NetProtocol.v1_20_1)),
             UPDATE_ENTITY_NBT(UPDATE_ENTITY_NBT_CLASS, "update_entity_nbt", NetProtocolRange.until(NetProtocol.v1_8_8)),
-            @ViaProtocol.ViaUnique(name = "update_health", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_health", target = ViaProtocol.Unique.Target.LEGACY)
             UPDATE_HEALTH(UPDATE_HEALTH_CLASS, "set_health"),
             UPDATE_SIGN(UPDATE_SIGN_SERVER_CLASS, "update_sign", NetProtocolRange.until(NetProtocol.v1_9_2)),
-            @ViaProtocol.ViaUnique(name = "tags", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "tags", target = ViaProtocol.Unique.Target.LEGACY)
             UPDATE_TAGS(UPDATE_TAGS_CLASS, "update_tags", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.ViaUnique(name = "vehicle_move", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "vehicle_move", target = ViaProtocol.Unique.Target.LEGACY)
             VEHICLE_MOVE(VEHICLE_MOVE_SERVER_CLASS, "move_vehicle", NetProtocolRange.since(NetProtocol.v1_9)),
-            @ViaProtocol.ViaUnique(name = "update_view_position", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_view_position", target = ViaProtocol.Unique.Target.LEGACY)
             VIEW_CENTER(VIEW_CENTER_CLASS, "set_chunk_cache_center", NetProtocolRange.since(NetProtocol.v1_14)),
-            @ViaProtocol.ViaUnique(name = "update_view_distance", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "update_view_distance", target = ViaProtocol.Unique.Target.LEGACY)
             VIEW_DISTANCE(VIEW_DISTANCE_CLASS, "set_chunk_cache_radius", NetProtocolRange.since(NetProtocol.v1_14)),
-            @ViaProtocol.ViaUnique(name = "window_property", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "window_property", target = ViaProtocol.Unique.Target.LEGACY)
             WINDOW_DATA(WINDOW_DATA_CLASS, "container_set_data"),
-            @ViaProtocol.ViaUnique(name = "window_items", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "window_items", target = ViaProtocol.Unique.Target.LEGACY)
             WINDOW_ITEMS(WINDOW_ITEMS_CLASS, "container_set_content"),
-            @ViaProtocol.ViaUnique(name = "world_border", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "world_border", target = ViaProtocol.Unique.Target.LEGACY)
             WORLD_BORDER(WORLD_BORDER_CLASS, "set_border", NetProtocolRange.until(NetProtocol.v1_16_5)),
-            @ViaProtocol.ViaUnique(name = "world_border_center", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "world_border_center", target = ViaProtocol.Unique.Target.LEGACY)
             WORLD_BORDER_CENTER(WORLD_BORDER_CENTER_CLASS, "set_border_center", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "world_border_lerp_size", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "world_border_lerp_size", target = ViaProtocol.Unique.Target.LEGACY)
             WORLD_BORDER_LERP_SIZE(WORLD_BORDER_LERP_SIZE_CLASS, "set_border_lerp_size", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.ViaUnique(name = "effect", target = ViaProtocol.ViaUnique.Target.LEGACY)
+            @ViaProtocol.Unique(name = "effect", target = ViaProtocol.Unique.Target.LEGACY)
             WORLD_EVENT(WORLD_EVENT_CLASS, "level_event"),
             ;
 

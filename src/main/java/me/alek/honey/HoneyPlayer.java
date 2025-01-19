@@ -2,7 +2,7 @@ package me.alek.honey;
 
 import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.sql.SQLManager;
@@ -14,7 +14,6 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.ViolationManagement;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -73,7 +72,7 @@ public class HoneyPlayer implements Identifiable {
                         new PostponeMaxPerXTickCheck()
                 )
             ),
-            i -> new LazyInit<>(i::peek)
+            Queue::peek
     );
 
     public HoneyPlayer(Channel channel, HoneyPacketHandler handler) {

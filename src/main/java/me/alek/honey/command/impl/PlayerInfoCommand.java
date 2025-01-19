@@ -15,6 +15,7 @@ public class PlayerInfoCommand implements CommandImpl {
     public void perform(CommandSender sender, String[] args) {
         if (args.length == 0) {
             sender.sendMessage(Lang.getFormatted("unknown.player"));
+            return;
         }
         Optional<HoneyPlayer> target = getPlayerBy(args[0]);
         if (!target.isPresent()) {

@@ -1,7 +1,6 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.buffer.ByteBuf;
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public interface PacketReader<T> {

@@ -3,8 +3,7 @@ package me.alek.honey.netty.packet;
 import io.netty.channel.ChannelHandler;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.handler.PreResolvedPacketHandler;
 import me.alek.honey.netty.injector.MissingHandlerException;
@@ -59,7 +58,7 @@ public class PostActions {
             }
         }));
 
-        packetProcessor.addPostAction(PacketTypes.Login.Client.LOGIN_START, Callback.Action.<PacketContainer<WrappedLoginInLoginStart>>from(packet -> {
+        packetProcessor.addPostAction(PacketTypes.Login.Client.HELLO, Callback.Action.<PacketContainer<WrappedLoginInLoginStart>>from(packet -> {
             String name = packet.getAnyWrapped().getName();
             NMS.submitChannelForName(name, packet.getChannel());
 

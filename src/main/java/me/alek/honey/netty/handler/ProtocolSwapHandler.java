@@ -2,7 +2,7 @@ package me.alek.honey.netty.handler;
 
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;

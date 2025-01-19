@@ -51,7 +51,6 @@ public enum ItemValidationRegistry {
             MaterialMappings.getTypeIfAny("creeper-head")),
     ILLEGAL_COMPONENT_STRINGS(ItemValidations.IllegalComponentStrings::new),
     ILLEGAL_NUMBERS(ItemValidations.IllegalNumbersItemValidation::new),
-
     ;
 
     private final ItemAnalysis.ItemValidation validation;
@@ -69,24 +68,23 @@ public enum ItemValidationRegistry {
     }
 
     public ItemAnalysis.ItemValidation getValidation() {
-        return validation;
+        return this.validation;
     }
 
     public Material[] getMaterials() {
-        return forMaterials;
+        return this.forMaterials;
     }
 
     public String getTag() {
-        return forTag;
+        return this.forTag;
     }
 
     public boolean hasFilter() {
-        return !forTag.isEmpty() || forMaterials.length > 0;
+        return !this.forTag.isEmpty() || this.forMaterials.length > 0;
     }
 
     @Override
     public String toString() {
         return name().toLowerCase().replace("_", "-");
     }
-
 }

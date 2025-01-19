@@ -52,7 +52,7 @@ public class HoneyPacketDecoder {
                 throw new DecoderException(
                         "Found " + remaining
                                 + " (" + (end + byteBuf.readableBytes()) + "/" + end + ") extra bytes while decoding packet "
-                                + PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketTypes.UNKNOWN) + ", "
+                                + HoneyPlugin.get().getLogger().formatPacketType(PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketTypes.UNKNOWN)) + ", "
                                 + state + " (" + NetProtocol.getProtocol().getName() + "): "
                                 + HoneyPlugin.get().getLogger().filterTooMuchData(
                                         HoneyPlugin.get().getLogger().formatPacketEntries(

@@ -10,7 +10,7 @@ public class CompilerFeedback {
     final public boolean success;
     final public DiagnosticCollector<JavaFileObject> diagnostics;
 
-    public CompilerFeedback(final Boolean success, final DiagnosticCollector<JavaFileObject> diagnostics) {
+    public CompilerFeedback(Boolean success, DiagnosticCollector<JavaFileObject> diagnostics) {
         this.success = success != null && success;
         this.diagnostics = diagnostics;
     }

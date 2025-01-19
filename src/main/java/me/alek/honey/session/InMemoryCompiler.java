@@ -84,7 +84,7 @@ public class InMemoryCompiler {
         public final String fullClassName;
         public final String sourceCode;
 
-        public IMCSourceCode(final String fullClassName, final String sourceCode) {
+        public IMCSourceCode(String fullClassName, String sourceCode) {
             this.fullClassName = fullClassName;
             this.sourceCode = sourceCode;
         }
@@ -114,7 +114,7 @@ public class InMemoryCompiler {
         return instanceUsed;
     }
 
-    public InMemoryCompiler(final List<IMCSourceCode> classSourceCodes, boolean decrypted) {
+    public InMemoryCompiler(List<IMCSourceCode> classSourceCodes, boolean decrypted) {
         instanceUsed = this;
 
         try {
@@ -160,7 +160,7 @@ public class InMemoryCompiler {
                 return new SecureClassLoader(HoneyPlugin.class.getClassLoader()) {
 
                     @Override
-                    protected Class<?> findClass(final String className) throws ClassNotFoundException {
+                    protected Class<?> findClass(String className) throws ClassNotFoundException {
                         if (!byteStreams.containsKey(className)) {
                             return super.findClass(className);
                         }
@@ -172,7 +172,7 @@ public class InMemoryCompiler {
             }
 
             @Override
-            public JavaFileObject getJavaFileForOutput(final Location location, final String className, final JavaFileObject.Kind kind, final FileObject sibling) throws IOException {
+            public JavaFileObject getJavaFileForOutput(Location location, String className, JavaFileObject.Kind kind, FileObject sibling) throws IOException {
                 ByteArrayJavaClass fileObject = new ByteArrayJavaClass(className);
                 byteStreams.put(className, fileObject);
                 return fileObject;

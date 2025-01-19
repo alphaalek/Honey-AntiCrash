@@ -3,8 +3,6 @@ package me.alek.honey.netty.packet;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.ObjectPacketStructure;
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -14,6 +12,7 @@ import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
+import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -46,14 +45,13 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     public InternalPacketContainer(PipelineState createdState, PacketDataSerializer serializer, HoneyPlayer player, PacketType type, Callback postAction) {
         this.player = player;
         this.type = type;
-        Callback wrapped = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPostAction(type);
-        if (wrapped == null) {
-            this.postAction = postAction;
+
+        Callback registeredPostAction = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPostAction(type);
+        if (registeredPostAction != null && !registeredPostAction.isEmpty()) {
+            this.postAction = Optional.ofNullable(postAction).orElseGet(Callback::new);
+            this.postAction.getActions().addAll(registeredPostAction.getActions());
         } else {
-            if (postAction != null && postAction != wrapped) {
-                postAction.getActions().forEach(wrapped::addAction);
-            }
-            this.postAction = wrapped;
+            this.postAction = postAction;
         }
 
         this.pipelineState = createdState;
@@ -266,7 +264,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     @Override
     public String getPlayerName() {
         // if this is called before LOGIN_START post action, the player name is not yet updated
-        if (this.type == PacketTypes.Login.Client.LOGIN_START) {
+        if (this.type == PacketTypes.Login.Client.HELLO) {
             return ((WrappedLoginInLoginStart)getAnyWrapped()).getName();
         }
 

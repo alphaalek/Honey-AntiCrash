@@ -1,8 +1,8 @@
 package me.alek.honey.netty;
 
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.processor.ListenerPriority;
+import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
 import me.alek.honey.netty.injector.ServerPacketManager;
 import me.alek.honey.netty.injector.SpigotPipelineInjector;
@@ -13,7 +13,7 @@ import me.alek.honey.netty.packet.PostActions;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.InternalPacketProcessor;
-import me.alek.honey.netty.processor.Processors;
+import me.alek.honey.netty.processor.TypeProcessors;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 
@@ -65,7 +65,7 @@ public class PacketLibrary {
 
         PostActions.setup();
 
-        Processors.dummyLoad();
+        TypeProcessors.loadImpl();
     }
 
     public SpigotServerInjector getServerInjector() {

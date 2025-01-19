@@ -1,4 +1,4 @@
-package me.alek.honey.util.chain;
+package me.alek.honey.util.functions;
 
 public interface ChainRunnable extends Runnable {
 

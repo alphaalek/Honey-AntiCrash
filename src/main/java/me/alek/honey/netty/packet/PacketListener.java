@@ -1,7 +1,6 @@
 package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 public interface PacketListener<WP extends WrappedPacket<WP>> {

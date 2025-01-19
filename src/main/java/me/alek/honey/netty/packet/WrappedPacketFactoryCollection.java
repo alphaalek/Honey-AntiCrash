@@ -1,6 +1,5 @@
 package me.alek.honey.netty.packet;
 
-import me.alek.honey.netty.api.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -43,7 +42,7 @@ public class WrappedPacketFactoryCollection {
         loadObjectWrapper(PacketTypes.Play.Client.GROUND, WrappedPlayInGround::new);
         loadObjectWrapper(PacketTypes.Play.Client.UPDATE_SIGN, WrappedPlayInUpdateSign::new);
         loadObjectWrapper(PacketTypes.Play.Client.TAB_COMPLETE, WrappedPlayInTabComplete::new);
-        loadObjectWrapper(PacketTypes.Login.Client.LOGIN_START, WrappedLoginInLoginStart::new);
+        loadObjectWrapper(PacketTypes.Login.Client.HELLO, WrappedLoginInLoginStart::new);
 
         loadObjectWrapper(PacketTypes.Play.Server.PLAYER_CHAT, WrappedPlayOutChat::new);
         loadObjectWrapper(PacketTypes.Play.Server.DISCONNECT, WrappedPlayOutDisconnect::new);
@@ -76,10 +75,10 @@ public class WrappedPacketFactoryCollection {
     @SuppressWarnings("unchecked")
     public static <WP extends WrappedPacket<WP>> ObjectWrappedPacket<WP> initWrappedPacket(PacketType type, Object raw, PacketContainer<WP> container) {
         WrappedPacketFactory.ObjectWrappedPacketFactory<WP> factory;
-        if (!OBJECT_WRAPPERS.has(type)) {
-            factory = WrappedPacketFactory.<WP>acquireHolder().OBJECT_FACTORY;
-        } else {
+        if (OBJECT_WRAPPERS.has(type)) {
             factory = (WrappedPacketFactory.ObjectWrappedPacketFactory<WP>) OBJECT_WRAPPERS.get(type.getHoneyID());
+        } else {
+            factory = WrappedPacketFactory.<WP>acquireHolder().OBJECT_FACTORY;
         }
         return factory.createPacket(raw, container);
     }

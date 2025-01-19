@@ -24,11 +24,11 @@ public class LazyInit<T> {
     }
 
     public T get() {
-        if (!called) {
-            called = true;
-            val = function.get();
+        if (!this.called) {
+            this.called = true;
+            this.val = this.function.get();
         }
-        return val;
+        return this.val;
     }
 
     public static LazyInit<Integer> getMinecraftIDInit(PacketType type) {

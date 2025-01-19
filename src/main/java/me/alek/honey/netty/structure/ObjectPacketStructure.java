@@ -1,4 +1,4 @@
-package me.alek.honey.netty.api;
+package me.alek.honey.netty.structure;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;

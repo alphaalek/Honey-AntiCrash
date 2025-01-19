@@ -19,7 +19,11 @@ public interface ViolationValidation<T> extends HoneyValidation<T> {
 
     interface IntViolation extends ViolationValidation<Integer> {
 
-        default ValidationViolationContext validate(HoneyPlayer player, Integer amount, ValidationPipelineContext container) {
+        default ValidationViolationContext validate(HoneyPlayer player, ValidationPipelineContext context) {
+            return validate(player, 1, context);
+        }
+
+        default ValidationViolationContext validate(HoneyPlayer player, Integer amount, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 return ValidationViolationContext.Builder.validate().flag(amount).build();
             }

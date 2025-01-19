@@ -14,12 +14,10 @@ public class CooldownManager {
         if (!cooldownMap.containsKey(player.getUniqueId())) {
             return null;
         }
-        final List<Cooldown> cooldowns = cooldownMap.get(player.getUniqueId());
-        final Optional<Cooldown> cooldownOptional = cooldowns
-                .stream()
+        return cooldownMap.get(player.getUniqueId()).stream()
                 .filter(cooldown -> cooldown.getCommandImpl() == command)
-                .findFirst();
-        return cooldownOptional.orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
     public boolean hasCooldown(Player player, CommandImpl command) {
@@ -31,14 +29,14 @@ public class CooldownManager {
     }
 
     public String getFormattedCooldown(Player player, CommandImpl command) {
-        final Cooldown cooldown = getCooldownModel(player, command);
+        Cooldown cooldown = getCooldownModel(player, command);
         return Duration.between(LocalDateTime.now(), cooldown.getWhenExpired()).getSeconds() + 1 + " seconds";
     }
 
     public void setCooldown(Player player, CommandImpl command) {
         Cooldown cooldown = getCooldownModel(player, command);
         if (cooldown == null) {
-            final UUID uuid = player.getUniqueId();
+            UUID uuid = player.getUniqueId();
             if (!this.cooldownMap.containsKey(uuid)) {
                 this.cooldownMap.put(uuid, new ArrayList<>());
             }

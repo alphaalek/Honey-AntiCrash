@@ -37,7 +37,7 @@ public class SparkTPSProvider implements ServiceProvider<Spark> {
                 if (SPARK != null) {
                     return SPARK;
                 }
-                SPARK = initRegistration(Spark.class);
+                SPARK = ServiceProvider.initRegistration(Spark.class);
 
                 return SPARK;
             }

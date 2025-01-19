@@ -1,10 +1,10 @@
 package me.alek.honey.tickloop.packet;
 
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.*;
-import me.alek.honey.util.chain.ChainRunnable;
+import me.alek.honey.util.functions.ChainRunnable;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import org.bukkit.Bukkit;

@@ -2,9 +2,8 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.api.ListenerPriority;
-import me.alek.honey.netty.api.PacketContainer;
-import me.alek.honey.netty.api.PacketProcessor;
+import me.alek.honey.netty.processor.ListenerPriority;
+import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;

@@ -7,7 +7,7 @@ public interface ServiceProvider<R> {
 
     R get();
 
-    default R initRegistration(Class<R> clazz) {
+    static <R> R initRegistration(Class<R> clazz) {
         RegisteredServiceProvider<R> provider = Bukkit.getServicesManager().getRegistration(clazz);
         if (provider != null) {
             return provider.getProvider();

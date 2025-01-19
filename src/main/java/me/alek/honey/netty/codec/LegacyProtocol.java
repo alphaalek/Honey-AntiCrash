@@ -3,7 +3,7 @@ package me.alek.honey.netty.codec;
 import com.google.common.collect.BiMap;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
-import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;

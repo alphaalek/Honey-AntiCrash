@@ -1,6 +1,6 @@
 package me.alek.honey.netty.nbt;
 
-import me.alek.honey.netty.api.IStructureModifier;
+import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;

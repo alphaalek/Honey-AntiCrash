@@ -48,7 +48,7 @@ public class Callback {
     }
 
     public List<Action> getActions() {
-        return getActions();
+        return this.actions;
     }
 
     public void call(Object... data) {

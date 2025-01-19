@@ -1,9 +1,8 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
-import me.alek.honey.netty.api.PacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
-import org.bukkit.Bukkit;
 
 public class WrappedPlayInPickItem extends ByteWrappedPacket<WrappedPlayInPickItem> {
 

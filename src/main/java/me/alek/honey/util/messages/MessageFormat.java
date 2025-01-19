@@ -14,28 +14,28 @@ public class MessageFormat {
         for (Placeholders placeholder : Placeholders.values()) {
             String text = placeholder.getText();
 
-            int index;
-            int startIndex = 0;
-            while ((index = message.indexOf("%" + text + "%", startIndex)) != -1) {
-                indices.add(new MessageIndex(index, index + text.length() + 1, placeholder));
-                startIndex = index + text.length();
+            int i;
+            int start = 0;
+            while ((i = message.indexOf("%" + text + "%", start)) != -1) {
+                indices.add(new MessageIndex(i, i + text.length() + 1, placeholder));
+                start = i + text.length();
             }
         }
 
         int[] mib = new int[message.length()];
-        for (MessageIndex index : indices) {
-            for (int betweenIndex = index.getStartIndex(); betweenIndex <= index.getEndIndex(); betweenIndex++) {
+        for (MessageIndex messageIndex : indices) {
+            for (int betweenIndex = messageIndex.getStartIndex(); betweenIndex <= messageIndex.getEndIndex(); betweenIndex++) {
                 mib[betweenIndex] = 1;
             }
         }
 
         int startIndex = -1;
-        for (int index = 0; index < mib.length; index++) {
-            if (mib[index] == 1 && startIndex != -1) {
-                indices.add(MessageIndex.asSubstring(startIndex, index, message));
+        for (int i = 0; i < mib.length; i++) {
+            if (mib[i] == 1 && startIndex != -1) {
+                indices.add(MessageIndex.asSubstring(startIndex, i, message));
                 startIndex = -1;
-            } else if (mib[index] == 0 && startIndex == -1) {
-                startIndex = index;
+            } else if (mib[i] == 0 && startIndex == -1) {
+                startIndex = i;
             }
         }
 
@@ -51,7 +51,7 @@ public class MessageFormat {
     public MessageFormat(List<MessageIndex> indices) {
         this.indices = indices;
 
-        Collections.sort(indices, Comparator.comparingInt(MessageIndex::getStartIndex));
+        indices.sort(Comparator.comparingInt(MessageIndex::getStartIndex));
     }
 
     public String getMessage(MessageOffer offer) {

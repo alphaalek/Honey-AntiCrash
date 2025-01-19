@@ -2,7 +2,11 @@ package me.alek.honey.util;
 
 import me.alek.honey.util.protocol.NetProtocol;
 
+import java.util.Optional;
+
 public class ClientInfo {
+
+    public static final String VANILLA = "vanilla";
 
     private final int protocolVersion;
     private final NetProtocol majorProtocol;
@@ -29,6 +33,6 @@ public class ClientInfo {
     }
 
     public String getBrand() {
-        return brand;
+        return Optional.ofNullable(brand).orElse(VANILLA);
     }
 }

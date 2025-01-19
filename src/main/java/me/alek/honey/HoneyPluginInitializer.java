@@ -1,7 +1,9 @@
 package me.alek.honey;
 
+import me.alek.honey.session.NoSessionEncryption;
 import org.bukkit.plugin.java.JavaPlugin;
 
+@NoSessionEncryption
 public class HoneyPluginInitializer extends JavaPlugin {
 
     private static HoneyAPI plugin;
