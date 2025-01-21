@@ -133,6 +133,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         try {
             // initialize packet container
             PacketType type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, true);
+            if (type == null) {
+                // invalid packet
+                UnsafeChannelCloser.closeForcibly(ctx.channel());
+                list.add(Unpooled.buffer());
+                return;
+            }
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
             MARK.set(packet);
 

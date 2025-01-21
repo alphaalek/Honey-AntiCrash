@@ -15,43 +15,12 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-public enum PacketTypes implements PacketType {
-    UNKNOWN;
+public class PacketTypes {
 
-    @Override
-    public Class<?> getNmsClass() {
-        return null;
-    }
-
-    @Override
-    public LazyInit<Integer> getMinecraftID() {
-        return null;
-    }
-
-    @Override
-    public String getKeyName() {
-        return null;
-    }
-
-    @Override
-    public int getHoneyID() {
-        return -1;
-    }
-
-    @Override
-    public PacketState getState() {
-        return PacketState.UNKNOWN;
-    }
-
-    @Override
-    public PacketBound getBound() {
-        return PacketBound.SERVER;
-    }
-
-    private static final Array<PacketType> UNKNOWN_ARRAY = Array.from(UNKNOWN);
+    private static final Array<PacketType> UNKNOWN_ARRAY = Array.from(PacketType.UNKNOWN);
 
     public static boolean isUnknown(PacketType type) {
-        return type == null || type == UNKNOWN;
+        return type == null || type == PacketType.UNKNOWN;
     }
 
     private static final NetProtocol protocolVersion = NetProtocol.getProtocol();
@@ -189,7 +158,7 @@ public enum PacketTypes implements PacketType {
             }
         }
 
-        return PacketTypes.UNKNOWN;
+        return PacketType.UNKNOWN;
     }
 
     public static PacketType getTypeFromKey(PacketState state, PacketBound bound, String key) {
@@ -199,7 +168,7 @@ public enum PacketTypes implements PacketType {
             }
         }
 
-        return PacketTypes.UNKNOWN;
+        return PacketType.UNKNOWN;
     }
 
     public static PacketType getTypeFromViaKey(NetProtocol protocol, PacketState state, PacketBound bound, String key) {
@@ -229,7 +198,7 @@ public enum PacketTypes implements PacketType {
             }
         }
 
-        return PacketTypes.UNKNOWN;
+        return PacketType.UNKNOWN;
     }
 
     private static boolean checkVia(ViaProtocol.Unique via, NetProtocol protocol, String key) {

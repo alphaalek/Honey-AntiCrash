@@ -49,7 +49,7 @@ public class BookEditValidations extends AbstractValidationPacketListener<Wrappe
                                 onViolation.run();
                             }
                             ItemStack heldItem = player.getItemInMainHand();
-                            if (heldItem != null && heldItem.getType() == MaterialMappings.getTypeIfAny("writable-book")) {
+                            if (heldItem != null && heldItem.getType() == MaterialMappings.getTypeOnly("writable-book")) {
                                 heldItem.setType(Material.AIR);
                             }
                         }).build();

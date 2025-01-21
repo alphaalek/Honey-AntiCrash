@@ -35,8 +35,6 @@ public class ItemReflection {
     });
     private static final MethodInvoker<Void> craftItemSetMeta = Reflection.getMethod(NMS.getCraftItemStackClass(), "setItemMeta", NMS.getItemStackClass(), ItemMeta.class);
 
-    private static final AtomicReference<FieldAccessor<List<Object>>> bookMetaPageCache = new AtomicReference<>();
-
     private static final Gson CHAT_SERIALIZER_GSON;
 
     static {
@@ -64,7 +62,7 @@ public class ItemReflection {
                 .withSuperClass(false)
                 .withTarget(meta);
 
-        return bookMetaPageModifier.readField(bookMetaPageCache, "pages", 0);
+        return bookMetaPageModifier.readField(null, "pages", 0);
     }
 
     public static void setPages(BookMeta meta, List<Object> pages) {
@@ -73,7 +71,7 @@ public class ItemReflection {
                 .withSuperClass(false)
                 .withTarget(meta);
 
-        bookMetaPageModifier.writeField(bookMetaPageCache, "pages", 0, pages);
+        bookMetaPageModifier.writeField(null, "pages", 0, pages);
     }
 
     public static ItemStack asBukkitCopy(Object itemStack) {

@@ -10,7 +10,7 @@ import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
+import me.alek.honey.netty.modelwrappers.objects.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;

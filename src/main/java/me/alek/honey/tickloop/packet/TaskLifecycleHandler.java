@@ -7,6 +7,7 @@ import me.alek.honey.monitor.MonitorSendAt;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketLifecycleTimings;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.HoneyLogger;
@@ -136,7 +137,7 @@ public class TaskLifecycleHandler {
             HoneyPlugin.get().getNotificationService().notify(
                     HoneyPlugin.get().getNotificationService().getPrefix()
                     + " §cThe server seems to be frozen while processing packet "
-                    + Optional.of(packet.getType()).orElse(PacketTypes.UNKNOWN)
+                    + Optional.of(packet.getType()).orElse(PacketType.UNKNOWN)
                     + " sent by " + packet.getPlayerName()
                     + ". See the log for thread dump and more info."
             );

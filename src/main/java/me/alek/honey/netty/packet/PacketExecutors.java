@@ -70,7 +70,7 @@ public class PacketExecutors {
         }
 
         private Runnable handleBookEdit(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
-            if (item.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
+            if (item.getType() != MaterialMappings.getTypeOnly("writable-book")) {
                 return null;
             }
 
@@ -89,7 +89,7 @@ public class PacketExecutors {
             }
 
             if (item.getType() != Material.WRITTEN_BOOK
-                    && item.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
+                    && item.getType() != MaterialMappings.getTypeOnly("writable-book")) {
                 return null;
             }
 
@@ -145,7 +145,7 @@ public class PacketExecutors {
 
         private void handleItem(HoneyPlayer player, WrappedImmutableItemStack item, boolean signing, BiConsumer<BookMeta, BookMeta> successCallback) {
             ItemStack heldItem = player.getItemInMainHand();
-            if (heldItem.getType() != MaterialMappings.getTypeIfAny("writable-book")) {
+            if (heldItem.getType() != MaterialMappings.getTypeOnly("writable-book")) {
                 // can't edit or sign book, if the held item of the player is not writable book type
                 return;
             }

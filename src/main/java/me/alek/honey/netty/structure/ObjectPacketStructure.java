@@ -2,7 +2,7 @@ package me.alek.honey.netty.structure;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
+import me.alek.honey.netty.modelwrappers.objects.WrappedGameProfile;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import org.bukkit.inventory.ItemStack;
 

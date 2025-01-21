@@ -35,7 +35,7 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
     public WrappedPlayInWindowClick(PacketDataSerializer serializer, PacketContainer<WrappedPlayInWindowClick> packet) {
         super(serializer, packet);
 
-        NetProtocol protocol = packet.getProtocolByPacketState();
+        NetProtocol protocol = packet.getProtocol();
 
         // TODO
         if (false /*protocol.isNewerThanOrEqual(NetProtocol.v1_21_2) */) {

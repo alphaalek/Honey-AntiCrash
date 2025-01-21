@@ -6,6 +6,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -52,7 +53,7 @@ public class HoneyPacketDecoder {
                 throw new DecoderException(
                         "Found " + remaining
                                 + " (" + (end + byteBuf.readableBytes()) + "/" + end + ") extra bytes while decoding packet "
-                                + HoneyPlugin.get().getLogger().formatPacketType(PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketTypes.UNKNOWN)) + ", "
+                                + HoneyPlugin.get().getLogger().formatPacketType(PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketType.UNKNOWN)) + ", "
                                 + state + " (" + NetProtocol.getProtocol().getName() + "): "
                                 + HoneyPlugin.get().getLogger().filterTooMuchData(
                                 HoneyPlugin.get().getLogger().formatPacketEntries(

@@ -14,6 +14,8 @@ public interface MapConverter<K, V, T> extends JavaConverter<Map<K, V>, MapConve
 
     void clear();
 
+    int size();
+
     T removeConverted(K key);
 
     T putConverted(K key, T value);

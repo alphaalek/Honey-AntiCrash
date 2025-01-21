@@ -63,6 +63,11 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         delegatedMap.clear();
     }
 
+    @Override
+    public int size() {
+        return delegatedMap.size();
+    }
+
     public boolean containsKey(K key) {
         checkMap();
 

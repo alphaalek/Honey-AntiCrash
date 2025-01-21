@@ -1,13 +1,19 @@
 package me.alek.honey.netty.modelwrappers;
 
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.codec.types.Types;
+import me.alek.honey.netty.codec.validation.CodecType;
+import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.nbt.AbstractTag;
 import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.netty.nbt.NBTFactory;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.nbt.TagType;
+import me.alek.honey.netty.nbt.array.ArrayTag;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBookEdit;
 import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemReflection;
@@ -87,6 +93,66 @@ public class WrappedImmutableItemStack implements Cloneable {
             defaultMetaConstructor = Reflection.getConstructor(NMS.getCraftMetaItemClass(), NMS.getNBTTagCompoundClass());
         } else {
             defaultMetaConstructor = null;
+        }
+
+        CodecType.ITEM_STACK.addValidation(WrappedImmutableItemStack::validate);
+        CodecType.BOOK_EDIT_ITEM_STACK.addValidation(WrappedImmutableItemStack::validateBookEdit);
+    }
+
+    public static void validate(WrappedImmutableItemStack item, DecodeContext<?> context) throws DecoderException {
+        if (item.getType() == Material.WRITTEN_BOOK || item.getType() == MaterialMappings.getTypeOnly("writable-book")) {
+            CompoundTag nbt = item.getNBT();
+            if (nbt != null) {
+                if (nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+                    ArrayTag<String> pages = item.getNBT().getArrayOf("pages", TagType.STRING);
+                    if (context.protocol().isNewerThanOrEqual(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES
+                            || context.protocol().isOlderThan(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES_1_13_2) {
+                        throw new IllegalStateException("Too many pages: " + pages.size() + ", limit: "
+                                + (context.protocol().isNewerThanOrEqual(NetProtocol.v1_14) ? WrappedPlayInBookEdit.MAX_PAGES : WrappedPlayInBookEdit.MAX_PAGES_1_13_2));
+                    }
+                }
+
+                if (nbt.hasKeyOfType("title", TagType.STRING)
+                        && (nbt.getString("title").isEmpty() || nbt.getString("title").length() > WrappedPlayInBookEdit.TITLE_CHAR_LIMIT)) {
+                    throw new DecoderException("Invalid book data! Too long title: " + nbt.getString("title").length() + ", limit: " + WrappedPlayInBookEdit.TITLE_CHAR_LIMIT);
+                }
+
+                if (nbt.hasKeyOfType("author", TagType.STRING)
+                        && (nbt.getString("author").isEmpty() || nbt.getString("author").length() > WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT)) {
+                    throw new DecoderException("Invalid book data! Too long author: " + nbt.getString("author").length() + ", limit: " + WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT);
+                }
+            }
+        }
+    }
+
+    public static void validateBookEdit(WrappedImmutableItemStack item, DecodeContext.BookEditContext<?> context) throws DecoderException {
+        if (item.getType() != Material.WRITTEN_BOOK && item.getType() != MaterialMappings.getTypeOnly("writable-book")) {
+            throw new DecoderException("Invalid book edit item-stack! Item-stack type: " + item.getType());
+        }
+
+        CompoundTag tag = item.getNBT();
+        if (tag == null) {
+            throw new DecoderException("Invalid book data: no tag");
+        }
+
+        if (!tag.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+            throw new DecoderException("Invalid book data: no pages tag");
+        }
+
+        if (context.isSigning()) {
+            if (!tag.hasKeyOfType("title", TagType.STRING)) {
+                throw new DecoderException("Invalid book data: no title tag in sign context");
+            }
+
+            if (!tag.hasKeyOfType("author", TagType.STRING) || !tag.getString("author").equals(context.packet().getContainer().getPlayerName())) {
+                throw new DecoderException("Invalid book data: no author tag in sign context");
+            }
+
+            if (tag.size() > 3) {
+                throw new DecoderException("Invalid book data: extra tags");
+            }
+        } else if (tag.size() > 1) {
+            throw new DecoderException("Invalid book data: extra tags");
         }
     }
 

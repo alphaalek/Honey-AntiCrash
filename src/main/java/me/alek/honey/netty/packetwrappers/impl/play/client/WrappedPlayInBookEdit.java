@@ -1,12 +1,14 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.validation.CodecType;
+import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.netty.nbt.PrimitiveTag;
 import me.alek.honey.netty.nbt.TagType;
 import me.alek.honey.netty.nbt.array.ArrayTag;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.protocol.InteractionHand;
 import me.alek.honey.util.MaterialMappings;
@@ -18,6 +20,7 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
 
     public static final int PAGE_CHAR_LIMIT = 1024;
     public static final int TITLE_CHAR_LIMIT = 16;
+    public static final int AUTHOR_CHAR_LIMIT = 16;
     public static final int MAX_PAGES = 100;
     public static final int MAX_PAGES_1_13_2 = 50;
 
@@ -31,7 +34,7 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
     public WrappedPlayInBookEdit(PacketDataSerializer buf, PacketContainer<WrappedPlayInBookEdit> packet) {
         super(buf, packet);
 
-        NetProtocol protocol = packet.getProtocolByPacketState();
+        NetProtocol protocol = packet.getProtocol();
 
         if (protocol.isOlderThan(NetProtocol.v1_17)) {
             this.itemStack = buf.readItemStack(protocol);
@@ -53,19 +56,22 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
             }
             tag.put("pages", pages);
 
-            Material material = MaterialMappings.getTypeIfAny("writable-book");
+            Material material;
             if (buf.readBoolean()) {
                 tag.put("title", new PrimitiveTag<>(TagType.STRING, buf.readString(TITLE_CHAR_LIMIT)));
                 tag.put("author", new PrimitiveTag<>(TagType.STRING, packet.getPlayer().name));
                 material = Material.WRITTEN_BOOK;
                 this.signing = true;
             } else {
+                material = MaterialMappings.getTypeOnly("writable-book");
                 this.signing = false;
             }
 
             this.itemStack = WrappedImmutableItemStack.fromBukkit(new ItemStack(material));
             this.itemStack.setNBT(tag);
         }
+
+        CodecType.BOOK_EDIT_ITEM_STACK.validate(this.itemStack, new DecodeContext.BookEditContext<>(this, this.signing));
     }
 
     public InteractionHand getInteractionHand() {

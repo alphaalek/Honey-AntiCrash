@@ -54,7 +54,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         }
 
         this.pipelineState = createdState;
-        if (serializer != null && createdState != PipelineState.OBJECT) {
+        if (serializer != null && createdState != PipelineState.OBJECT && !PacketTypes.isUnknown(type)) {
             ByteWrappedPacket<WP> byteWrappedPacket = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
             if (createdState == PipelineState.INITIAL_BYTE) {
                 this.initialByteWrapped = byteWrappedPacket;
@@ -114,8 +114,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public NetProtocol getProtocolByPacketState() {
-        if (!callingLateInitialByteWrapped && this.pipelineState == PipelineState.INITIAL_BYTE && this.player.clientInfo != null) {
+    public NetProtocol getProtocol() {
+        if (!this.callingLateInitialByteWrapped && this.pipelineState == PipelineState.INITIAL_BYTE && this.player.clientInfo != null) {
             return this.player.clientInfo.getProtocol(); // use the client version to check for different protocols
         } else {
             return NetProtocol.getProtocol(); // if modified by ViaVersion, using either client or server should read same packet data
@@ -243,12 +243,14 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
             return this.objectWrapped.get();
         } else {
             // none of the wrapped packets are specific, just return any abstract instance
-            if (this.initialByteWrapped != null) {
+
+            // the abstract object wrapped is prioritized first because packet logging needs an object instance to read properties
+            if (this.objectWrapped != null) {
+                return this.objectWrapped.get();
+            } else if (this.initialByteWrapped != null) {
                 return this.initialByteWrapped.get();
             } else if (this.finalByteWrapped != null) {
                 return this.finalByteWrapped.get();
-            } else if (this.objectWrapped != null) {
-                return this.objectWrapped.get();
             } else {
                 return null;
             }
@@ -262,7 +264,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public String getPlayerName() {
-        // if this is called before LOGIN_START post action, the player name is not yet updated
+        // if this is called before HELLO post action, the player name is not yet updated
         if (this.type == PacketTypes.Login.Client.HELLO) {
             return ((WrappedLoginInLoginStart) getAnyWrapped()).getName();
         }
@@ -272,6 +274,6 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public String toString() {
-        return "Packet:{Type:" + Optional.ofNullable(this.type).orElse(PacketTypes.UNKNOWN) + ",Player:" + getPlayerName() + "}";
+        return "Packet:{Type:" + Optional.ofNullable(this.type).orElse(PacketType.UNKNOWN) + ",Player:" + getPlayerName() + "}";
     }
 }

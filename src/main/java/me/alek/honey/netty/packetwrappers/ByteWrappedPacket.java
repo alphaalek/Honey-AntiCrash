@@ -87,13 +87,15 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
 
     @Override
     public Map<String, Object> getProperties() {
+        // TODO
+        // set properties in classes
         if (getClass() != ByteWrappedPacket.class) {
             Map<String, Object> properties = new HashMap<>();
             for (Field field : getClass().getDeclaredFields()) {
                 if (field.isAnnotationPresent(Property.class)) {
                     Property property = field.getAnnotation(Property.class);
 
-                    if (NetProtocolRange.matchProtocol(getContainer().getProtocolByPacketState(), property.to(), property.from())) {
+                    if (NetProtocolRange.matchProtocol(getContainer().getProtocol(), property.to(), property.from())) {
                         Object val;
                         if (field.isAnnotationPresent(Property.Unlock.class)) {
                             String methodSupplierName = field.getAnnotation(Property.Unlock.class).methodSupplier();

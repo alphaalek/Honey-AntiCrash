@@ -6,9 +6,9 @@ import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
-import me.alek.honey.netty.modelwrappers.WrappedGameProfile;
-import me.alek.honey.netty.modelwrappers.WrappedRenderData;
+import me.alek.honey.netty.modelwrappers.WrappedChunkCoordinates;
+import me.alek.honey.netty.modelwrappers.objects.WrappedGameProfile;
+import me.alek.honey.netty.modelwrappers.objects.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
 import me.alek.honey.netty.nbt.AbstractTag;
@@ -196,15 +196,15 @@ public class Converters {
         return getConverter(WrappedSuggestion.class, (clazz) -> new SimpleWrapperConverter<>(WrappedSuggestion.class));
     }
 
-    public static JavaConverter<Object, WrappedChunkCoordIntPair> getChunkCoordIntConverter() {
-        return getConverter(WrappedChunkCoordIntPair.class, (clazz) -> new JavaConverter<Object, WrappedChunkCoordIntPair>() {
+    public static JavaConverter<Object, WrappedChunkCoordinates> getChunkCoordIntConverter() {
+        return getConverter(WrappedChunkCoordinates.class, (clazz) -> new JavaConverter<Object, WrappedChunkCoordinates>() {
             @Override
-            public WrappedChunkCoordIntPair convertDelegate(Object delegate, Object... params) {
-                return new WrappedChunkCoordIntPair(delegate);
+            public WrappedChunkCoordinates convertDelegate(Object delegate, Object... params) {
+                return new WrappedChunkCoordinates(delegate);
             }
 
             @Override
-            public Object convertDeclaring(WrappedChunkCoordIntPair object) {
+            public Object convertDeclaring(WrappedChunkCoordinates object) {
                 if (object == null) {
                     return null;
                 }

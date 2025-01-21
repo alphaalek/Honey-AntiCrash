@@ -7,6 +7,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Types;
+import me.alek.honey.netty.codec.validation.CodecType;
+import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.netty.nbt.PrimitiveTag;
@@ -15,36 +17,33 @@ import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
-import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.LazyInit;
+import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.MethodInvoker;
-import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Material;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayload<WP>> extends WrappedPacket<WP>, AutoReleasable {
 
-    PayloadData getPayloadData();
+    PayloadData<WP> getPayloadData();
 
     class ByteWrappedPlayInCustomPayload extends ByteWrappedPacket<ByteWrappedPlayInCustomPayload> implements WrappedPlayInCustomPayload<ByteWrappedPlayInCustomPayload> {
 
-        private final PayloadData data;
+        private final PayloadData<ByteWrappedPlayInCustomPayload> data;
 
         public ByteWrappedPlayInCustomPayload(PacketDataSerializer buf, PacketContainer<ByteWrappedPlayInCustomPayload> packet) {
             super(buf, packet);
             String channel = Types.UTF8.read(buf, 20);
             PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
-            this.data = new PayloadData(this, channel, serializer, packet.getProtocolByPacketState());
+            this.data = new PayloadData<>(this, channel, serializer, packet.getProtocol());
         }
 
         @Override
-        public PayloadData getPayloadData() {
+        public PayloadData<ByteWrappedPlayInCustomPayload> getPayloadData() {
             return data;
         }
 
@@ -60,68 +59,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         }
     }
 
-    class ObjectWrappedPlayInCustomPayload extends ObjectWrappedPacket<ObjectWrappedPlayInCustomPayload> implements WrappedPlayInCustomPayload<ObjectWrappedPlayInCustomPayload> {
-
-        private static final AtomicReference<MethodInvoker<Object>> minecraftKeyCustomPayloadCache = new AtomicReference<>();
-        private static final AtomicReference<MethodInvoker<Object>> payloadDataCustomPayloadCache = new AtomicReference<>();
-
-        private final PayloadData data;
-
-        public ObjectWrappedPlayInCustomPayload(Object rawPacket, PacketContainer<ObjectWrappedPlayInCustomPayload> packetContainer) {
-            super(rawPacket, packetContainer);
-
-            String channel;
-            PacketDataSerializer serializer;
-
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
-                serializer = new PacketDataSerializer(Unpooled.buffer());
-
-                Object payload = getContainer().getStructure().getObjectsOf(NMS.getCustomPacketPayload1_20_2Class()).readField(0);
-                Object key;
-                if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-                    Object payloadData = ReflectStructure.Provider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
-                            .withStatic(false).withTarget(payload).invokeMethod(payloadDataCustomPayloadCache, 0);
-
-                    key = ReflectStructure.Provider.acquireStructure(payloadData.getClass())
-                            .withType(NMS.getMinecraftKeyClass()).withTarget(payloadData).invokeMethod(minecraftKeyCustomPayloadCache, 0);
-                } else {
-                    key = ReflectStructure.Provider.acquireStructure(NMS.getCustomPacketPayload1_20_2Class())
-                            .withType(NMS.getMinecraftKeyClass()).withTarget(payload).invokeMethod(minecraftKeyCustomPayloadCache, 0);
-                }
-
-                channel = key.toString();
-            } else {
-                serializer = getDataSerializer(false);
-
-                if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_12_2)) {
-                    Object key = getContainer().getStructure().getObjectsOf(NMS.getMinecraftKeyClass()).readField(0);
-
-                    channel = key.toString();
-                } else {
-                    channel = getContainer().getStructure().getStrings().readField(0);
-                }
-            }
-
-            this.data = new PayloadData(this, channel, serializer, NetProtocol.getProtocol());
-        }
-
-        public PacketDataSerializer getDataSerializer(boolean copy) {
-            return getContainer().getStructure().getDataSerializers(copy).readField(0);
-        }
-
-        @Override
-        public PayloadData getPayloadData() {
-            return this.data;
-        }
-
-        @Override
-        public void release() {
-            AutoReleasable.doRelease(this.data.getSerializer());
-            this.data.release();
-        }
-    }
-
-    class PayloadData implements AutoReleasable {
+    class PayloadData<WP extends WrappedPlayInCustomPayload<WP>> implements AutoReleasable {
 
         private static final String EDIT_BOOK_CHANNEL = "MC|BEdit";
         private static final String SIGN_BOOK_CHANNEL = "MC|BSign";
@@ -130,14 +68,14 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         private final String channel;
         private final PacketDataSerializer serializer;
-        private final String playerName;
+        private final WP packet;
         private LazyInit<WrappedImmutableItemStack> bookChannelItemStack;
         private Runnable release;
 
-        public PayloadData(WrappedPacket<? extends WrappedPacket<?>> packet, String channel, PacketDataSerializer serializer, NetProtocol protocol) {
+        public PayloadData(WP packet, String channel, PacketDataSerializer serializer, NetProtocol protocol) {
             this.channel = channel;
             this.serializer = serializer;
-            this.playerName = packet.getPlayer().name;
+            this.packet = packet;
 
             if (protocol.isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
                 try {
@@ -152,42 +90,31 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         private WrappedImmutableItemStack readItemStack(NetProtocol protocol, PacketDataSerializer serializer) {
             WrappedImmutableItemStack item = serializer.readItemStack(protocol);
 
-            if (item != null && item.getNBT() != null) {
-                CompoundTag tag = new CompoundTag();
-                tag.put("pages", item.getNBT().getArrayOf("pages", TagType.STRING));
+            if (item == null) {
+                throw new DecoderException("Invalid book!");
+            }
 
-                // since books only were sent in custom payload packets up until 1.12.2, we can just use the legacy page limit
-                ArrayTag<String> pages = tag.getArrayOf("pages", TagType.STRING);
-                if (pages.size() > WrappedPlayInBookEdit.MAX_PAGES_1_13_2) {
-                    throw new DecoderException("Invalid book data! Too many pages: " + pages.size() + ", limit: " + WrappedPlayInBookEdit.MAX_PAGES_1_13_2);
-                }
+            boolean signing = this.channel.equals(SIGN_BOOK_CHANNEL);
+            CodecType.BOOK_EDIT_ITEM_STACK.validate(item, new DecodeContext.BookEditContext<>(this.packet, signing));
 
-                if (this.channel.equals(SIGN_BOOK_CHANNEL)) {
-                    tag.put("author", new PrimitiveTag<>(TagType.STRING, item.getNBT().getString("author")));
-                    tag.put("title", new PrimitiveTag<>(TagType.STRING, item.getNBT().getString("title")));
+            CompoundTag tag = new CompoundTag();
+            tag.put("pages", item.getNBT().getArrayOf("pages", TagType.STRING));
+            if (signing) {
+                tag.put("author", new PrimitiveTag<>(TagType.STRING, item.getNBT().getString("author")));
+                tag.put("title", new PrimitiveTag<>(TagType.STRING, item.getNBT().getString("title")));
 
-                    if (tag.getString("title").length() > WrappedPlayInBookEdit.TITLE_CHAR_LIMIT) {
-                        throw new DecoderException("Invalid book data! Too long title: " + tag.getString("title").length() + ", limit: " + WrappedPlayInBookEdit.TITLE_CHAR_LIMIT);
-                    }
-
-                    if (!tag.getString("author").equals(this.playerName)) {
-                        throw new DecoderException("Invalid book data!");
-                    }
-
-                    if (protocol.isEqual(NetProtocol.v1_8_8)) {
-                        for (PrimitiveTag<String> page : pages) {
-                            JsonElement element = JSON_PARSER.parse(page.getValue());
-                            if (element.isJsonObject()) {
-                                page.setValue(((JsonObject) element).get("text").getAsString());
-                            } else {
-                                page.setValue(element.getAsString());
-                            }
+                if (protocol.isEqual(NetProtocol.v1_8_8)) {
+                    for (PrimitiveTag<String> page : tag.getArrayOf("pages", String.class)) {
+                        JsonElement element = JSON_PARSER.parse(page.getValue());
+                        if (element.isJsonObject()) {
+                            page.setValue(((JsonObject) element).get("text").getAsString());
+                        } else {
+                            page.setValue(element.getAsString());
                         }
                     }
                 }
-
-                item.setNBT(tag);
             }
+            item.setNBT(tag);
 
             return item;
         }

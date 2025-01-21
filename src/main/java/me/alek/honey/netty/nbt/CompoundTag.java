@@ -69,6 +69,10 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         getValue().clear();
     }
 
+    public int size() {
+        return getValue().size();
+    }
+
     public boolean isEmpty() {
         return getValue().isEmpty();
     }

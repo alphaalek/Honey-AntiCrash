@@ -17,10 +17,10 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
 
     private static final List<BlockFace> CARTESIAN_FACES = Arrays.asList(BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
 
-    @Property
+    @Property(from = @NetProtocol.From(from = NetProtocol.v1_9))
     private final InteractionHand interactionHand;
+    @Property
     private final WrappedBlockPosition blockPosition;
-    @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
     private int faceId = -1;
     @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
     private BlockFace face;
@@ -37,7 +37,7 @@ public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBloc
     public WrappedPlayInBlockPlace(PacketDataSerializer serializer, PacketContainer<WrappedPlayInBlockPlace> packet) {
         super(serializer, packet);
 
-        NetProtocol protocol = packet.getProtocolByPacketState();
+        NetProtocol protocol = packet.getProtocol();
 
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
             this.interactionHand = InteractionHand.values()[serializer.readVarInt()];

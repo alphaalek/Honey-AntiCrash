@@ -1,10 +1,13 @@
-package me.alek.honey.netty.modelwrappers;
+package me.alek.honey.netty.modelwrappers.objects;
+
+import me.alek.honey.netty.modelwrappers.WrappedObject;
 
 import java.util.UUID;
 
 public class WrappedGameProfile extends WrappedObject<WrappedGameProfile> {
 
     public WrappedGameProfile(Object handle) {
+        // TODO: make own
         super(handle);
     }
 

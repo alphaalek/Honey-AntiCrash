@@ -93,7 +93,7 @@ public enum MaterialMappings {
         }
     }
 
-    public static Material getTypeIfAny(String key) {
+    public static Material getTypeOnly(String key) {
         Material material = getType(key);
         if (material == Material.AIR) {
             throw new IllegalArgumentException("Couldn't find any material matching the item key " + key);

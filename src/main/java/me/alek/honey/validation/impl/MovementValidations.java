@@ -9,7 +9,7 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.modelwrappers.WrappedChunkCoordIntPair;
+import me.alek.honey.netty.modelwrappers.WrappedChunkCoordinates;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -123,11 +123,11 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         return world.isChunkLoaded(x, z);
     }
 
-    public static synchronized WrappedChunkCoordIntPair getChunkAt(Location location) {
+    public static synchronized WrappedChunkCoordinates getChunkAt(Location location) {
         int x = ((int) location.getX()) >> 4;
         int z = ((int) location.getZ()) >> 4;
 
-        return new WrappedChunkCoordIntPair(x, z, world -> isChunkLoaded(world, x, z));
+        return new WrappedChunkCoordinates(x, z, world -> isChunkLoaded(world, x, z));
     }
 
     public static boolean isAnyLatelyTeleportationLocationsCloseTo(HoneyPlayer player, double diff, Function<Location, Double> distanceFunction) {
@@ -323,14 +323,14 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
     public static class MovementD<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
-        private WrappedChunkCoordIntPair lastChunkCameFrom;
-        private WrappedChunkCoordIntPair lastChunk;
+        private WrappedChunkCoordinates lastChunkCameFrom;
+        private WrappedChunkCoordinates lastChunk;
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map and loading excessively chunks
-            WrappedChunkCoordIntPair chunk = getChunkAt(packet.getLocation());
+            WrappedChunkCoordinates chunk = getChunkAt(packet.getLocation());
             boolean equalsChunk = chunk.equals(lastChunk);
             boolean equalsPreviousChunk = chunk.equals(lastChunkCameFrom);
 

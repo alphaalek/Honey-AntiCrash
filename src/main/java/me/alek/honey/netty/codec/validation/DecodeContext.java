@@ -1,0 +1,37 @@
+package me.alek.honey.netty.codec.validation;
+
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.util.protocol.NetProtocol;
+
+public interface DecodeContext<WP extends WrappedPacket<WP>> {
+
+    static <WP extends WrappedPacket<WP>> DecodeContext<WP> from(WP packet) {
+        return () -> packet;
+    }
+
+    WP packet();
+
+    default NetProtocol protocol() {
+        return packet().getContainer().getProtocol();
+    }
+
+    class BookEditContext<WP extends WrappedPacket<WP>> implements DecodeContext<WP> {
+
+        private final boolean signing;
+        private final WP packet;
+
+        public BookEditContext(WP packet, boolean signing) {
+            this.packet = packet;
+            this.signing = signing;
+        }
+
+        @Override
+        public WP packet() {
+            return this.packet;
+        }
+
+        public boolean isSigning() {
+            return this.signing;
+        }
+    }
+}

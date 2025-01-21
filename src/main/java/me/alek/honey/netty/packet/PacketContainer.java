@@ -3,8 +3,6 @@ package me.alek.honey.netty.packet;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.packet.Cancellable;
-import me.alek.honey.netty.packet.PacketLifecycleTimings;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
@@ -30,7 +28,7 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     void callLateInitialByteListeners(PacketDataSerializer serializer);
 
-    NetProtocol getProtocolByPacketState();
+    NetProtocol getProtocol();
 
     ObjectPacketStructure getStructure();
 

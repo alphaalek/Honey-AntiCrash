@@ -154,7 +154,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         private void clearItem(HoneyPlayer player) {
             ItemStack heldItem = player.getItemInMainHand();
-            if (heldItem != null && heldItem.getType() == MaterialMappings.getTypeIfAny("writable-book")) {
+            if (heldItem != null && heldItem.getType() == MaterialMappings.getTypeOnly("writable-book")) {
                 heldItem.setType(Material.AIR);
             }
         }

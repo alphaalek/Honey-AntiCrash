@@ -3,9 +3,13 @@ package me.alek.honey.netty.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.types.Types;
+import me.alek.honey.netty.codec.validation.CodecType;
+import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -69,6 +73,15 @@ public class PacketDataSerializer extends ByteBuf {
     public WrappedImmutableItemStack readItemStack(NetProtocol protocol) {
         return Optional.ofNullable(Types.ITEM_STACK.forProtocol(protocol).read(this))
                 .orElse(WrappedImmutableItemStack.AIR);
+    }
+
+    public <WP extends WrappedPacket<WP>> WrappedImmutableItemStack readItemStack(NetProtocol protocol, WP packet) {
+        WrappedImmutableItemStack stack = readItemStack(protocol);
+        if (stack != WrappedImmutableItemStack.AIR) {
+            CodecType.ITEM_STACK.validate(stack, DecodeContext.from(packet));
+        }
+
+        return stack;
     }
 
     public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {

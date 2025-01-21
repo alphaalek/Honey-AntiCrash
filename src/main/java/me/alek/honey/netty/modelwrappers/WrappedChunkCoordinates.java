@@ -7,7 +7,7 @@ import org.bukkit.World;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordIntPair> {
+public class WrappedChunkCoordinates extends WrappedObject<WrappedChunkCoordinates> {
 
     private static final AtomicReference<FieldAccessor<Integer>> chunkCoordIntPairXCachedAccessor = new AtomicReference<>();
     private static final AtomicReference<FieldAccessor<Integer>> chunkCoordIntPairYCachedAccessor = new AtomicReference<>();
@@ -16,7 +16,7 @@ public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordInt
     private final int y;
     private final Function<World, Boolean> loaded;
 
-    public WrappedChunkCoordIntPair(int x, int y, Function<World, Boolean> loaded) {
+    public WrappedChunkCoordinates(int x, int y, Function<World, Boolean> loaded) {
         super(null);
 
         this.x = x;
@@ -24,7 +24,7 @@ public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordInt
         this.loaded = loaded;
     }
 
-    public WrappedChunkCoordIntPair(Object handle) {
+    public WrappedChunkCoordinates(Object handle) {
         super(handle);
 
         this.x = getModifier(int.class).readField(chunkCoordIntPairXCachedAccessor, "x", 0);
@@ -50,8 +50,8 @@ public class WrappedChunkCoordIntPair extends WrappedObject<WrappedChunkCoordInt
     }
 
     public boolean equals(Object object) {
-        if (object instanceof WrappedChunkCoordIntPair) {
-            WrappedChunkCoordIntPair chunkPair = (WrappedChunkCoordIntPair) object;
+        if (object instanceof WrappedChunkCoordinates) {
+            WrappedChunkCoordinates chunkPair = (WrappedChunkCoordinates) object;
             return this.x == chunkPair.getX() && this.y == chunkPair.getY();
         }
         return false;

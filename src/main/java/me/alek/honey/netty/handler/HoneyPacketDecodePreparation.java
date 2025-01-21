@@ -255,7 +255,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
             serializer.readerIndex(0);
 
             List<Object> nonRecycledList = new ArrayList<>();
-            // TODO
+            // TODO:
             // force sync packet stream until fixed
             if (true || !ConfigurationOptions.AsyncDecoder.ENABLED
                     || !this.player.isBukkitReady()

@@ -1,5 +1,6 @@
-package me.alek.honey.netty.modelwrappers;
+package me.alek.honey.netty.modelwrappers.objects;
 
+import me.alek.honey.netty.modelwrappers.WrappedObject;
 import org.bukkit.map.MapCursor;
 
 import java.util.ArrayList;

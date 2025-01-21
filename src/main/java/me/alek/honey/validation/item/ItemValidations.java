@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.modelwrappers.WrappedRenderData;
+import me.alek.honey.netty.modelwrappers.objects.WrappedRenderData;
 import me.alek.honey.netty.nbt.CompoundTag;
 import me.alek.honey.netty.nbt.NBTFactory;
 import me.alek.honey.netty.nbt.PrimitiveTag;

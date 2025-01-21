@@ -2,8 +2,41 @@ package me.alek.honey.netty.packet.type;
 
 import me.alek.honey.util.Identifiable;
 import me.alek.honey.util.LazyInit;
+import org.omg.CORBA.UNKNOWN;
 
 public interface PacketType extends Identifiable {
+
+    PacketType UNKNOWN = new PacketType() {
+        @Override
+        public Class<?> getNmsClass() {
+            return null;
+        }
+
+        @Override
+        public LazyInit<Integer> getMinecraftID() {
+            return null;
+        }
+
+        @Override
+        public String getKeyName() {
+            return null;
+        }
+
+        @Override
+        public int getHoneyID() {
+            return -1;
+        }
+
+        @Override
+        public PacketState getState() {
+            return PacketState.UNKNOWN;
+        }
+
+        @Override
+        public PacketBound getBound() {
+            return null;
+        }
+    };
 
     default int getID() {
         return getHoneyID();
