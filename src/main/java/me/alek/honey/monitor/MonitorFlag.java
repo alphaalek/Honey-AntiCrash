@@ -7,7 +7,6 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
 
@@ -19,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public interface MonitorFlag<T> {
+public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
 
     enum Flag {
         PLAYER("player", "--player [player name]", false, PlayerFlag::new),
@@ -78,8 +77,8 @@ public interface MonitorFlag<T> {
             return flagsLookup.get(name);
         }
 
-        public static void checkSyntax(Array<String> args, int readIndex, MonitorFlag<?> flag, int takes) throws WrongMonitorFlagSyntaxException {
-            if (readIndex - 1 + takes >= args.size()) {
+        public static void checkSyntax(Array<String> args, MonitorFlag<?> flag, int takes) throws WrongMonitorFlagSyntaxException {
+            if (takes > args.size()) {
                 throw WrongMonitorFlagSyntaxException.wrongFlagUsage(flag);
             }
         }
@@ -88,7 +87,7 @@ public interface MonitorFlag<T> {
     interface NoArgumentMonitorFlag<F> extends MonitorFlag<F> {
 
         @Override
-        default int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
+        default int parse(Array<String> args) {
             return 0;
         }
     }
@@ -96,16 +95,20 @@ public interface MonitorFlag<T> {
     interface NoAppendingMonitorFlag<F> extends MonitorFlag<F> {
 
         @Override
-        default void append(F input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
+        default void append(F input, List<String> data) {
 
         }
     }
 
-    int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException;
+    int parse(Array<String> args) throws WrongMonitorFlagSyntaxException;
 
     boolean test(T input);
 
-    void append(T input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data);
+    void append(T input, List<String> data);
+
+    default MonitorFlag<T> flag() {
+        return this;
+    }
 
     default String getWrongSyntaxMessage() {
         return "You have to choose an argument";
@@ -139,11 +142,11 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            Flag.checkSyntax(args, readIndex, flag, 1);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            Flag.checkSyntax(args, flag, 1);
 
             try {
-                this.value = Double.parseDouble(MonitorFlagParser.getFromArgs(args, readIndex));
+                this.value = Double.parseDouble(MonitorFlagParser.getFromArgs(args));
             } catch (NumberFormatException ex) {
                 throw WrongMonitorFlagSyntaxException.wrongFlagUsage(this);
             }
@@ -162,7 +165,7 @@ public interface MonitorFlag<T> {
     }
 
     @FlagAnnotation(Flag.PLAYER)
-    class PlayerFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class PlayerFlag implements NoAppendingMonitorFlag<PacketContainer<?>> {
 
         private String playerName;
 
@@ -172,21 +175,21 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            Flag.checkSyntax(args, readIndex, this, 1);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            Flag.checkSyntax(args, this, 1);
 
-            this.playerName = MonitorFlagParser.getFromArgs(args, readIndex);
+            this.playerName = MonitorFlagParser.getFromArgs(args);
             return 1;
         }
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return input.getPlayerName().equalsIgnoreCase(playerName);
         }
     }
 
     @FlagAnnotation(Flag.TYPE)
-    class TypeFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class TypeFlag implements NoAppendingMonitorFlag<PacketContainer<?>> {
 
         private PacketType type;
         private String specified;
@@ -197,10 +200,10 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            Flag.checkSyntax(args, readIndex, this, 1);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            Flag.checkSyntax(args, this, 1);
 
-            this.specified = MonitorFlagParser.getFromArgs(args, readIndex);
+            this.specified = MonitorFlagParser.getFromArgs(args);
             Optional<PacketType> type = PacketTypes.getPacketType(specified, PacketTypes::isServerbound, PacketTypes.NameGetStrategy.EITHER);
             if (type.isPresent()) {
                 this.type = type.get();
@@ -211,7 +214,7 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return input.getType().equals(this.type);
         }
 
@@ -222,7 +225,7 @@ public interface MonitorFlag<T> {
     }
 
     @FlagAnnotation(Flag.STATE)
-    class StateFlag implements MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class StateFlag implements MonitorFlag<PacketContainer<?>> {
 
         private PacketState state;
 
@@ -232,10 +235,10 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            Flag.checkSyntax(args, readIndex, this, 1);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            Flag.checkSyntax(args, this, 1);
 
-            String specified = MonitorFlagParser.getFromArgs(args, readIndex);
+            String specified = MonitorFlagParser.getFromArgs(args);
             for (PacketState state : PacketState.values()) {
                 if (state != PacketState.UNKNOWN && state.name().equalsIgnoreCase(specified)) {
                     this.state = state;
@@ -247,40 +250,40 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return state == PacketState.ANY || input.getState().equals(state);
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
-            data.add(FlagRunner.AppendedData.from(input.getState().name(), appendable));
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add(input.getState().name());
         }
     }
 
     @FlagAnnotation(Flag.CANCELLED)
-    class CancelledFlag implements NoAppendingMonitorFlag<PacketContainer<? extends WrappedPacket<?>>>, NoArgumentMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class CancelledFlag implements NoAppendingMonitorFlag<PacketContainer<?>>, NoArgumentMonitorFlag<PacketContainer<?>> {
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return input.isCancelled();
         }
     }
 
     @FlagAnnotation(Flag.DETAILED)
-    class DetailedFlag implements NoArgumentMonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class DetailedFlag implements NoArgumentMonitorFlag<PacketContainer<?>> {
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return true;
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
-            data.add(FlagRunner.AppendedData.from(HoneyPlugin.get().getLogger().formatPacketEntries(input), appendable));
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add(HoneyPlugin.get().getLogger().formatPacketEntries(input));
         }
     }
 
-    abstract class TimingsFlag implements MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    abstract class TimingsFlag implements MonitorFlag<PacketContainer<?>> {
 
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
@@ -290,18 +293,18 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            return numberArgumentFlag.check(args, readIndex);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            return numberArgumentFlag.parse(args);
         }
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return numberArgumentFlag.test(input.getEventloopStateTimings().getTimeForMillis(getState()));
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
-            data.add(FlagRunner.AppendedData.from(format(getState()) + "=" + input.getEventloopStateTimings().getTimeForMillisFormatted(getState()) + "ms", appendable));
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add(format(getState()) + "=" + input.getEventloopStateTimings().getTimeForMillisFormatted(getState()) + "ms");
         }
 
         public String format(LifecycleState state) {
@@ -348,7 +351,7 @@ public interface MonitorFlag<T> {
     }
 
     @FlagAnnotation(Flag.NTQ_OAWO)
-    class NTQOfAverageWithoutFlag implements MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class NTQOfAverageWithoutFlag implements MonitorFlag<PacketContainer<?>> {
 
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
@@ -358,23 +361,23 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            return numberArgumentFlag.check(args, readIndex);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            return numberArgumentFlag.parse(args);
         }
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return numberArgumentFlag.test(TrackerCollection.getNetty().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND));
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
-            data.add(FlagRunner.AppendedData.from("ntq-oawo=" + TrackerCollection.getNetty().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add("ntq-oawo=" + TrackerCollection.getNetty().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%");
         }
     }
 
     @FlagAnnotation(Flag.NTQ_OT)
-    class NTQOfTotalFlag implements MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class NTQOfTotalFlag implements MonitorFlag<PacketContainer<?>> {
 
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
@@ -384,23 +387,23 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            return numberArgumentFlag.check(args, readIndex);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            return numberArgumentFlag.parse(args);
         }
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return numberArgumentFlag.test(TrackerCollection.getNetty().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND));
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
-            data.add(FlagRunner.AppendedData.from("ntq-ot=" + TrackerCollection.getNetty().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add("ntq-ot=" + TrackerCollection.getNetty().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%");
         }
     }
 
     @FlagAnnotation(Flag.STQ_OAWO)
-    class STQOfAverageWithoutFlag implements MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class STQOfAverageWithoutFlag implements MonitorFlag<PacketContainer<?>> {
 
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
@@ -410,23 +413,23 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            return numberArgumentFlag.check(args, readIndex);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            return numberArgumentFlag.parse(args);
         }
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return numberArgumentFlag.test(TrackerCollection.getServer().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND));
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
-            data.add(FlagRunner.AppendedData.from("stq-oawo=" + TrackerCollection.getServer().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add("stq-oawo=" + TrackerCollection.getServer().getOfAverageWithout(input.getPlayer(), Timespan.TEN_SECOND) + "%");
         }
     }
 
     @FlagAnnotation(Flag.STQ_OT)
-    class STQOfTotalFlag implements MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class STQOfTotalFlag implements MonitorFlag<PacketContainer<?>> {
 
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
@@ -436,23 +439,23 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            return numberArgumentFlag.check(args, readIndex);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            return numberArgumentFlag.parse(args);
         }
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return numberArgumentFlag.test(TrackerCollection.getServer().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND));
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
-            data.add(FlagRunner.AppendedData.from("stq-ot=" + TrackerCollection.getServer().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%", appendable));
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add("stq-ot=" + TrackerCollection.getServer().getOfTotal(input.getPlayer(), Timespan.TEN_SECOND) + "%");
         }
     }
 
     @FlagAnnotation(Flag.STQ_OHST)
-    class STQOfHalfServerThreadFlag implements MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> {
+    class STQOfHalfServerThreadFlag implements MonitorFlag<PacketContainer<?>> {
 
         private final MonitorFlag<Double> numberArgumentFlag = new NumberArgumentFlag(this);
 
@@ -462,18 +465,18 @@ public interface MonitorFlag<T> {
         }
 
         @Override
-        public int check(Array<String> args, int readIndex) throws WrongMonitorFlagSyntaxException {
-            return numberArgumentFlag.check(args, readIndex);
+        public int parse(Array<String> args) throws WrongMonitorFlagSyntaxException {
+            return numberArgumentFlag.parse(args);
         }
 
         @Override
-        public boolean test(PacketContainer<? extends WrappedPacket<?>> input) {
+        public boolean test(PacketContainer<?> input) {
             return numberArgumentFlag.test(TrackerCollection.getServer().getOfPacketTask(input.getPlayer(), Timespan.TEN_SECOND));
         }
 
         @Override
-        public void append(PacketContainer<? extends WrappedPacket<?>> input, FlagRunner.Appendable appendable, List<FlagRunner.AppendedData> data) {
-            data.add(FlagRunner.AppendedData.from("stq-ohst=" + TrackerCollection.getServer().getOfPacketTaskFormatted(input.getPlayer(), Timespan.TEN_SECOND), appendable));
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add("stq-ohst=" + TrackerCollection.getServer().getOfPacketTaskFormatted(input.getPlayer(), Timespan.TEN_SECOND));
         }
     }
 }

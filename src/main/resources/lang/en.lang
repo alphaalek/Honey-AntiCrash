@@ -125,7 +125,7 @@ packetmonitor.flag.no.argument=You have to choose an argument
 packetmonitor.flag.invalid.number=You have to type a valid number
 packetmonitor.flag.unknown.packettype=Couldn't find any packet type matching "%s"
 packetmonitor.operator.no.flag=Using operator without flag
-packetmonitor.operator.unexpected.paranthesis=Unexpected paranthesis at index %s, at "%s".
+packetmonitor.operator.unexpected.paranthesis=Unexpected paranthesis at index %s, at "%s"
 
 notify.toggled={prefix} §7You have now toggled notifications %s§7.
 notify.on=§aon

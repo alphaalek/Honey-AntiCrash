@@ -7,16 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class PacketMonitorer<WP extends WrappedPacket<WP>> implements IndependentMonitorer<PacketContainer<? extends WrappedPacket<WP>>> {
+public class PacketMonitorer<WP extends WrappedPacket<WP>> implements IndependentMonitorer<PacketContainer<WP>> {
 
-    private final FlagRunner.RuntimeFlags flags;
+    private final FlagRunner.Env<WP> flags;
     private final MonitorSendAt sendAt;
 
-    public PacketMonitorer(FlagRunner.RuntimeFlags flags) {
+    public PacketMonitorer(FlagRunner.Env<WP> flags) {
         this.flags = flags;
 
         boolean hasToBeAfterServerHandle = false;
-        for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags.getFlags()) {
+        for (MonitorFlag<PacketContainer<WP>> flag : flags.getAllFlags()) {
             hasToBeAfterServerHandle = Optional.ofNullable(
                     MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::hasToBeAfterServerHandle).orElse(false);
 
@@ -39,17 +39,17 @@ public class PacketMonitorer<WP extends WrappedPacket<WP>> implements Independen
     }
 
     @Override
-    public String getMessage(PacketContainer<? extends WrappedPacket<WP>> input) {
-        List<FlagRunner.AppendedData> data = new ArrayList<>();
-        if (!flags.process(input, data)) {
+    public String getMessage(PacketContainer<WP> input) {
+        if (!this.flags.test(input)) {
             return null;
         }
 
+        List<String> data = new ArrayList<>();
+        this.flags.append(input, data);
+
         StringBuilder dataMessage = new StringBuilder();
-        for (FlagRunner.AppendedData d : data) {
-            if (d.shouldAppend()) {
-                dataMessage.append("§8, §7").append(d.getData());
-            }
+        for (String d : data) {
+            dataMessage.append("§8, §7").append(d);
         }
         return "§8[§6§l!§8] §e" + input.getPlayerName() + " §7" + input.getType() + dataMessage;
     }

@@ -1,7 +1,6 @@
 package me.alek.honey.util;
 
 import org.apache.commons.lang3.Validate;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,13 +42,13 @@ public class Array<T> implements Iterable<T> {
         return array;
     }
 
-    public static <T> Array<T> from(T data) {
+    public static <T> Array<T> just(T data) {
         Array<T> array = new Array<>();
         array.set(0, data);
         return array;
     }
 
-    public static <T> Array<T> fromData(T... data) {
+    public static <T> Array<T> fromElements(T... data) {
         return from(data);
     }
 

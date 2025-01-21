@@ -5,10 +5,13 @@ import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.IDRegistry;
+import org.bukkit.Bukkit;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class MonitorFlagParser {
 
@@ -40,7 +43,7 @@ public class MonitorFlagParser {
 
                 @Override
                 public String raw() {
-                    return operator.getSymbol();
+                    return String.valueOf(operator.getSymbol());
                 }
 
                 @Override
@@ -94,16 +97,15 @@ public class MonitorFlagParser {
 
     public static boolean testOperator(Array<Parsed> parsed, int index, LogicalOperator operator, AtomicReference<String> wrongSyntaxMessage) {
         if (index == parsed.size() - 1
-                && operator != LogicalOperator.PARANTHESIS_END
-                && operator != LogicalOperator.NOT) {
+                && !operator.equals(LogicalOperator.PARANTHESIS_END)
+                && !operator.equals(LogicalOperator.NOT)) {
             wrongSyntaxMessage.set(Lang.get("packetmonitor.operator.no.flag"));
             return false;
-        }
-        if (operator != LogicalOperator.PARANTHESIS_END && operator != LogicalOperator.PARANTHESIS_START) {
+        } else if (!operator.equals(LogicalOperator.PARANTHESIS_END) && !operator.equals(LogicalOperator.PARANTHESIS_START)) {
             Object next = parsed.get(index + 1).get();
             if (!(next instanceof MonitorFlag
                     || next.equals(LogicalOperator.PARANTHESIS_START)
-                    || next.equals(LogicalOperator.NOT))) {
+                    || (next.equals(LogicalOperator.NOT) && !operator.equals(LogicalOperator.NOT)))) {
                 wrongSyntaxMessage.set(Lang.get("packetmonitor.operator.no.flag"));
                 return false;
             }
@@ -140,10 +142,10 @@ public class MonitorFlagParser {
     private static String getContextString(Array<Parsed> parsed, int index) throws WrongMonitorFlagSyntaxException {
         StringBuilder builder = new StringBuilder();
         int i = index;
-        while (builder.length() < 7 && i < parsed.size()) {
+        while (builder.length() < 10 && i < parsed.size()) {
             builder.append(parsed.get(i++).raw());
         }
-        return builder.length() > 7 ? builder.substring(0, 7) + "..." : builder.toString();
+        return builder.length() > 10 ? builder.substring(0, 10) + "..." : builder.toString();
     }
 
     private static Array<Parsed> getMonitorFlagsAndOperators(String[] args) throws WrongMonitorFlagSyntaxException {
@@ -154,38 +156,45 @@ public class MonitorFlagParser {
         Array<String> parsing = Array.from(args);
         Array<Parsed> parsed = new Array<>();
 
-        int readIndex = 0;
-        while (readIndex < parsing.size()) {
-            String argument = parsing.get(readIndex++).trim();
+        while (!parsing.isEmpty()) {
+            String argument = parsing.get(0).trim();
 
-            LogicalOperator operator = LogicalOperator.getBySymbol(argument.substring(0, 1));
+            // check if operator
+            LogicalOperator operator = LogicalOperator.getBySymbol(argument.charAt(0));
             if (operator != null) {
-                parsed.add(Parsed.fromOperator(operator, parsed.size()));
-
                 if (argument.length() > 1) {
-                    parsing.move(readIndex - 1, 1);
-                    parsing.set(readIndex, argument.substring(1));
+                    parsing.set(0, String.valueOf(operator.getSymbol()));
+                    parsing.insert(1, argument.substring(1));
+                    // try again
+                    continue;
+                } else {
+                    parsed.add(MonitorFlagParser.Parsed.fromOperator(operator, parsed.size()));
                 }
+            }
+            // keep paranthesis and flags seperated
+            else if (argument.endsWith(")")) {
+                parsing.set(0, argument.substring(0, argument.length() - 1));
+                parsing.insert(1, ")");
+                // try again
                 continue;
             }
-
-            if (argument.startsWith("--")) {
+            // check if flag
+            else if (argument.startsWith("--")) {
                 String flagString = argument.toLowerCase().substring(2).replaceAll("\\)", "");
                 MonitorFlag.Flag flagType = MonitorFlag.Flag.getFlagByName(flagString);
                 if (flagType == null) {
                     throw WrongMonitorFlagSyntaxException.wrongFlag(flagString);
                 }
 
+                // parse flag
                 @SuppressWarnings("unchecked")
-                MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag =
-                        (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>) flagType.createNew();
-                readIndex += flag.check(parsing, readIndex);
-                parsed.add(Parsed.fromFlag(flag));
-
-                if (argument.endsWith(")")) {
-                    parsing.insert(readIndex, ")");
-                }
+                MonitorFlag<PacketContainer<?>> flag = (MonitorFlag<PacketContainer<?>>) flagType.createNew();
+                parsing = parsing.from(flag.parse(parsing.from(1)));
+                parsed.add(MonitorFlagParser.Parsed.fromFlag(flag));
             }
+
+            // go to next index
+            parsing = parsing.from(1);
         }
 
         ensureCorrectParanthesesPostParsing(parsed);
@@ -193,76 +202,108 @@ public class MonitorFlagParser {
         return parsed;
     }
 
-    public static FlagRunner.RuntimeFlags getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
-        Array<Object> elements = getMonitorFlagsAndOperators(args).as(Parsed::get);
+    public static <WP extends WrappedPacket<WP>> FlagRunner.Env<WP> getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
+        Array<Object> elements = getMonitorFlagsAndOperators(args).as(MonitorFlagParser.Parsed::get);
 
-        FlagRunner.Conditions conditions = new FlagRunner.Conditions();
-        return new FlagRunner.RuntimeFlags(Array.from(new FlagRunner.Env(getFlagsWithin(elements, conditions), conditions)));
+        Array<FlagRunner.Condition<WP>> conditions = new Array<>();
+        FlagRunner.Env<WP> env = new FlagRunner.Env<>(conditions);
+
+        addMissingAnds(elements);
+        applyFlagsWithin(elements, conditions);
+
+        Bukkit.broadcastMessage("Final " + conditions);
+
+        return env;
     }
 
-    private static Array<FlagRunner.Chipstate> getFlagsWithin(Array<Object> elements, FlagRunner.Conditions conditions) {
-        Array<FlagRunner.Chipstate> flags = new Array<>();
-        wrapLogicalANDs(elements);
-        int chipstateIndex = 0;
-
+    @SuppressWarnings("unchecked")
+    private static <WP extends WrappedPacket<WP>> void applyFlagsWithin(Array<Object> elements, Array<FlagRunner.Condition<WP>> conditions) {
+        Array<FlagRunner.Chipstate<PacketContainer<WP>>> flags = new Array<>();
+        Bukkit.broadcastMessage("Elements " + elements);
         for (int i = 0; i < elements.size(); i++) {
             Object elem = elements.get(i);
+            Bukkit.broadcastMessage(elem + "");
             if (elem instanceof MonitorFlag) {
-                chipstateIndex++;
-                FlagRunner.Runtime runtime = new FlagRunner.Runtime((MonitorFlag<PacketContainer<? extends WrappedPacket<?>>>) elem);
-                flags.add(runtime);
-            }
-            if (elem.equals(LogicalOperator.NOT)) {
-                conditions.addCondition(new FlagRunner.Condition(IDRegistry.from(chipstateIndex), flags, LogicalOperator.NOT));
-            } else if (elem.equals(LogicalOperator.AND)) {
-                conditions.addCondition(new FlagRunner.Condition(IDRegistry.from(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.AND));
-            } else if (elem.equals(LogicalOperator.OR)) {
-                conditions.addCondition(new FlagRunner.Condition(IDRegistry.from(chipstateIndex - 1, chipstateIndex), flags, LogicalOperator.OR));
-            } else if (elem.equals(LogicalOperator.PARANTHESIS_START)) {
-                Array<Object> in = getElementsInParanthesis(elements.from(i));
-                i += in.size();
+                flags.add((MonitorFlag<PacketContainer<WP>>) elem);
+            } else if (elem.equals(LogicalOperator.NOT) || elem.equals(LogicalOperator.PARANTHESIS_START)) {
+                Array<Object> nextChipstateElements = getElementsInNextChipstate(elements, i + 1);
+                i += nextChipstateElements.size(); // skip elements in next chipstate for parent parser
 
-                chipstateIndex++;
-                FlagRunner.Conditions newChipstateConditions = new FlagRunner.Conditions();
-                flags.add(new FlagRunner.Env(getFlagsWithin(in, newChipstateConditions), newChipstateConditions));
+                Array<FlagRunner.Condition<WP>> newConditions = new Array<>();
+                applyFlagsWithin(nextChipstateElements, newConditions);
+
+                // add child environment to parent flags
+                FlagRunner.Env<WP> env = new FlagRunner.Env<>(newConditions);
+                flags.add(env);
+
+                if (elem.equals(LogicalOperator.NOT)) {
+                    Bukkit.broadcastMessage("Not " + env + " " + newConditions + " " +  nextChipstateElements );
+                    conditions.add(new FlagRunner.Condition<>(Array.just(env), FlagRunner.Condition.NOT));
+                }
+            } else if (elem instanceof Array) {
+                // result of parsing child chipstate
+                Array<FlagRunner.Condition<WP>> newConditions = new Array<>();
+                applyFlagsWithin((Array<Object>) elem, newConditions);
+
+                flags.add(new FlagRunner.Env<>(newConditions));
             } else if (elem.equals(LogicalOperator.PARANTHESIS_END)) {
-                return flags;
+                break;
             }
         }
 
-        return flags;
+        LinkedList<FlagRunner.Chipstate<PacketContainer<WP>>> flagsQueue = Arrays.stream(flags.getHandle())
+                .map(o -> (FlagRunner.Chipstate<PacketContainer<WP>>) o)
+                .collect(Collectors.toCollection(LinkedList::new));
+        // add logical operators to chipstates
+        for (int i = 0; i < elements.size(); i++) {
+            Object elem = elements.get(i);
+            if (elem.equals(LogicalOperator.AND) || elem.equals(LogicalOperator.OR)) {
+                FlagRunner.Chipstate<PacketContainer<WP>> flag1 = flagsQueue.pollFirst();
+                FlagRunner.Chipstate<PacketContainer<WP>> flag2 = flagsQueue.pollFirst();
+
+                FlagRunner.Condition<WP> condition = new FlagRunner.Condition<>(Array.fromElements(flag1, flag2),
+                        elem.equals(LogicalOperator.AND) ? FlagRunner.Condition.AND : FlagRunner.Condition.OR);
+                conditions.add(condition);
+
+                // add new env from this condition
+                FlagRunner.Env<WP> env = new FlagRunner.Env<>(Array.just(condition));
+                flagsQueue.addFirst(env);
+            }
+        }
+
+        // if no conditions was added, fallback to and for all flags
+        if (conditions.isEmpty()) {
+            conditions.add(new FlagRunner.Condition<>(flags, FlagRunner.Condition.AND));
+        }
     }
 
-    private static void wrapLogicalANDs(Array<Object> elements) {
-        Array<Object> prev = elements.copy();
-        boolean hasOr = false;
+    private static void addMissingAnds(Array<Object> elements) {
         for (int i = 0; i < elements.size(); i++) {
-            Object element = elements.get(i);
-            if (element.equals(LogicalOperator.AND)) {
-                elements.insert(i++ - 1, LogicalOperator.PARANTHESIS_START);
-                Array<Object> nextChipstate = getElementsInNextChipstate(elements, i);
-                elements.insert(i += (nextChipstate.size() + 1), LogicalOperator.PARANTHESIS_END);
+            Object elem = elements.get(i);
+            if (elem.equals(LogicalOperator.PARANTHESIS_END) || elem instanceof MonitorFlag) {
+                int nextIdx = i + 1;
+                if (nextIdx == elements.size()) {
+                    return;
+                }
+                if (elements.get(nextIdx).equals(LogicalOperator.NOT)) {
+                    nextIdx++;
+                    if (nextIdx == elements.size()) {
+                        return;
+                    }
+                }
+                if (elements.get(nextIdx).equals(LogicalOperator.PARANTHESIS_START) || elements.get(nextIdx) instanceof MonitorFlag) {
+                    elements.insert(nextIdx, LogicalOperator.AND);
+                }
             }
-
-            if (element.equals(LogicalOperator.OR)) {
-                hasOr = true;
-            }
-        }
-
-        if (!hasOr) {
-            elements.clear();
-            elements.replace(0, prev);
         }
     }
 
     private static Array<Object> getElementsInNextChipstate(Array<Object> elements, int from) {
-        Array<Object> remaining = elements.from(from + 1);
+        Array<Object> remaining = elements.from(from);
         Object next = remaining.get(0);
 
-        Array<Object> array = Array.from(next);
-        if (next.equals(LogicalOperator.NOT)) {
-            array.add(getElementsInNextChipstate(elements, 1));
-        } else if (next.equals(LogicalOperator.PARANTHESIS_START)) {
+        Array<Object> array = Array.just(next);
+        if (next.equals(LogicalOperator.PARANTHESIS_START)) {
             for (int i = 1; i < remaining.size(); i++) {
                 Object element = remaining.get(i);
                 array.add(element);
@@ -280,26 +321,12 @@ public class MonitorFlagParser {
         return array;
     }
 
-    private static Array<Object> getElementsInParanthesis(Array<Object> elements) {
-        Array<Object> within = new Array<>();
-        for (int i = 1; i < elements.size(); i++) {
-            Object elem = elements.get(i);
-            within.add(elem);
-
-            if (elem.equals(LogicalOperator.PARANTHESIS_END)) {
-                return within;
-            }
-        }
-
-        return within;
-    }
-
-    public static String getFromArgs(Array<String> args, int index) {
-        String arg = args.get(index);
+    public static String getFromArgs(Array<String> args) {
+        String arg = args.get(0);
         if (arg.endsWith(")")) {
-            args.insert(index + 1, ")");
-            args.set(index, arg.substring(0, arg.length() - 1));
-            return getFromArgs(args, index);
+            args.insert(1, ")");
+            args.set(0, arg.substring(0, arg.length() - 1));
+            return getFromArgs(args);
         }
         return arg;
     }

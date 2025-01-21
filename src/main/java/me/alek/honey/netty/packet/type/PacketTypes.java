@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class PacketTypes {
 
-    private static final Array<PacketType> UNKNOWN_ARRAY = Array.from(PacketType.UNKNOWN);
+    private static final Array<PacketType> UNKNOWN_ARRAY = Array.just(PacketType.UNKNOWN);
 
     public static boolean isUnknown(PacketType type) {
         return type == null || type == PacketType.UNKNOWN;

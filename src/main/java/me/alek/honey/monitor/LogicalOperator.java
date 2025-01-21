@@ -5,17 +5,17 @@ import java.util.Map;
 
 public enum LogicalOperator {
 
-    AND("&"),
+    AND('&'),
 
-    OR("|"),
+    OR('|'),
 
-    NOT("!"),
+    NOT('!'),
 
-    PARANTHESIS_START("("),
+    PARANTHESIS_START('('),
 
-    PARANTHESIS_END(")");
+    PARANTHESIS_END(')');
 
-    private final static Map<String, LogicalOperator> OPERATOR_REGISTRY = new HashMap<>();
+    private final static Map<Character, LogicalOperator> OPERATOR_REGISTRY = new HashMap<>();
 
     static {
         for (LogicalOperator operator : LogicalOperator.values()) {
@@ -23,17 +23,17 @@ public enum LogicalOperator {
         }
     }
 
-    public static LogicalOperator getBySymbol(String symbol) {
+    public static LogicalOperator getBySymbol(char symbol) {
         return OPERATOR_REGISTRY.get(symbol);
     }
 
-    private final String symbol;
+    private final char symbol;
 
-    LogicalOperator(String symbol) {
+    LogicalOperator(char symbol) {
         this.symbol = symbol;
     }
 
-    public String getSymbol() {
+    public char getSymbol() {
         return symbol;
     }
 }

@@ -17,11 +17,9 @@ public class PacketMonitorCommand implements CommandImpl {
 
     @Override
     public void perform(CommandSender sender, String[] args) {
-
         try {
-            FlagRunner.RuntimeFlags flags = MonitorFlagParser.getMonitorFlags(args);
-
-            if (flags.isEmpty()) {
+            FlagRunner.Env<?> flags = MonitorFlagParser.getMonitorFlags(args);
+            if (flags.getAllFlags().isEmpty()) {
                 sender.sendMessage(Lang.getFormatted("packetmonitor.min.flag.1"));
                 sender.sendMessage(Lang.getFormatted("packetmonitor.min.flag.2"));
                 for (MonitorFlag.Flag flag : MonitorFlag.Flag.values()) {
@@ -32,7 +30,7 @@ public class PacketMonitorCommand implements CommandImpl {
             }
             HoneyPlugin.get().getMonitorManager().setupPacketMonitor(sender, flags);
             sender.sendMessage(Lang.getFormatted("packetmonitor.using.flags"));
-            for (MonitorFlag<PacketContainer<? extends WrappedPacket<?>>> flag : flags.getFlags()) {
+            for (MonitorFlag<?> flag : flags.getAllFlags()) {
                 String specified = flag.getSpecified();
                 sender.sendMessage("  §8--" + Optional.ofNullable(MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::getName).orElse("Unknown") + (specified.isEmpty() ? "" : ": " + specified));
             }
