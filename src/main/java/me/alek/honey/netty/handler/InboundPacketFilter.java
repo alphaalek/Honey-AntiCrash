@@ -171,7 +171,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             if (this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet
                 // most likely something pinging this server without following the Minecraft protocol
-
                 UnsafeChannelCloser.closeForcibly(ctx.channel());
                 return;
             }
