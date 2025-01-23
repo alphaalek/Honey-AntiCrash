@@ -128,11 +128,11 @@ public class HoneyPacketHandler {
     }
 
     public PacketType getPacketType(ByteBuf buf, boolean resetToStartIndex, PacketBound bound, boolean useVia) {
-        int startIndex = buf.readerIndex();
+        buf.markReaderIndex();
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         int id = serializer.readVarInt();
         if (resetToStartIndex) {
-            buf.readerIndex(startIndex);
+            buf.resetReaderIndex();
         }
 
         PacketState state = getProtocolState(bound);
@@ -141,13 +141,12 @@ public class HoneyPacketHandler {
         // if it is not the same, then we will acquire the packet type with ViaVersion
         if (useVia
                 && ViaProtocol.ViaValidator.VALIDATOR.find().get()
-                && state != PacketState.HANDSHAKE // client-info (handshake SET_PROTOCOL) has been called
+                && state != PacketState.HANDSHAKE
                 && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())) {
 
             if (this.viaProtocol == null) {
                 this.viaProtocol = ViaProtocol.getViaProtocolFrom(this.player.clientInfo.getProtocol());
             }
-
             return this.viaProtocol.getTypes(bound, state).get(id);
         }
 

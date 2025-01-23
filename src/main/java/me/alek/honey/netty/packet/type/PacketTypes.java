@@ -1,8 +1,12 @@
 package me.alek.honey.netty.packet.type;
 
 import me.alek.honey.compat.via.ViaProtocol;
+import me.alek.honey.netty.codec.CodecFactory;
+import me.alek.honey.netty.codec.LegacyProtocol;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.protocol.NetProtocolRange;
+import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
@@ -207,6 +211,40 @@ public class PacketTypes {
                 && via.name().equals(key);
     }
 
+    public static int getMinecraftId(PacketType type) {
+        if (type instanceof RangedPacketType && !((RangedPacketType) type).getRange().match()) {
+            throw new IllegalArgumentException("Not present in server version");
+        }
+
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            Object streamCodec = CodecFactory.getStreamCodec1_20_6(type.getBound(), type.getState());
+
+            List<Object> codecs = ReflectStructure.Provider.acquireStructure(streamCodec.getClass())
+                    .<List<Object>>withWeakType(List.class).withTarget(streamCodec)
+                    .readField(0);
+            int i = 0;
+            for (Object codec : codecs) {
+                Object packetType = ReflectStructure.Provider.acquireStructure(codec.getClass())
+                        .withTarget(codec)
+                        .readField(null, (in, f) -> !NMS.getStreamCodecClass().isAssignableFrom(f.getHandle().getType()));
+                Object minecraftKey = ReflectStructure.Provider.acquireStructure(NMS.getPacketTypeClass())
+                        .withType(NMS.getMinecraftKeyClass()).withTarget(packetType)
+                        .readField(0);
+
+                PacketType typeFromCodec = PacketTypes.getTypeFromKey(NetProtocol.getProtocol(), type.getState(), type.getBound(), minecraftKey.toString().split(":")[1]);
+                if (typeFromCodec.equals(type)) {
+                    return i;
+                }
+                i++;
+            }
+            return -1;
+        } else {
+            LegacyProtocol enumProtocol = LegacyProtocol.getEnumProtocolDelegate(type.getBound(), type.getState());
+
+            return enumProtocol.getPacketId(type.getNmsClass());
+        }
+    }
+
     public static Map<Class<?>, Array<PacketType>> getRegisteredPackets() {
         return registeredPackets;
     }
@@ -258,7 +296,7 @@ public class PacketTypes {
             @ViaProtocol.Unique(name = "client_intention")
             SET_PROTOCOL(SET_PROTOCOL_CLASS, "intention");
 
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
+            private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
             private final int packetId = idRegistry.acquire();
@@ -331,7 +369,7 @@ public class PacketTypes {
             LOGIN_ACKNOWLEDGED(LOGIN_ACKNOWLEDGED_CLASS, "login_acknowledged", NetProtocolRange.since(NetProtocol.v1_20_2)),
             HELLO(LOGIN_START_CLASS, "hello");
 
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
+            private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
             private final int packetId = idRegistry.acquire();
@@ -410,7 +448,7 @@ public class PacketTypes {
             CUSTOM_PAYLOAD(CUSTOM_PAYLOAD_SERVER_CLASS, "custom_query", NetProtocolRange.since(NetProtocol.v1_13)),
             SET_COMPRESSION(SET_COMPRESSION_CLASS, "login_compression");
 
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
+            private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
             private final int packetId = idRegistry.acquire();
@@ -473,7 +511,7 @@ public class PacketTypes {
             PING(PING_CLASS, "ping_request"),
             START(START_CLASS, "status_request");
 
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
+            private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsClass;
             private final NetProtocolRange protocolRange;
@@ -533,7 +571,7 @@ public class PacketTypes {
             PONG(PONG_CLASS, "pong_response"),
             SERVER_INFO(SERVER_INFO_CLASS, "status_response");
 
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
+            private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsClass;
             private final NetProtocolRange protocolRange;
@@ -849,7 +887,7 @@ public class PacketTypes {
             VEHICLE_MOVE(VEHICLE_MOVE_CLASS, "move_vehicle", NetProtocolRange.since(NetProtocol.v1_9)),
             ;
 
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
+            private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsClass;
             private final int packetId = idRegistry.acquire();
@@ -1466,7 +1504,7 @@ public class PacketTypes {
             WORLD_EVENT(WORLD_EVENT_CLASS, "level_event"),
             ;
 
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
+            private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsClass;
             private final int packetId = idRegistry.acquire();
@@ -1556,7 +1594,7 @@ public class PacketTypes {
             SELECT_KNOWN_PACKS(SELECT_KNOWN_PACKS_CLIENT_CLASS, "select_known_packs", NetProtocolRange.since(NetProtocol.v1_20_6)),
             ;
 
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
+            private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
             private final int packetId = idRegistry.acquire();
@@ -1667,7 +1705,7 @@ public class PacketTypes {
             UPDATE_TAGS(UPDATE_TAGS_CLASS, "update_tags", NetProtocolRange.since(NetProtocol.v1_20_2)),
             ;
 
-            private final LazyInit<Integer> minecraftIdInit = LazyInit.getMinecraftIDInit(this);
+            private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
             private final int packetId = idRegistry.acquire();

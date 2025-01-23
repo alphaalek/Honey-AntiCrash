@@ -22,8 +22,4 @@ public interface HoneyValidation<T> extends Identifiable {
     default boolean isViolation() {
         return false;
     }
-
-    default boolean isDefaultPipeline() {
-        return true;
-    }
 }

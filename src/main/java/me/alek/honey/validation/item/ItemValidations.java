@@ -5,16 +5,17 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.modelwrappers.objects.WrappedRenderData;
-import me.alek.honey.netty.nbt.CompoundTag;
-import me.alek.honey.netty.nbt.NBTFactory;
-import me.alek.honey.netty.nbt.PrimitiveTag;
-import me.alek.honey.netty.nbt.TagType;
-import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.NBTFactory;
+import me.alek.honey.netty.tag.nbt.PrimitiveTag;
+import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.ItemReflection;
+import me.alek.honey.util.reflection.ItemFactory;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.statics.NumberUtils;
 import org.apache.commons.codec.binary.Base64;
@@ -50,20 +51,16 @@ public class ItemValidations {
 
             return false;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class MaxEnchantmentLevelItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            ItemMeta meta = item.getDefaultMeta();
-            if (meta.hasEnchants()) {
-                for (int level : meta.getEnchants().values()) {
+            if (nbt.hasKeyOfType("Enchantments", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))) {
+                GeneticArrayTypes.ArrayOfCompoundTag enchantments = nbt.getArrayOfCompound("Enchantments");
+                for (CompoundTag enchantment : enchantments) {
+                    short level = enchantment.getShort("lvl");
                     if (level > ConfigurationOptions.ItemAnalysis.MAX_ENCHANTMENT_LEVEL) {
                         return true;
                     }
@@ -71,11 +68,6 @@ public class ItemValidations {
             }
 
             return false;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_META;
         }
     }
 
@@ -91,13 +83,16 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            ItemMeta meta = item.getDefaultMeta();
-            return meta.hasDisplayName() && meta.getDisplayName().length() > ConfigurationOptions.ItemAnalysis.MAX_DISPLAYNAME_LENGTH;
-        }
+            if (nbt.hasKeyOfType("display", TagType.getFromCollection(TagType.Collection.COMPOUND))) {
+                CompoundTag display = nbt.getCompound("display");
+                if (display.hasKeyOfType("Name", TagType.STRING)) {
+                    String name = display.getString("Name");
+                    // TODO: deserialize json
+                    return name.length() > ConfigurationOptions.ItemAnalysis.MAX_DISPLAYNAME_LENGTH;
+                }
+            }
 
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_META;
+            return false;
         }
     }
 
@@ -105,14 +100,15 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            ItemMeta meta = item.getDefaultMeta();
-            if (meta.hasLore()) {
-                List<String> loreArray = meta.getLore();
-                if (loreArray != null) {
+            if (nbt.hasKeyOfType("display", TagType.getFromCollection(TagType.Collection.COMPOUND))) {
+                CompoundTag display = nbt.getCompound("display");
+                if (display.hasKeyOfType("Lore", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+                    ArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
                     int counter = 0;
 
-                    for (String lore : loreArray) {
-                        counter += lore.length();
+                    for (String line : lore) {
+                        // TODO: deserialize json
+                        counter += line.length();
                         if (counter > ConfigurationOptions.ItemAnalysis.MAX_TOTAL_LORE_LENGTH) {
                             return true;
                         }
@@ -121,11 +117,6 @@ public class ItemValidations {
             }
 
             return false;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_META;
         }
     }
 
@@ -137,11 +128,6 @@ public class ItemValidations {
                     && nbt.hasKeyOfType("Unbreakable", TagType.BYTE)
                     && nbt.getByte("Unbreakable") == (byte) 1;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class AttributeModifiersItemValidation implements ItemAnalysis.ItemValidation {
@@ -150,11 +136,6 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_ATTRIBUTE_MODIFIERS
                     && nbt.hasKeyOfType("AttributeModifiers", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND));
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
         }
     }
 
@@ -165,18 +146,15 @@ public class ItemValidations {
             return ConfigurationOptions.ItemAnalysis.CHECK_CUSTOM_POTION_EFFECTS
                     && nbt.hasKeyOfType("CustomPotionEffects", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND));
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class BookComponentsValidation implements ItemAnalysis.ItemValidation {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            List<Object> pages = ItemReflection.getPages((BookMeta) item.getSpecificMeta());
+            // TODO: fix
+            /*
+            List<Object> pages = ItemFactory.getPages((BookMeta) item.getSpecificMeta());
             if (pages == null) {
                 return false;
             }
@@ -184,7 +162,7 @@ public class ItemValidations {
             try {
                 for (Object page : pages) {
                     if (NMS.getIChatBaseComponentClass().isAssignableFrom(page.getClass())) {
-                        JsonElement json = ItemReflection.chatComponentToJson(page);
+                        JsonElement json = ItemFactory.chatComponentToJson(page);
                         if (!json.getAsJsonObject().has("text")) {
                             return true;
                         }
@@ -200,14 +178,9 @@ public class ItemValidations {
                 // malformed json structure ?
                 return true;
             }
+            */
 
             return false;
-        }
-
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_SPECIFIC_META;
         }
     }
 
@@ -215,16 +188,18 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            ItemMeta meta = item.getDefaultMeta();
-            if (meta.hasDisplayName() && checkBadCharacter(meta.getDisplayName())) {
-                return true;
-            }
-
-            if (meta.hasLore()) {
-                List<String> loreArray = meta.getLore();
-                if (loreArray != null) {
-                    for (String lore : loreArray) {
-                        if (checkBadCharacter(lore)) {
+            if (nbt.hasKeyOfType("display", TagType.getFromCollection(TagType.Collection.COMPOUND))) {
+                CompoundTag display = nbt.getCompound("display");
+                if (display.hasKeyOfType("Name", TagType.STRING)) {
+                    String name = display.getString("Name");
+                    if (checkBadCharacter(name)) {
+                        return true;
+                    }
+                }
+                if (display.hasKeyOfType("Lore", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+                    ArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
+                    for (String line : lore) {
+                        if (checkBadCharacter(line)) {
                             return true;
                         }
                     }
@@ -232,11 +207,6 @@ public class ItemValidations {
             }
 
             return false;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_META;
         }
 
         private boolean checkBadCharacter(String str) {
@@ -260,11 +230,6 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class MaxNBTStringLengthItemValidation implements ItemAnalysis.ItemValidation {
@@ -278,30 +243,21 @@ public class ItemValidations {
             }
             return false;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class MaxPageLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            for (PrimitiveTag<String> page : nbt.<String>getArrayOf("pages", TagType.STRING)) {
-                if (page != null
-                        && page.getValue().length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
-                    return true;
+            if (nbt.hasKeyOfType("pages", TagType.STRING)) {
+                ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
+                for (String page : pages) {
+                    if (page.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
+                        return true;
+                    }
                 }
             }
-
             return false;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
         }
     }
 
@@ -311,11 +267,6 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_NBT_LENGTH;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class MaxBookNBTLengthItemValidation implements ItemAnalysis.ItemValidation {
@@ -323,11 +274,6 @@ public class ItemValidations {
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
         }
     }
 
@@ -337,11 +283,6 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))
                     && nbt.getArrayOf("pages", String.class).size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
         }
     }
 
@@ -354,11 +295,6 @@ public class ItemValidations {
                     && nbt.hasKeyOfType("author", TagType.STRING)
                     && (author = nbt.getString("author")) != null && author.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class MaxBookTitleLengthItemValidation implements ItemAnalysis.ItemValidation {
@@ -368,11 +304,6 @@ public class ItemValidations {
             return nbt.hasKeyOfType("title", TagType.STRING)
                     && nbt.getString("title").length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class MaxNBTBasesItemValidation implements ItemAnalysis.ItemValidation {
@@ -381,11 +312,6 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return NBTFactory.getAmountOfTags(nbt) > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class MaxNBTNestingItemValidation implements ItemAnalysis.ItemValidation {
@@ -393,11 +319,6 @@ public class ItemValidations {
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return NBTFactory.getComplexityOfTag(nbt) > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
         }
     }
 
@@ -454,11 +375,6 @@ public class ItemValidations {
 
             return false;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class IllegalEnchantmentsItemValidation implements ItemAnalysis.ItemValidation {
@@ -484,11 +400,6 @@ public class ItemValidations {
 
             return fireworksCompound.getArrayOfCompound("Explosions").size() > ConfigurationOptions.ItemAnalysis.MAX_FIREWORK_EXPLOSIONS;
         }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
-        }
     }
 
     public static class MaxBannerPatternsItemValidation implements ItemAnalysis.ItemValidation {
@@ -497,11 +408,6 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.hasKeyOfType("Patterns", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))
                     && nbt.getArrayOfCompound("Patterns").size() > ConfigurationOptions.ItemAnalysis.MAX_BANNER_PATTERNS;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
         }
     }
 
@@ -555,11 +461,6 @@ public class ItemValidations {
             }
 
             return false;
-        }
-
-        @Override
-        public ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.WITH_NBT;
         }
     }
 }

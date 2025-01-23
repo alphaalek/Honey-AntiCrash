@@ -7,7 +7,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 
 import java.nio.charset.StandardCharsets;
 
-public class Utf8String implements Type<String> {
+public class Utf8String implements Type<String, Type.TypeContext.OneArg<Integer>> {
 
     private static final int MAX_BYTES_PER_CHAR_UTF8;
 
@@ -16,14 +16,9 @@ public class Utf8String implements Type<String> {
     }
 
     @Override
-    public String read(PacketDataSerializer buf, Object... params) {
-        if (params.length == 0) {
-            throw new IllegalArgumentException("Null length");
-        }
-        int maxLength = Integer.parseInt(params[0].toString());
-
+    public String read(PacketDataSerializer buf, Type.TypeContext.OneArg<Integer> context) {
         int stringByteLength = buf.readVarInt();
-        int maxByteLength = maxLength * MAX_BYTES_PER_CHAR_UTF8;
+        int maxByteLength = context.get() * MAX_BYTES_PER_CHAR_UTF8;
         if (stringByteLength > maxByteLength) {
             throw new DecoderException("The received encoded string buffer length is longer than maximum allowed (" + stringByteLength + " > " + maxByteLength + ")");
         }
@@ -40,26 +35,21 @@ public class Utf8String implements Type<String> {
         String decodedString = buf.toString(buf.readerIndex(), stringByteLength, StandardCharsets.UTF_8);
         buf.skipBytes(stringByteLength);
 
-        if (decodedString.length() > maxLength) {
-            throw new DecoderException("The received string length is longer than maximum allowed (" + decodedString.length() + " > " + maxLength + ")");
+        if (decodedString.length() > context.get()) {
+            throw new DecoderException("The received string length is longer than maximum allowed (" + decodedString.length() + " > " + context.get() + ")");
         }
 
         return decodedString;
     }
 
     @Override
-    public PacketDataSerializer write(PacketDataSerializer buf, String val, Object... params) {
-        if (params.length == 0) {
-            throw new IllegalArgumentException("Null length");
-        }
-        int maxLength = Integer.parseInt(params[0].toString());
-
+    public PacketDataSerializer write(PacketDataSerializer buf, String val, TypeContext.OneArg<Integer> context) {
         byte[] encodedByteArray = val.getBytes(StandardCharsets.UTF_8);
-        if (encodedByteArray.length > maxLength) {
-            throw new EncoderException("String too big (was " + encodedByteArray.length + " bytes encoded, max " + maxLength + ")");
+        if (encodedByteArray.length > context.get()) {
+            throw new EncoderException("String too big (was " + encodedByteArray.length + " bytes encoded, max " + context.get() + ")");
         }
 
-        Types.VAR_INT.write(buf, encodedByteArray.length);
+        Types.VAR_INT.write(buf, encodedByteArray.length, null);
         buf.writeBytes(encodedByteArray);
 
         return buf;

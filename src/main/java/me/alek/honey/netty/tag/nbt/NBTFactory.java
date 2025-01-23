@@ -1,16 +1,16 @@
-package me.alek.honey.netty.nbt;
+package me.alek.honey.netty.tag.nbt;
 
 import io.netty.buffer.ByteBufInputStream;
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Type;
-import me.alek.honey.netty.nbt.array.AbstractArrayTag;
+import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.ItemReflection;
+import me.alek.honey.util.reflection.ItemFactory;
 import me.alek.honey.util.reflection.NMS;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -28,10 +28,11 @@ public class NBTFactory {
     private static final int MAX_DEPTH = 8;
     private static final int MAX_COMPLEXITY = 256;
 
-    public static class ProtocolType implements Type.In<AbstractTag<?, ?, ?>> {
+    public static class ProtocolType implements Type.NoContext.In<AbstractTag<?, ?, ?>> {
 
-        public static Type.In<AbstractTag<?, ?, ?>> forProtocol(NetProtocol protocol) {
-            return new NBTFactory.ProtocolType(protocol);
+        @SuppressWarnings("unchecked")
+        public static <TYPE extends Type.NoContext.In<AbstractTag<?, ?, ?>>> TYPE forProtocol(NetProtocol protocol) {
+            return (TYPE) new NBTFactory.ProtocolType(protocol);
         }
 
         private final NetProtocol protocol;
@@ -41,7 +42,7 @@ public class NBTFactory {
         }
 
         @Override
-        public AbstractTag<?, ?, ?> read(PacketDataSerializer buf, Object... params) {
+        public AbstractTag<?, ?, ?> read(PacketDataSerializer buf) {
             try (ByteBufInputStream stream = new ByteBufInputStream(buf)) {
                 return NBTFactory.read(stream, protocol);
             } catch (IOException ex) {
@@ -73,7 +74,7 @@ public class NBTFactory {
     public static int getAmountOfTags(AbstractTag<?, ?, ?> tag) {
         if (tag instanceof AbstractArrayTag) {
             int i = 0;
-            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?>)tag))  {
+            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?, ?>)tag).getValues())  {
                 i += getAmountOfTags(tagIn);
             }
             return i;
@@ -95,7 +96,7 @@ public class NBTFactory {
     private static int getComplexityOfTag0(AbstractTag<?, ?, ?> tag, int complexity) {
         if (tag instanceof AbstractArrayTag) {
             int max = complexity;
-            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?>)tag)) {
+            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?, ?>)tag).getValues()) {
                 int complexity0 = getComplexityOfTag0(tagIn, complexity + 1);
                 if (complexity0 > max) {
                     max = complexity0;
@@ -124,7 +125,7 @@ public class NBTFactory {
 
     private static <T extends AbstractTag<?, ?, ?>> void getAllTagsAs0(AbstractTag<?, ?, ?> tag, TagType type, List<T> tags) {
         if (tag instanceof AbstractArrayTag) {
-            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?>)tag))  {
+            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?, ?>)tag).getValues())  {
                 getAllTagsAs0(tagIn, type, tags);
             }
         } else if (tag instanceof CompoundTag) {
@@ -149,7 +150,7 @@ public class NBTFactory {
             return null;
         }
 
-        Object nmsItem = ItemReflection.getHandleItem(item);
+        Object nmsItem = ItemFactory.getHandleItem(item);
         if (nmsItem == null) {
             return null;
         }

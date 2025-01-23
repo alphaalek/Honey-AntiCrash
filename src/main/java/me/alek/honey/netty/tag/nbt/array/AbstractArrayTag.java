@@ -1,7 +1,7 @@
-package me.alek.honey.netty.nbt.array;
+package me.alek.honey.netty.tag.nbt.array;
 
-import me.alek.honey.netty.nbt.AbstractTag;
-import me.alek.honey.netty.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -10,18 +10,17 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public abstract class AbstractArrayTag<T extends AbstractTag<?, ?, T>, TAG extends AbstractArrayTag<T, TAG>> extends AbstractTag<List<Object>, ListConverter<Object, T>, TAG> implements Iterable<T> {
+public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY extends AbstractArrayTag<IN, ARRAY, C>, C> extends AbstractTag<List<Object>, ListConverter<Object, IN>, ARRAY> implements Iterable<C> {
 
     private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.ARRAY);
 
-    private ListConverter<Object, T> delegate;
-    private final TagType typeOf;
+    private ListConverter<Object, IN> delegate;
+    protected final TagType typeOf;
 
     public AbstractArrayTag(Object base, TagType typeOf, boolean forceCreation) {
         super(base, forceCreation);
@@ -55,26 +54,27 @@ public abstract class AbstractArrayTag<T extends AbstractTag<?, ?, T>, TAG exten
         }
     }
 
+    public C from(IN in) {
+        // to be overridden
+        return (C) in;
+    }
+
+    public IN to(C context) {
+        // to be overridden
+        return (IN) context;
+    }
+
     @Override
     public void write(DataOutputStream output) throws IOException {
-        getType().<TAG>getCodec().write(output, (TAG) this);
+        getType().<ARRAY>getCodec().write(output, (ARRAY) this);
     }
 
-    @Override
-    public Iterator<T> iterator() {
-        return getValue().getDelegatedList().iterator();
-    }
-
-    public Stream<T> stream() {
+    public Stream<C> stream() {
         return StreamSupport.stream(spliterator(), false);
     }
 
-    public <E> Stream<E> streamOfValues() {
-        return stream().map(AbstractTag::getValue).map(v -> (E) v);
-    }
-
     @Override
-    public ApplicableConverter<List<Object>, ListConverter<Object, T>> getNBTConverter() {
+    public ApplicableConverter<List<Object>, ListConverter<Object, IN>> getNBTConverter() {
         if (this.delegate == null) {
             this.delegate = Converters.getNBTListConverter(this.forceCreateChildren);
         }
@@ -82,25 +82,25 @@ public abstract class AbstractArrayTag<T extends AbstractTag<?, ?, T>, TAG exten
     }
 
     @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverter<Object, T>>> applyStructure(ApplicableConverter<List<Object>, ListConverter<Object, T>> converter) {
+    public Function<ReflectStructure<Object, ?>, ReflectStructure<List<Object>, ListConverter<Object, IN>>> applyStructure(ApplicableConverter<List<Object>, ListConverter<Object, IN>> converter) {
         return (structure) -> structure.withSpecificType(List.class, converter, false);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public ArrayTag<T> asArray() {
-        if (typeOf.getCollection() == TagType.Collection.ARRAY
-                || typeOf.getCollection() == TagType.Collection.COMPOUND) {
+    public ArrayTag<IN> asArray() {
+        if (this.typeOf.getCollection() == TagType.Collection.ARRAY
+                || this.typeOf.getCollection() == TagType.Collection.COMPOUND) {
             return null;
         }
 
-        return (ArrayTag<T>) this;
+        return (ArrayTag<IN>) this;
     }
 
     @SuppressWarnings("unchecked")
     public <R> ArrayTag<R> asArrayOf(Class<R> clazz) {
-        if (typeOf.getCollection() == TagType.Collection.ARRAY
-                || typeOf.getCollection() == TagType.Collection.COMPOUND) {
+        if (this.typeOf.getCollection() == TagType.Collection.ARRAY
+                || this.typeOf.getCollection() == TagType.Collection.COMPOUND) {
             return null;
         }
 
@@ -108,15 +108,16 @@ public abstract class AbstractArrayTag<T extends AbstractTag<?, ?, T>, TAG exten
     }
 
 
-    public <T extends AbstractTag<?, ?, T>> GeneticArrayTypes.ArrayOfArrayTag<T> asArrayOfArray() {
-        if (typeOf.getCollection() != TagType.Collection.ARRAY) {
+    @SuppressWarnings("unchecked")
+    public <ARRAY2 extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2>, IN2 extends AbstractArrayTag<?, IN2, ?>> GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2> asArrayOfArray() {
+        if (this.typeOf.getCollection() != TagType.Collection.ARRAY) {
             return null;
         }
-        return (GeneticArrayTypes.ArrayOfArrayTag<T>) this;
+        return (GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2>) this;
     }
 
     public GeneticArrayTypes.ArrayOfCompoundTag asArrayOfCompound() {
-        if (typeOf.getCollection() != TagType.Collection.COMPOUND) {
+        if (this.typeOf.getCollection() != TagType.Collection.COMPOUND) {
             return null;
         }
         return (GeneticArrayTypes.ArrayOfCompoundTag) this;
@@ -135,40 +136,34 @@ public abstract class AbstractArrayTag<T extends AbstractTag<?, ?, T>, TAG exten
     }
 
     public TagType getTypeOf() {
-        return typeOf;
+        return this.typeOf;
     }
 
-    public T remove(int index) {
-        return getValue().removeConverted(index);
+    public C remove(int index) {
+        return from(getValue().removeConverted(index));
     }
 
-    public boolean remove(T value) {
-        return getValue().removeConverted(value);
+    public boolean remove(C value) {
+        return getValue().removeConverted(to(value));
     }
 
-    public boolean contains(T value) {
-        return getValue().containsConverted(value);
+    public boolean contains(C value) {
+        return getValue().containsConverted(to(value));
     }
 
-    public T get(int index) {
-        return getValue().getConverted(index);
+    public C get(int index) {
+        return from(getValue().getConverted(index));
     }
 
-    public T set(int index, T value) {
-        if (value.getType() != typeOf) {
-            return null;
-        }
-        return getValue().setConverted(index, value);
+    public C set(int index, C value) {
+        return from(getValue().setConverted(index, to(value)));
     }
 
-    public boolean add(T value) {
-        if (value.getType() != typeOf) {
-            return false;
-        }
-        return getValue().addConverted(value);
+    public boolean add(C value) {
+        return getValue().addConverted(to(value));
     }
 
-    public List<T> getValues() {
+    public List<IN> getValues() {
         return getValue().getDelegatedList();
     }
 }

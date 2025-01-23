@@ -60,7 +60,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context) {
         Location currentLocation = packet.getAnyWrapped().getLocation();
         Location lastLocation = lastPacketLocation.getOrDefault(player.uuid, currentLocation);
 
@@ -79,7 +79,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         // share this last location with the pipeline, so the checks can take use of it
         context.putLocation(lastLocation);
 
-        callback.addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
+        context.getCallback().addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) {
                     onViolation.run();

@@ -1,9 +1,9 @@
-package me.alek.honey.netty.nbt;
+package me.alek.honey.netty.tag.nbt;
 
 import io.netty.handler.codec.DecoderException;
-import me.alek.honey.netty.nbt.array.AbstractArrayTag;
-import me.alek.honey.netty.nbt.array.ArrayTag;
-import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
+import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 
 import java.io.*;
 import java.util.*;
@@ -243,7 +243,7 @@ public class CodecTypes {
         }
     }
 
-    public static class ArrayCodec<T extends AbstractTag<?, ?, T>, R extends AbstractArrayTag<T, R>> implements NBTCodec<R> {
+    public static class ArrayCodec<T extends AbstractTag<?, ?, T>, R extends AbstractArrayTag<T, R, ?>> implements NBTCodec<R> {
 
         private static final int ARRAY_BYTES = 37;
         private static final int ARRAY_ELEMENT_BYTES = 4;
@@ -256,7 +256,7 @@ public class CodecTypes {
                 output.writeByte(Optional.ofNullable(tag.getTypeOf()).map(TagType::getTypeId).orElse((byte) 0));
             }
             output.writeInt(tag.getValue().size());
-            for (AbstractTag<?, ?, ?> tagInList : tag) {
+            for (AbstractTag<?, ?, ?> tagInList : tag.getValue()) {
                 tagInList.write(output);
             }
         }

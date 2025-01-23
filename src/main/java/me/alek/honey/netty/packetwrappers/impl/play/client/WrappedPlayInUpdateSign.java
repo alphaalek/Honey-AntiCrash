@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.ItemReflection;
+import me.alek.honey.util.reflection.ItemFactory;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
@@ -60,7 +60,7 @@ public class WrappedPlayInUpdateSign extends ObjectWrappedPacket<WrappedPlayInUp
             }
 
             try {
-                JsonElement json = ItemReflection.chatComponentToJson(chatBaseComponent);
+                JsonElement json = ItemFactory.chatComponentToJson(chatBaseComponent);
                 if (json.isJsonObject()) {
                     pages.add(json.getAsJsonObject());
                 } else if (json.isJsonPrimitive()) {

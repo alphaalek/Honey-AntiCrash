@@ -280,7 +280,7 @@ public class HoneyLogger {
     }
 
     public String formatPacketType(PacketType type) {
-        return type.toString() + (ConfigurationOptions.PacketLogger.EARLY ? "<" + type.getState().toString().toLowerCase() + ">" : "");
+        return type.toString() + (ConfigurationOptions.PacketLogger.EARLY && !type.getState().equals(PacketState.PLAY) ? "<" + type.getState().toString().toLowerCase() + ">" : "");
     }
 
     public String formatPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {

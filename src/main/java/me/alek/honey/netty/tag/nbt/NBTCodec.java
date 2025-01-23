@@ -1,4 +1,4 @@
-package me.alek.honey.netty.nbt;
+package me.alek.honey.netty.tag.nbt;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

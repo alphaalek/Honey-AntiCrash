@@ -38,7 +38,7 @@ public class DiscordWebhook {
                 .addField(":octagonal_sign: Player Violation", "``" + player.name + "`` (" + player.uuid + ") failed **" + check.getName() + "**/ " + context, false)
                 .addField("", "> " + check.getDescription(), false);
 
-        if (ConfigurationOptions.Webhook.DETAILED) {
+        if (ConfigurationOptions.Webhook.DETAILED && dev != null) {
             object.addField("Information", "", false);
             for (String devData : dev.getInternalData()) {
                 object.addField("", "> " + devData, false);

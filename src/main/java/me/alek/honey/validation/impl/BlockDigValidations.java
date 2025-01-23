@@ -31,10 +31,10 @@ public class BlockDigValidations extends AbstractValidationPacketListener<Wrappe
 
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInBlockDig>> createValidationPipeline() {
-        return ValidationPipeline.from(new BlockInteractD());
+        return ValidationPipeline.from(new BlockInteractC());
     }
 
-    public static class BlockInteractD implements PacketValidation<WrappedPlayInBlockDig>, ViolationValidation<WrappedPlayInBlockDig> {
+    public static class BlockInteractC implements PacketValidation<WrappedPlayInBlockDig>, ViolationValidation<WrappedPlayInBlockDig> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -59,17 +59,17 @@ public class BlockDigValidations extends AbstractValidationPacketListener<Wrappe
 
         @Override
         public String getName() {
-            return "BlockInteract.D";
+            return "BlockInteract.C";
         }
 
         @Override
         public String getDescription() {
-            return Lang.get("validation.block.d");
+            return Lang.get("validation.block.c");
         }
 
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractD.class);
+            return Settings.getSetting(this, ConfigurationOptions.BlockInteract.BlockInteractC.class);
         }
     }
 }

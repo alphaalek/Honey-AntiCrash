@@ -96,16 +96,24 @@ public class MonitorFlagParser {
     }
 
     public static boolean testOperator(Array<Parsed> parsed, int index, LogicalOperator operator, AtomicReference<String> wrongSyntaxMessage) {
-        if (index == parsed.size() - 1
-                && !operator.equals(LogicalOperator.PARANTHESIS_END)
-                && !operator.equals(LogicalOperator.NOT)) {
-            wrongSyntaxMessage.set(Lang.get("packetmonitor.operator.no.flag"));
-            return false;
-        } else if (!operator.equals(LogicalOperator.PARANTHESIS_END) && !operator.equals(LogicalOperator.PARANTHESIS_START)) {
-            Object next = parsed.get(index + 1).get();
-            if (!(next instanceof MonitorFlag
-                    || next.equals(LogicalOperator.PARANTHESIS_START)
-                    || (next.equals(LogicalOperator.NOT) && !operator.equals(LogicalOperator.NOT)))) {
+        if (operator.equals(LogicalOperator.AND) || operator.equals(LogicalOperator.OR)) {
+            Object prev;
+            Object next;
+            if (index == 0
+                    || !((prev = parsed.get(index - 1).get()).equals(LogicalOperator.PARANTHESIS_END) || prev instanceof MonitorFlag)) {
+                wrongSyntaxMessage.set(Lang.get("packetmonitor.operator.no.flag"));
+                return false;
+            } else if (index == parsed.size() - 1
+                    || (next = parsed.get(index + 1).get()).equals(LogicalOperator.PARANTHESIS_END)
+                    || next.equals(LogicalOperator.AND)
+                    || next.equals(LogicalOperator.OR)) {
+                wrongSyntaxMessage.set(Lang.get("packetmonitor.operator.no.flag"));
+                return false;
+            }
+        } else if (operator.equals(LogicalOperator.NOT)) {
+            Object next;
+            if (index == parsed.size() - 1
+                    || !(next = parsed.get(index + 1).get()).equals(LogicalOperator.PARANTHESIS_START) || next instanceof MonitorFlag) {
                 wrongSyntaxMessage.set(Lang.get("packetmonitor.operator.no.flag"));
                 return false;
             }
@@ -122,15 +130,16 @@ public class MonitorFlagParser {
             }
             i++;
         }
-
         try {
             if (start.size() > end.size()) {
                 wrongSyntaxMessage.set(
                         Lang.getFormatted("packetmonitor.operator.unexpected.paranthesis", start.get(0), getContextString(parsed, start.get(0))));
-            }
-            if (start.size() < end.size()) {
+            } else if (start.size() < end.size()) {
                 wrongSyntaxMessage.set(
                         Lang.getFormatted("packetmonitor.operator.unexpected.paranthesis", end.getLast(), getContextString(parsed, end.getLast())));
+            } else if (index == 0 && operator.equals(LogicalOperator.PARANTHESIS_END)) {
+                wrongSyntaxMessage.set(
+                        Lang.getFormatted("packetmonitor.operator.unexpected.paranthesis", 0, getContextString(parsed, 0)));
             }
         } catch (WrongMonitorFlagSyntaxException ex) {
             wrongSyntaxMessage.set(ex.getMessage());
@@ -189,10 +198,12 @@ public class MonitorFlagParser {
                 // parse flag
                 @SuppressWarnings("unchecked")
                 MonitorFlag<PacketContainer<?>> flag = (MonitorFlag<PacketContainer<?>>) flagType.createNew();
-                parsing = parsing.from(flag.parse(parsing.from(1)));
+                int use = flag.parse(parsing.from(1));
+                if (use > 1) {
+                    parsing = parsing.from(use - 1);
+                }
                 parsed.add(MonitorFlagParser.Parsed.fromFlag(flag));
             }
-
             // go to next index
             parsing = parsing.from(1);
         }
@@ -211,69 +222,66 @@ public class MonitorFlagParser {
         addMissingAnds(elements);
         applyFlagsWithin(elements, conditions);
 
-        Bukkit.broadcastMessage("Final " + conditions);
-
         return env;
     }
 
     @SuppressWarnings("unchecked")
     private static <WP extends WrappedPacket<WP>> void applyFlagsWithin(Array<Object> elements, Array<FlagRunner.Condition<WP>> conditions) {
         Array<FlagRunner.Chipstate<PacketContainer<WP>>> flags = new Array<>();
-        Bukkit.broadcastMessage("Elements " + elements);
+        Array<Object> postElements = new Array<>();
+
         for (int i = 0; i < elements.size(); i++) {
             Object elem = elements.get(i);
-            Bukkit.broadcastMessage(elem + "");
             if (elem instanceof MonitorFlag) {
                 flags.add((MonitorFlag<PacketContainer<WP>>) elem);
             } else if (elem.equals(LogicalOperator.NOT) || elem.equals(LogicalOperator.PARANTHESIS_START)) {
-                Array<Object> nextChipstateElements = getElementsInNextChipstate(elements, i + 1);
-                i += nextChipstateElements.size(); // skip elements in next chipstate for parent parser
+                Array<Object> nextChipstateElements = getElementsInNextChipstate(elements, i);
+                // skip elements in next chipstate for parent parser
+                i += nextChipstateElements.size();
+                if (nextChipstateElements.size() > 1) {
+                    i++; // for paranthesis end
+                }
 
                 Array<FlagRunner.Condition<WP>> newConditions = new Array<>();
                 applyFlagsWithin(nextChipstateElements, newConditions);
 
-                // add child environment to parent flags
                 FlagRunner.Env<WP> env = new FlagRunner.Env<>(newConditions);
-                flags.add(env);
 
                 if (elem.equals(LogicalOperator.NOT)) {
-                    Bukkit.broadcastMessage("Not " + env + " " + newConditions + " " +  nextChipstateElements );
-                    conditions.add(new FlagRunner.Condition<>(Array.just(env), FlagRunner.Condition.NOT));
+                    Array<FlagRunner.Condition<WP>> notCondition = Array.just(new FlagRunner.Condition<>(Array.just(env), FlagRunner.Condition.Match.NOT));
+                    FlagRunner.Env<WP> notEnv = new FlagRunner.Env<>(notCondition);
+                    flags.add(notEnv);
+                } else {
+                    flags.add(env);
                 }
-            } else if (elem instanceof Array) {
-                // result of parsing child chipstate
-                Array<FlagRunner.Condition<WP>> newConditions = new Array<>();
-                applyFlagsWithin((Array<Object>) elem, newConditions);
-
-                flags.add(new FlagRunner.Env<>(newConditions));
             } else if (elem.equals(LogicalOperator.PARANTHESIS_END)) {
                 break;
+            } else if (elem.equals(LogicalOperator.AND) || elem.equals(LogicalOperator.OR)) {
+                postElements.add(elem);
             }
         }
 
+        // add logical operators to chipstates
         LinkedList<FlagRunner.Chipstate<PacketContainer<WP>>> flagsQueue = Arrays.stream(flags.getHandle())
                 .map(o -> (FlagRunner.Chipstate<PacketContainer<WP>>) o)
                 .collect(Collectors.toCollection(LinkedList::new));
-        // add logical operators to chipstates
-        for (int i = 0; i < elements.size(); i++) {
-            Object elem = elements.get(i);
-            if (elem.equals(LogicalOperator.AND) || elem.equals(LogicalOperator.OR)) {
-                FlagRunner.Chipstate<PacketContainer<WP>> flag1 = flagsQueue.pollFirst();
-                FlagRunner.Chipstate<PacketContainer<WP>> flag2 = flagsQueue.pollFirst();
+        for (int i = 0; i < postElements.size(); i++) {
+            Object elem = postElements.get(i);
+            FlagRunner.Chipstate<PacketContainer<WP>> flag1 = flagsQueue.pollFirst();
+            FlagRunner.Chipstate<PacketContainer<WP>> flag2 = flagsQueue.pollFirst();
 
-                FlagRunner.Condition<WP> condition = new FlagRunner.Condition<>(Array.fromElements(flag1, flag2),
-                        elem.equals(LogicalOperator.AND) ? FlagRunner.Condition.AND : FlagRunner.Condition.OR);
-                conditions.add(condition);
+            FlagRunner.Condition<WP> condition = new FlagRunner.Condition<>(Array.fromElements(flag1, flag2),
+                    elem.equals(LogicalOperator.AND) ? FlagRunner.Condition.Match.AND : FlagRunner.Condition.Match.OR);
+            conditions.add(condition);
 
-                // add new env from this condition
-                FlagRunner.Env<WP> env = new FlagRunner.Env<>(Array.just(condition));
-                flagsQueue.addFirst(env);
-            }
+            // add new env from this condition
+            FlagRunner.Env<WP> env = new FlagRunner.Env<>(Array.just(condition));
+            flagsQueue.addFirst(env);
         }
 
         // if no conditions was added, fallback to and for all flags
         if (conditions.isEmpty()) {
-            conditions.add(new FlagRunner.Condition<>(flags, FlagRunner.Condition.AND));
+            conditions.add(new FlagRunner.Condition<>(flags, FlagRunner.Condition.Match.AND));
         }
     }
 
@@ -302,30 +310,35 @@ public class MonitorFlagParser {
         Array<Object> remaining = elements.from(from);
         Object next = remaining.get(0);
 
-        Array<Object> array = Array.just(next);
         if (next.equals(LogicalOperator.PARANTHESIS_START)) {
+            Array<Object> array = new Array<>();
             for (int i = 1; i < remaining.size(); i++) {
                 Object element = remaining.get(i);
+                if (element.equals(LogicalOperator.PARANTHESIS_END)) {
+                    break;
+                }
+
                 array.add(element);
                 if (element.equals(LogicalOperator.PARANTHESIS_START)) {
                     Array<Object> inner = getElementsInNextChipstate(remaining, i);
                     i += inner.size();
                     array.addAll(inner);
-                }
-                if (element.equals(LogicalOperator.PARANTHESIS_END)) {
-                    break;
+                    array.add(LogicalOperator.PARANTHESIS_END);
                 }
             }
+            return array;
+        } else if (next.equals(LogicalOperator.NOT)) {
+            return getElementsInNextChipstate(remaining, 1);
+        } else {
+            return Array.just(next);
         }
-
-        return array;
     }
 
     public static String getFromArgs(Array<String> args) {
         String arg = args.get(0);
         if (arg.endsWith(")")) {
-            args.insert(1, ")");
             args.set(0, arg.substring(0, arg.length() - 1));
+            args.insert(1, ")");
             return getFromArgs(args);
         }
         return arg;

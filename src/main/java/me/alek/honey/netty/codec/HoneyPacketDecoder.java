@@ -14,7 +14,7 @@ import org.bukkit.GameMode;
 
 public class HoneyPacketDecoder {
 
-    public static Object decodePacket(HoneyPlayer player, PacketState state, EmulatorCodec<Object, PacketDataSerializer> protocol, ByteBuf byteBuf) throws DecoderException {
+    public static Object decodePacket(HoneyPlayer player, PacketState state, EmulatorCodec<Object, PacketDataSerializer> protocol, ByteBuf buf) throws DecoderException {
         if (protocol == null) {
             return null;
         }
@@ -22,7 +22,7 @@ public class HoneyPacketDecoder {
         Object packet;
         try {
             if (EmulatorCodec.LEGACY) {
-                packet = protocol.decodeLegacy(byteBuf, state, (type, callback) -> {
+                packet = protocol.decodeLegacy(buf, state, (type, callback) -> {
                     if (type.equals(PacketTypes.Play.Client.BLOCK_PLACE)
                             && ConfigurationOptions.Decoder.DISABLE_NBT
                             && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
@@ -39,7 +39,7 @@ public class HoneyPacketDecoder {
                     }
                 });
             } else {
-                packet = protocol.decodeModern(byteBuf, state);
+                packet = protocol.decodeModern(buf, state);
             }
 
             if (packet == null) {
@@ -47,24 +47,7 @@ public class HoneyPacketDecoder {
                 return null;
             }
 
-            if (byteBuf.isReadable()) {
-                int end = byteBuf.readerIndex();
-                int remaining = byteBuf.readableBytes();
-                throw new DecoderException(
-                        "Found " + remaining
-                                + " (" + (end + byteBuf.readableBytes()) + "/" + end + ") extra bytes while decoding packet "
-                                + HoneyPlugin.get().getLogger().formatPacketType(PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketType.UNKNOWN)) + ", "
-                                + state + " (" + NetProtocol.getProtocol().getName() + "): "
-                                + HoneyPlugin.get().getLogger().filterTooMuchData(
-                                HoneyPlugin.get().getLogger().formatPacketEntries(
-                                        ReflectStructure.Provider.acquireStructure(packet.getClass())
-                                                .withStatic(false)
-                                                .withTarget(packet)
-                                                .readFieldEntries()
-                                )
-                        )
-                );
-            }
+            checkReadable(NetProtocol.getProtocol(), PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketType.UNKNOWN), packet, buf);
         } catch (CodecException ex) {
             throw new DecoderException("Failed to create packet with ID " + ex.getPacketID() + ", " + state, ex);
         }
@@ -74,5 +57,28 @@ public class HoneyPacketDecoder {
         }
 
         return packet;
+    }
+
+    public static void checkReadable(NetProtocol protocol, PacketType type, Object packetObject, ByteBuf buf) throws DecoderException {
+        if (buf.isReadable()) {
+            int end = buf.readerIndex();
+            int remaining = buf.readableBytes();
+            throw new DecoderException(
+                    "Found " + remaining
+                            + " (" + (end + buf.readableBytes()) + "/" + end + ") extra bytes while decoding packet "
+                            + HoneyPlugin.get().getLogger().formatPacketType(type) + ", "
+                            + " (" + protocol.getName() + ")"
+                            +
+                            (packetObject == null ? "" : ": " +
+                            HoneyPlugin.get().getLogger().filterTooMuchData(
+                                    HoneyPlugin.get().getLogger().formatPacketEntries(
+                                            ReflectStructure.Provider.acquireStructure(packetObject.getClass())
+                                                    .withStatic(false)
+                                                    .withTarget(packetObject)
+                                                    .readFieldEntries()
+                                    ))
+                            )
+            );
+        }
     }
 }

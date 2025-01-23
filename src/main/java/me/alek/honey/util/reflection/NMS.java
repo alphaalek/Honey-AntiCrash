@@ -212,7 +212,12 @@ public class NMS {
 
     private static Class<Object> magicNumbersUtilClass;
     public static Class<Object> getMagicNumbersUtilClass() {
-        return magicNumbersUtilClass != null ? magicNumbersUtilClass : (magicNumbersUtilClass = (Class<Object>) Reflection.getClass("{obc}.util.CraftMagicNumbers"));
+        return magicNumbersUtilClass != null ? magicNumbersUtilClass : (magicNumbersUtilClass = Reflection.getClass("{obc}.util.CraftMagicNumbers"));
+    }
+
+    private static Class<Object> patchedDataComponentMapClass;
+    public static Class<Object> getPatchedDataComponentMapClass() {
+        return patchedDataComponentMapClass != null ? patchedDataComponentMapClass : (patchedDataComponentMapClass = Reflection.getClass("{nms}.core.component.PatchedDataComponentMap"));
     }
 
     private static Class<Object> nbtTagCompoundClass;

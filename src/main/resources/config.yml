@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + This configuration file is generated using version v2.6-b2
+#   + This configuration file is generated using version v2.6.2
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -623,10 +623,6 @@ block-interact:
     enabled: true
 
   c:
-    enabled: true
-    vls-amount: 3
-
-  d:
     enabled: true
     max: 100
     min-vls: 5

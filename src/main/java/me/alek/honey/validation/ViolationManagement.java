@@ -9,6 +9,7 @@ import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.discord.DiscordWebhook;
+import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -295,7 +296,7 @@ public class ViolationManagement {
         }
 
         public void doFormatStuff(HoneyValidation<?> validation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
-            if (validation.isDefaultPipeline()) {
+            if (developmentData != null) {
                 HoneyPlugin.get().getNotificationService().applyQuotients(player, developmentData);
                 applySettingsToDevelopmentData(developmentData);
             }
@@ -463,7 +464,7 @@ public class ViolationManagement {
 
         @Override
         public String format() {
-            return "§7flags: §e" + amount + "§7/§e" + getSetting().threshold + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
+            return "§7flags: §e" + NumberUtils.format(amount, 2) + "§7/§e" + getSetting().threshold + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
         }
 
         @Override
@@ -537,7 +538,7 @@ public class ViolationManagement {
 
         @Override
         public String format() {
-            return "§7buffer: §e" + bufferIndexCopy + "§7/§e" + getSetting().until + "§7/§e" + getSetting().threshold + "§7, §e"
+            return "§7buffer: §e" + NumberUtils.format(bufferIndexCopy, 2) + "§7/§e" + getSetting().until + "§7/§e" + getSetting().threshold + "§7, §e"
                     + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
         }
 
@@ -578,7 +579,7 @@ public class ViolationManagement {
 
         @Override
         public String format() {
-            return "§7buffer: §e" + bufferIndexCopy + "§7/§e" + getSetting().threshold +
+            return "§7buffer: §e" + NumberUtils.format(bufferIndexCopy, 2) + "§7/§e" + getSetting().threshold +
                     "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
         }
 
@@ -607,7 +608,7 @@ public class ViolationManagement {
 
         @Override
         public String format() {
-            return "§7flags: §e" + flaggedCopy + "§7/§e" + getSetting().maxPerInterval + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls, §e"
+            return "§7flags: §e" + NumberUtils.format(flaggedCopy, 2) + "§7/§e" + getSetting().maxPerInterval + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls, §e"
                     + (getSetting().interval < 1000 ? getSetting().interval + "§7ms" : ((double) getSetting().interval) / 1000 + "§7s");
         }
 

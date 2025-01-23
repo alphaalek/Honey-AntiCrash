@@ -6,28 +6,29 @@ import com.google.gson.JsonParser;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecType;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.nbt.CompoundTag;
-import me.alek.honey.netty.nbt.PrimitiveTag;
-import me.alek.honey.netty.nbt.TagType;
-import me.alek.honey.netty.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.PrimitiveTag;
+import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.util.LazyInit;
-import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Material;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayload<WP>> extends WrappedPacket<WP>, AutoReleasable {
+
+    int MAX_CHANNEL_LENGTH = 20;
 
     PayloadData<WP> getPayloadData();
 
@@ -37,8 +38,8 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         public ByteWrappedPlayInCustomPayload(PacketDataSerializer buf, PacketContainer<ByteWrappedPlayInCustomPayload> packet) {
             super(buf, packet);
-            String channel = Types.UTF8.read(buf, 20);
-            PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.copiedBuffer(buf));
+            String channel = buf.readString(MAX_CHANNEL_LENGTH);
+            PacketDataSerializer serializer = new PacketDataSerializer(buf.readBytes(buf.readableBytes()));
             this.data = new PayloadData<>(this, channel, serializer, packet.getProtocol());
         }
 
@@ -97,26 +98,34 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             boolean signing = this.channel.equals(SIGN_BOOK_CHANNEL);
             CodecType.BOOK_EDIT_ITEM_STACK.validate(item, new DecodeContext.BookEditContext<>(this.packet, signing));
 
+            if (protocol.isOlderThan(NetProtocol.v1_20_5)) {
+                applyTagLegacy(protocol, item, signing);
+            }
+            return item;
+        }
+
+        private void applyTagLegacy(NetProtocol protocol, WrappedImmutableItemStack item, boolean signing) {
             CompoundTag tag = new CompoundTag();
-            tag.put("pages", item.getNBT().getArrayOf("pages", TagType.STRING));
+            CompoundTag serialized = item.getTag().asNBT().get();
+            tag.put("pages", serialized.getArrayOf("pages", TagType.STRING));
             if (signing) {
-                tag.put("author", new PrimitiveTag<>(TagType.STRING, item.getNBT().getString("author")));
-                tag.put("title", new PrimitiveTag<>(TagType.STRING, item.getNBT().getString("title")));
+                tag.put("author", new PrimitiveTag<>(TagType.STRING, serialized.getString("author")));
+                tag.put("title", new PrimitiveTag<>(TagType.STRING, serialized.getString("title")));
 
                 if (protocol.isEqual(NetProtocol.v1_8_8)) {
-                    for (PrimitiveTag<String> page : tag.getArrayOf("pages", String.class)) {
-                        JsonElement element = JSON_PARSER.parse(page.getValue());
+                    ArrayTag<String> newPages = new ArrayTag<>(TagType.STRING);
+                    for (String page : tag.<String>getArrayOf("pages", TagType.STRING)) {
+                        JsonElement element = JSON_PARSER.parse(page);
                         if (element.isJsonObject()) {
-                            page.setValue(((JsonObject) element).get("text").getAsString());
+                            newPages.add(((JsonObject) element).get("text").getAsString());
                         } else {
-                            page.setValue(element.getAsString());
+                            newPages.add(element.getAsString());
                         }
                     }
+                    tag.put("pages", newPages);
                 }
             }
-            item.setNBT(tag);
-
-            return item;
+            item.setTag(tag);
         }
 
         @Override
@@ -131,6 +140,10 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             properties.put("channel", this.channel);
             properties.put("buffer", this.serializer);
             return properties;
+        }
+
+        public boolean isItemInitialized() {
+            return this.bookChannelItemStack.initialized();
         }
 
         public WrappedImmutableItemStack getBookChannelItemStack() {

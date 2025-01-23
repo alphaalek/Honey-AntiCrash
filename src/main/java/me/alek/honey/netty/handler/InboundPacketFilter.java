@@ -8,6 +8,7 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.UnsafeChannelCloser;
+import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.InternalPacketContainer;
@@ -61,7 +62,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         ctx.fireChannelActive();
 
         if (ctx.channel().remoteAddress() == null) {
-            // null ping (1.8.8- bug)
+            // null ping (1.8.8 bug)
             UnsafeChannelCloser.closeForcibly(ctx.channel());
             return;
         }
@@ -120,7 +121,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         // the filter and decode preparation dropped this packet
         // and did not clear the marker properly
         if (prev != null && !PacketTypes.isUnknown(prev.getType())) {
-            FloodValidations.PACKET_DROP_PIPELINE.doStream(
+            FloodValidations.PACKET_DROP_PIPELINE.doStreamOtherPipeline(
                     this.player,
                     (validation, context) -> validation.validate(this.player, context),
                     prev);
@@ -142,6 +143,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
             MARK.set(packet);
 
+            if (packet.getInitialByteWrapped().isAbstract()) {
+                // check if any bytes has not been decoded
+                // if any is left, the protocol has not been followed properly
+                HoneyPacketDecoder.checkReadable(packet.getProtocol(), type, null, serializer);
+            }
+
             // call listeners
             if (!this.player.bypassEverything()) {
                 packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
@@ -152,7 +159,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             if (!this.packetHandler.isCancelled(packet)) {
                 list.add(serializer
                         .readerIndex(0)
-                        .retain(Math.max(serializer.refCnt(), 1) + 1));
+                        .retain());
             } else {
                 list.add(Unpooled.buffer());
                 packet.releaseIfAutoReleasable();
@@ -173,10 +180,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                 Bukkit.getLogger().log(Level.WARNING,
                         "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
                                 + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
-            }
-
-            if (serializer.refCnt() > 0) {
-                serializer.release();
             }
 
             this.player.failPacket(ex, packet);

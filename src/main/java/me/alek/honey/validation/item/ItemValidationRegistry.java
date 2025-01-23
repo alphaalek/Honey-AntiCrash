@@ -1,5 +1,8 @@
 package me.alek.honey.validation.item;
 
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.protocol.mapper.MappedEntity;
 import me.alek.honey.util.MaterialMappings;
 import org.bukkit.Material;
 
@@ -13,66 +16,55 @@ public enum ItemValidationRegistry {
     MAX_TOTAL_LORE_LENGTH(ItemValidations.MaxTotalLoreLengthItemValidation::new),
     ILLEGAL_CHARACTER(ItemValidations.IllegalCharacterItemValidation::new),
     ILLEGAL_ENCHANTMENTS(ItemValidations.IllegalEnchantmentsItemValidation::new),
-    MAX_FIREWORK_EXPLOSIONS(ItemValidations.MaxFireworkExplosionsItemValidation::new,
-            MaterialMappings.getTypeOnly("firework-rocket")),
+    MAX_FIREWORK_EXPLOSIONS(ItemValidations.MaxFireworkExplosionsItemValidation::new, ItemTypes.FIREWORK_ROCKET),
     MAX_BANNER_PATTERNS(ItemValidations.MaxBannerPatternsItemValidation::new,
-            MaterialMappings.getType("standing-banner"), MaterialMappings.getType("wall-banner"), MaterialMappings.getType("banner"),
-            MaterialMappings.getTypeOnly("red-banner"), MaterialMappings.getTypeOnly("green-banner"), MaterialMappings.getTypeOnly("brown-banner"),
-            MaterialMappings.getTypeOnly("blue-banner"), MaterialMappings.getTypeOnly("purple-banner"), MaterialMappings.getTypeOnly("cyan-banner"),
-            MaterialMappings.getTypeOnly("light-gray-banner"), MaterialMappings.getTypeOnly("gray-banner"), MaterialMappings.getTypeOnly("pink-banner"),
-            MaterialMappings.getTypeOnly("lime-banner"), MaterialMappings.getTypeOnly("yellow-banner"), MaterialMappings.getTypeOnly("light-blue-banner"),
-            MaterialMappings.getTypeOnly("magenta-banner"), MaterialMappings.getTypeOnly("orange-banner"), MaterialMappings.getTypeOnly("white-banner")),
+            ItemTypes.BLACK_BANNER, ItemTypes.BLUE_BANNER, ItemTypes.BROWN_BANNER, ItemTypes.LIGHT_BLUE_BANNER, ItemTypes.GRAY_BANNER,
+            ItemTypes.CYAN_BANNER, ItemTypes.GREEN_BANNER, ItemTypes.LIGHT_BLUE_BANNER, ItemTypes.LIGHT_GRAY_BANNER, ItemTypes.LIME_BANNER,
+            ItemTypes.MAGENTA_BANNER, ItemTypes.ORANGE_BANNER, ItemTypes.PINK_BANNER, ItemTypes.PURPLE_BANNER, ItemTypes.GRAY_BANNER,
+            ItemTypes.RED_BANNER, ItemTypes.WHITE_BANNER, ItemTypes.YELLOW_BANNER),
     UNBREAKABLE_ITEM(ItemValidations.UnbreakableItemItemValidation::new),
-    CUSTOM_POTION_EFFECTS(ItemValidations.CustomPotionEffectsItemValidation::new, Material.POTION),
+    CUSTOM_POTION_EFFECTS(ItemValidations.CustomPotionEffectsItemValidation::new,
+            ItemTypes.POTION, ItemTypes.LINGERING_POTION, ItemTypes.SPLASH_POTION),
     ATTRIBUTE_MODIFIERS(ItemValidations.AttributeModifiersItemValidation::new),
-    BOOK_NO_TEXT_COMPONENT(ItemValidations.BookComponentsValidation::new,
-            Material.WRITTEN_BOOK, MaterialMappings.getTypeOnly("writable-book")),
-    MAP_RANGE(ItemValidations.MapRangeItemValidation::new, MaterialMappings.getTypeOnly("empty-map"), MaterialMappings.getTypeOnly("filled-map")),
+    BOOK_NO_TEXT_COMPONENT(ItemValidations.BookComponentsValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
+    MAP_RANGE(ItemValidations.MapRangeItemValidation::new, ItemTypes.MAP, ItemTypes.FILLED_MAP),
 
     // nbt
     MAX_NBT_LENGTH(ItemValidations.MaxNBTLengthItemValidation::new),
     MAX_NBT_STRING_LENGTH(ItemValidations.MaxNBTStringLengthItemValidation::new),
-    MAX_BOOK_PAGE_LENGTH(ItemValidations.MaxPageLengthItemValidation::new,
-            Material.WRITTEN_BOOK, MaterialMappings.getTypeOnly("writable-book")),
-    MAX_BOOK_NBT_LENGTH(ItemValidations.MaxBookNBTLengthItemValidation::new,
-            Material.WRITTEN_BOOK, MaterialMappings.getTypeOnly("writable-book")),
-    MAX_BOOK_PAGES(ItemValidations.MaxBookPagesItemValidation::new,
-            Material.WRITTEN_BOOK, MaterialMappings.getTypeOnly("writable-book")),
-    MAX_BOOK_AUTHOR_LENGTH(ItemValidations.MaxBookAuthorLengthItemValidation::new, Material.WRITTEN_BOOK),
-    MAX_BOOK_TITLE_LENGTH(ItemValidations.MaxBookTitleLengthItemValidation::new, Material.WRITTEN_BOOK),
+    MAX_BOOK_PAGE_LENGTH(ItemValidations.MaxPageLengthItemValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
+    MAX_BOOK_NBT_LENGTH(ItemValidations.MaxBookNBTLengthItemValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
+    MAX_BOOK_PAGES(ItemValidations.MaxBookPagesItemValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
+    MAX_BOOK_AUTHOR_LENGTH(ItemValidations.MaxBookAuthorLengthItemValidation::new, ItemTypes.WRITTEN_BOOK),
+    MAX_BOOK_TITLE_LENGTH(ItemValidations.MaxBookTitleLengthItemValidation::new, ItemTypes.WRITTEN_BOOK),
     MAX_NBT_BASES(ItemValidations.MaxNBTBasesItemValidation::new),
     MAX_NBT_NESTING(ItemValidations.MaxNBTNestingItemValidation::new),
-    MAX_FIREWORK_NBT_LENGTH(ItemValidations.MaxFireworkLengthItemValidation::new,
-            MaterialMappings.getTypeOnly("firework-rocket"), MaterialMappings.getTypeOnly("firework-star")),
-    ILLEGAL_SKULL_TEXTURES(ItemValidations.IllegalSkullTexturesItemValidation::new,
-            MaterialMappings.getType("skull"), MaterialMappings.getType("skull-item"),
-            MaterialMappings.getTypeOnly("skeleton-skull"), MaterialMappings.getTypeOnly("wither-skeleton-skull"),
-            MaterialMappings.getTypeOnly("player-head"), MaterialMappings.getTypeOnly("zombie-head"),
-            MaterialMappings.getTypeOnly("creeper-head")),
+    MAX_FIREWORK_NBT_LENGTH(ItemValidations.MaxFireworkLengthItemValidation::new, ItemTypes.FIREWORK_ROCKET, ItemTypes.FIREWORK_STAR),
+    ILLEGAL_SKULL_TEXTURES(ItemValidations.IllegalSkullTexturesItemValidation::new, ItemTypes.PLAYER_HEAD),
     ILLEGAL_COMPONENT_STRINGS(ItemValidations.IllegalComponentStrings::new),
     ILLEGAL_NUMBERS(ItemValidations.IllegalNumbersItemValidation::new),
     ;
 
     private final ItemAnalysis.ItemValidation validation;
-    private final Material[] forMaterials;
+    private final ItemType[] forTypes;
     private final String forTag;
 
-    ItemValidationRegistry(Supplier<ItemAnalysis.ItemValidation> check, Material... availableMaterials) {
-        this(check, "", availableMaterials);
+    ItemValidationRegistry(Supplier<ItemAnalysis.ItemValidation> check, ItemType... availableTypes) {
+        this(check, "", availableTypes);
     }
 
-    ItemValidationRegistry(Supplier<ItemAnalysis.ItemValidation> validation, String tag, Material... availableMaterials) {
+    ItemValidationRegistry(Supplier<ItemAnalysis.ItemValidation> validation, String tag, ItemType... availableTypes) {
         this.validation = validation.get();
         this.forTag = tag;
-        this.forMaterials = Arrays.stream(availableMaterials).filter(m -> m != Material.AIR).toArray(Material[]::new);
+        this.forTypes = Arrays.stream(availableTypes).filter(MappedEntity::isRegistered).toArray(ItemType[]::new);
     }
 
     public ItemAnalysis.ItemValidation getValidation() {
         return this.validation;
     }
 
-    public Material[] getMaterials() {
-        return this.forMaterials;
+    public ItemType[] getTypes() {
+        return this.forTypes;
     }
 
     public String getTag() {
@@ -80,7 +72,7 @@ public enum ItemValidationRegistry {
     }
 
     public boolean hasFilter() {
-        return !this.forTag.isEmpty() || this.forMaterials.length > 0;
+        return !this.forTag.isEmpty() || this.forTypes.length > 0;
     }
 
     @Override

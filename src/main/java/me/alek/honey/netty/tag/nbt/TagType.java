@@ -1,7 +1,7 @@
-package me.alek.honey.netty.nbt;
+package me.alek.honey.netty.tag.nbt;
 
-import me.alek.honey.netty.nbt.array.ArrayTag;
-import me.alek.honey.netty.nbt.array.GeneticArrayTypes;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.protocol.NetProtocolRange;

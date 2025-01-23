@@ -91,10 +91,10 @@ public class WrappedPacketFactoryCollection {
 
         WrappedPacketFactory.ByteWrappedPacketFactory<WP> factory;
         Array<WrappedPacketFactory.ByteWrappedPacketFactory<? extends WrappedPacket<?>>> factories = BYTE_WRAPPERS.computeIfAbsent(state, __ -> new Array<>());
-        if (!factories.has(type)) {
-            factory = WrappedPacketFactory.<WP>acquireHolder().BYTE_FACTORY;
-        } else {
+        if (factories.has(type)) {
             factory = (WrappedPacketFactory.ByteWrappedPacketFactory<WP>) factories.get(type.getHoneyID());
+        } else {
+            factory = WrappedPacketFactory.<WP>acquireHolder().BYTE_FACTORY;
         }
         return factory.createPacket(serializer, container);
     }

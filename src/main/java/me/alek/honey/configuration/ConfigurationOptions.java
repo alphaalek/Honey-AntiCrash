@@ -878,12 +878,6 @@ public class ConfigurationOptions {
         public static class BlockInteractC extends ViolationSetting {
 
         }
-
-        @Setting
-        @Violation(prefixPaths = "block-interact.d", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class BlockInteractD extends ViolationSetting {
-
-        }
     }
 
     @Setting

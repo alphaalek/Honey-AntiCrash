@@ -1,13 +1,15 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.validation.CodecType;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.nbt.CompoundTag;
-import me.alek.honey.netty.nbt.PrimitiveTag;
-import me.alek.honey.netty.nbt.TagType;
-import me.alek.honey.netty.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.PrimitiveTag;
+import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.netty.packetwrappers.protocol.InteractionHand;
@@ -52,23 +54,22 @@ public class WrappedPlayInBookEdit extends ByteWrappedPacket<WrappedPlayInBookEd
             CompoundTag tag = new CompoundTag();
             ArrayTag<String> pages = new ArrayTag<>(TagType.STRING);
             for (int i = 0; i < pageCount; i++) {
-                pages.add(new PrimitiveTag<>(TagType.STRING, buf.readString(PAGE_CHAR_LIMIT)));
+                pages.add(buf.readString(PAGE_CHAR_LIMIT));
             }
             tag.put("pages", pages);
 
-            Material material;
+            ItemType type;
             if (buf.readBoolean()) {
                 tag.put("title", new PrimitiveTag<>(TagType.STRING, buf.readString(TITLE_CHAR_LIMIT)));
                 tag.put("author", new PrimitiveTag<>(TagType.STRING, packet.getPlayer().name));
-                material = Material.WRITTEN_BOOK;
+                type = ItemTypes.WRITTEN_BOOK;
                 this.signing = true;
             } else {
-                material = MaterialMappings.getTypeOnly("writable-book");
+                type = ItemTypes.WRITABLE_BOOK;
                 this.signing = false;
             }
 
-            this.itemStack = WrappedImmutableItemStack.fromBukkit(new ItemStack(material));
-            this.itemStack.setNBT(tag);
+            this.itemStack = new WrappedImmutableItemStack(protocol, type, 1, tag);
         }
 
         CodecType.BOOK_EDIT_ITEM_STACK.validate(this.itemStack, new DecodeContext.BookEditContext<>(this, this.signing));

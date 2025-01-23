@@ -11,15 +11,15 @@ import me.alek.honey.netty.modelwrappers.objects.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.objects.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
-import me.alek.honey.netty.nbt.AbstractTag;
-import me.alek.honey.netty.nbt.TagConverter;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.TagConverter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.wrapper.SimpleListConverter;
 import me.alek.honey.netty.structure.converters.wrapper.SimpleMapConverter;
 import me.alek.honey.netty.structure.converters.wrapper.SimpleWrapperConverter;
 import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.ItemReflection;
+import me.alek.honey.util.reflection.ItemFactory;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.inventory.ItemStack;
@@ -129,12 +129,12 @@ public class Converters {
         return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
             @Override
             public ItemStack convertDelegate(Object delegate, Object... params) {
-                return ItemReflection.asBukkitCopy(delegate);
+                return ItemFactory.asBukkitCopy(delegate);
             }
 
             @Override
             public Object convertDeclaring(ItemStack itemStack) {
-                return ItemReflection.asNMSCopy(itemStack);
+                return ItemFactory.asNMSCopy(itemStack);
             }
         });
     }
@@ -143,12 +143,12 @@ public class Converters {
         return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
             @Override
             public ItemStack convertDelegate(Object delegate, Object... params) {
-                return ItemReflection.asCraftMirror(delegate);
+                return ItemFactory.asCraftMirror(delegate);
             }
 
             @Override
             public Object convertDeclaring(ItemStack itemStack) {
-                return ItemReflection.getHandleItem(itemStack);
+                return ItemFactory.getHandleItem(itemStack);
             }
         });
     }

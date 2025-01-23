@@ -31,14 +31,12 @@ public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWin
     @Property
     private final WrappedImmutableItemStack carriedItemStack;
 
-
     public WrappedPlayInWindowClick(PacketDataSerializer serializer, PacketContainer<WrappedPlayInWindowClick> packet) {
         super(serializer, packet);
 
         NetProtocol protocol = packet.getProtocol();
 
-        // TODO
-        if (false /*protocol.isNewerThanOrEqual(NetProtocol.v1_21_2) */) {
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_21_2)) {
             this.windowId = serializer.readVarInt();
         } else {
             this.windowId = serializer.readUnsignedByte();

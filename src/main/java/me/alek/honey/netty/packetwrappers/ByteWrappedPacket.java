@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packetwrappers;
 
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketContainer;
@@ -7,6 +8,9 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.protocol.NetProtocolRange;
 import me.alek.honey.util.reflection.Reflection;
+import me.alek.honey.validation.ValidationPipeline;
+import me.alek.honey.validation.ValidationPipelineContext;
+import me.alek.honey.validation.impl.NettyDecodeValidations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -49,46 +53,17 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
         }
     }
 
+    public boolean isAbstract() {
+        return !getClass().equals(ByteWrappedPacket.class);
+    }
+
     @Override
     public boolean isByteBased() {
         return true;
     }
 
-    public PacketDataSerializer getBuf() {
-        return this.buf;
-    }
-
-    public int getByteSize() {
-        return this.byteSize;
-    }
-
-    public int getAccumulatedByteSize() {
-        return this.accumulatedByteSize;
-    }
-
-    public int getDoubleByteSequences() {
-        return this.doubleByteSequences;
-    }
-
-    @Override
-    public HoneyPlayer getPlayer() {
-        return this.packet.getPlayer();
-    }
-
-    @Override
-    public PacketContainer<WP> getContainer() {
-        return this.packet;
-    }
-
-    @Override
-    public PacketType getType() {
-        return this.packet.getType();
-    }
-
     @Override
     public Map<String, Object> getProperties() {
-        // TODO
-        // set properties in classes
         if (getClass() != ByteWrappedPacket.class) {
             Map<String, Object> properties = new HashMap<>();
             for (Field field : getClass().getDeclaredFields()) {
@@ -128,5 +103,36 @@ public class ByteWrappedPacket<WP extends WrappedPacket<WP>> implements WrappedP
 
             String methodSupplier();
         }
+    }
+
+    public PacketDataSerializer getBuf() {
+        return this.buf;
+    }
+
+    public int getByteSize() {
+        return this.byteSize;
+    }
+
+    public int getAccumulatedByteSize() {
+        return this.accumulatedByteSize;
+    }
+
+    public int getDoubleByteSequences() {
+        return this.doubleByteSequences;
+    }
+
+    @Override
+    public HoneyPlayer getPlayer() {
+        return this.packet.getPlayer();
+    }
+
+    @Override
+    public PacketContainer<WP> getContainer() {
+        return this.packet;
+    }
+
+    @Override
+    public PacketType getType() {
+        return this.packet.getType();
     }
 }

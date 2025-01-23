@@ -128,7 +128,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
                             if (player.bukkit.getGameMode() == GameMode.CREATIVE) {
                                 try {
                                     ItemStack item = player.bukkit.getInventory().getItem(packet.getSlot());
-                                    if (item != null && item.equals(packet.getItemStack().toCraftBukkit())) {
+                                    if (item != null && packet.getItemStack().isSimilar(item)) {
                                         item.setType(Material.AIR);
                                     }
                                 } catch (Exception ignored) {

@@ -4,6 +4,8 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.codec.HoneyPacketDecoder;
+import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
@@ -34,10 +36,10 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<CP> packet, ValidationPipelineContext context, Callback callback) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<CP> packet, ValidationPipelineContext context) {
         String channel = packet.getAnyWrapped().getPayloadData().getChannel();
 
-        callback.addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
+        context.getCallback().addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 
@@ -46,6 +48,14 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         }));
 
         return true;
+    }
+
+    @Override
+    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<CP> packet, ValidationPipelineContext context) {
+        WrappedPlayInCustomPayload.PayloadData<CP> data = packet.getAnyWrapped().getPayloadData();
+        if (data.isBookChannel() && data.isItemInitialized()) {
+            HoneyPacketDecoder.checkReadable(packet.getProtocol(), packet.getType(), null, data.getSerializer());
+        }
     }
 
     @Override
@@ -126,8 +136,9 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
             if (getSetting().isEnabled()) {
                 WrappedImmutableItemStack item = packet.getPayloadData().getBookChannelItemStack();
                 if (item != null) {
+                    // TODO: fix
                     int nbtSize;
-                    if (item.getNBT() != null && (nbtSize = item.getNBT().toString().getBytes().length) > getSetting().max) {
+                    if (item.getTag() != null && (nbtSize = item.getTag().toString().getBytes().length) > getSetting().max) {
                         return ValidationViolationContext.Builder.validate().cancel().flag()
                                 .onViolation(generateKey(), (keyInner, onViolation) -> {
                                     if (onViolation != null) {

@@ -283,22 +283,25 @@ public class InternalPacketProcessor implements PacketProcessor {
             return null;
         }
 
-        PacketContainer<WP> packet;
-        if (earlyInitializedPacket != null) {
-            earlyInitializedPacket.callPostMinecraftDecode(objectPacket, type);
-            packet = earlyInitializedPacket;
-        } else {
-            packet = new InternalPacketContainer<>(objectPacket, player, type, getPostAction(type));
-        }
-
-        if (packet.getState().equals(PacketState.PLAY) && !packet.getPlayer().isBukkitReady()) {
-            return packet;
-        }
-
+        PacketContainer<WP> packet = null;
         try {
+            if (earlyInitializedPacket != null) {
+                earlyInitializedPacket.callPostMinecraftDecode(objectPacket, type);
+                packet = earlyInitializedPacket;
+            } else {
+                packet = new InternalPacketContainer<>(objectPacket, player, type, getPostAction(type));
+            }
+
+            if (packet.getState().equals(PacketState.PLAY) && !packet.getPlayer().isBukkitReady()) {
+                // shouldn't happen
+                return packet;
+            }
+
             callObjectPacketProcessListeners(player, packet);
         } catch (Exception ex) {
-            packet.cancel();
+            if (packet != null) {
+                packet.cancel();
+            }
         }
 
         return packet;

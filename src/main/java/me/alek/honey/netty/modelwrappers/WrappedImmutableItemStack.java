@@ -1,25 +1,24 @@
 package me.alek.honey.netty.modelwrappers;
 
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecType;
 import me.alek.honey.netty.codec.validation.DecodeContext;
-import me.alek.honey.netty.nbt.AbstractTag;
-import me.alek.honey.netty.nbt.CompoundTag;
-import me.alek.honey.netty.nbt.NBTFactory;
-import me.alek.honey.netty.nbt.TagType;
-import me.alek.honey.netty.nbt.array.ArrayTag;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBookEdit;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.util.MaterialMappings;
+import me.alek.honey.netty.tag.ItemTag;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.ItemReflection;
+import me.alek.honey.util.reflection.ItemFactory;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -31,9 +30,9 @@ public class WrappedImmutableItemStack implements Cloneable {
 
     public static final WrappedImmutableItemStack AIR = new WrappedImmutableItemStack();
 
-    public static class ProtocolType implements Type.In<WrappedImmutableItemStack> {
+    public static class ProtocolType implements Type.NoContext.In<WrappedImmutableItemStack> {
 
-        public static Type.In<WrappedImmutableItemStack> forProtocol(NetProtocol protocol) {
+        public static WrappedImmutableItemStack.ProtocolType forProtocol(NetProtocol protocol) {
             return new WrappedImmutableItemStack.ProtocolType(protocol);
         }
 
@@ -44,21 +43,21 @@ public class WrappedImmutableItemStack implements Cloneable {
         }
 
         @Override
-        public WrappedImmutableItemStack read(PacketDataSerializer buf, Object... params) {
+        public WrappedImmutableItemStack read(PacketDataSerializer buf) {
             int amount = -1;
             short durability = -1;
-            if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            if (this.protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 amount = buf.readVarInt();
                 if (amount < 1) {
                     return null;
                 }
-            } else if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)
+            } else if (this.protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)
                     && !buf.readBoolean()) {
                 return null;
             }
 
             int id;
-            if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
+            if (this.protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
                 id = buf.readVarInt();
             } else {
                 id = buf.readShort();
@@ -71,17 +70,14 @@ public class WrappedImmutableItemStack implements Cloneable {
                 amount = buf.readByte();
             }
 
-            if (protocol.isOlderThan(NetProtocol.v1_13)) {
+            if (this.protocol.isOlderThan(NetProtocol.v1_13_2)) {
                 durability = buf.readShort();
-            }
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
-                durability = -1;
             }
 
             try {
-                return WrappedImmutableItemStack.read(protocol, buf, id, amount, durability);
+                return WrappedImmutableItemStack.read(this.protocol, buf, id, amount, durability);
             } catch (Exception ex) {
-                return null;
+                throw new DecoderException("Failed to decode item stack", ex);
             }
         }
     }
@@ -99,76 +95,91 @@ public class WrappedImmutableItemStack implements Cloneable {
         CodecType.BOOK_EDIT_ITEM_STACK.addValidation(WrappedImmutableItemStack::validateBookEdit);
     }
 
-    public static void validate(WrappedImmutableItemStack item, DecodeContext<?> context) throws DecoderException {
-        if (item.getType() == Material.WRITTEN_BOOK || item.getType() == MaterialMappings.getTypeOnly("writable-book")) {
-            CompoundTag nbt = item.getNBT();
-            if (nbt != null) {
-                if (nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
-                    ArrayTag<String> pages = item.getNBT().getArrayOf("pages", TagType.STRING);
-                    if (context.protocol().isNewerThanOrEqual(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES
-                            || context.protocol().isOlderThan(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES_1_13_2) {
-                        throw new IllegalStateException("Too many pages: " + pages.size() + ", limit: "
-                                + (context.protocol().isNewerThanOrEqual(NetProtocol.v1_14) ? WrappedPlayInBookEdit.MAX_PAGES : WrappedPlayInBookEdit.MAX_PAGES_1_13_2));
-                    }
-                }
+    public static void validate(WrappedImmutableItemStack item, DecodeContext<?> context) {
+        if (item.getType() == ItemTypes.WRITABLE_BOOK || item.getType() == ItemTypes.WRITTEN_BOOK) {
+            validateBook(item, context);
+        }
+    }
 
-                if (nbt.hasKeyOfType("title", TagType.STRING)
-                        && (nbt.getString("title").isEmpty() || nbt.getString("title").length() > WrappedPlayInBookEdit.TITLE_CHAR_LIMIT)) {
-                    throw new DecoderException("Invalid book data! Too long title: " + nbt.getString("title").length() + ", limit: " + WrappedPlayInBookEdit.TITLE_CHAR_LIMIT);
+    public static void validateBook(WrappedImmutableItemStack item, DecodeContext<?> context) {
+        ItemTag tag = item.getTag();
+        if (tag.asNBT().isPresent()) {
+            CompoundTag nbt = tag.asNBT().get();
+            if (nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+                ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
+                if (context.protocol().isNewerThanOrEqual(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES
+                        || context.protocol().isOlderThan(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES_1_13_2) {
+                    throw new IllegalStateException("Too many pages: " + pages.size() + ", limit: "
+                            + (context.protocol().isNewerThanOrEqual(NetProtocol.v1_14) ? WrappedPlayInBookEdit.MAX_PAGES : WrappedPlayInBookEdit.MAX_PAGES_1_13_2));
                 }
+            }
 
-                if (nbt.hasKeyOfType("author", TagType.STRING)
-                        && (nbt.getString("author").isEmpty() || nbt.getString("author").length() > WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT)) {
-                    throw new DecoderException("Invalid book data! Too long author: " + nbt.getString("author").length() + ", limit: " + WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT);
-                }
+            if (nbt.hasKeyOfType("title", TagType.STRING)
+                    && (nbt.getString("title").isEmpty() || nbt.getString("title").length() > WrappedPlayInBookEdit.TITLE_CHAR_LIMIT)) {
+                throw new DecoderException("Invalid book data! Too long title: " + nbt.getString("title").length() + ", limit: " + WrappedPlayInBookEdit.TITLE_CHAR_LIMIT);
+            }
+
+            if (nbt.hasKeyOfType("author", TagType.STRING)
+                    && (nbt.getString("author").isEmpty() || nbt.getString("author").length() > WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT)) {
+                throw new DecoderException("Invalid book data! Too long author: " + nbt.getString("author").length() + ", limit: " + WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT);
             }
         }
     }
 
-    public static void validateBookEdit(WrappedImmutableItemStack item, DecodeContext.BookEditContext<?> context) throws DecoderException {
-        if (item.getType() != Material.WRITTEN_BOOK && item.getType() != MaterialMappings.getTypeOnly("writable-book")) {
+    public static void validateBookEdit(WrappedImmutableItemStack item, DecodeContext.BookEditContext<?> context) {
+        if (item.getType() != ItemTypes.WRITTEN_BOOK && item.getType() != ItemTypes.WRITABLE_BOOK) {
             throw new DecoderException("Invalid book edit item-stack! Item-stack type: " + item.getType());
         }
 
-        CompoundTag tag = item.getNBT();
-        if (tag == null) {
+        ItemTag tag = item.getTag();
+        if (tag.isEmpty()) {
             throw new DecoderException("Invalid book data: no tag");
         }
 
-        if (!tag.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
-            throw new DecoderException("Invalid book data: no pages tag");
-        }
-
-        if (context.isSigning()) {
-            if (!tag.hasKeyOfType("title", TagType.STRING)) {
-                throw new DecoderException("Invalid book data: no title tag in sign context");
+        if (tag.asNBT().isPresent()) {
+            CompoundTag nbt = tag.asNBT().get();
+            if (!nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+                throw new DecoderException("Invalid book data: no pages tag");
             }
 
-            if (!tag.hasKeyOfType("author", TagType.STRING) || !tag.getString("author").equals(context.packet().getContainer().getPlayerName())) {
-                throw new DecoderException("Invalid book data: no author tag in sign context");
-            }
+            if (context.isSigning()) {
+                if (!nbt.hasKeyOfType("title", TagType.STRING)) {
+                    throw new DecoderException("Invalid book data: no title tag in sign context");
+                }
 
-            if (tag.size() > 3) {
+                if (!nbt.hasKeyOfType("author", TagType.STRING) || !nbt.getString("author").equals(context.packet().getContainer().getPlayerName())) {
+                    throw new DecoderException("Invalid book data: no author tag in sign context");
+                }
+
+                if (nbt.size() > 3) {
+                    throw new DecoderException("Invalid book data: extra tags");
+                }
+            } else if (nbt.size() > 1) {
                 throw new DecoderException("Invalid book data: extra tags");
             }
-        } else if (tag.size() > 1) {
-            throw new DecoderException("Invalid book data: extra tags");
         }
     }
 
     public static WrappedImmutableItemStack read(NetProtocol protocol, PacketDataSerializer serializer, int itemId, int amount, short durability) throws IOException {
-        Material type = ItemReflection.getMaterialFromId(itemId);
+        ItemType type = ItemTypes.getById(protocol.toPECVersion(), itemId);
         if (type == null) {
             return null; // no type found
         }
 
-        // wrap nbt
-        CompoundTag nbt = Optional.ofNullable(
-                Types.NBT.forProtocol(protocol).read(serializer))
-                .map(AbstractTag::asCompound)
-                .orElse(null);
+        ItemTag tag;
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            // wrap component map
+            tag = Types.COMPONENT_MAP.forProtocol(protocol)
+                    .read(serializer, Type.TypeContext.OneArg.of(type));
+        } else {
+            // wrap nbt
+            tag = Optional.ofNullable(
+                            Types.NBT.forProtocol(protocol).read(serializer, null))
+                    .map(AbstractTag::asCompound)
+                    .orElse(null);
+        }
 
-        if (type == Material.AIR) {
+        if (type == ItemTypes.AIR) {
             // done reading this item stack, but just ignore all other components if the type is air
             return AIR.clone();
         }
@@ -176,182 +187,81 @@ public class WrappedImmutableItemStack implements Cloneable {
         // create stack
         if (durability != -1) {
             // before item update
-            return new WrappedImmutableItemStack(type, amount, durability, nbt);
+            return new WrappedImmutableItemStack(protocol, type, amount, durability, tag);
         } else {
-            return new WrappedImmutableItemStack(type, amount, nbt);
+            return new WrappedImmutableItemStack(protocol, type, amount, tag);
         }
     }
 
-    private static CompoundTag getNBTFromNMS(Object nmsStack) {
-        Object nbt = ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
-                .withType(NMS.getNBTTagCompoundClass()).withTarget(nmsStack).readField(0);
-
-        if (nbt != null) {
-            return NBTFactory.fromDelegate(nbt, true).asCompound();
-        } else {
-            return null;
-        }
-    }
-
-    public static WrappedImmutableItemStack fromBukkit(ItemStack bukkitStack) {
-        if (bukkitStack == null || bukkitStack.getType() == Material.AIR) {
-            return AIR.clone();
-        }
-
-        Object nmsItem = null;
-        if (ItemReflection.isCraftItem(bukkitStack)) {
-            nmsItem = ItemReflection.getHandleItem(bukkitStack);
-        }
-        if (nmsItem == null) {
-            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
-                return new WrappedImmutableItemStack(bukkitStack.getType(), bukkitStack.getAmount(), null);
-            } else {
-                return new WrappedImmutableItemStack(bukkitStack.getType(), bukkitStack.getAmount(), bukkitStack.getDurability(), null);
-            }
-        }
-
-        return fromNMS(nmsItem);
-    }
-
-    public static WrappedImmutableItemStack fromNMS(Object stack) {
-        if (stack == null) {
-            return AIR.clone();
-        }
-
-        ItemStack bukkitStack = ItemReflection.asCraftMirror(stack);
-        CompoundTag wrappedNbt = getNBTFromNMS(stack);
-
-        // create stack
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
-            return new WrappedImmutableItemStack(bukkitStack.getType(), bukkitStack.getAmount(), wrappedNbt);
-        } else {
-            return new WrappedImmutableItemStack(bukkitStack.getType(), bukkitStack.getAmount(), bukkitStack.getDurability(), wrappedNbt);
-        }
-    }
-
-    public Object toNMS() {
+    public Object toNMSSameVersion() {
+        Material type = ItemFactory.getMaterialFromId(this.type.getId(this.protocol.toPECVersion()));
         ItemStack bukkitStack;
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
-            bukkitStack = new ItemStack(this.type, this.amount);
+        if (this.protocol.isNewerThanOrEqual(NetProtocol.v1_13)) {
+            bukkitStack = new ItemStack(type, this.amount);
         } else {
-            bukkitStack = new ItemStack(this.type, this.amount, this.durability);
+            bukkitStack = new ItemStack(type, this.amount, this.durability);
         }
 
-        Object nmsStack = ItemReflection.asNMSCopy(bukkitStack);
-        if (this.nbt != null) {
-            ItemReflection.setItemTag(nmsStack, this.nbt.getHandle());
+        Object nmsStack = ItemFactory.asNMSCopy(bukkitStack);
+        if (hasTag()) {
+            ItemFactory.setItemTag(nmsStack, this.tag);
         }
 
         return nmsStack;
     }
 
-    public ItemStack toCraftBukkit() {
-        return ItemReflection.asCraftMirror(toNMS());
-    }
-
-    private CompoundTag nbt;
+    private final NetProtocol protocol;
+    private ItemTag tag = ItemTag.EMPTY;
     private int amount;
     private short durability = -1; // until 1.13
-    private Material type = Material.AIR;
+    private ItemType type = ItemTypes.AIR;
 
-    private ItemMeta cachedDefaultMeta;
-    private ItemMeta cachedSpecificMeta;
-
-    public WrappedImmutableItemStack(Material type, int amount, CompoundTag nbt) {
-        this();
+    public WrappedImmutableItemStack(NetProtocol protocol, ItemType type, int amount, ItemTag tag) {
+        this.protocol = protocol;
         this.type = type;
         this.amount = amount;
-        this.nbt = nbt;
-    }
-
-    public WrappedImmutableItemStack(Material type, int amount, short durability, CompoundTag nbt) {
-        this(type, amount, nbt);
-
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
-            throw new IllegalStateException();
+        if (tag != null) {
+            this.tag = tag;
         }
-        this.durability = durability;
-    }
 
-    public WrappedImmutableItemStack() {
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13)) {
+        if (protocol.isOlderThan(NetProtocol.v1_13_2)) {
             this.durability = 0;
         }
     }
 
-    public boolean hasNBT() {
-        return this.nbt != null && !this.nbt.isEmpty();
-    }
+    public WrappedImmutableItemStack(NetProtocol protocol, ItemType type, int amount, short durability, ItemTag tag) {
+        this(protocol, type, amount, tag);
+        this.durability = durability;
 
-    public boolean hasDefaultItemMeta() {
-        if (this.cachedDefaultMeta != null || this.cachedSpecificMeta != null) {
-            return true;
-        }
-        return hasNBT() && Bukkit.getItemFactory().getItemMeta(this.type) != null;
-    }
-
-    public boolean hasSpecificItemMeta() {
-        if (this.cachedSpecificMeta != null) {
-            return true;
-        }
-        ItemMeta meta = Bukkit.getItemFactory().getItemMeta(this.type);
-        return hasNBT() && meta != null && !NMS.getCraftMetaItemClass().equals(meta.getClass());
-    }
-
-    public ItemMeta getDefaultMeta() {
-        if (this.cachedDefaultMeta != null) {
-            return this.cachedDefaultMeta;
-        } else if (this.cachedSpecificMeta != null) {
-            return this.cachedSpecificMeta;
-        }
-
-        // TODO
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_5)) {
-            return (this.cachedDefaultMeta = orNewMeta(defaultMetaConstructor.invoke(this.nbt.getHandle())));
-        } else {
-            return (this.cachedDefaultMeta = getSpecificMeta());
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
+            throw new UnsupportedOperationException();
         }
     }
 
-    public ItemMeta getSpecificMeta() {
-        if (this.cachedSpecificMeta != null) {
-            return this.cachedSpecificMeta;
+    private WrappedImmutableItemStack() {
+        this.protocol = NetProtocol.UNKNOWN;
+    }
+
+    public boolean hasTag() {
+        return !this.tag.isEmpty();
+    }
+
+    public ItemTag getTag() {
+        return this.tag;
+    }
+
+    public void setTag(ItemTag tag) {
+        this.tag = tag;
+        if (this.tag == null) {
+            this.tag = ItemTag.EMPTY;
         }
-
-        return (cachedSpecificMeta = toCraftBukkit().getItemMeta());
-    }
-
-    private ItemMeta orNewMeta(ItemMeta got) {
-        return got != null ? got : Bukkit.getItemFactory().getItemMeta(this.type);
-    }
-
-    public void clearDefaultMetaCache() {
-        this.cachedDefaultMeta = null;
-    }
-
-    public void clearSpecificMetaCache() {
-        this.cachedSpecificMeta = null;
-    }
-
-    public void clearMetaCache() {
-        clearDefaultMetaCache();
-        clearSpecificMetaCache();
-    }
-
-    public CompoundTag getNBT() {
-        return this.nbt;
-    }
-
-    public void setNBT(CompoundTag nbt) {
-        this.nbt = nbt;
-        clearMetaCache();
     }
 
     public int getAmount() {
         return this.amount;
     }
 
-    public Material getType() {
+    public ItemType getType() {
         return this.type;
     }
 
@@ -362,9 +272,19 @@ public class WrappedImmutableItemStack implements Cloneable {
         return durability;
     }
 
+    public boolean isSimilar(ItemStack stack) {
+        // TODO: fix
+        return false;
+    }
+
+    public boolean isSimilar(WrappedImmutableItemStack stack) {
+        return this.type.equals(stack.getType()) && (!hasTag() && !stack.hasTag() || this.tag.isSimilar(stack.getTag()));
+    }
+
     @Override
     public String toString() {
-        return toCraftBukkit().toString();
+        // TODO: format
+        return super.toString();
     }
 
     @Override

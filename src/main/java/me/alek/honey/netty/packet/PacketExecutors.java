@@ -1,12 +1,13 @@
 package me.alek.honey.netty.packet;
 
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.nbt.CompoundTag;
-import me.alek.honey.netty.nbt.PrimitiveTag;
-import me.alek.honey.netty.nbt.TagType;
-import me.alek.honey.netty.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.PrimitiveTag;
+import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.MaterialMappings;
@@ -54,8 +55,7 @@ public class PacketExecutors {
         @Override
         public Runnable getTask(PacketContainer<CP> packet) {
             WrappedImmutableItemStack item = packet.getAnyWrapped().getPayloadData().getBookChannelItemStack();
-            if (item == null || item.getNBT() == null) {
-                // can't edit or sign book, if item or nbt is invalid
+            if (item == null) {
                 packet.getAnyWrapped().release();
                 return null;
             }
@@ -70,7 +70,7 @@ public class PacketExecutors {
         }
 
         private Runnable handleBookEdit(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
-            if (item.getType() != MaterialMappings.getTypeOnly("writable-book")) {
+            if (item.getType() != ItemTypes.WRITABLE_BOOK) {
                 return null;
             }
 
@@ -84,12 +84,12 @@ public class PacketExecutors {
         }
 
         private Runnable handleBookSign(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
-            if (!isValidAuthor(player, item.getNBT())) {
+            // TODO: fix for component
+            if (!isValidAuthor(player, item.getTag().asNBT().get())) {
                 return null;
             }
 
-            if (item.getType() != Material.WRITTEN_BOOK
-                    && item.getType() != MaterialMappings.getTypeOnly("writable-book")) {
+            if (item.getType() != ItemTypes.WRITTEN_BOOK && item.getType() != ItemTypes.WRITABLE_BOOK) {
                 return null;
             }
 
@@ -150,7 +150,7 @@ public class PacketExecutors {
                 return;
             }
 
-            BookMeta newItemMeta = (BookMeta) item.getSpecificMeta();
+            BookMeta newItemMeta = (BookMeta) heldItem.getItemMeta(); // TODO: FIX item.getSpecificMeta();
             BookMeta heldItemMeta = (BookMeta) heldItem.getItemMeta();
             stripComponentEvents(newItemMeta);
 
@@ -169,26 +169,26 @@ public class PacketExecutors {
         }
 
         private void stripComponentEvents(BookMeta meta) {
-            List<Object> pages = ItemReflection.getPages(meta);
+            List<Object> pages = ItemFactory.getPages(meta);
             if (pages != null) {
                 List<Object> newPages = new ArrayList<>();
                 for (Object page : pages) {
                     newPages.add(stripEventsInvoker.invoke(null, page));
                 }
 
-                ItemReflection.setPages(meta, newPages);
+                ItemFactory.setPages(meta, newPages);
             }
         }
 
         private boolean serializeTextComponents(ArrayTag<String> pages) {
             for (int i = 0; i < pages.size(); i++) {
-                PrimitiveTag<String> page = pages.get(i);
+                String page = pages.get(i);
 
                 try {
-                    Object chatComponent = chatComponentTextConstructor.invoke(page.getValue());
+                    Object chatComponent = chatComponentTextConstructor.invoke(page);
                     String serialized = (String) chatComponentSerializerInvoker.invoke(null, chatComponent);
 
-                    pages.set(i, new PrimitiveTag<>(TagType.STRING, serialized));
+                    pages.set(i, serialized);
                 } catch (Exception ex) {
                     return false;
                 }

@@ -1,16 +1,18 @@
 package me.alek.honey.validation.item;
 
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.util.Callback;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.ViolationKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -20,7 +22,7 @@ public class ItemAnalysis {
     private static final Map<Class<? extends ItemValidation>, ItemValidationRegistry> validationRegistryLookup = new HashMap<>();
     private static final List<String> ignoredPlayers = new ArrayList<>();
 
-    private static final Map<Material, Set<ItemValidation>> validationsForMaterial = new EnumMap<>(Material.class);
+    private static final Map<ItemType, Set<ItemValidation>> validationsForType = new HashMap<>();
     private static final Map<String, Set<ItemValidation>> validationsForCompoundKey = new HashMap<>();
     private static final List<ItemValidation> validationsForAll = new ArrayList<>();
 
@@ -34,7 +36,7 @@ public class ItemAnalysis {
     }
 
     public static void reload() {
-        validationsForMaterial.clear();
+        validationsForType.clear();
         validationsForAll.clear();
 
         ignoredPlayers.clear();
@@ -46,11 +48,11 @@ public class ItemAnalysis {
                 continue;
             }
 
-            Material[] materials = registry.getMaterials();
+            ItemType[] types = registry.getTypes();
             String tag = registry.getTag();
-            if (materials.length > 0) {
-                for (Material material : materials) {
-                    validationsForMaterial.computeIfAbsent(material, __ -> new HashSet<>())
+            if (types.length > 0) {
+                for (ItemType type : types) {
+                    validationsForType.computeIfAbsent(type, __ -> new HashSet<>())
                             .add(registry.getValidation());
                 }
             } else if (!tag.isEmpty()) {
@@ -58,10 +60,6 @@ public class ItemAnalysis {
                         .add(registry.getValidation());
             }
         }
-    }
-
-    public static ValidationViolationContext flagIf(HoneyPlayer player, ItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
-        return flagIf(player, WrappedImmutableItemStack.fromBukkit(item), keyOuter, context);
     }
 
     public static ValidationViolationContext flagIf(HoneyPlayer player, WrappedImmutableItemStack item, ViolationKey keyOuter, ValidationPipelineContext context) {
@@ -83,14 +81,10 @@ public class ItemAnalysis {
         return ValidationViolationContext.PASS;
     }
 
-    public static boolean checkItem(HoneyPlayer player, ItemStack item, Callback context) {
-        return checkItem(player, WrappedImmutableItemStack.fromBukkit(item), context);
-    }
-
     public static boolean checkItem(HoneyPlayer player, WrappedImmutableItemStack item, Callback callback) {
         if (!ConfigurationOptions.ItemAnalysis.General.ENABLED
                 || item == null
-                || item.getType() == Material.AIR) {
+                || item.getType() == ItemTypes.AIR) {
             return false;
         }
 
@@ -118,9 +112,9 @@ public class ItemAnalysis {
     }
 
     private static ItemValidationRegistry checkItem(HoneyPlayer player, WrappedImmutableItemStack item) {
-        Material material = item.getType();
-        if (validationsForMaterial.containsKey(material)) {
-            for (ItemValidation validation : validationsForMaterial.get(material)) {
+        ItemType type = item.getType();
+        if (validationsForType.containsKey(type)) {
+            for (ItemValidation validation : validationsForType.get(type)) {
                 ItemValidationRegistry registry = checkValidation(player, validation, item);
                 if (registry != null) {
                     return registry;
@@ -128,8 +122,9 @@ public class ItemAnalysis {
             }
         }
 
-        if (item.getNBT() != null) {
-            for (String key : item.getNBT().getKeys()) {
+        // TODO: fix for component
+        if (item.getTag().asNBT().isPresent()) {
+            for (String key : item.getTag().asNBT().get().getKeys()) {
                 if (validationsForCompoundKey.containsKey(key)) {
                     for (ItemValidation validation : validationsForCompoundKey.get(key)) {
                         ItemValidationRegistry registry = checkValidation(player, validation, item);
@@ -153,29 +148,18 @@ public class ItemAnalysis {
 
     private static ItemValidationRegistry checkValidation(HoneyPlayer player, ItemValidation validation, WrappedImmutableItemStack item) {
         try {
-            if (checkFilter(validation, item) && validation.validate(player, item, item.getNBT())) {
+            // TODO: fix for component
+            if (!item.getTag().isEmpty()
+                    && item.getTag().asNBT().isPresent()
+                    && validation.validate(player, item, item.getTag().asNBT().get())) {
                 return getRegistryFrom(validation);
             }
         } catch (Exception ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Error occurred at item validation", ex);
+            throw new DecoderException(ex);
         }
 
         return null;
-    }
-
-    private static boolean checkFilter(ItemValidation validation, WrappedImmutableItemStack item) {
-        switch (validation.getFilter()) {
-            case ALL:
-                return true;
-            case WITH_NBT:
-                return item.hasNBT();
-            case WITH_META:
-                return item.hasDefaultItemMeta();
-            case WITH_SPECIFIC_META:
-                return item.hasSpecificItemMeta();
-            default:
-                throw new IllegalArgumentException();
-        }
     }
 
     private static ItemValidationRegistry getRegistryFrom(ItemValidation checker) {
@@ -187,9 +171,5 @@ public class ItemAnalysis {
     public interface ItemValidation {
 
         boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt);
-
-        default ItemValidationFilterStrategy getFilter() {
-            return ItemValidationFilterStrategy.ALL;
-        }
     }
 }

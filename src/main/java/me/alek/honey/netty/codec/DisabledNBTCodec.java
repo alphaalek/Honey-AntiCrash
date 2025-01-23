@@ -12,7 +12,7 @@ public class DisabledNBTCodec {
         public void apply(Object raw, IStructureModifier<Object> structure, PacketDataSerializer serializer) {
             structure.writeField(0, serializer.readBlockPosition().getHandle());
             structure.writeField(1, serializer.readUnsignedByte());
-            structure.writeField(2, serializer.readItemStack().toNMS());
+            structure.writeField(2, serializer.readItemStack().toNMSSameVersion());
             structure.writeField(3, serializer.readUnsignedByte() / 16.0F);
             structure.writeField(4, serializer.readUnsignedByte() / 16.0F);
             structure.writeField(5, serializer.readUnsignedByte() / 16.0F);
@@ -33,7 +33,7 @@ public class DisabledNBTCodec {
             } else {
                 structure.writeField(5, NMS.getInventoryClickTypeClass().getEnumConstants()[serializer.readVarInt()]);
             }
-            structure.writeField(4, serializer.readItemStack().toNMS());
+            structure.writeField(4, serializer.readItemStack().toNMSSameVersion());
         }
     };
 }

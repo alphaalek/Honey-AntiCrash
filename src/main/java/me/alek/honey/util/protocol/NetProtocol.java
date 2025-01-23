@@ -1,5 +1,7 @@
 package me.alek.honey.util.protocol;
 
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Bukkit;
 
 import java.lang.annotation.ElementType;
@@ -26,6 +28,7 @@ public enum NetProtocol {
     v1_18(757), v1_18_1(757), v1_18_2(758),
     v1_19(759), v1_19_1(760), v1_19_2(760), v1_19_3(761), v1_19_4(762),
     v1_20(763), v1_20_1(763), v1_20_2(764), v1_20_3(765), v1_20_4(765), v1_20_5(766), v1_20_6(766),
+    v1_21(767), v1_21_1(767), v1_21_2(768), v1_21_3(768), v1_21_4(769),
 
     LATEST(-1), OLDEST(-1), UNKNOWN(-1);
 
@@ -173,6 +176,10 @@ public enum NetProtocol {
 
     public static NetProtocol getOldest() {
         return getProtocols().get(0);
+    }
+
+    public ClientVersion toPECVersion() {
+        return ClientVersion.getById(this.protocolVersion);
     }
 
     @Retention(RetentionPolicy.RUNTIME)

@@ -30,9 +30,5 @@ public interface ViolationValidation<T> extends HoneyValidation<T> {
 
             return ValidationViolationContext.PASS;
         }
-
-        default boolean isDefaultPipeline() {
-            return false;
-        }
     }
 }

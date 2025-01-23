@@ -34,7 +34,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
     }
 
     @Override
-    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
+    public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context) {
         Location location = packet.getAnyWrapped().getLocation();
         if (location.getPitch() == 0 && location.getYaw() == 0) {
             return false;
@@ -59,7 +59,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
         context.put(ValidationViolationContext.Builder.class,
                 ValidationViolationContext.Builder.validate().flag(deltaPitch));
 
-        callback.addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, responseCallback) -> {
+        context.getCallback().addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, responseCallback) -> {
             responseCallback.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 if (onViolation != null) onViolation.run();
 

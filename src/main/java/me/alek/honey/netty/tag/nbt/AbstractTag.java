@@ -1,8 +1,8 @@
-package me.alek.honey.netty.nbt;
+package me.alek.honey.netty.tag.nbt;
 
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
-import me.alek.honey.netty.nbt.array.AbstractArrayTag;
+import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 
@@ -81,11 +81,11 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
                 || this.handle == null;
     }
 
-    public AbstractArrayTag<?, ?> asArray() {
+    public AbstractArrayTag<?, ?, ?> asArray() {
         if (getType().getDataTypeClass() != List.class) {
             return null;
         }
-        return (AbstractArrayTag<?, ?>) this;
+        return (AbstractArrayTag<?, ?, ?>) this;
     }
 
     public CompoundTag asCompound() {

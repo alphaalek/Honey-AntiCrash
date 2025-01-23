@@ -7,8 +7,8 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.nbt.CompoundTag;
-import me.alek.honey.netty.nbt.NBTFactory;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -51,8 +51,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context, Callback callback) {
-
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context) {
         // ignore set creative slot packets when players in creative mode clear their inventory
         if (packet.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION
                 && player.bukkit.getGameMode() == GameMode.CREATIVE) {

@@ -3,7 +3,7 @@ package me.alek.honey.netty.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
-import io.netty.handler.codec.DecoderException;
+import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecType;
 import me.alek.honey.netty.codec.validation.DecodeContext;
@@ -75,7 +75,7 @@ public class PacketDataSerializer extends ByteBuf {
                 .orElse(WrappedImmutableItemStack.AIR);
     }
 
-    public <WP extends WrappedPacket<WP>> WrappedImmutableItemStack readItemStack(NetProtocol protocol, WP packet) {
+    public <WP extends WrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) {
         WrappedImmutableItemStack stack = readItemStack(protocol);
         if (stack != WrappedImmutableItemStack.AIR) {
             CodecType.ITEM_STACK.validate(stack, DecodeContext.from(packet));
@@ -100,11 +100,11 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public String readString(int i) {
-        return Types.UTF8.read(this, i);
+        return Types.UTF8.read(this, Type.TypeContext.OneArg.of(i));
     }
 
     public ByteBuf writeString(String val) {
-        return Types.UTF8.write(this, val, Short.MAX_VALUE);
+        return Types.UTF8.write(this, val, Type.TypeContext.OneArg.of((int) Short.MAX_VALUE));
     }
 
     public int capacity() {

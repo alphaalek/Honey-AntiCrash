@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -12,10 +13,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class ItemReflection {
-
+public class ItemFactory {
 
     private static final ConstructorInvoker<?> itemStackConstructor;
 
@@ -126,7 +125,7 @@ public class ItemReflection {
             }
         }
 
-        return ItemReflection.asNMSCopy(item);
+        return ItemFactory.asNMSCopy(item);
     }
 
     public static Material getMaterialFromId(int id) {
@@ -165,16 +164,16 @@ public class ItemReflection {
         return NMS.getCraftItemStackClass().isInstance(item);
     }
 
-    public static void setItemTag(Object item, Object tag) {
-        ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
-                .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
-                .writeField(0, tag);
-    }
-
-    public static Object getItemTag(Object item) {
-        return ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
-                .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
-                .readField(0);
+    public static void setItemTag(Object item, ItemTag tag) {
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
+                    .withType(NMS.getPatchedDataComponentMapClass()).withTarget(item)
+                    .writeField(0, tag.asComponentMap().get());
+        } else {
+            ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
+                    .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
+                    .writeField(0, tag.asNBT().get());
+        }
     }
 
     public static void setItemMeta(Object item) {

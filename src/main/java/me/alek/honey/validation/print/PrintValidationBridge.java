@@ -52,7 +52,7 @@ public class PrintValidationBridge {
         Cancellable.Trigger cancellable = new Cancellable.Trigger();
         HoneyPlayer player = packet.getPlayer();
         int calculated = length.get();
-        NettyValidations.PRINT_FILTER_PIPELINE.doStream(
+        NettyValidations.PRINT_FILTER_PIPELINE.doStreamOtherPipeline(
                 player,
                 (validation, context) -> validation.validate(player, calculated, context),
                 cancellable);

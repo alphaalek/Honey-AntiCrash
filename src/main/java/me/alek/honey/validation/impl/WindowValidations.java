@@ -113,7 +113,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
                             }
                             try {
                                 ItemStack item = player.bukkit.getInventory().getItem(packet.getSlot());
-                                if (item != null && item.equals(packet.getCarriedItemStack().toCraftBukkit())) {
+                                if (item != null && packet.getCarriedItemStack().isSimilar(item)) {
                                     item.setType(Material.AIR);
                                 }
                             } catch (Exception ignored) {

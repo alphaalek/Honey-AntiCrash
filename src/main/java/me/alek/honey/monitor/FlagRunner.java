@@ -7,6 +7,7 @@ import me.alek.honey.util.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FlagRunner {
@@ -30,7 +31,11 @@ public class FlagRunner {
                     }
                 }
             }
-            return flags;
+            return flags.stream().distinct().collect(Collectors.toList());
+        }
+
+        public void append(PacketContainer<WP> input, List<String> data) {
+            getAllFlags().forEach(f -> f.append(input, data));
         }
 
         @Override
@@ -39,49 +44,49 @@ public class FlagRunner {
         }
 
         @Override
-        public void append(PacketContainer<WP> input, List<String> data) {
-            this.conditions.forEach(c -> c.append(input, data));
-        }
-
-        @Override
         public String toString() {
-            return this.conditions.toString();
+            return "Env{" + this.conditions.toString()
+                    .replaceAll("\\[", "")
+                    .replaceAll("]", "") + "}";
         }
     }
 
     public static class Condition<WP extends WrappedPacket<WP>> implements Chipstate<PacketContainer<WP>> {
 
-        public static final Predicate<Stream<Boolean>> NOT = o -> o.anyMatch(b -> !b);
-        public static final Predicate<Stream<Boolean>> AND = o -> o.allMatch(b -> b);
-        public static final Predicate<Stream<Boolean>> OR = o -> o.anyMatch(b -> b);
+        public enum Match {
+            NOT(o -> o.noneMatch(b -> b)),
+            AND(o -> o.allMatch(b -> b)),
+            OR(o -> o.anyMatch(b -> b)),
+            ;
+            private final Predicate<Stream<Boolean>> matcher;
+
+            Match(Predicate<Stream<Boolean>> matcher) {
+                this.matcher = matcher;
+            }
+        }
 
         private final Array<Chipstate<PacketContainer<WP>>> flags;
-        private final Predicate<Stream<Boolean>> tester;
+        private final Match match;
 
-        public Condition(Array<Chipstate<PacketContainer<WP>>> flags, Predicate<Stream<Boolean>> tester) {
+        public Condition(Array<Chipstate<PacketContainer<WP>>> flags, Match match) {
             this.flags = flags;
-            this.tester = tester;
+            this.match = match;
         }
 
         @Override
         public boolean test(PacketContainer<WP> input) {
-            return this.tester.test(this.flags.stream().map(c -> c.test(input)));
-        }
-
-        @Override
-        public void append(PacketContainer<WP> input, List<String> data) {
-            this.flags.forEach(f -> f.append(input, data));
+            return this.match.matcher.test(this.flags.stream().map(c -> c.test(input)));
         }
 
         @Override
         public String toString() {
-            return this.flags.toString();
+            return "Condition{" + this.match + ", " + this.flags.toString()
+                    .replaceAll("\\[", "")
+                    .replaceAll("]", "") + "}";
         }
     }
 
     public interface Chipstate<T> extends Predicate<T> {
-
-        void append(T input, List<String> data);
 
         interface Flag<T> extends Chipstate<T> {
 

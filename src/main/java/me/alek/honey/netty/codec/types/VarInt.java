@@ -2,14 +2,14 @@ package me.alek.honey.netty.codec.types;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
 
-public class VarInt implements Type<Integer> {
+public class VarInt implements Type.NoContext<Integer> {
 
     private static final int SEGMENT_BITS = 0x7F;
     private static final int CONTINUE_BIT = 0x80;
     private static final int SHIFT = 7;
 
     @Override
-    public Integer read(PacketDataSerializer buf, Object... params) {
+    public Integer read(PacketDataSerializer buf) {
         byte current;
         int value = 0, pos = 0;
         do {
@@ -24,7 +24,7 @@ public class VarInt implements Type<Integer> {
     }
 
     @Override
-    public PacketDataSerializer write(PacketDataSerializer buf, Integer val, Object... params) {
+    public PacketDataSerializer write(PacketDataSerializer buf, Integer val) {
         while ((val & -CONTINUE_BIT) != 0) {
             buf.writeByte((val & SEGMENT_BITS) | CONTINUE_BIT);
             val >>>= SHIFT;

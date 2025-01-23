@@ -31,7 +31,7 @@ public class HeldItemValidations extends AbstractValidationPacketListener<Wrappe
 
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInHeldItemSlot>> createValidationPipeline() {
-        return ValidationPipeline.from(new HeldItemA(), new HeldItemB());
+        return ValidationPipeline.from(new HeldItemA());
     }
 
     public static class HeldItemA implements PacketValidation<WrappedPlayInHeldItemSlot>, ViolationValidation<WrappedPlayInHeldItemSlot> {
@@ -74,40 +74,6 @@ public class HeldItemValidations extends AbstractValidationPacketListener<Wrappe
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.HeldItem.HeldItemA.class);
-        }
-    }
-
-    public static class HeldItemB implements PacketValidation<WrappedPlayInHeldItemSlot>, ViolationValidation<WrappedPlayInHeldItemSlot> {
-
-        private static final int id = IDRegistry.CHECKS.acquire();
-
-        @Override
-        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled()) {
-                return ItemAnalysis.flagIf(player, player.bukkit.getInventory().getItem(packet.getSlot()), ViolationKey.of(this), context);
-            }
-
-            return ValidationViolationContext.PASS;
-        }
-
-        @Override
-        public int getID() {
-            return id;
-        }
-
-        @Override
-        public String getName() {
-            return "HeldItem.B (IA)";
-        }
-
-        @Override
-        public String getDescription() {
-            return Lang.get("validation.held.item.b");
-        }
-
-        @Override
-        public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.HeldItem.HeldItemB.class);
         }
     }
 }

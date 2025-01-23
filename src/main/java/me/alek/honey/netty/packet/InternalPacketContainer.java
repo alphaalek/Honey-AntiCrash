@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packet;
 
 import io.netty.channel.Channel;
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.codec.PacketDataSerializer;
@@ -16,6 +17,9 @@ import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.validation.ValidationPipeline;
+import me.alek.honey.validation.ValidationPipelineContext;
+import me.alek.honey.validation.impl.NettyDecodeValidations;
 
 import java.util.Optional;
 
@@ -56,12 +60,34 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         this.pipelineState = createdState;
         if (serializer != null && createdState != PipelineState.OBJECT && !PacketTypes.isUnknown(type)) {
             ByteWrappedPacket<WP> byteWrappedPacket = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
+
+            boolean validate = this.initialByteWrapped == null && this.finalByteWrapped == null;
             if (createdState == PipelineState.INITIAL_BYTE) {
                 this.initialByteWrapped = byteWrappedPacket;
             } else if (createdState == PipelineState.FINAL_BYTE) {
                 this.finalByteWrapped = byteWrappedPacket;
             }
+            if (validate) {
+                validateBytePacket(byteWrappedPacket);
+            }
         }
+    }
+
+    private void validateBytePacket(ByteWrappedPacket<WP> packet) {
+        if (this.initialByteWrapped == null && this.finalByteWrapped == null) {
+            ValidationPipelineContext context = new ValidationPipelineContext(true);
+            ValidationPipeline.applyCallbackDevelopmentData(this, context);
+            NettyDecodeValidations.BYTE_FILTER_PIPELINE.doStream(
+                    this.player,
+                    context,
+                    (validation, __) -> validation.validate(this.player, packet, context),
+                    this
+            );
+            if (this.cancelled) {
+                throw new DecoderException("Failed byte filter validation");
+            }
+        }
+
     }
 
     @Override

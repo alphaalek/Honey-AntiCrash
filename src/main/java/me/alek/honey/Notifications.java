@@ -138,8 +138,7 @@ public class Notifications {
                         .build();
                 String message = getMessage(violationFormat, offer);
 
-                if (developmentData == null
-                        || developmentData.getDataSet().isEmpty()
+                if (developmentData == null || developmentData.getDataSet().isEmpty()
                         || !(observer instanceof Player)) {
                     observer.sendMessage(message);
                     return;
@@ -330,20 +329,20 @@ public class Notifications {
             return;
         }
 
-        ObjectWrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketTypes.Play.Server.PLAYER_CHAT, player);
-        PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
-
-        packetContainer.getStructure().getBytes().writeField(0, (byte) 2);
-
-        if (chatSerializer == null) {
-            chatSerializer = ReflectStructure.Provider.acquireStructure(NMS.getChatSerializerClass())
-                    .withType(NMS.getIChatBaseComponentClass())
-                    .withTarget(null);
-        }
-        Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
-        packetContainer.getStructure().getObjectsOf(NMS.getIChatBaseComponentClass()).writeField(0, chatComponent);
-
         try {
+            ObjectWrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketTypes.Play.Server.PLAYER_CHAT, player);
+            PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
+
+            packetContainer.getStructure().getBytes().writeField(0, (byte) 2);
+
+            if (chatSerializer == null) {
+                chatSerializer = ReflectStructure.Provider.acquireStructure(NMS.getChatSerializerClass())
+                        .withType(NMS.getIChatBaseComponentClass())
+                        .withTarget(null);
+            }
+            Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
+            packetContainer.getStructure().getObjectsOf(NMS.getIChatBaseComponentClass()).writeField(0, chatComponent);
+
             HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket);
         } catch (Exception ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to send action bar packet", ex);

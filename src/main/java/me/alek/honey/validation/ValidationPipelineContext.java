@@ -1,6 +1,7 @@
 package me.alek.honey.validation;
 
 import me.alek.honey.util.Array;
+import me.alek.honey.util.Callback;
 import me.alek.honey.util.statics.NumberUtils;
 import org.bukkit.Location;
 
@@ -10,11 +11,25 @@ import java.util.List;
 public class ValidationPipelineContext {
 
     private final Array<Array<DevelopmentData>> developmentDataMap = new Array<>();
+    private final Callback callback = new Callback();
+    private final boolean useDevelopmentData;
+
+    public ValidationPipelineContext(boolean useDevelopmentData) {
+        this.useDevelopmentData = useDevelopmentData;
+    }
 
     public DevelopmentData getDevelopmentData(ViolationKey key) {
         return developmentDataMap
                 .get(key.getRegistryId(), Array::new)
                 .get(key.getValidation().getID(), DevelopmentData::new);
+    }
+
+    public boolean usesDevelopmentData() {
+        return this.useDevelopmentData;
+    }
+
+    public Callback getCallback() {
+        return this.callback;
     }
 
     public static class DevelopmentData {

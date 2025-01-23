@@ -5,8 +5,11 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.Cancellable;
+import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
 import me.alek.honey.util.Callback;
 import me.alek.honey.validation.types.HoneyValidation;
+import org.bukkit.Bukkit;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -18,7 +21,28 @@ import java.util.function.Function;
 
 public class ValidationPipeline<C extends HoneyValidation<?>> {
 
-    private final List<C> validations = new LinkedList<>();
+    public static void applyCallbackDevelopmentData(PacketContainer<?> packet, ValidationPipelineContext context) {
+        context.getCallback().addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, contextInner) -> {
+            contextInner.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
+                ValidationPipelineContext.DevelopmentData data = context.getDevelopmentData(keyInner);
+
+                data.addEmpty();
+                data.addValue(" Packet", packet.getType() + " (id " + packet.getType().getMinecraftID().get() + ")");
+                data.addValue(" Buffer", Optional.ofNullable(packet.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes");
+                data.addValue(" Version", Bukkit.getServer().getVersion());
+                data.removeLastInternalData();
+                data.addEmpty();
+                data.addHeader("Description", null);
+
+                // temporary placeholders
+                data.addEmpty(); // description
+                data.addEmpty(); // STQ
+                data.addEmpty(); // NTQ
+
+                if (onViolation != null) onViolation.run();
+            });
+        }));
+    }
 
     public static <C extends HoneyValidation<?>> ValidationPipeline<C> from(C... validations) {
         ValidationPipeline<C> pipeline = new ValidationPipeline<>();
@@ -26,6 +50,8 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
 
         return pipeline;
     }
+
+    private final List<C> validations = new LinkedList<>();
 
     public void register(C validation) {
         validations.add(validation);
@@ -51,18 +77,21 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
         context.onPunish = null;
     }
 
-    public void doStream(HoneyPlayer player, BiFunction<C, ValidationPipelineContext, ValidationViolationContext> getResponse, Cancellable cancellable) {
-        ValidationPipelineContext container = new ValidationPipelineContext();
+    public void doStreamOtherPipeline(HoneyPlayer player, BiFunction<C, ValidationPipelineContext, ValidationViolationContext> getResponse, Cancellable cancellable) {
+        doStream(player, new ValidationPipelineContext(false), getResponse, cancellable);
+    }
+
+    public void doStream(HoneyPlayer player, ValidationPipelineContext context, BiFunction<C, ValidationPipelineContext, ValidationViolationContext> getResponse, Cancellable cancellable) {
         doStream(
                 player,
                 (validation, key) -> Settings.getSetting(validation),
-                (c) -> getResponse.apply(c, container), cancellable, container, new Callback());
+                (c) -> getResponse.apply(c, context), cancellable, context);
     }
 
     public void doStream(HoneyPlayer player,
                          BiFunction<C, HoneyKey, ConfigurationOptions.ViolationSetting> getSetting,
                          Function<C, ValidationViolationContext> getServiceContext,
-                         Cancellable cancellable, ValidationPipelineContext validationContext, Callback callback) {
+                         Cancellable cancellable, ValidationPipelineContext pipelineContext) {
         if (!player.isStreamActive()) {
             cancellable.cancel();
             return;
@@ -88,27 +117,27 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
 
             // handle all the responses
             boolean terminated = false;
-            for (ValidationViolationContext context : responsesList) {
-                if (context.skipIndices != 0) {
-                    skipping = context.skipIndices;
+            for (ValidationViolationContext vc : responsesList) {
+                if (vc.skipIndices != 0) {
+                    skipping = vc.skipIndices;
                 }
-                if (context.success) {
-                    if (context.terminate) {
+                if (vc.success) {
+                    if (vc.terminate) {
                         terminated = true;
                     }
-                    clearPosts(context);
+                    clearPosts(vc);
                     continue;
                 }
-                if (context.cancelled) {
+                if (vc.cancelled) {
                     cancellable.cancel();
                 }
-                if (context.flag != -1 && player.isBukkitReady()) {
-                    ViolationKey violationKey = new ViolationKey(validation, Optional.ofNullable(context.violationKey).orElse(fallbackKey));
-                    ValidationPipelineContext.DevelopmentData developmentData = validationContext.getDevelopmentData(violationKey);
+                if (vc.flag != -1 && player.isBukkitReady()) {
+                    ViolationKey violationKey = new ViolationKey(validation, Optional.ofNullable(vc.violationKey).orElse(fallbackKey));
+                    ValidationPipelineContext.DevelopmentData developmentData = pipelineContext.usesDevelopmentData() ? pipelineContext.getDevelopmentData(violationKey) : null;
 
-                    if (validation.isDefaultPipeline()) {
-                        callback.call(violationKey, context);
-                        context.builder().onViolation(violationKey, (key, onViolation) -> {
+                    if (developmentData != null) {
+                        pipelineContext.getCallback().call(violationKey, vc);
+                        vc.builder().onViolation(violationKey, (key, onViolation) -> {
                             if (onViolation != null) onViolation.run();
 
                             developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + validation.getName() + " §8*");
@@ -116,20 +145,20 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                         });
                     }
 
-                    Consumer<ViolationKey> onViolation = context.onViolation;
+                    Consumer<ViolationKey> onViolation = vc.onViolation;
                     HoneyPlugin.get().getViolationService().flag(
-                            player, cancellable, distributionKey, context.violationKey, context.flag, context.onPunish,
+                            player, cancellable, distributionKey, vc.violationKey, vc.flag, vc.onPunish,
                             Optional.ofNullable(onViolation).map(o -> (Runnable) () -> o.accept(violationKey)).orElse(null),
                             validation, setting, developmentData);
                 }
-                clearPosts(context);
+                clearPosts(vc);
 
                 if (!player.isStreamActive()) {
                     cancellable.cancel();
                     return;
                 }
 
-                if (context.terminate) {
+                if (vc.terminate) {
                     terminated = true;
                 }
             }
