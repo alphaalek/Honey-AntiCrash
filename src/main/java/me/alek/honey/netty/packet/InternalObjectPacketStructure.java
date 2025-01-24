@@ -2,7 +2,6 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.modelwrappers.objects.WrappedGameProfile;
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -31,12 +30,12 @@ public class InternalObjectPacketStructure implements ObjectPacketStructure {
         return getModifier(clazz, null);
     }
 
-    public <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter, Object... params) {
+    public <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter, Object... varargs) {
         if (this.structure == null) {
             return null;
         }
 
-        return this.structure.withType(clazz, converter).withTarget(this.raw, params);
+        return this.structure.withType(clazz, converter).withTarget(this.raw, varargs);
     }
 
     @Override
@@ -125,17 +124,12 @@ public class InternalObjectPacketStructure implements ObjectPacketStructure {
 
     @Override
     public IStructureModifier<ItemStack> getItems() {
-        return getModifier(NMS.getItemStackClass(), Converters.getMirrorItemStackConverter());
+        return getObjectsOf(ItemStack.class);
     }
 
     @Override
-    public IStructureModifier<WrappedGameProfile> getGameProfiles() {
-        return getModifier(NMS.getGameProfileClass(), Converters.getGameProfileConverter());
-    }
-
-    @Override
-    public IStructureModifier<PacketDataSerializer> getDataSerializers(boolean copy) {
-        return getModifier(NMS.getPacketDataSerializerClass(), Converters.getPacketDataSerializerConverter(), copy);
+    public IStructureModifier<PacketDataSerializer> getDataSerializers() {
+        return getModifier(NMS.getPacketDataSerializerClass(), Converters.getPacketDataSerializerConverter());
     }
 
     @Override

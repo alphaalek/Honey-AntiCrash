@@ -3,6 +3,7 @@ package me.alek.honey.netty.processor.impl;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.processor.TypeProcessorContext;
 import me.alek.honey.netty.processor.TypeProcessorContextContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
@@ -12,7 +13,7 @@ import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInWindowCl
 import me.alek.honey.netty.packetwrappers.impl.play.server.WrappedPlayOutOpenWindow;
 import me.alek.honey.util.protocol.NetProtocol;
 
-public class InventoryProcessor<WP extends WrappedPacket<WP>> extends TypeProcessorContextContainer<WP, InventoryProcessor.InventoryEmulator> {
+public class InventoryProcessor<WP extends SourcedWrappedPacket<WP>> extends TypeProcessorContextContainer<WP, InventoryProcessor.InventoryEmulator> {
 
     public static final int CRAFTING_SLOTS = 5;
     public static final int ARMOR_SLOTS = 5;

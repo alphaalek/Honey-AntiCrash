@@ -7,7 +7,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.codec.HoneyPacketDecoder;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.injector.MissingHandlerException;
@@ -19,6 +18,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
 import org.bukkit.Bukkit;
@@ -33,7 +33,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
     private static final String COMPRESSION_THRESHOLD_SET_FIELD_NAME = "COMPRESSION_THRESHOLD_SET";
     private static final Object PAPER_COMPRESSION_ENABLED_EVENT = getPaperCompressionEnabledEvent();
 
-    public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
+    public static final ThreadLocal<PacketContainer<?>> MARK = new ThreadLocal<>();
 
     private static Object getPaperCompressionEnabledEvent() {
         try {
@@ -63,7 +63,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
         if (ctx.channel().remoteAddress() == null) {
             // null ping (1.8.8 bug)
-            UnsafeChannelCloser.closeForcibly(ctx.channel());
+            ctx.channel().close();
             return;
         }
 
@@ -115,7 +115,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
         this.packetHandler.executeDelayedTasks(PacketBound.SERVER);
 
-        PacketContainer<? extends WrappedPacket<?>> prev = MARK.get();
+        PacketContainer<?> prev = MARK.get();
         // check for too early dropped packet in the previous eventloop
         // if the filter mark has a value, it means that a channel handler between
         // the filter and decode preparation dropped this packet
@@ -130,13 +130,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         }
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
-        PacketContainer<? extends WrappedPacket<?>> packet = null;
+        PacketContainer<?> packet = null;
         try {
             // initialize packet container
             PacketType type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, true);
             if (type == null) {
                 // invalid packet
-                UnsafeChannelCloser.closeForcibly(ctx.channel());
+                ctx.channel().close();
                 list.add(Unpooled.buffer());
                 return;
             }
@@ -156,6 +156,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                 packet.getEventloopStateTimings().stopTimings();
             }
 
+            if (type == PacketTypes.Play.Client.CUSTOM_PAYLOAD) {
+                WrappedPlayInCustomPayload.PayloadData<?> data = ((WrappedPlayInCustomPayload<?>) packet.getAnyWrapped()).getPayloadData();
+                if (data.isBookChannel() && data.isItemInitialized()) {
+                    HoneyPacketDecoder.checkReadable(packet.getProtocol(), packet.getType(), null, data.getSerializer());
+                }
+            }
+
             if (!this.packetHandler.isCancelled(packet)) {
                 list.add(serializer
                         .readerIndex(0)
@@ -171,7 +178,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             if (this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet
                 // most likely something pinging this server without following the Minecraft protocol
-                UnsafeChannelCloser.closeForcibly(ctx.channel());
+                ctx.channel().close();
                 return;
             }
 

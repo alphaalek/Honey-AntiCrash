@@ -100,7 +100,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
         private Array<WrappedPacketTask> submitQueue = new Array<>();
         private final Queue<Integer> collector = new LinkedList<>();
         private int currentPollIndex;
-        private PacketContainer<? extends WrappedPacket<?>> recentPacket;
+        private PacketContainer<?> recentPacket;
 
         private long recentPollStart = -1;
         private long recentDeltaTime = -1;
@@ -127,7 +127,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             return System.nanoTime() - recentPollStart;
         }
 
-        private long getDeltaTimeExact(PacketContainer<? extends WrappedPacket<?>> packet) {
+        private long getDeltaTimeExact(PacketContainer<?> packet) {
             long timings = packet.getEventloopStateTimings().getTimeFor(LifecycleState.SERVER_HANDLE);
 
             return timings != 0 ? timings : getDeltaTime();
@@ -247,7 +247,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 return super.add(value);
             }
 
-            PacketContainer<? extends WrappedPacket<?>> packet = HoneyPacketHandler.MARK.get();
+            PacketContainer<?> packet = HoneyPacketHandler.MARK.get();
             if (packet == null || !packet.getPlayer().isStreamActive()) {
                 return false;
             }
@@ -273,7 +273,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             return true;
         }
 
-        private boolean isPositionPacket(PacketContainer<? extends WrappedPacket<?>> packet) {
+        private boolean isPositionPacket(PacketContainer<?> packet) {
             return packet.getType() == PacketTypes.Play.Client.PLAYER_MOVEMENT
                     || packet.getType() == PacketTypes.Play.Client.PLAYER_POSITION
                     || packet.getType() == PacketTypes.Play.Client.PLAYER_POS_ROT

@@ -12,5 +12,5 @@ public class TypeProcessors {
         new BrandProcessor<>();
     }
 
-    public static final InventoryProcessor<? extends WrappedPacket<?>> INVENTORY = new InventoryProcessor<>();
+    public static final InventoryProcessor<?> INVENTORY = new InventoryProcessor<>();
 }

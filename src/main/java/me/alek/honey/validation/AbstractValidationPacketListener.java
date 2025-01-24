@@ -6,27 +6,25 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import me.alek.honey.validation.types.PacketValidation;
-import org.bukkit.Bukkit;
 
 import java.util.List;
-import java.util.Optional;
 
-public abstract class AbstractValidationPacketListener<WP extends WrappedPacket<WP>> extends PacketListenerAdapter.Common<WP> implements BaseValidationContainer, ValidationPipelineFactory<PacketValidation<WP>> {
+public abstract class AbstractValidationPacketListener<WP extends SourcedWrappedPacket<WP>> extends PacketListenerAdapter.Common<WP> implements BaseValidationContainer, ValidationPipelineFactory<PacketValidation<WP>> {
 
     public synchronized ValidationPipeline<PacketValidation<WP>> getCachedPipeline(ValidationPipelineFactory<PacketValidation<WP>> factory, HoneyPlayer player) {
-        if (!pipelines.has(player.registryID)) {
-            pipelines.set(player.registryID, factory.createValidationPipeline());
+        if (!this.pipelines.has(player.registryID)) {
+            this.pipelines.set(player.registryID, factory.createValidationPipeline());
 
-            player.leaveCallback.addAction(Callback.Action.from(p -> pipelines.remove(player.registryID)));
+            player.leaveCallback.addAction(Callback.Action.from(p -> this.pipelines.remove(player.registryID)));
         }
 
-        return pipelines.get(player.registryID);
+        return this.pipelines.get(player.registryID);
     }
 
     private final Array<ValidationPipeline<PacketValidation<WP>>> pipelines = new Array<>();
@@ -54,7 +52,7 @@ public abstract class AbstractValidationPacketListener<WP extends WrappedPacket<
                 validation -> validation.validate(player, packet.getAnyWrapped(), context),
                 packet, context);
 
-        hasCalledCallback.remove();
+        this.hasCalledCallback.remove();
 
         onPostPacketReceive(player, packet, context);
     }

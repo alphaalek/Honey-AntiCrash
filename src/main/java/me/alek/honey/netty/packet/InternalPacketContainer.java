@@ -8,10 +8,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.AutoReleasable;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
-import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.*;
 import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -23,7 +20,7 @@ import me.alek.honey.validation.impl.NettyDecodeValidations;
 
 import java.util.Optional;
 
-public final class InternalPacketContainer<WP extends WrappedPacket<WP>> implements PacketContainer<WP> {
+public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> implements PacketContainer<WP> {
 
     private PacketType type;
     private boolean cancelled;
@@ -31,8 +28,8 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     private PipelineState pipelineState;
     private InternalObjectPacketStructure structure;
     private ObjectWrappedPacket<WP> objectWrapped;
-    private ByteWrappedPacket<WP> initialByteWrapped;
-    private ByteWrappedPacket<WP> finalByteWrapped;
+    private ByteInWrappedPacket<WP> initialByteWrapped;
+    private ByteInWrappedPacket<WP> finalByteWrapped;
     private boolean callingLateInitialByteWrapped;
     private final Callback postAction;
     private final HoneyPlayer player;
@@ -59,7 +56,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
         this.pipelineState = createdState;
         if (serializer != null && createdState != PipelineState.OBJECT && !PacketTypes.isUnknown(type)) {
-            ByteWrappedPacket<WP> byteWrappedPacket = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
+            ByteInWrappedPacket<WP> byteWrappedPacket = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
 
             boolean validate = this.initialByteWrapped == null && this.finalByteWrapped == null;
             if (createdState == PipelineState.INITIAL_BYTE) {
@@ -73,7 +70,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
         }
     }
 
-    private void validateBytePacket(ByteWrappedPacket<WP> packet) {
+    private void validateBytePacket(ByteInWrappedPacket<WP> packet) {
         if (this.initialByteWrapped == null && this.finalByteWrapped == null) {
             ValidationPipelineContext context = new ValidationPipelineContext(true);
             ValidationPipeline.applyCallbackDevelopmentData(this, context);
@@ -92,7 +89,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
 
     @Override
     public void handleRewritten(PacketType type, PipelineState state) {
-        if (this.type != type) {
+        if (!this.type.equals(type)) {
             // rewritten new type by ViaVersion
             this.initialByteWrapped = null;
             this.finalByteWrapped = null;
@@ -250,36 +247,49 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     }
 
     @Override
-    public ByteWrappedPacket<WP> getInitialByteWrapped() {
+    public ByteInWrappedPacket<WP> getInitialByteWrapped() {
         return this.initialByteWrapped;
     }
 
     @Override
-    public ByteWrappedPacket<WP> getFinalByteWrapped() {
+    public ByteInWrappedPacket<WP> getFinalByteWrapped() {
         return this.finalByteWrapped;
     }
 
     @Override
     public WP getAnyWrapped() {
-        if (this.initialByteWrapped != null && !this.initialByteWrapped.getClass().equals(ByteWrappedPacket.class)) {
-            return this.initialByteWrapped.get();
-        } else if (this.finalByteWrapped != null && !this.finalByteWrapped.getClass().equals(ByteWrappedPacket.class)) {
-            return this.finalByteWrapped.get();
-        } else if (this.objectWrapped != null && !this.objectWrapped.getClass().equals(ObjectWrappedPacket.class)) {
+        if (this.objectWrapped != null && !this.objectWrapped.getClass().equals(ObjectWrappedPacket.class)) {
             return this.objectWrapped.get();
+        } else if (this.finalByteWrapped != null && !this.finalByteWrapped.getClass().equals(ByteInWrappedPacket.class)) {
+            return this.finalByteWrapped.get();
+        } else if (this.initialByteWrapped != null && !this.initialByteWrapped.getClass().equals(ByteInWrappedPacket.class)) {
+            return this.initialByteWrapped.get();
         } else {
             // none of the wrapped packets are specific, just return any abstract instance
 
             // the abstract object wrapped is prioritized first because packet logging needs an object instance to read properties
             if (this.objectWrapped != null) {
                 return this.objectWrapped.get();
-            } else if (this.initialByteWrapped != null) {
-                return this.initialByteWrapped.get();
             } else if (this.finalByteWrapped != null) {
                 return this.finalByteWrapped.get();
+            } else if (this.initialByteWrapped != null) {
+                return this.initialByteWrapped.get();
             } else {
-                return null;
+                throw new IllegalStateException();
             }
+        }
+    }
+
+    @Override
+    public WP getCurrentWrapped() {
+        if (this.pipelineState.equals(PipelineState.OBJECT)) {
+            return this.objectWrapped.get();
+        } else if (this.pipelineState.equals(PipelineState.FINAL_BYTE)) {
+            return this.finalByteWrapped.get();
+        } else if (this.pipelineState.equals(PipelineState.INITIAL_BYTE)) {
+            return this.initialByteWrapped.get();
+        } else {
+            throw new IllegalStateException();
         }
     }
 
@@ -292,7 +302,7 @@ public final class InternalPacketContainer<WP extends WrappedPacket<WP>> impleme
     public String getPlayerName() {
         // if this is called before HELLO post action, the player name is not yet updated
         if (this.type == PacketTypes.Login.Client.HELLO) {
-            return ((WrappedLoginInLoginStart) getAnyWrapped()).getName();
+            return ((WrappedLoginInLoginStart) getAnyWrapped()).getUsername();
         }
 
         return this.player.packetHandler.getPlayerName();

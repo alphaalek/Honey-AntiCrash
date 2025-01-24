@@ -13,7 +13,7 @@ import me.alek.honey.util.Callback;
 public class PostponeRateIgnoreTerminator implements PostponeValidation {
 
     @Override
-    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException {
+    public boolean test(PacketContainer<?> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException {
         if (ConfigurationOptions.Postpone.RATE_IGNORE_TERMINATOR == -1) {
             return false;
         }

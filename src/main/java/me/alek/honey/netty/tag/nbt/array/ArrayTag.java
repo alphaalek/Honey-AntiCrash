@@ -9,8 +9,8 @@ import java.util.List;
 
 public class ArrayTag<T> extends AbstractArrayTag<PrimitiveTag<T>, ArrayTag<T>, T> {
 
-    public ArrayTag(Object base, TagType typeOf, boolean forceCreation) {
-        super(base, typeOf, forceCreation);
+    public ArrayTag(Object base, TagType typeOf) {
+        super(base, typeOf);
     }
 
     public ArrayTag(TagType typeOf) {

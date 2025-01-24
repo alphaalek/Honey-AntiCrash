@@ -7,13 +7,13 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 public class WrappedPacketTask {
 
     private final int tickAdded;
-    private final PacketContainer<? extends WrappedPacket<?>> packet;
+    private final PacketContainer<?> packet;
     private Runnable packetTask;
     private boolean postponed;
     private long started;
     private boolean done;
 
-    public WrappedPacketTask(PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
+    public WrappedPacketTask(PacketContainer<?> packet, int tickAdded) {
         this.packet = packet;
         this.tickAdded = tickAdded;
     }
@@ -42,7 +42,7 @@ public class WrappedPacketTask {
         return packet.getPlayer();
     }
 
-    public PacketContainer<? extends WrappedPacket<?>> getPacket() {
+    public PacketContainer<?> getPacket() {
         return packet;
     }
 

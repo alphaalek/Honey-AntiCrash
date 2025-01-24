@@ -2,7 +2,6 @@ package me.alek.honey.netty.injector;
 
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.UnsafeChannelCloser;
 import org.bukkit.Bukkit;
 
 import java.util.logging.Level;
@@ -43,7 +42,7 @@ public class EndInitProtocolInjector {
                 channel.pipeline().remove(handler);
             }
 
-            UnsafeChannelCloser.closeForcibly(channel);
+            channel.close();
         }
     }
 }

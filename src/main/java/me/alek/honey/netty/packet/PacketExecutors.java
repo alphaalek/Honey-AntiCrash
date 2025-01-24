@@ -1,10 +1,20 @@
 package me.alek.honey.netty.packet;
 
+import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.WritableBookContent;
+import com.github.retrooper.packetevents.protocol.component.builtin.item.WrittenBookContent;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.util.Filterable;
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.text.Filtered;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.tag.ItemTag;
+import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.NBTFactory;
 import me.alek.honey.netty.tag.nbt.PrimitiveTag;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
@@ -14,6 +24,7 @@ import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.*;
 import me.alek.honey.validation.item.ItemAnalysis;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -22,30 +33,24 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class PacketExecutors {
 
     public static void register() {
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2)) {
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPacketExecutor(PacketTypes.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor<>());
         }
     }
 
     private static class CustomPayloadPacketExecutor<CP extends WrappedPlayInCustomPayload<CP>> implements PacketExecutor<CP> {
 
-        private static final Function<Player, Runnable> INVALID_BOOK_DATA = p -> () -> p.kickPlayer("Invalid book data!");
-
-        private static final ConstructorInvoker<Object> chatComponentTextConstructor = Reflection.getConstructor(
-                Reflection.getClass("{nms}.ChatComponentText"), String.class);
-        private static final MethodInvoker<Object> chatComponentSerializerInvoker = Reflection.getMethod(
-                NMS.getChatSerializerClass(), 0, NMS.getIChatBaseComponentClass());
-
-        private static final MethodInvoker<Object> stripEventsInvoker = Reflection.getMethod(
-                Reflection.getClass("{obc}.event.CraftEventFactory"), "stripEvents", NMS.getIChatBaseComponentClass());
+        private static final Function<HoneyPlayer, Runnable> INVALID_BOOK_DATA = player -> () -> player.kick(Component.text("Invalid book data!"));
 
         @Override
         public boolean test(PacketContainer<CP> packet) {
@@ -69,6 +74,105 @@ public class PacketExecutors {
                     .orElse(null);
         }
 
+        private Runnable handleBookChannel(PacketContainer<CP> packet, WrappedImmutableItemStack item) {
+            ItemStack heldItem = packet.getPlayer().getItemInMainHand();
+            if (heldItem == null) {
+                return INVALID_BOOK_DATA.apply(packet.getPlayer());
+            }
+
+            if (ItemAnalysis.checkItem(packet.getPlayer(), item, null)) {
+                return INVALID_BOOK_DATA.apply(packet.getPlayer());
+            }
+
+            String channel = packet.getAnyWrapped().getPayloadData().getChannel();
+            if (channel.equals(WrappedPlayInCustomPayload.PayloadData.EDIT_BOOK_CHANNEL)) {
+                Runnable edit = handleBookEdit0(item, heldItem);
+                if (edit != null) {
+                    return edit;
+                }
+            } else if (channel.equals(WrappedPlayInCustomPayload.PayloadData.SIGN_BOOK_CHANNEL)) {
+
+                Runnable sign = handleBookSign0(item, heldItem);
+                if (sign != null) {
+                    return sign;
+                }
+            }
+
+            return INVALID_BOOK_DATA.apply(packet.getPlayer());
+        }
+
+        private Runnable handleBookEdit0(WrappedImmutableItemStack item, ItemStack heldItem) {
+            if (item.getType() != ItemTypes.WRITABLE_BOOK) {
+                return null;
+            }
+
+            ItemTag tag = item.getTag();
+            if (tag.asComponentMap().isPresent()) {
+                return () -> {
+                    ComponentMap map = tag.asComponentMap().get();
+                    WritableBookContent content = map.get(ComponentTypes.WRITABLE_BOOK_CONTENT).get();
+
+                    addPagesToWritableBook(heldItem, content.getPages().stream().map(Filterable::getRaw).collect(Collectors.toList()));
+                };
+            } else if (tag.asNBT().isPresent()) {
+                return () -> {
+                    CompoundTag nbt = tag.asNBT().get();
+                    ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
+
+                    addPagesToWritableBook(heldItem, pages);
+                };
+            } else {
+                return null;
+            }
+        }
+
+        private void addPagesToWritableBook(ItemStack item, Iterable<String> pages) {
+            CompoundTag tag = NBTFactory.fromItem(item, true);
+            ArrayTag<String> pagesTag = new ArrayTag<>(TagType.STRING);
+            pagesTag.addAll(pages);
+            tag.put("pages", pagesTag);
+        }
+
+        private Runnable handleBookSign0(WrappedImmutableItemStack item, ItemStack heldItem) {
+            if (item.getType() != ItemTypes.WRITTEN_BOOK) {
+                return null;
+            }
+
+            ItemTag tag = item.getTag();
+            if (tag.asComponentMap().isPresent()) {
+                return () -> {
+                    ComponentMap map = tag.asComponentMap().get();
+                    WrittenBookContent content = map.get(ComponentTypes.WRITTEN_BOOK_CONTENT).get();
+
+                    addContentToWrittenBook(heldItem,
+                            content.getPages().stream()
+                                    .map(Filterable::getRaw)
+                                    .map(p -> AdventureSerializer.getGsonSerializer().serialize(p))
+                                    .collect(Collectors.toList()),
+                            content.getAuthor(), content.getTitle().getRaw());
+                };
+            } else if (tag.asNBT().isPresent()) {
+                return () -> {
+                    CompoundTag nbt = tag.asNBT().get();
+                    ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
+
+                    addPagesToWritableBook(heldItem, pages);
+                };
+            } else {
+                return null;
+            }
+        }
+
+        private void addContentToWrittenBook(ItemStack item, Iterable<String> pages, String author, String title) {
+            CompoundTag tag = NBTFactory.fromItem(item, true);
+            ArrayTag<String> pagesTag = new ArrayTag<>(TagType.STRING);
+            pagesTag.addAll(pages);
+            tag.put("pages", pagesTag);
+            tag.put("author", new PrimitiveTag<>(TagType.STRING, author));
+            tag.put("title", new PrimitiveTag<>(TagType.STRING, title));
+        }
+
+        /*
         private Runnable handleBookEdit(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
             if (item.getType() != ItemTypes.WRITABLE_BOOK) {
                 return null;
@@ -80,11 +184,11 @@ public class PacketExecutors {
                 heldItem.setItemMeta(heldItemMeta);
 
                 player.setItemInMainHand(heldItem);
+
             });
         }
 
         private Runnable handleBookSign(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
-            // TODO: fix for component
             if (!isValidAuthor(player, item.getTag().asNBT().get())) {
                 return null;
             }
@@ -96,7 +200,6 @@ public class PacketExecutors {
             // can't figure out why this breaks the page to show the json representation instead of the literal page, when this below is
             // what is done in 1.9+ server code. But works fine when disabled, so I'm just accepting it I guess.
 
-            /*
             if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
                 ArrayTag<String> pages = item.getNBT().getArrayOf("pages", TagType.STRING);
 
@@ -106,41 +209,13 @@ public class PacketExecutors {
 
                 item.clearSpecificMetaCache();
             }
-            */
+
 
             return () -> handleItem(player, item, true, (oldMeta, newMeta) -> {
                 heldItem.setType(Material.WRITTEN_BOOK);
                 heldItem.setItemMeta(newMeta);
                 player.setItemInMainHand(heldItem);
             });
-        }
-
-        private Runnable handleBookChannel(PacketContainer<CP> packet, WrappedImmutableItemStack item) {
-            Player bukkitPlayer = packet.getPlayer().bukkit;
-            ItemStack heldItem = packet.getPlayer().getItemInMainHand();
-            if (heldItem == null) {
-                return null;
-            }
-
-            if (ItemAnalysis.checkItem(packet.getPlayer(), item, null)) {
-                return INVALID_BOOK_DATA.apply(bukkitPlayer);
-            }
-
-            String channel = packet.getAnyWrapped().getPayloadData().getChannel();
-
-            if (channel.equals("MC|BEdit")) {
-                Runnable edit = handleBookEdit(packet.getPlayer(), item, heldItem);
-                if (edit != null) {
-                    return edit;
-                }
-            } else if (channel.equals("MC|BSign")) {
-                Runnable sign = handleBookSign(packet.getPlayer(), item, heldItem);
-                if (sign != null) {
-                    return sign;
-                }
-            }
-
-            return INVALID_BOOK_DATA.apply(bukkitPlayer);
         }
 
         private void handleItem(HoneyPlayer player, WrappedImmutableItemStack item, boolean signing, BiConsumer<BookMeta, BookMeta> successCallback) {
@@ -150,7 +225,7 @@ public class PacketExecutors {
                 return;
             }
 
-            BookMeta newItemMeta = (BookMeta) heldItem.getItemMeta(); // TODO: FIX item.getSpecificMeta();
+            BookMeta newItemMeta = (BookMeta) item.getSpecificMeta();
             BookMeta heldItemMeta = (BookMeta) heldItem.getItemMeta();
             stripComponentEvents(newItemMeta);
 
@@ -167,6 +242,7 @@ public class PacketExecutors {
 
             successCallback.accept(heldItemMeta, newItemMeta);
         }
+
 
         private void stripComponentEvents(BookMeta meta) {
             List<Object> pages = ItemFactory.getPages(meta);
@@ -196,6 +272,7 @@ public class PacketExecutors {
 
             return true;
         }
+        */
 
         private boolean isValidAuthor(HoneyPlayer player, CompoundTag nbt) {
             String author;

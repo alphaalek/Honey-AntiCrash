@@ -3,6 +3,7 @@ package me.alek.honey.monitor;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import org.bukkit.Bukkit;
@@ -213,7 +214,7 @@ public class MonitorFlagParser {
         return parsed;
     }
 
-    public static <WP extends WrappedPacket<WP>> FlagRunner.Env<WP> getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
+    public static <WP extends SourcedWrappedPacket<WP>> FlagRunner.Env<WP> getMonitorFlags(String[] args) throws WrongMonitorFlagSyntaxException {
         Array<Object> elements = getMonitorFlagsAndOperators(args).as(MonitorFlagParser.Parsed::get);
 
         Array<FlagRunner.Condition<WP>> conditions = new Array<>();
@@ -226,7 +227,7 @@ public class MonitorFlagParser {
     }
 
     @SuppressWarnings("unchecked")
-    private static <WP extends WrappedPacket<WP>> void applyFlagsWithin(Array<Object> elements, Array<FlagRunner.Condition<WP>> conditions) {
+    private static <WP extends SourcedWrappedPacket<WP>> void applyFlagsWithin(Array<Object> elements, Array<FlagRunner.Condition<WP>> conditions) {
         Array<FlagRunner.Chipstate<PacketContainer<WP>>> flags = new Array<>();
         Array<Object> postElements = new Array<>();
 

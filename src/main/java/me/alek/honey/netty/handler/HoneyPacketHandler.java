@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
@@ -29,7 +30,7 @@ public class HoneyPacketHandler {
     @SuppressWarnings("unchecked")
     public static final ThreadLocal<Queue<Runnable>>[] DELAYED_TASKS = new ThreadLocal[]{new ThreadLocal<>(), new ThreadLocal<>()};
 
-    public static final ThreadLocal<PacketContainer<? extends WrappedPacket<?>>> MARK = new ThreadLocal<>();
+    public static final ThreadLocal<PacketContainer<?>> MARK = new ThreadLocal<>();
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
     private final Channel channel;
     private final HoneyPlayer player;
@@ -153,10 +154,10 @@ public class HoneyPacketHandler {
         return getPacketType(PacketBound.SERVER, id);
     }
 
-    public boolean isCancelled(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
-        if (packetContainer.isCancelled()) {
+    public boolean isCancelled(PacketContainer<?> packet) {
+        if (packet.isCancelled()) {
             if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
-                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packetContainer.getType() + ", " + getProtocolState(packetContainer.getType().getBound()) + ", " + packetContainer.getType().getBound() + ", " + packetContainer.getPlayerName());
+                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packet.getType() + ", " + getProtocolState(packet.getType().getBound()) + ", " + packet.getType().getBound() + ", " + packet.getPlayerName());
             }
 
             return true;
@@ -177,20 +178,20 @@ public class HoneyPacketHandler {
         return true;
     }
 
-    public synchronized boolean read(PacketContainer<? extends WrappedPacket<?>> packetContainer) {
-        if (isCancelled(packetContainer)) {
+    public synchronized boolean read(PacketContainer<?> packet) {
+        if (isCancelled(packet)) {
             return false;
         }
 
-        protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
-        MARK.set(packetContainer);
+        protocolSwapHandler.swapProtocolIfNeeded(packet);
+        MARK.set(packet);
 
         return true;
     }
 
-    public <WP extends WrappedPacket<WP>> boolean write(PacketContainer<WP> packetContainer) {
-        protocolSwapHandler.swapProtocolIfNeeded(packetContainer);
-        return !isCancelled(packetContainer);
+    public boolean write(PacketContainer<?> packet) {
+        protocolSwapHandler.swapProtocolIfNeeded(packet);
+        return !isCancelled(packet);
     }
 
     public void executeDelayedTasks(PacketBound bound) {

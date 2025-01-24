@@ -17,7 +17,7 @@ public class PostponeMaxPerXTickCheck implements PostponeValidation {
     private final AsyncTempIntervalQueue tickTracker = new AsyncTempIntervalQueue(diff -> diff >= ConfigurationOptions.Postpone.MAX_PER_X_AMOUNT, false);
 
     @Override
-    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException {
+    public boolean test(PacketContainer<?> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException {
         if (ConfigurationOptions.Postpone.MAX_PER_X_TICK == -1) {
             return false;
         }

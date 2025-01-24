@@ -1,6 +1,7 @@
 package me.alek.honey.netty.processor;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
@@ -8,7 +9,7 @@ import me.alek.honey.util.functions.ChainSupplier;
 
 import java.util.function.Supplier;
 
-public class TypeProcessorContextContainer<WP extends WrappedPacket<WP>, C extends TypeProcessorContext> extends TypeProcessor<WP> {
+public class TypeProcessorContextContainer<WP extends SourcedWrappedPacket<WP>, C extends TypeProcessorContext> extends TypeProcessor<WP> {
 
     private final Array<C> contexts = new Array<>();
     private final Supplier<C> contextFactory;

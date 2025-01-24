@@ -106,19 +106,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ItemAnalysis.flagIf(player, packet.getCarriedItemStack(), generateKey(), context)
-                        .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
-                            if (onViolation != null) {
-                                onViolation.run();
-                            }
-                            try {
-                                ItemStack item = player.bukkit.getInventory().getItem(packet.getSlot());
-                                if (item != null && packet.getCarriedItemStack().isSimilar(item)) {
-                                    item.setType(Material.AIR);
-                                }
-                            } catch (Exception ignored) {
-                            }
-                        }).build();
+                return ItemAnalysis.flagIf(player, packet.getCarriedItemStack(), generateKey(), context);
             }
 
             return ValidationViolationContext.PASS;

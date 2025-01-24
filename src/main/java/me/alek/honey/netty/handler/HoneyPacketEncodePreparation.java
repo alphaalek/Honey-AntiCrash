@@ -11,6 +11,7 @@ import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.util.Callback;
@@ -98,7 +99,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
         });
     }
 
-    private <WP extends WrappedPacket<WP>> void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) {
+    private <WP extends SourcedWrappedPacket<WP>> void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise, boolean retain) {
         if (msg instanceof ReferenceCounted && retain) {
             ReferenceCountUtil.retain(msg);
         }

@@ -37,7 +37,7 @@ public class PrintValidationBridge {
             return Filter.Result.NEUTRAL;
         }
 
-        PacketContainer<? extends WrappedPacket<?>> packet = null;
+        PacketContainer<?> packet = null;
         if (Thread.currentThread().getName().startsWith("Netty") || Thread.currentThread().getName().startsWith("honey-packet-decoder")) {
             packet = InboundPacketFilter.MARK.get();
         } else if (Thread.currentThread().getName().equals("Server Thread")) {

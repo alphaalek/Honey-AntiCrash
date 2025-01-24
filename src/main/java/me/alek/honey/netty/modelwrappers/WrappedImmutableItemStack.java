@@ -82,15 +82,7 @@ public class WrappedImmutableItemStack implements Cloneable {
         }
     }
 
-    private static final ConstructorInvoker<ItemMeta> defaultMetaConstructor;
-
     static {
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_5)) {
-            defaultMetaConstructor = Reflection.getConstructor(NMS.getCraftMetaItemClass(), NMS.getNBTTagCompoundClass());
-        } else {
-            defaultMetaConstructor = null;
-        }
-
         CodecType.ITEM_STACK.addValidation(WrappedImmutableItemStack::validate);
         CodecType.BOOK_EDIT_ITEM_STACK.addValidation(WrappedImmutableItemStack::validateBookEdit);
     }
@@ -107,10 +99,11 @@ public class WrappedImmutableItemStack implements Cloneable {
             CompoundTag nbt = tag.asNBT().get();
             if (nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
                 ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
-                if (context.protocol().isNewerThanOrEqual(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES
-                        || context.protocol().isOlderThan(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES_1_13_2) {
+                NetProtocol protocol = context.packet().getProtocol();
+                if (protocol.isNewerThanOrEqual(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES
+                        || protocol.isOlderThan(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES_1_13_2) {
                     throw new IllegalStateException("Too many pages: " + pages.size() + ", limit: "
-                            + (context.protocol().isNewerThanOrEqual(NetProtocol.v1_14) ? WrappedPlayInBookEdit.MAX_PAGES : WrappedPlayInBookEdit.MAX_PAGES_1_13_2));
+                            + (protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? WrappedPlayInBookEdit.MAX_PAGES : WrappedPlayInBookEdit.MAX_PAGES_1_13_2));
                 }
             }
 
@@ -138,25 +131,7 @@ public class WrappedImmutableItemStack implements Cloneable {
 
         if (tag.asNBT().isPresent()) {
             CompoundTag nbt = tag.asNBT().get();
-            if (!nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
-                throw new DecoderException("Invalid book data: no pages tag");
-            }
-
-            if (context.isSigning()) {
-                if (!nbt.hasKeyOfType("title", TagType.STRING)) {
-                    throw new DecoderException("Invalid book data: no title tag in sign context");
-                }
-
-                if (!nbt.hasKeyOfType("author", TagType.STRING) || !nbt.getString("author").equals(context.packet().getContainer().getPlayerName())) {
-                    throw new DecoderException("Invalid book data: no author tag in sign context");
-                }
-
-                if (nbt.size() > 3) {
-                    throw new DecoderException("Invalid book data: extra tags");
-                }
-            } else if (nbt.size() > 1) {
-                throw new DecoderException("Invalid book data: extra tags");
-            }
+            CodecType.BOOK_EDIT_TAG.validate(nbt, context);
         }
     }
 

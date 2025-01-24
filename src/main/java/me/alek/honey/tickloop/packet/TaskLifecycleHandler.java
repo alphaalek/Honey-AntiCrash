@@ -25,7 +25,7 @@ public class TaskLifecycleHandler {
     private static final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
 
     private static WrappedPacketTask handledTask;
-    private static PacketContainer<? extends WrappedPacket<?>> lastHandledPacket;
+    private static PacketContainer<?> lastHandledPacket;
 
     static {
         new Thread(() -> {
@@ -47,7 +47,7 @@ public class TaskLifecycleHandler {
                 && ConfigurationOptions.PacketDump.HEAVY_SERVER_THREAD_DUMP_ENABLED
                 && (System.nanoTime() - handledTask.getStarted()) * PacketLifecycleTimings.NANOS_TO_MILLIS_MULTIPLIER >= ConfigurationOptions.PacketDump.MIN_SERVER_HANDLE_THREAD_DUMP) {
 
-            PacketContainer<? extends WrappedPacket<?>> packet = getCurrentHandledPacket();
+            PacketContainer<?> packet = getCurrentHandledPacket();
             if (packet == null
                     || packet.isDumped()
                     || packet.getPlayer().bypassServerThreadTracking()) {
@@ -70,11 +70,11 @@ public class TaskLifecycleHandler {
         return handledTask;
     }
 
-    public static synchronized PacketContainer<? extends WrappedPacket<?>> getCurrentHandledPacket() {
+    public static synchronized PacketContainer<?> getCurrentHandledPacket() {
         return Optional.ofNullable(handledTask).map(WrappedPacketTask::getPacket).orElse(null);
     }
 
-    public static PacketContainer<? extends WrappedPacket<?>> getLastHandledPacket() {
+    public static PacketContainer<?> getLastHandledPacket() {
         return lastHandledPacket;
     }
 
@@ -117,7 +117,7 @@ public class TaskLifecycleHandler {
         return builder.toString();
     }
 
-    public static void dump(PacketContainer<? extends WrappedPacket<?>> packet) {
+    public static void dump(PacketContainer<?> packet) {
         String dump = formatThreadDump();
         HoneyLogger loggerService = HoneyPlugin.get().getLogger();
 
@@ -145,13 +145,13 @@ public class TaskLifecycleHandler {
     }
 
     public static synchronized void registerTask(WrappedPacketTask task){
-        PacketContainer<? extends WrappedPacket<?>> packet = task.getPacket();
+        PacketContainer<?> packet = task.getPacket();
         packet.getEventloopStateTimings().startTimings(LifecycleState.SERVER_HANDLE);
 
         handledTask = task;
     }
 
-    public static synchronized void unregisterTask(PacketContainer<? extends WrappedPacket<?>> packet) {
+    public static synchronized void unregisterTask(PacketContainer<?> packet) {
         packet.getEventloopStateTimings().stopTimings();
 
         if (!packet.getPlayer().bypassServerThreadTracking()) {

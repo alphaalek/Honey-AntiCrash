@@ -4,8 +4,6 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.codec.HoneyPacketDecoder;
-import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
@@ -14,13 +12,10 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.MaterialMappings;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.Collections;
 import java.util.List;
@@ -51,16 +46,8 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
     }
 
     @Override
-    public void onPostPacketReceive(HoneyPlayer player, PacketContainer<CP> packet, ValidationPipelineContext context) {
-        WrappedPlayInCustomPayload.PayloadData<CP> data = packet.getAnyWrapped().getPayloadData();
-        if (data.isBookChannel() && data.isItemInitialized()) {
-            HoneyPacketDecoder.checkReadable(packet.getProtocol(), packet.getType(), null, data.getSerializer());
-        }
-    }
-
-    @Override
     public ValidationPipeline<PacketValidation<CP>> createValidationPipeline() {
-        return ValidationPipeline.from(new PayloadA<>(), new PayloadB<>(), new PayloadC<>(), new PayloadD<>(), new PayloadE<>());
+        return ValidationPipeline.from(new PayloadA<>(), new PayloadB<>(), new PayloadC<>(), new PayloadD<>());
     }
 
     public static class PayloadA<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
@@ -145,29 +132,15 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
                                         onViolation.run();
                                     }
                                     context.getDevelopmentData(keyInner).addPoint("NBT Size", nbtSize);
-                                    clearItem(player);
                                 })
                                 .build();
                     }
 
-                    return ItemAnalysis.flagIf(player, item, generateKey(), context)
-                            .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
-                                if (onViolation != null) {
-                                    onViolation.run();
-                                }
-                                clearItem(player);
-                            }).build();
+                    return ItemAnalysis.flagIf(player, item, generateKey(), context);
                 }
             }
 
             return ValidationViolationContext.PASS;
-        }
-
-        private void clearItem(HoneyPlayer player) {
-            ItemStack heldItem = player.getItemInMainHand();
-            if (heldItem != null && heldItem.getType() == MaterialMappings.getTypeOnly("writable-book")) {
-                heldItem.setType(Material.AIR);
-            }
         }
 
         @Override
@@ -197,48 +170,6 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getPayloadData().isBookChannel()) {
-                if (packet.getPayloadData().getBookChannelItemStack() == null) {
-                    return ValidationViolationContext.FLAG;
-                }
-
-                ItemStack itemInHand = player.bukkit.getItemInHand();
-                if (itemInHand.getType() != MaterialMappings.getType("writable-book")
-                        && itemInHand.getType() != Material.WRITTEN_BOOK) {
-                    return ValidationViolationContext.FLAG;
-                }
-            }
-
-            return ValidationViolationContext.PASS;
-        }
-
-        @Override
-        public int getID() {
-            return id;
-        }
-
-        @Override
-        public String getName() {
-            return "Payload.D";
-        }
-
-        @Override
-        public String getDescription() {
-            return Lang.get("validation.payload.d");
-        }
-
-        @Override
-        public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Payload.PayloadD.class);
-        }
-    }
-
-    public static class PayloadE<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
-
-        private static final int id = IDRegistry.CHECKS.acquire();
-
-        @Override
-        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 String channel = packet.getPayloadData().getChannel();
                 if (channel.equalsIgnoreCase("register") &&
@@ -263,17 +194,17 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public String getName() {
-            return "Payload.E";
+            return "Payload.D";
         }
 
         @Override
         public String getDescription() {
-            return Lang.get("validation.payload.e");
+            return Lang.get("validation.payload.d");
         }
 
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Payload.PayloadE.class);
+            return Settings.getSetting(this, ConfigurationOptions.Payload.PayloadD.class);
         }
     }
 }

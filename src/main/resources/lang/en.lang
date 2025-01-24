@@ -83,8 +83,7 @@ validation.netty.o=Too many timed categorized big packets
 validation.payload.a=Empty serializer for payload
 validation.payload.b=Too big serializer for payload
 validation.payload.c=Illegal item in payload
-validation.payload.d=Illegal usage of book channel
-validation.payload.e=Too many registered plugin channels
+validation.payload.d=Too many registered plugin channels
 
 validation.book-edit.a=Illegal book
 

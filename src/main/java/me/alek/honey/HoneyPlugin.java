@@ -1,5 +1,12 @@
 package me.alek.honey;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.PacketEventsAPI;
+import com.github.retrooper.packetevents.injector.ChannelInjector;
+import com.github.retrooper.packetevents.manager.player.PlayerManager;
+import com.github.retrooper.packetevents.manager.protocol.ProtocolManager;
+import com.github.retrooper.packetevents.manager.server.ServerManager;
+import com.github.retrooper.packetevents.netty.NettyManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -213,6 +220,12 @@ public class HoneyPlugin implements HoneyAPI {
         throw new InvalidLicenseException();
     }
 
+    @Override
+    public void onLoad() {
+        PacketEvents.setAPI(new DummyPacketEventsAPI());
+    }
+
+    @Override
     public void onEnable() {
         // check compatibility and conflicts of runtime load or minecraft version
         String conflict = null;
@@ -306,20 +319,7 @@ public class HoneyPlugin implements HoneyAPI {
         getLogger().getLogger().info(Lang.getFormatted("loaded", this.plugin.getDescription().getVersion()));
     }
 
-    private void setupPacketLibrary() {
-        if (this.packetLibrary == null) {
-            this.packetLibrary = PacketLibrary.set(
-                    new PacketLibrarySettings(this.plugin,
-                            HONEY_FILTER_CHANNEL_NAME,
-                            HONEY_CONNECTION_CHANNEL_NAME,
-                            HONEY_CHANNEL_INITIALIZER_CHANNEL_NAME,
-                            HONEY_DECODER_CHANNEL_NAME,
-                            HONEY_ENCODER_CHANNEL_NAME,
-                            HONEY_DEBUGGER_CHANNEL_NAME)
-            );
-        }
-    }
-
+    @Override
     public void onDisable() {
         if (this.isRunning) {
             this.isRunning = false;
@@ -336,6 +336,20 @@ public class HoneyPlugin implements HoneyAPI {
             }
 
             getLogger().getLogger().info(Lang.get("unloaded"));
+        }
+    }
+
+    private void setupPacketLibrary() {
+        if (this.packetLibrary == null) {
+            this.packetLibrary = PacketLibrary.set(
+                    new PacketLibrarySettings(this.plugin,
+                            HONEY_FILTER_CHANNEL_NAME,
+                            HONEY_CONNECTION_CHANNEL_NAME,
+                            HONEY_CHANNEL_INITIALIZER_CHANNEL_NAME,
+                            HONEY_DECODER_CHANNEL_NAME,
+                            HONEY_ENCODER_CHANNEL_NAME,
+                            HONEY_DEBUGGER_CHANNEL_NAME)
+            );
         }
     }
 

@@ -5,12 +5,12 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
-import me.alek.honey.netty.UnsafeChannelCloser;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.discord.DiscordWebhook;
 import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.validation.types.HoneyValidation;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -73,12 +73,12 @@ public class ViolationManagement {
 
         player.channel.eventLoop().execute(() -> {
             if (player.channel.isActive()) {
-                UnsafeChannelCloser.closeForcibly(player.channel);
+                player.channel.close();
             }
         });
 
         if (player.isBukkitReady() && player.isOnlineBukkit()) {
-            Bukkit.getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> player.bukkit.kickPlayer("Disconnected"));
+            player.kick();
         }
 
         if (validation != null && player.isBukkitReady()) {

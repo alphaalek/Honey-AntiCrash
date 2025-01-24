@@ -166,13 +166,11 @@ public class ItemFactory {
 
     public static void setItemTag(Object item, ItemTag tag) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-            ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
-                    .withType(NMS.getPatchedDataComponentMapClass()).withTarget(item)
-                    .writeField(0, tag.asComponentMap().get());
+            // TODO: fix
         } else {
             ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
                     .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
-                    .writeField(0, tag.asNBT().get());
+                    .writeField(0, tag.asNBT().get().getHandle());
         }
     }
 

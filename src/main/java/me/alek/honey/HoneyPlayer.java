@@ -5,6 +5,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginOutDisconnect;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
@@ -14,6 +15,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.ViolationManagement;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -40,6 +42,8 @@ public class HoneyPlayer implements Identifiable {
     public static Collection<HoneyPlayer> getAllPlayers() {
         return HONEY_PLAYER_LOOKUP.values();
     }
+
+    private static final Component DISCONNECTED = Component.text("Disconnected");
 
     public final Channel channel;
     public final int registryID = IDRegistry.PLAYERS.acquire();
@@ -163,22 +167,31 @@ public class HoneyPlayer implements Identifiable {
         }
     }
 
-    public void failPacket(Throwable ex, PacketContainer<? extends WrappedPacket<?>> packet) {
+    public void failPacket(Throwable ex, PacketContainer<?> packet) {
         if (packet != null) {
             packet.releaseIfAutoReleasable();
         }
 
+        this.online = false;
         HoneyPlugin.get().sync(() -> {
             if (this.bukkit != null) {
                 if (ex != null && ex.getMessage() != null) {
-                    ex.printStackTrace();
-                    this.bukkit.kickPlayer(ex.getMessage());
+                    kick(Component.text(ex.getMessage()));
                 } else {
-                    this.bukkit.kickPlayer("Disconnected");
+                    kick(DISCONNECTED);
                 }
             }
         });
-        this.punished = true;
+    }
+
+    public void kick() {
+        kick(DISCONNECTED);
+    }
+
+    public void kick(Component reason) {
+        this.online = false;
+        WrappedLoginOutDisconnect packet = new WrappedLoginOutDisconnect(this.clientInfo.getProtocol(), reason);
+        packet.sendSilently(this.channel);
     }
 
     public boolean isStreamActive() {

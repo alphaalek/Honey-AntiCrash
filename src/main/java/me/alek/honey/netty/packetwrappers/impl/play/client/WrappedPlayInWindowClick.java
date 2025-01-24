@@ -3,12 +3,12 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.Map;
 
-public class WrappedPlayInWindowClick extends ByteWrappedPacket<WrappedPlayInWindowClick> {
+public class WrappedPlayInWindowClick extends ByteInWrappedPacket<WrappedPlayInWindowClick> {
 
     public enum WindowClickType {
         PICKUP, QUICK_MOVE, SWAP, CLONE, THROW, QUICK_CRAFT, PICKUP_ALL;

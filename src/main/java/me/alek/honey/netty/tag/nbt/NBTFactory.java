@@ -123,6 +123,7 @@ public class NBTFactory {
         return tags;
     }
 
+    @SuppressWarnings("unchecked")
     private static <T extends AbstractTag<?, ?, ?>> void getAllTagsAs0(AbstractTag<?, ?, ?> tag, TagType type, List<T> tags) {
         if (tag instanceof AbstractArrayTag) {
             for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?, ?>)tag).getValues())  {
@@ -140,12 +141,10 @@ public class NBTFactory {
     }
 
     private static final ReflectStructure<Object, ?> ITEM_STACK_STRUCTURE = new ReflectStructure<>(NMS.getItemStackClass());
-    private static final ReflectStructure<Object, AbstractTag<?, ?, ?>> TAG_STRUCTURE_FORCE_CREATION = ITEM_STACK_STRUCTURE
-            .withType(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(false));
-    private static final ReflectStructure<Object, AbstractTag<?, ?, ?>> TAG_STRUCTURE_NO_FORCE_CREATION = ITEM_STACK_STRUCTURE
-            .withType(NMS.getNBTTagCompoundClass(), Converters.getNBTBaseConverter(true));
+    private static final ReflectStructure<Object, AbstractTag<?, ?, ?>> TAG_STRUCTURE = ITEM_STACK_STRUCTURE
+            .withType(NMS.getNBTTagCompoundClass(), TagConverter.CONVERTER);
 
-    public static CompoundTag fromItem(ItemStack item, boolean createIfNone, boolean forceCreation) {
+    public static CompoundTag fromItem(ItemStack item, boolean createIfNone) {
         if (item == null || item.getType() == Material.AIR) {
             return null;
         }
@@ -155,16 +154,11 @@ public class NBTFactory {
             return null;
         }
 
-        IStructureModifier<AbstractTag<?, ?, ?>> structureModifier =
-                (forceCreation ? TAG_STRUCTURE_FORCE_CREATION : TAG_STRUCTURE_NO_FORCE_CREATION)
-                .withTarget(nmsItem);
-
+        IStructureModifier<AbstractTag<?, ?, ?>> structureModifier = TAG_STRUCTURE.withTarget(nmsItem);
         AbstractTag<?, ?, ?> base = structureModifier.readField(0);
         if (base == null && createIfNone) {
             try {
-                Object handle = NMS.getNBTTagCompoundClass().getDeclaredConstructor().newInstance();
-
-                CompoundTag nbt = new CompoundTag(handle, forceCreation);
+                CompoundTag nbt = new CompoundTag();
                 structureModifier.writeField(0, nbt);
                 return nbt;
             } catch (Exception ex) {
@@ -172,23 +166,23 @@ public class NBTFactory {
             }
         }
 
-        if (base != null && base.getType().getCollection() != TagType.Collection.COMPOUND) {
+        if (base != null && !base.getType().getCollection().equals(TagType.Collection.COMPOUND)) {
             throw new IllegalStateException("Item with invalid compound tag");
         }
 
         return (CompoundTag) base;
     }
 
-    public static <T extends AbstractTag<K, V, T>, K, V> T fromDelegate(Object handle, boolean forceCreation) {
-        return copyFromType(getType(handle, false, forceCreation), handle, forceCreation);
+    public static <T extends AbstractTag<K, V, T>, K, V> T fromDelegate(Object handle) {
+        return copyFromType(getType(handle, false), handle);
     }
 
-    public static <T extends AbstractTag<K, V, T>, K, V> T copyBase(T base, boolean forceCreation) {
-        return copyFromType(base.getType(), base.getHandle(), forceCreation);
+    public static <T extends AbstractTag<K, V, T>, K, V> T copyBase(T base) {
+        return copyFromType(base.getType(), base.getHandle());
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends AbstractTag<K, V, T>, K, V> T copyFromType(TagType type, Object handle, boolean forceCreation) {
+    public static <T extends AbstractTag<K, V, T>, K, V> T copyFromType(TagType type, Object handle) {
         if (type == null) {
             return null;
         }
@@ -199,13 +193,13 @@ public class NBTFactory {
         }
 
         if (type.getCollection() == TagType.Collection.ARRAY) {
-            return (T) constructorInvoker.invoke(handle, getArrayType(handle, forceCreation), forceCreation);
+            return (T) constructorInvoker.invoke(handle, getArrayType(handle));
         } else {
-            return (T) constructorInvoker.invoke(handle, forceCreation);
+            return (T) constructorInvoker.invoke(handle);
         }
     }
 
-    public static TagType getArrayType(Object handle, boolean forceCreation) {
+    public static TagType getArrayType(Object handle) {
         if (handle == null) {
             return null;
         }
@@ -219,7 +213,7 @@ public class NBTFactory {
         }
 
         IStructureModifier<ListConverter<Object, AbstractTag<?, ?, ?>>> arrayStructure = ReflectStructure.Provider.acquireStructure(handle.getClass())
-            .withWeakType(List.class, Converters.<AbstractTag<?, ?, ?>>getNBTListConverter(forceCreation))
+            .withWeakType(List.class, Converters.<AbstractTag<?, ?, ?>>getNBTListConverter())
             .withTarget(handle);
         List<? extends AbstractTag<?, ?, ?>> array = arrayStructure.readFieldAndApplyMapping(0)
                 .getDelegatedList();
@@ -248,7 +242,7 @@ public class NBTFactory {
         }
     }
 
-    public static TagType getType(Object handle, boolean ignoreNestedArrays, boolean forceCreation) {
+    public static TagType getType(Object handle, boolean ignoreNestedArrays) {
         if (handle == null) {
             return null;
         }
@@ -261,7 +255,7 @@ public class NBTFactory {
 
         TagType type = TagType.getFromTypeId(typeId);
         if (type != null && type.getCollection() == TagType.Collection.ARRAY && !ignoreNestedArrays) {
-            TagType arrayType = getArrayType(handle, forceCreation);
+            TagType arrayType = getArrayType(handle);
             if (arrayType.hasCollection()) {
                 switch (arrayType.getCollection()) {
                     case COMPOUND:

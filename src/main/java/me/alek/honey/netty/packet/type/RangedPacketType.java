@@ -4,5 +4,8 @@ import me.alek.honey.util.protocol.NetProtocolRange;
 
 public interface RangedPacketType extends PacketType, NetProtocolRange.Ranged {
 
+    default boolean exists() {
+        return getRange().match();
+    }
 }
 

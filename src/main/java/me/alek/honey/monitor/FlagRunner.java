@@ -1,7 +1,7 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.Array;
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 
 public class FlagRunner {
 
-    public static class Env<WP extends WrappedPacket<WP>> implements Chipstate<PacketContainer<WP>> {
+    public static class Env<WP extends SourcedWrappedPacket<WP>> implements Chipstate<PacketContainer<WP>> {
 
         private final Array<Condition<WP>> conditions;
 
@@ -51,7 +51,7 @@ public class FlagRunner {
         }
     }
 
-    public static class Condition<WP extends WrappedPacket<WP>> implements Chipstate<PacketContainer<WP>> {
+    public static class Condition<WP extends SourcedWrappedPacket<WP>> implements Chipstate<PacketContainer<WP>> {
 
         public enum Match {
             NOT(o -> o.noneMatch(b -> b)),

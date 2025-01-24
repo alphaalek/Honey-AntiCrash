@@ -11,8 +11,8 @@ public class PrimitiveTag<T> extends AbstractTag<T, T, PrimitiveTag<T>> {
 
     public static final PrimitiveTag<Void> END = new PrimitiveTag<>(TagType.END);
 
-    public PrimitiveTag(Object base, boolean forceCreation) {
-        super(base, forceCreation);
+    public PrimitiveTag(Object base) {
+        super(base);
     }
 
     public PrimitiveTag(TagType type) {

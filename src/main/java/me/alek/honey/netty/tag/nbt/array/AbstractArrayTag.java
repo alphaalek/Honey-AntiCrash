@@ -1,5 +1,6 @@
 package me.alek.honey.netty.tag.nbt.array;
 
+import com.google.common.collect.Iterables;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -22,8 +23,8 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
     private ListConverter<Object, IN> delegate;
     protected final TagType typeOf;
 
-    public AbstractArrayTag(Object base, TagType typeOf, boolean forceCreation) {
-        super(base, forceCreation);
+    public AbstractArrayTag(Object base, TagType typeOf) {
+        super(base);
         this.typeOf = typeOf;
     }
 
@@ -76,7 +77,7 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
     @Override
     public ApplicableConverter<List<Object>, ListConverter<Object, IN>> getNBTConverter() {
         if (this.delegate == null) {
-            this.delegate = Converters.getNBTListConverter(this.forceCreateChildren);
+            this.delegate = Converters.getNBTListConverter();
         }
         return this.delegate;
     }
@@ -161,6 +162,12 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
 
     public boolean add(C value) {
         return getValue().addConverted(to(value));
+    }
+
+    public void addAll(Iterable<C> values) {
+        for (C val : values) {
+            add(val);
+        }
     }
 
     public List<IN> getValues() {

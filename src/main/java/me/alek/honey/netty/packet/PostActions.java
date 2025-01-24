@@ -59,7 +59,7 @@ public class PostActions {
         }));
 
         packetProcessor.addPostAction(PacketTypes.Login.Client.HELLO, Callback.Action.<PacketContainer<WrappedLoginInLoginStart>>from(packet -> {
-            String name = packet.getAnyWrapped().getName();
+            String name = packet.getAnyWrapped().getUsername();
             NMS.submitChannelForName(name, packet.getChannel());
 
             try {
@@ -69,7 +69,7 @@ public class PostActions {
             }
         }));
 
-        packetProcessor.addPostAction(PacketTypes.Login.Server.LOGIN_SUCCESS, Callback.Action.<PacketContainer<? extends WrappedPacket<?>>>from(packet -> {
+        packetProcessor.addPostAction(PacketTypes.Login.Server.LOGIN_SUCCESS, Callback.Action.<PacketContainer<?>>from(packet -> {
             try {
                 HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packet.getChannel());
             } catch (MissingHandlerException ex) {

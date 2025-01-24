@@ -7,7 +7,6 @@ import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordinates;
-import me.alek.honey.netty.modelwrappers.objects.WrappedGameProfile;
 import me.alek.honey.netty.modelwrappers.objects.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
@@ -90,75 +89,8 @@ public class Converters {
         });
     }
 
-    public static JavaConverter<Object, Vector> getVec3DConverter() {
-        return getConverter(Vector.class, (clazz) -> new JavaConverter<Object, Vector>() {
-            @Override
-            public Vector convertDelegate(Object delegate, Object... params) {
-                if (delegate == null) {
-                    return null;
-                }
-
-                ReflectStructure<Object, ?> vec3DModifier = ReflectStructure.Provider.acquireStructure(NMS.getVec3DClass());
-                IStructureModifier<Double> doubleModifier = vec3DModifier.withDoubles().withTarget(delegate);
-
-                if (doubleModifier.fieldSize() < 3) {
-                    throw new RuntimeException("Reflection error");
-                }
-
-                return new Vector(doubleModifier.readField(0), doubleModifier.readField(1), doubleModifier.readField(2));
-            }
-
-            @Override
-            public Object convertDeclaring(Vector object) {
-                if (object == null) {
-                    return null;
-                }
-                ConstructorInvoker<Object> blockPositionConstructor = Reflection.getConstructor(
-                        NMS.getVec3DClass(), double.class, double.class, double.class);
-                try {
-                    return blockPositionConstructor.invoke(
-                            object.getX(), object.getY(), object.getZ());
-                } catch (Exception ex) {
-                    throw new RuntimeException("Reflection error");
-                }
-            }
-        });
-    }
-
-    public static JavaConverter<Object, ItemStack> getCopyItemStackConverter() {
-        return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
-            @Override
-            public ItemStack convertDelegate(Object delegate, Object... params) {
-                return ItemFactory.asBukkitCopy(delegate);
-            }
-
-            @Override
-            public Object convertDeclaring(ItemStack itemStack) {
-                return ItemFactory.asNMSCopy(itemStack);
-            }
-        });
-    }
-
-    public static JavaConverter<Object, ItemStack> getMirrorItemStackConverter() {
-        return getConverter(ItemStack.class, (clazz) -> new JavaConverter<Object, ItemStack>() {
-            @Override
-            public ItemStack convertDelegate(Object delegate, Object... params) {
-                return ItemFactory.asCraftMirror(delegate);
-            }
-
-            @Override
-            public Object convertDeclaring(ItemStack itemStack) {
-                return ItemFactory.getHandleItem(itemStack);
-            }
-        });
-    }
-
     public static JavaConverter<Object, WrappedRenderData> getRenderDataConverter() {
         return getConverter(WrappedRenderData.class, (clazz) -> new SimpleWrapperConverter<>(WrappedRenderData.class));
-    }
-
-    public static JavaConverter<Object, WrappedGameProfile> getGameProfileConverter() {
-        return getConverter(WrappedGameProfile.class, (clazz) -> new SimpleWrapperConverter<>(WrappedGameProfile.class));
     }
 
     public static JavaConverter<Object, PacketDataSerializer> getPacketDataSerializerConverter() {
@@ -168,12 +100,6 @@ public class Converters {
                 ByteBuf buf = ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
                         .withType(ByteBuf.class).withTarget(delegate)
                         .readField(0);
-
-                // copy
-                if (params.length > 0 && params[0].equals(true)) {
-                    buf = Unpooled.copiedBuffer(buf);
-                }
-
                 return new PacketDataSerializer(buf);
             }
 
@@ -184,7 +110,7 @@ public class Converters {
         };
     }
 
-    public static JavaConverter<Enum<?>, LegacyProtocol> getEnumProtocolConverter() {
+    public static JavaConverter<Enum<?>, LegacyProtocol> getLegacyProtocolConverter() {
         return getConverter(LegacyProtocol.class, (clazz) -> new SimpleWrapperConverter<>(LegacyProtocol.class, PacketBound.class));
     }
 
@@ -196,47 +122,15 @@ public class Converters {
         return getConverter(WrappedSuggestion.class, (clazz) -> new SimpleWrapperConverter<>(WrappedSuggestion.class));
     }
 
-    public static JavaConverter<Object, WrappedChunkCoordinates> getChunkCoordIntConverter() {
-        return getConverter(WrappedChunkCoordinates.class, (clazz) -> new JavaConverter<Object, WrappedChunkCoordinates>() {
-            @Override
-            public WrappedChunkCoordinates convertDelegate(Object delegate, Object... params) {
-                return new WrappedChunkCoordinates(delegate);
-            }
-
-            @Override
-            public Object convertDeclaring(WrappedChunkCoordinates object) {
-                if (object == null) {
-                    return null;
-                }
-                ConstructorInvoker<Object> constructorInvoker = Reflection.getConstructor(
-                        NMS.getChunkCoordIntPairClass(), int.class, int.class
-                );
-                Object chunkPair;
-                try {
-                    chunkPair = constructorInvoker.invoke(object.getX(), object.getY());
-                } catch (Exception ex) {
-                    throw new RuntimeException("Reflection error");
-                }
-                return chunkPair;
-            }
-        });
-    }
-
-    // nbt
-    public static JavaConverter<Object, AbstractTag<?, ?, ?>> getNBTBaseConverter(boolean forceCreation) {
-        return new TagConverter(forceCreation);
-    }
-
-    public static MapConverter<String, Object, AbstractTag<?, ?, ?>> getNBTCompoundConverter(boolean forceCreation) {
-        return getMapConverterWithoutCache(getNBTBaseConverter(forceCreation));
+    public static MapConverter<String, Object, AbstractTag<?, ?, ?>> getNBTCompoundConverter() {
+        return getMapConverterWithoutCache(TagConverter.CONVERTER);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> ListConverter<Object, T> getNBTListConverter(boolean forceCreation) {
-        return (ListConverter<Object, T>) getListConverterWithoutCache(getNBTBaseConverter(forceCreation));
+    public static <T> ListConverter<Object, T> getNBTListConverter() {
+        return (ListConverter<Object, T>) getListConverterWithoutCache(TagConverter.CONVERTER);
     }
 
-    // lists
     public static <K, T> ListConverter<K, T> getListConverterOf(Class<?> clazz, JavaConverter<K, T> converter) {
         return getListConverter(clazz, (clazz1) -> new SimpleListConverter<>(converter));
     }

@@ -3,6 +3,7 @@ package me.alek.honey.netty.packet;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.type.*;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.processor.PacketProcessor;
@@ -17,11 +18,11 @@ import java.util.logging.Level;
 
 public class InternalPacketProcessor implements PacketProcessor {
 
-    private final Array<EventBus<? extends WrappedPacket<?>>> eventBusses = new Array<>();
-    private final Array<List<PacketExecutor<? extends WrappedPacket<?>>>> packetExecutors = new Array<>();
+    private final Array<EventBus<?>> eventBusses = new Array<>();
+    private final Array<List<PacketExecutor<?>>> packetExecutors = new Array<>();
     private final Array<Callback> postActions = new Array<>();
 
-    private static class EventBus<WP extends WrappedPacket<WP>> {
+    private static class EventBus<WP extends SourcedWrappedPacket<WP>> {
 
         private class StateBus {
             private final EnumMap<ListenerPriority, List<PacketListener<WP>>> priorityMap = new EnumMap<>(ListenerPriority.class);
@@ -156,24 +157,24 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public void addPacketExecutor(PacketType type, PacketExecutor<? extends WrappedPacket<?>> packetExecutor) {
+    public void addPacketExecutor(PacketType type, PacketExecutor<?> packetExecutor) {
         packetExecutors.get(type, ArrayList::new)
                 .add(packetExecutor);
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packet) {
+    public <WP extends SourcedWrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packet) {
         if (PacketTypes.isUnknown(packet.getType())
                 || !packetExecutors.has(packet.getType())) {
             return null;
         }
 
-        List<PacketExecutor<? extends WrappedPacket<?>>> executors = packetExecutors.get(packet.getType());
+        List<PacketExecutor<?>> executors = packetExecutors.get(packet.getType());
         if (executors.isEmpty()) {
             return null;
         }
 
-        for (PacketExecutor<? extends WrappedPacket<?>> executorImpl : executors) {
+        for (PacketExecutor<?> executorImpl : executors) {
             @SuppressWarnings("unchecked")
             PacketExecutor<WP> executor = (PacketExecutor<WP>) executorImpl;
 
@@ -191,10 +192,10 @@ public class InternalPacketProcessor implements PacketProcessor {
         return null;
     }
 
-    private void addListener(Consumer<EventBus<? extends WrappedPacket<?>>> addToEventBus, List<PacketType> types) {
+    private void addListener(Consumer<EventBus<?>> addToEventBus, List<PacketType> types) {
         for (PacketType type : types) {
             if (type instanceof RangedPacketType
-                    && !NetProtocol.matchProtocol((RangedPacketType) type)) {
+                    && !((RangedPacketType) type).exists()) {
                 continue;
             }
 
@@ -203,17 +204,17 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public synchronized void addListener(PacketListener<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
+    public synchronized void addListener(PacketListener<?> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
         addListener(bus -> bus.addListener(listener, state, priority), types);
     }
 
     @Override
-    public void removeListener(PacketListener<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, PacketType... types) {
+    public void removeListener(PacketListener<?> listener, PacketContainer.PipelineState state, PacketType... types) {
         removeListener(listener, state, Arrays.asList(types));
     }
 
     @Override
-    public void removeListener(PacketListener<? extends WrappedPacket<?>> listener, PacketContainer.PipelineState state, List<PacketType> types) {
+    public void removeListener(PacketListener<?> listener, PacketContainer.PipelineState state, List<PacketType> types) {
         for (PacketType type : types) {
             if (!eventBusses.has(type)) {
                 continue;
@@ -230,7 +231,7 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListener<WP> listener, PacketContainer.PipelineState state) {
+    public <WP extends SourcedWrappedPacket<WP>> boolean isRegistered(PacketListener<WP> listener, PacketContainer.PipelineState state) {
         for (EventBus<?> bus : eventBusses) {
             if (bus != null && existsInBus(bus, state, listener)) {
                 return true;
@@ -240,7 +241,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private <WP extends WrappedPacket<WP>, WP2 extends WrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketContainer.PipelineState state, PacketListener<WP> listener) {
+    private <WP extends SourcedWrappedPacket<WP>, WP2 extends SourcedWrappedPacket<WP2>> boolean existsInBus(EventBus<WP2> bus, PacketContainer.PipelineState state, PacketListener<WP> listener) {
         for (List<PacketListener<WP2>> packetListeners : bus.getStateBus(state).priorityMap.values()) {
             if (packetListeners.stream().anyMatch(a -> a.equals(listener))) {
                 return true;
@@ -249,7 +250,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private void call(PacketType type, Consumer<EventBus<? extends WrappedPacket<?>>> callToEventBus) {
+    private void call(PacketType type, Consumer<EventBus<?>> callToEventBus) {
         if (PacketTypes.isUnknown(type)
                 || !eventBusses.has(type)) {
             return;
@@ -273,7 +274,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         call(packet.getType(), bus -> bus.callBytePacketProcess(player, PacketContainer.PipelineState.FINAL_BYTE, packet));
     }
 
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> handleObjectCommon(HoneyPlayer player, PacketBound bound, Object objectPacket, PacketContainer<WP> earlyInitializedPacket) {
+    private <WP extends SourcedWrappedPacket<WP>> PacketContainer<WP> handleObjectCommon(HoneyPlayer player, PacketBound bound, Object objectPacket, PacketContainer<WP> earlyInitializedPacket) {
         Optional<PacketType> typeFromClass = PacketTypes.getPacketType(objectPacket.getClass(), player.packetHandler.getProtocolState(bound));
         if (!typeFromClass.isPresent()) {
             return null;
@@ -308,12 +309,12 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> readObjectPacket(HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
+    public <WP extends SourcedWrappedPacket<WP>> PacketContainer<WP> readObjectPacket(HoneyPlayer player, Object packet, PacketContainer<WP> earlyInitializedPacket) {
         return handleObjectCommon(player, PacketBound.SERVER, packet, earlyInitializedPacket);
     }
 
     @Override
-    public <WP extends WrappedPacket<WP>> PacketContainer<WP> writeObjectPacket(HoneyPlayer player, Object packet) {
+    public <WP extends SourcedWrappedPacket<WP>> PacketContainer<WP> writeObjectPacket(HoneyPlayer player, Object packet) {
         return handleObjectCommon(player, PacketBound.CLIENT, packet, null);
     }
 

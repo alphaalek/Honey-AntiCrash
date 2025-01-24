@@ -6,6 +6,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacketFactory;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -69,12 +70,12 @@ public class PacketFactory {
         return (WP) packet.getObjectWrapped();
     }
 
-    public static synchronized <WP extends WrappedPacket<WP>, TP extends WrappedPacket<WP>> TP createNewPacket(WrappedPacketFactory<?, ?, ?> factory, PacketType type, ByteBuf serializer, HoneyPlayer player) {
+    public static synchronized <WP extends SourcedWrappedPacket<WP>, TP extends SourcedWrappedPacket<WP>> TP createNewPacket(WrappedPacketFactory<?, ?, ?> factory, PacketType type, ByteBuf serializer, HoneyPlayer player) {
         return createNewPacket(factory, type, player, serializer, null);
     }
 
     @SuppressWarnings("unchecked")
-    public static synchronized <WP extends WrappedPacket<WP>, TP extends WrappedPacket<WP>> TP createNewPacket(WrappedPacketFactory<?, ?, ?> factory, PacketType type, HoneyPlayer player, ByteBuf buf, Callback postAction) {
+    public static synchronized <WP extends SourcedWrappedPacket<WP>, TP extends SourcedWrappedPacket<WP>> TP createNewPacket(WrappedPacketFactory<?, ?, ?> factory, PacketType type, HoneyPlayer player, ByteBuf buf, Callback postAction) {
         try {
             if (factory instanceof WrappedPacketFactory.ObjectWrappedPacketFactory) {
                 PacketDataSerializer serializer = new PacketDataSerializer(buf);

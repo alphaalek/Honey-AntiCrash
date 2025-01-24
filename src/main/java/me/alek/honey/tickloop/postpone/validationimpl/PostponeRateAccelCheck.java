@@ -12,7 +12,7 @@ import me.alek.honey.util.Callback;
 public class PostponeRateAccelCheck implements PostponeValidation {
 
     @Override
-    public boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException {
+    public boolean test(PacketContainer<?> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException {
         return ConfigurationOptions.Postpone.MAX_RATE_ACCEL != -1
                 && getTracker().getPlayerRateAcceleration(player, true) > millisToNanos(ConfigurationOptions.Postpone.MAX_RATE_ACCEL);
     }

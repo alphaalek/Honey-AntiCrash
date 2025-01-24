@@ -2,9 +2,9 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 
-public class WrappedPlayInPickItem extends ByteWrappedPacket<WrappedPlayInPickItem> {
+public class WrappedPlayInPickItem extends ByteInWrappedPacket<WrappedPlayInPickItem> {
 
     @Property
     private final int hotBarSlot;

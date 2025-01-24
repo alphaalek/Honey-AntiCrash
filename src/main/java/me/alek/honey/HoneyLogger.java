@@ -11,6 +11,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.tracker.Timespan;
@@ -49,7 +50,7 @@ public class HoneyLogger {
     private final TempIntervalTracker packetRatePerQueueExecution = new TempIntervalTracker(false, false);
     private final AtomicInteger currentQueueExecutionPacket = new AtomicInteger(0);
 
-    private final class PacketLoggerHolder<WP extends WrappedPacket<WP>> {
+    private final class PacketLoggerHolder<WP extends SourcedWrappedPacket<WP>> {
 
         private final PacketListenerAdapter<WP> packetLogger = new PacketListenerAdapter.InboundCommon<WP>() {
 
@@ -82,7 +83,7 @@ public class HoneyLogger {
         };
     }
 
-    private final PacketLoggerHolder<? extends WrappedPacket<?>> holder = new PacketLoggerHolder<>();
+    private final PacketLoggerHolder<?> holder = new PacketLoggerHolder<>();
 
     public HoneyLogger() {
         reload(true);
@@ -226,11 +227,11 @@ public class HoneyLogger {
                         + filterTooMuchData(formatPacketEntries(packet)));
     }
 
-    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packet, String playerName) {
+    public <WP extends SourcedWrappedPacket<WP>> void logPacket(PacketContainer<WP> packet, String playerName) {
         logPacket(packet, playerName, this.detailed, 0);
     }
 
-    public <WP extends WrappedPacket<WP>> void logPacket(PacketContainer<WP> packet, String playerName, boolean detailed, long comparingTime) {
+    public <WP extends SourcedWrappedPacket<WP>> void logPacket(PacketContainer<WP> packet, String playerName, boolean detailed, long comparingTime) {
         if (ignoredPlayers.contains(playerName)
                 || ignoredPackets.contains(packet.getType().toString())) {
             return;
@@ -260,7 +261,7 @@ public class HoneyLogger {
         return data.toString();
     }
 
-    public Map<String, Object> getPacketEntries(PacketContainer<? extends WrappedPacket<?>> packet) {
+    public Map<String, Object> getPacketEntries(PacketContainer<?> packet) {
         if (PacketTypes.isUnknown(packet.getType())) {
             return new HashMap<>();
         }

@@ -3,10 +3,10 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 
-public class WrappedPlayInSetCreativeSlot extends ByteWrappedPacket<WrappedPlayInSetCreativeSlot> {
+public class WrappedPlayInSetCreativeSlot extends ByteInWrappedPacket<WrappedPlayInSetCreativeSlot> {
 
     @Property
     private final int slot;

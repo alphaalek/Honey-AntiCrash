@@ -773,13 +773,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "custom-payload.d", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class PayloadD extends ViolationSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "custom-payload.e", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class PayloadE extends ViolationSetting implements VlSimpleMaxRequiredContentsSetting {
+        public static class PayloadD extends ViolationSetting implements VlSimpleMaxRequiredContentsSetting {
 
         }
     }
@@ -844,16 +838,6 @@ public class ConfigurationOptions {
         @Setting
         @Violation(prefixPaths = "pick-item.a", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class PickItemA extends ViolationSetting {
-
-        }
-    }
-
-    @Setting
-    public static class BookEdit {
-
-        @Setting
-        @Violation(prefixPaths = "book-edit.a", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class BookEditA extends ViolationSetting {
 
         }
     }
@@ -1102,13 +1086,6 @@ public class ConfigurationOptions {
         @Setting
         @Violation(prefixPaths = "netty.i", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
         public static class NettyI extends ViolationSetting implements VlBufferThrottleRequiredContentsSetting {
-
-        }
-
-        /* @Setting */
-        @Violation(prefixPaths = "netty.j", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
-        @Keyed(amount = 3)
-        public static class NettyJ extends ViolationSetting /* implements VlTriggerThrottleRequiredContentsSetting */ {
 
         }
 

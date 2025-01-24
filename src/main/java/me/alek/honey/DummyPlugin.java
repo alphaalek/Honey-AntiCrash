@@ -1,14 +1,18 @@
 package me.alek.honey;
 
-import com.avaje.ebean.EbeanServer;
+import io.papermc.paper.plugin.configuration.PluginMeta;
+import io.papermc.paper.plugin.lifecycle.event.LifecycleEventManager;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.generator.BiomeProvider;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
@@ -24,6 +28,11 @@ public class DummyPlugin implements Plugin {
 
     @Override
     public PluginDescriptionFile getDescription() {
+        return null;
+    }
+
+    @Override
+    public @NotNull PluginMeta getPluginMeta() {
         return null;
     }
 
@@ -58,7 +67,7 @@ public class DummyPlugin implements Plugin {
     }
 
     @Override
-    public PluginLoader getPluginLoader() {
+    public @NotNull PluginLoader getPluginLoader() {
         return null;
     }
 
@@ -98,12 +107,12 @@ public class DummyPlugin implements Plugin {
     }
 
     @Override
-    public EbeanServer getDatabase() {
+    public ChunkGenerator getDefaultWorldGenerator(String s, String s1) {
         return null;
     }
 
     @Override
-    public ChunkGenerator getDefaultWorldGenerator(String s, String s1) {
+    public @Nullable BiomeProvider getDefaultBiomeProvider(@NotNull String s, @Nullable String s1) {
         return null;
     }
 
@@ -115,6 +124,11 @@ public class DummyPlugin implements Plugin {
     @Override
     public String getName() {
         return "Honey-Failed-To-Load";
+    }
+
+    @Override
+    public @NotNull LifecycleEventManager<Plugin> getLifecycleManager() {
+        return null;
     }
 
     @Override

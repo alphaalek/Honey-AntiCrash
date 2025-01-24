@@ -4,7 +4,9 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,13 +17,15 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class BukkitEventInternal implements Listener {
 
+    private static final String BROKEN_PIPE_KICK_MESSAGE = "Broken pipe! Try reconnecting.";
+
     @EventHandler(priority = EventPriority.LOW)
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
         Channel channel = NMS.getChannel(player.getName());
         if (channel == null) {
-            player.kickPlayer("No channel lookup found! Try reconnecting.");
+            kickPlayerBukkit(player);
             return;
         }
 
@@ -36,7 +40,16 @@ public class BukkitEventInternal implements Listener {
             HoneyPlayer.register(honeyPlayer, player);
         } catch (MissingHandlerException ex) {
             HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                    () -> player.kickPlayer("Broken pipe! Try reconnecting."));
+                    () -> kickPlayerBukkit(player));
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void kickPlayerBukkit(Player player) {
+        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
+            player.kick(Component.text(BROKEN_PIPE_KICK_MESSAGE));
+        } else {
+            player.kickPlayer(BROKEN_PIPE_KICK_MESSAGE);
         }
     }
 

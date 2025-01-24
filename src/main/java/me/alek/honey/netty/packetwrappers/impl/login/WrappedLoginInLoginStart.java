@@ -1,25 +1,52 @@
 package me.alek.honey.netty.packetwrappers.impl.login;
 
+import com.github.retrooper.packetevents.util.crypto.MinecraftEncryptionUtil;
+import com.github.retrooper.packetevents.util.crypto.SignatureData;
+import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.modelwrappers.objects.WrappedGameProfile;
-import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 
-public class WrappedLoginInLoginStart extends ObjectWrappedPacket<WrappedLoginInLoginStart> {
+import java.time.Instant;
+import java.util.UUID;
 
-    public WrappedLoginInLoginStart(Object rawPacket, PacketContainer<WrappedLoginInLoginStart> packetContainer) {
-        super(rawPacket, packetContainer);
-    }
+public class WrappedLoginInLoginStart extends ByteInWrappedPacket<WrappedLoginInLoginStart> {
 
-    public WrappedGameProfile getProfile() {
-        return getContainer().getStructure().getGameProfiles().readField(0);
-    }
+    public static final int USERNAME_MAX_LENGTH = 16;
 
-    public String getName() {
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_18_2)) {
-            return getProfile().getName();
-        } else {
-            return getContainer().getStructure().getStrings().readField(0);
+    private final String username;
+    private UUID UUID;
+    private SignatureData signatureData;
+
+    public WrappedLoginInLoginStart(PacketDataSerializer serializer, PacketContainer<WrappedLoginInLoginStart> packet) {
+        super(serializer, packet);
+
+        this.username = serializer.readString(USERNAME_MAX_LENGTH);
+        NetProtocol protocol = packet.getProtocol();
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_19)) {
+            if (protocol.isOlderThan(NetProtocol.v1_19_4) && serializer.readBoolean()) {
+                this.signatureData = new SignatureData(
+                        Instant.ofEpochMilli(serializer.readLong()), MinecraftEncryptionUtil.publicKey(serializer.readByteArray(512)), serializer.readByteArray(4096));
+            }
+
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_19_1)) {
+                if (protocol.isOlderThan(NetProtocol.v1_20_2) && !serializer.readBoolean()) {
+                    return;
+                }
+                this.UUID = serializer.readUUID();
+            }
         }
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public UUID getUUID() {
+        return this.UUID;
+    }
+
+    public SignatureData getSignatureData() {
+        return this.signatureData;
     }
 }

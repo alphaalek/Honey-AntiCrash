@@ -4,18 +4,18 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.processor.ListenerPriority;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketReader;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInLook;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInPosition;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInPositionLook;
+import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
@@ -23,12 +23,13 @@ import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
+import org.bukkit.Location;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
+public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
 
     public static final ValidationPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = ValidationPipeline.from(new NettyA(), new NettyC());
 
@@ -69,29 +70,38 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
     }
 
-    public static class NettyB<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class NettyB<WP extends SourcedWrappedPacket<WP>> extends AbstractValidationPacketListener<WP> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
-        private static final Array<PacketReader.Container<? extends WrappedPacket<?>>> READERS = new Array<>();
+        private static final Array<PacketReader.Container<?>> READERS = new Array<>();
 
         static {
-            READERS.set(PacketTypes.Play.Client.PLAYER_POSITION, (PacketReader.Container<WrappedPlayInPosition>) packet -> new Object[]{
-                    packet.getAnyWrapped().getX(),
-                    packet.getAnyWrapped().getY(),
-                    packet.getAnyWrapped().getZ()}
-            );
-            READERS.set(PacketTypes.Play.Client.PLAYER_POS_ROT, (PacketReader.Container<WrappedPlayInPositionLook>) packet -> new Object[]{
-                    packet.getAnyWrapped().getX(),
-                    packet.getAnyWrapped().getY(),
-                    packet.getAnyWrapped().getZ(),
-                    packet.getAnyWrapped().getYaw(),
-                    packet.getAnyWrapped().getPitch()}
-            );
-            READERS.set(PacketTypes.Play.Client.PLAYER_ROTATION, (PacketReader.Container<WrappedPlayInLook>) packet -> new Object[]{
-                    packet.getAnyWrapped().getYaw(),
-                    packet.getAnyWrapped().getPitch()}
-            );
+            READERS.set(PacketTypes.Play.Client.PLAYER_POSITION, (PacketReader.Container<WrappedPlayInPosition>) packet -> {
+                Location loc = packet.getAnyWrapped().getLocation(packet.getPlayer().getWorld());
+                return new Object[]{
+                        loc.getX(),
+                        loc.getY(),
+                        loc.getZ()
+                };
+            });
+            READERS.set(PacketTypes.Play.Client.PLAYER_POS_ROT, (PacketReader.Container<WrappedPlayInPositionLook>) packet -> {
+                Location loc = packet.getAnyWrapped().getLocation(packet.getPlayer().getWorld());
+                return new Object[]{
+                        loc.getX(),
+                        loc.getY(),
+                        loc.getZ(),
+                        loc.getYaw(),
+                        loc.getPitch()
+                };
+            });
+            READERS.set(PacketTypes.Play.Client.PLAYER_ROTATION, (PacketReader.Container<WrappedPlayInLook>) packet -> {
+                Location loc = packet.getAnyWrapped().getLocation(packet.getPlayer().getWorld());
+                return new Object[]{
+                        loc.getYaw(),
+                        loc.getPitch()
+                };
+            });
         }
 
         public NettyB(PacketLibrary library) {
@@ -198,11 +208,11 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
     }
 
-    public static class NettyH<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class NettyH<WP extends SourcedWrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
-        public static <WP extends WrappedPacket<WP>> ValidationViolationContext check0(WP packet, ViolationKey key, ConfigurationOptions.ViolationSetting setting, ValidationPipelineContext context) {
+        public static <WP extends SourcedWrappedPacket<WP>> ValidationViolationContext check0(WP packet, ViolationKey key, ConfigurationOptions.ViolationSetting setting, ValidationPipelineContext context) {
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(LifecycleState.DECODE);
             if (setting.isEnabled() && decodeTime > 0) {
                 return ValidationViolationContext.Builder.validate().flag(decodeTime)
@@ -243,7 +253,7 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
     }
 
-    public static class NettyI<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class NettyI<WP extends SourcedWrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -270,36 +280,6 @@ public class NettyValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyI.class);
-        }
-    }
-
-    public static class NettyJ<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
-
-        private static final int id = IDRegistry.CHECKS.acquire();
-
-        @Override
-        public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
-            return ValidationViolationContext.PASS;
-        }
-
-        @Override
-        public int getID() {
-            return id;
-        }
-
-        @Override
-        public String getName() {
-            return "Netty.J";
-        }
-
-        @Override
-        public String getDescription() {
-            return null;
-        }
-
-        @Override
-        public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyJ.class);
         }
     }
 }

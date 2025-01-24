@@ -6,6 +6,7 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 
-public class TypeProcessor<WP extends WrappedPacket<WP>> extends PacketListenerAdapter.Common<WP> {
+public class TypeProcessor<WP extends SourcedWrappedPacket<WP>> extends PacketListenerAdapter.Common<WP> {
 
     public static class ReaderInfo<T> {
 
@@ -40,7 +41,7 @@ public class TypeProcessor<WP extends WrappedPacket<WP>> extends PacketListenerA
     private final Array<List<ReaderInfo<PacketContainer<WP>>>> packetListeners = new Array<>();
 
     @SuppressWarnings("unchecked")
-    public <T extends WrappedPacket<T>> void addListener(PacketType type, PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
+    public <T extends SourcedWrappedPacket<T>> void addListener(PacketType type, PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
         List<ReaderInfo<PacketContainer<WP>>> readerInfos = packetListeners.get(type, LinkedList::new);
 
         ReaderInfo<PacketContainer<WP>> info;
@@ -59,7 +60,7 @@ public class TypeProcessor<WP extends WrappedPacket<WP>> extends PacketListenerA
         HoneyPlugin.get().getPacketLibrary().addListeners(this, state, ListenerPriority.HIGHEST, type);
     }
 
-    public <T extends WrappedPacket<T>> void addListener(PacketType type, PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener) {
+    public <T extends SourcedWrappedPacket<T>> void addListener(PacketType type, PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener) {
         addListener(type, state, listener, null);
     }
 

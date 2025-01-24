@@ -1,8 +1,8 @@
 package me.alek.honey.netty.structure;
 
+import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.modelwrappers.objects.WrappedGameProfile;
 import me.alek.honey.netty.structure.converters.JavaConverter;
 import org.bukkit.inventory.ItemStack;
 
@@ -44,9 +44,7 @@ public interface ObjectPacketStructure {
 
     IStructureModifier<ItemStack> getItems();
 
-    IStructureModifier<WrappedGameProfile> getGameProfiles();
-
-    IStructureModifier<PacketDataSerializer> getDataSerializers(boolean copy);
+    IStructureModifier<PacketDataSerializer> getDataSerializers();
 
     IStructureModifier<WrappedBlockPosition> getBlockPositions();
 
@@ -54,5 +52,5 @@ public interface ObjectPacketStructure {
 
     <T> IStructureModifier<T> getModifier(Class<T> clazz);
 
-    <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter, Object... params);
+    <T, C> IStructureModifier<C> getModifier(Class<T> clazz, JavaConverter<T, C> converter, Object... varargs);
 }

@@ -1,12 +1,10 @@
 package me.alek.honey.netty.packetwrappers.impl.handshake;
 
-import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.Types;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 
-public class WrappedHandshakeInSetProtocol extends ByteWrappedPacket<WrappedHandshakeInSetProtocol> {
+public class WrappedHandshakeInSetProtocol extends ByteInWrappedPacket<WrappedHandshakeInSetProtocol> {
 
     @Property
     private final int protocolVersion;

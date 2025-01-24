@@ -1,5 +1,8 @@
 package me.alek.honey.netty.tag.nbt;
 
+import io.netty.handler.codec.DecoderException;
+import me.alek.honey.netty.codec.validation.CodecType;
+import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
@@ -8,6 +11,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -15,15 +19,49 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?, ?>>, CompoundTag> implements ItemTag {
+
+    static {
+        CodecType.BOOK_EDIT_TAG.addValidation(CompoundTag::validateBookEdit);
+    }
+
+    public static void validateBookEdit(CompoundTag nbt, DecodeContext.BookEditContext<?> context) {
+        if (!nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+            throw new DecoderException("Invalid book data: no pages tag");
+        }
+
+        if (context.isSigning()) {
+            if (!nbt.hasKeyOfType("title", TagType.STRING)) {
+                throw new DecoderException("Invalid book data: no title tag in sign context");
+            }
+
+            if (!nbt.hasKeyOfType("author", TagType.STRING) || !nbt.getString("author").equals(context.packet().getContainer().getPlayerName())) {
+                throw new DecoderException("Invalid book data: no author tag in sign context");
+            }
+
+            if (nbt.getKeys().stream().anyMatch(k ->
+                       !k.equals("pages")
+                    && !k.equals("filtered_pages")
+                    && !k.equals("title")
+                    && !k.equals("filtered_title")
+                    && !k.equals("author"))) {
+                throw new DecoderException("Invalid book data: extra tags");
+            }
+        } else if (nbt.getKeys().stream().anyMatch(k ->
+                !k.equals("pages")
+             && !k.equals("filtered_pages"))) {
+            throw new DecoderException("Invalid book data: extra tags");
+        }
+    }
 
     private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.COMPOUND);
 
     private MapConverter<String, Object, AbstractTag<?, ?, ?>> delegate;
 
-    public CompoundTag(Object rawNms, boolean forceCreation) {
-        super(rawNms, forceCreation);
+    public CompoundTag(Object rawNms) {
+        super(rawNms);
     }
 
     public CompoundTag() {
@@ -51,7 +89,7 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
 
     @Override
     public Representation<CompoundTag> asNBT() {
-        return Representation.of(this);
+        return Representation.as(this);
     }
 
     @Override
@@ -62,7 +100,7 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
     @Override
     public ApplicableConverter<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?, ?>>> getNBTConverter() {
         if (this.delegate == null) {
-            this.delegate = Converters.getNBTCompoundConverter(this.forceCreateChildren);
+            this.delegate = Converters.getNBTCompoundConverter();
         }
         return this.delegate;
     }

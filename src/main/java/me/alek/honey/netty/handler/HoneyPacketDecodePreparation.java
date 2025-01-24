@@ -1,7 +1,6 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
@@ -17,7 +16,8 @@ import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
@@ -68,7 +68,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void stopTimings(PacketContainer<? extends WrappedPacket<?>> packet) {
+    private void stopTimings(PacketContainer<?> packet) {
         if (packet.getEventloopStateTimings().getCurrentState() == LifecycleState.NO_STATE) {
             return;
         }
@@ -84,7 +84,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void invokeRead(PacketContainer<? extends WrappedPacket<?>> earlyPacketContainer, ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
+    private void invokeRead(PacketContainer<?> earlyPacketContainer, ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
         if (!buf.isReadable()) {
             return;
         }
@@ -110,7 +110,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
                     Bukkit.getLogger().log(Level.WARNING,
                             "Error occurred while decoding packet " + earlyPacketContainer.getType() + " (id " + earlyPacketContainer.getType().getMinecraftID().get()
-                                    + ") sent by " + this.player.name + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
+                                    + ") sent by " + this.player.name + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
 
@@ -135,7 +135,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            PacketContainer<? extends WrappedPacket<?>> finalPacketContainer = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(player, packet, earlyPacketContainer);
+            PacketContainer<?> finalPacketContainer = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(player, packet, earlyPacketContainer);
 
             Runnable packetExecutorTask;
             if (!finalPacketContainer.isCancelled()) {
@@ -162,7 +162,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private <WP extends WrappedPacket<WP>> void firePacketRead(ChannelHandlerContext ctx, PacketContainer<WP> packetContainer, Runnable packetExecutorTask) {
+    private <WP extends SourcedWrappedPacket<WP>> void firePacketRead(ChannelHandlerContext ctx, PacketContainer<WP> packetContainer, Runnable packetExecutorTask) {
         if (!this.packetHandler.read(packetContainer)) {
             return;
         }
@@ -187,7 +187,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object o) {
         if (!read(ctx, o)) {
             // not async
-            PacketContainer<? extends WrappedPacket<?>> packet = InboundPacketFilter.MARK.get();
+            PacketContainer<?> packet = InboundPacketFilter.MARK.get();
             if (packet != null) {
                 packet.releaseIfAutoReleasable();
             }
@@ -202,12 +202,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
 
         if (!(msg instanceof ByteBuf)) {
-            if (!this.packetHandler.handleNonPacket(msg)) {
-                return false;
-            }
             ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
-
-            // TODO handle object packet
             return false;
         }
 
@@ -218,12 +213,12 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
         }
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
-        PacketContainer<? extends WrappedPacket<?>> packet = null;
+        PacketContainer<?> packet = null;
         try {
             packet = InboundPacketFilter.MARK.get();
             PacketType type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, false);
 
-            if (packet == null || packet.getType() != type) {
+            if (packet == null || !packet.getType().equals(type)) {
                 // this packet is not sent by the client (because it was not received by the filter),
                 // but instead invoked by some plugin (most likely ViaVersion)
                 if (packet == null) {
@@ -236,9 +231,8 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 }
 
                 // calls listeners that was not called, due to some plugin invoking this packet in the eventloop after the filter
-                PacketDataSerializer copiedSerializer = new PacketDataSerializer(Unpooled.copiedBuffer(serializer));
-                packet.callLateInitialByteListeners(copiedSerializer);
-                copiedSerializer.release();
+                packet.callLateInitialByteListeners(serializer);
+                serializer.readerIndex(0);
             }
             if (PacketTypes.isUnknown(packet.getType())) {
                 return false;
@@ -266,7 +260,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
                 ByteBuf wrapped = buf.readBytes(buf.readableBytes()).retain();
                 buf.release();
 
-                PacketContainer<? extends WrappedPacket<?>> copy = packet;
+                PacketContainer<?> copy = packet;
                 this.stream.decode((s) -> {
                     InboundPacketFilter.MARK.set(copy);
 

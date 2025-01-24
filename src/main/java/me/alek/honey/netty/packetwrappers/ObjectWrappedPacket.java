@@ -7,7 +7,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 
 import java.util.Map;
 
-public class ObjectWrappedPacket<WP extends WrappedPacket<WP>> extends WrappedObject<WP> implements WrappedPacket<WP> {
+public class ObjectWrappedPacket<WP extends SourcedWrappedPacket<WP>> extends WrappedObject<WP> implements SourcedWrappedPacket<WP> {
 
     private final PacketContainer<WP> packet;
 

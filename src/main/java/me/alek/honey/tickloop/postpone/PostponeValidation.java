@@ -23,5 +23,5 @@ public interface PostponeValidation {
         return Timespan.MILLIS_TO_NANO_MULTIPLIER * millis;
     }
 
-    boolean test(PacketContainer<? extends WrappedPacket<?>> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException;
+    boolean test(PacketContainer<?> packet, HoneyPlayer player, Array<Object> pipelineData, Callback postponed) throws PostponeTerminationException;
 }

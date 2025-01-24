@@ -2,9 +2,8 @@ package me.alek.honey.validation.types;
 
 import me.alek.honey.HoneyKey;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.validation.ViolationManagement;
 
-public interface KeyedViolationValidation<T> extends ViolationValidation<T> {
+public interface KeyedVlValidation<T> extends ViolationValidation<T> {
 
     default ConfigurationOptions.ViolationSetting getSetting() {
         throw new UnsupportedOperationException();

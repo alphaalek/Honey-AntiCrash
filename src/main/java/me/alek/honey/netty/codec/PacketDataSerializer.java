@@ -3,12 +3,14 @@ package me.alek.honey.netty.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
+import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecType;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -40,6 +42,10 @@ public class PacketDataSerializer extends ByteBuf {
 
     private final ByteBuf handle;
     private final LazyInit<Object> serializer;
+
+    public PacketDataSerializer() {
+        this(Unpooled.buffer());
+    }
 
     public PacketDataSerializer(ByteBuf byteBufHandle) {
         this.handle = byteBufHandle;
@@ -75,7 +81,7 @@ public class PacketDataSerializer extends ByteBuf {
                 .orElse(WrappedImmutableItemStack.AIR);
     }
 
-    public <WP extends WrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) {
+    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) {
         WrappedImmutableItemStack stack = readItemStack(protocol);
         if (stack != WrappedImmutableItemStack.AIR) {
             CodecType.ITEM_STACK.validate(stack, DecodeContext.from(packet));
@@ -104,7 +110,20 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public ByteBuf writeString(String val) {
-        return Types.UTF8.write(this, val, Type.TypeContext.OneArg.of((int) Short.MAX_VALUE));
+        return writeString(val, Short.MAX_VALUE);
+    }
+
+    public ByteBuf writeString(String val, int max) {
+        return Types.UTF8.write(this, val, Type.TypeContext.OneArg.of(max));
+    }
+
+    public byte[] readByteArray(int maxLength) {
+        int len = this.readVarInt();
+        if (len > maxLength) {
+            throw new RuntimeException("The received byte array length is longer than maximum allowed (" + len + " > " + maxLength + ")");
+        } else {
+            return this.readBytes(len).array();
+        }
     }
 
     public int capacity() {

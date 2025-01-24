@@ -63,7 +63,7 @@ public class PacketTypes {
         allPacketTypes.add(type);
 
         if (type instanceof RangedPacketType
-                && !NetProtocol.matchProtocol((RangedPacketType) type)) {
+                && !((RangedPacketType) type).exists()) {
             return;
         }
 
@@ -89,8 +89,7 @@ public class PacketTypes {
     private static void sortPacketDetails(PacketState state, PacketBound bound, PacketType[] types) {
         Array<PacketType> typesArray = new Array<>();
         for (PacketType type : types) {
-            if (type instanceof RangedPacketType
-                    && !NetProtocol.matchProtocol((RangedPacketType) type)) {
+            if (type instanceof RangedPacketType && !((RangedPacketType) type).exists()) {
                 continue;
             }
 
@@ -212,7 +211,7 @@ public class PacketTypes {
     }
 
     public static int getMinecraftId(PacketType type) {
-        if (type instanceof RangedPacketType && !((RangedPacketType) type).getRange().match()) {
+        if (type instanceof RangedPacketType && !((RangedPacketType) type).exists()) {
             throw new IllegalArgumentException("Not present in server version");
         }
 

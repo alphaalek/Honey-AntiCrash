@@ -9,6 +9,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
 
@@ -36,7 +37,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     }
 
     @SuppressWarnings("unchecked")
-    private <WP extends WrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Object msg, PacketBound bound) {
+    private <WP extends SourcedWrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Object msg, PacketBound bound) {
         switch (bound) {
             case SERVER:
                 PacketContainer<WP> packet = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
@@ -49,7 +50,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         throw new IllegalStateException();
     }
 
-    private <WP extends WrappedPacket<WP>> void streamToPipeline(Object msg, PacketContainer<WP> packetContainer, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
+    private <WP extends SourcedWrappedPacket<WP>> void streamToPipeline(Object msg, PacketContainer<WP> packetContainer, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
         if (msg instanceof ByteBuf) {
             sending.run();
             return;
@@ -89,7 +90,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         }
 
         try {
-            PacketContainer<? extends WrappedPacket<?>> packet = initPacketContainer(msg, PacketBound.SERVER);
+            PacketContainer<?> packet = initPacketContainer(msg, PacketBound.SERVER);
             if (packet == null) {
                 return;
             }
@@ -123,7 +124,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             return;
         }
 
-        PacketContainer<? extends WrappedPacket<?>> packet = initPacketContainer(msg, PacketBound.CLIENT);
+        PacketContainer<?> packet = initPacketContainer(msg, PacketBound.CLIENT);
         if (packet == null) {
             return;
         }

@@ -4,18 +4,14 @@ import me.alek.honey.netty.structure.converters.JavaConverter;
 
 public class TagConverter implements JavaConverter<Object, AbstractTag<?, ?, ?>> {
 
-    private final boolean forceCreation;
-
-    public TagConverter(boolean forceCreation) {
-        this.forceCreation = forceCreation;
-    }
+    public static final TagConverter CONVERTER = new TagConverter();
 
     @Override
     public AbstractTag<?, ?, ?> convertDelegate(Object delegate, Object... params) {
         if (delegate == null) {
             return null;
         }
-        return NBTFactory.fromDelegate(delegate, forceCreation);
+        return NBTFactory.fromDelegate(delegate);
     }
 
     @Override

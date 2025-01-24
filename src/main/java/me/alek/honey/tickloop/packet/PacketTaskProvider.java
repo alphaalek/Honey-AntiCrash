@@ -23,7 +23,7 @@ public class PacketTaskProvider {
     public static final PacketTaskProvider PROVIDER = new PacketTaskProvider();
 
     private static final boolean MODERN = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14);
-    private static final BiConsumer<PacketContainer<? extends WrappedPacket<?>>, Throwable> DEBUGGER = (packet, thrown) -> {
+    private static final BiConsumer<PacketContainer<?>, Throwable> DEBUGGER = (packet, thrown) -> {
         HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE,
                 "Error occurred when processing packet task " + packet.getType() + " by " + packet.getPlayerName(), thrown);
     };
@@ -73,7 +73,7 @@ public class PacketTaskProvider {
 
     private final Queue<Recyclable<Runnable>> recyclables = new LinkedList<>();
 
-    public WrappedPacketTask create(Runnable task, PacketContainer<? extends WrappedPacket<?>> packet, int tickAdded) {
+    public WrappedPacketTask create(Runnable task, PacketContainer<?> packet, int tickAdded) {
         WrappedPacketTask wrapped = new WrappedPacketTask(packet, tickAdded);
 
         Runnable packetTask = getPacketTask(task, wrapped::runCheck, wrapped::runPre, wrapped::runPost, thrown -> DEBUGGER.accept(packet, thrown));

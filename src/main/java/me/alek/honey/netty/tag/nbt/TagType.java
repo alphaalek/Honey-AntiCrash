@@ -32,28 +32,28 @@ public enum TagType {
     @BaseInvoker(params = {String.class}) STRING((byte) 8, CodecTypes.StringCodec.class, getNBTClass("NBTTagString"), String.class),
     @IdPrioritized @Collection.OfCollection(collection = Collection.ARRAY) @NetProtocol.To(to = NetProtocol.v1_16_5) @BaseInvoker()
     ARRAY_LEGACY((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(ArrayTag.class), Object.class, TagType.class, boolean.class), List.class),
+            Reflection.getConstructor(getNBTBaseClass(ArrayTag.class), Object.class, TagType.class), List.class),
     @IdPrioritized @Collection.OfCollection(collection = Collection.ARRAY) @NetProtocol.From(from = NetProtocol.v1_17) @BaseInvoker(params = {List.class, byte.class})
     ARRAY_MODERN((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(ArrayTag.class), Object.class, TagType.class, boolean.class), List.class),
+            Reflection.getConstructor(getNBTBaseClass(ArrayTag.class), Object.class, TagType.class), List.class),
     @Collection.OfCollection(collection = Collection.ARRAY_OF_COMPOUND) @NetProtocol.To(to = NetProtocol.v1_16_5) @BaseInvoker()
     ARRAY_OF_COMPOUND_LEGACY((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Object.class, boolean.class), List.class),
+            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Object.class), List.class),
     @Collection.OfCollection(collection = Collection.ARRAY_OF_COMPOUND) @NetProtocol.From(from = NetProtocol.v1_17) @BaseInvoker(params = {List.class, byte.class})
     ARRAY_OF_COMPOUND_MODERN((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Object.class, boolean.class), List.class),
+            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Object.class), List.class),
     @Collection.OfCollection(collection = Collection.ARRAY_OF_ARRAY) @NetProtocol.To(to = NetProtocol.v1_16_5) @BaseInvoker()
     ARRAY_OF_ARRAY_LEGACY((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfArrayTag.class), Object.class, boolean.class), List.class),
+            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfArrayTag.class), Object.class), List.class),
     @Collection.OfCollection(collection = Collection.ARRAY_OF_ARRAY) @NetProtocol.From(from = NetProtocol.v1_17) @BaseInvoker(params = {List.class, byte.class})
     ARRAY_OF_ARRAY_MODERN((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfArrayTag.class), Object.class, boolean.class), List.class),
+            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfArrayTag.class), Object.class), List.class),
     @Collection.OfCollection(collection = Collection.COMPOUND) @NetProtocol.To(to = NetProtocol.v1_16_5) @BaseInvoker()
     COMPOUND_LEGACY((byte) 10, CodecTypes.CompoundCodec.class, getNBTClass("NBTTagCompound"),
-            Reflection.getConstructor(getNBTBaseClass(CompoundTag.class), Object.class, boolean.class), Map.class),
+            Reflection.getConstructor(getNBTBaseClass(CompoundTag.class), Object.class), Map.class),
     @Collection.OfCollection(collection = Collection.COMPOUND) @NetProtocol.From(from = NetProtocol.v1_17) @BaseInvoker(params = {Map.class})
     COMPOUND_MODERN((byte) 10, CodecTypes.CompoundCodec.class, getNBTClass("NBTTagCompound"),
-            Reflection.getConstructor(getNBTBaseClass(CompoundTag.class), Object.class, boolean.class), Map.class),
+            Reflection.getConstructor(getNBTBaseClass(CompoundTag.class), Object.class), Map.class),
     @BaseInvoker(params = {int[].class})
     ARRAY_OF_INT((byte) 11, CodecTypes.IntArrayCodec.class, getNBTClass("NBTTagIntArray"), int[].class),
     @NetProtocol.From(from = NetProtocol.v1_12_2) @BaseInvoker(params = {long[].class})
@@ -220,7 +220,7 @@ public enum TagType {
     }
 
     TagType(byte typeId, Class<?> codec, Class<?> delegateClass, Class<?> dataTypeClass) {
-        this(typeId, codec, delegateClass, Reflection.getConstructor(getNBTBaseClass(PrimitiveTag.class), Object.class, boolean.class), dataTypeClass);
+        this(typeId, codec, delegateClass, Reflection.getConstructor(getNBTBaseClass(PrimitiveTag.class), Object.class), dataTypeClass);
     }
 
     TagType(byte typeId, Class<?> codec, Class<?> delegateClass, ConstructorInvoker<? extends AbstractTag<?, ?, ?>> wrappedInvoker, Class<?> dataTypeClass) {

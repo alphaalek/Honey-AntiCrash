@@ -3,7 +3,6 @@ package me.alek.honey.netty.tag.component;
 import com.github.retrooper.packetevents.protocol.component.ComponentType;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Type;
@@ -77,7 +76,7 @@ public class ComponentMap implements ItemTag {
 
     @Override
     public Representation<ComponentMap> asComponentMap() {
-        return Representation.of(this);
+        return Representation.as(this);
     }
 
     @Override

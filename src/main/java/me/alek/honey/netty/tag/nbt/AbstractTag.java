@@ -15,16 +15,14 @@ import java.util.function.Function;
 public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> extends WrappedObject<AbstractTag<T, V, TAG>> implements Cloneable, Serializable {
 
     private final Object handle;
-    protected final boolean forceCreateChildren;
     protected final IStructureModifier<V> valueStructureModifier;
 
     private TagType type;
     private V value;
 
-    public AbstractTag(Object handle, boolean forceCreation) {
+    public AbstractTag(Object handle) {
         super(handle);
         this.handle = handle;
-        this.forceCreateChildren = forceCreation;
 
         if (handle != null) {
             this.valueStructureModifier = applyStructure(getNBTConverter())
@@ -34,9 +32,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
             this.valueStructureModifier = null;
         }
 
-        if (forceCreation) {
-            getValue();
-        }
+        getValue();
     }
 
     public TAG incrementBytes(TagLimiter limiter, int bytes) {
@@ -47,10 +43,6 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     public TAG incrementComplexity(TagLimiter limiter) {
         limiter.incrementNestingDepth();
         return (TAG) this;
-    }
-
-    public AbstractTag(Object base) {
-        this(base, true);
     }
 
     public abstract ApplicableConverter<T, V> getNBTConverter();
@@ -69,10 +61,6 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     public void setValue(V value) {
         this.value = value;
         this.valueStructureModifier.writeField(0, value);
-    }
-
-    public boolean isForceCreation() {
-        return this.forceCreateChildren;
     }
 
     public boolean isNull() {
@@ -111,7 +99,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
 
     public TagType getType() {
         if (this.type == null) {
-            this.type = NBTFactory.getType(this.handle, false, this.forceCreateChildren);
+            this.type = NBTFactory.getType(this.handle, false);
         }
         return type;
     }
@@ -191,6 +179,6 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
 
     @Override
     public TAG clone() {
-        return NBTFactory.copyBase((TAG) this, this.forceCreateChildren);
+        return NBTFactory.copyBase((TAG) this);
     }
 }

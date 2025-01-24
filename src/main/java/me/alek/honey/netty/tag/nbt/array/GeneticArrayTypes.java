@@ -12,8 +12,8 @@ public class GeneticArrayTypes {
 
     public static class ArrayOfCompoundTag extends AbstractArrayTag<CompoundTag, ArrayOfCompoundTag, CompoundTag> {
 
-        public ArrayOfCompoundTag(Object base, boolean forceCreation) {
-            super(base, TagType.getFromCollection(TagType.Collection.COMPOUND), forceCreation);
+        public ArrayOfCompoundTag(Object base) {
+            super(base, TagType.getFromCollection(TagType.Collection.COMPOUND));
         }
 
         public ArrayOfCompoundTag() {
@@ -33,8 +33,8 @@ public class GeneticArrayTypes {
 
     public static class ArrayOfArrayTag<ARRAY extends ArrayOfArrayTag<ARRAY, IN>, IN extends AbstractArrayTag<?, IN, ?>> extends AbstractArrayTag<IN, ARRAY, IN> {
 
-        public ArrayOfArrayTag(Object base, boolean forceCreation) {
-            super(base, TagType.getFromCollection(TagType.Collection.ARRAY), forceCreation);
+        public ArrayOfArrayTag(Object base) {
+            super(base, TagType.getFromCollection(TagType.Collection.ARRAY));
         }
 
         public ArrayOfArrayTag() {

@@ -1,21 +1,18 @@
 package me.alek.honey.netty.codec.validation;
 
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 
-public interface DecodeContext<WP extends WrappedPacket<WP>> {
+public interface DecodeContext<WP extends SourcedWrappedPacket<WP>> {
 
-    static <WP extends WrappedPacket<WP>> DecodeContext<WP> from(WP packet) {
+    static <WP extends SourcedWrappedPacket<WP>> DecodeContext<WP> from(WP packet) {
         return () -> packet;
     }
 
     WP packet();
 
-    default NetProtocol protocol() {
-        return packet().getContainer().getProtocol();
-    }
-
-    class BookEditContext<WP extends WrappedPacket<WP>> implements DecodeContext<WP> {
+    class BookEditContext<WP extends SourcedWrappedPacket<WP>> implements DecodeContext<WP> {
 
         private final boolean signing;
         private final WP packet;

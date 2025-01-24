@@ -10,7 +10,6 @@ import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationViolationContext;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.netty.modelwrappers.objects.WrappedGameProfile;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
@@ -47,13 +46,8 @@ public class LoginValidations extends AbstractValidationPacketListener<WrappedLo
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedLoginInLoginStart packet, ValidationPipelineContext context) {
-            WrappedGameProfile profile = packet.getProfile();
-            if (profile == null) {
-                return ValidationViolationContext.PASS;
-            }
-
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                if (onlinePlayer.getName().equals(profile.getName())) {
+                if (onlinePlayer.getName().equals(packet.getUsername())) {
                     return ValidationViolationContext.Builder.validate().cancel().build();
                 }
             }

@@ -15,7 +15,7 @@ import me.alek.honey.util.reflection.NMS;
 
 public class ProtocolSwapHandler {
 
-    public void swapProtocolIfNeeded(PacketContainer<? extends WrappedPacket<?>> packet) {
+    public void swapProtocolIfNeeded(PacketContainer<?> packet) {
         // login -> play (server -> client) (legacy)
         if (packet.getType() == PacketTypes.Login.Server.LOGIN_SUCCESS
                 && NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
@@ -44,7 +44,7 @@ public class ProtocolSwapHandler {
         } else if (packet.getType() == PacketTypes.Handshake.Client.SET_PROTOCOL) {
             int packetStateOrdinal;
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_1)) {
-                LegacyProtocol protocol = packet.getStructure().getModifier(NMS.getEnumProtocolClass(), Converters.getEnumProtocolConverter(), PacketBound.SERVER)
+                LegacyProtocol protocol = packet.getStructure().getModifier(NMS.getEnumProtocolClass(), Converters.getLegacyProtocolConverter(), packet.getType().getBound())
                         .readField(0);
                 packetStateOrdinal = ((Enum<?>) protocol.getHandle()).ordinal();
             } else {

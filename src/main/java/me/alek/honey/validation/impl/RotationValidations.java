@@ -35,7 +35,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     @Override
     public synchronized boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context) {
-        Location location = packet.getAnyWrapped().getLocation();
+        Location location = packet.getAnyWrapped().getLocation(player.getWorld());
         if (location.getPitch() == 0 && location.getYaw() == 0) {
             return false;
         }
@@ -99,7 +99,8 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && (packet.getPitch() < -90 || packet.getPitch() > 90)) {
+            float pitch = packet.getLocation(player.getWorld()).getPitch();
+            if (getSetting().isEnabled() && (pitch < -90 || pitch > 90)) {
                 return ValidationViolationContext.FLAG;
             }
 
@@ -135,9 +136,10 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
-            if (packet.getYaw() == 0 || MovementValidations.isAnyLatelyTeleportationLocationsCloseTo(
+            float yaw = packet.getLocation(player.getWorld()).getYaw();
+            if (yaw == 0 || MovementValidations.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
-                    (location) -> (double) LocationUtils.calculateYawDistance(location.getYaw(), packet.getYaw()))) {
+                    (location) -> (double) LocationUtils.calculateYawDistance(location.getYaw(), yaw))) {
                 return ValidationViolationContext.PASS.copy().terminate().build();
             }
 
@@ -180,7 +182,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled() && packet.getYaw() != 0) {
+            if (getSetting().isEnabled() && packet.getLocation(player.getWorld()).getYaw() != 0) {
                 return ValidationViolationContext.Builder.validate().add(
                         context.get(ValidationViolationContext.Builder.class, 0).withViolationKey(yawKey).build(),
                         context.get(ValidationViolationContext.Builder.class, 1).withViolationKey(pitchKey).build()

@@ -47,7 +47,7 @@ public enum NetProtocol {
     }
 
     public static NetProtocol getByName(String name) {
-        return Arrays.stream(NetProtocol.values()).filter(p -> p.getName().equals(name)).findFirst().orElse(null);
+        return getProtocols().stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null);
     }
 
     public static List<NetProtocol> getProtocols() {
@@ -166,10 +166,6 @@ public enum NetProtocol {
         return protocol;
     }
 
-    public static boolean matchProtocol(NetProtocolRange.Ranged range) {
-         return range.getRange().match(PROTOCOL);
-    }
-
     public static NetProtocol getLatest() {
         return getProtocols().get(getProtocols().size() - 1);
     }
@@ -180,6 +176,10 @@ public enum NetProtocol {
 
     public ClientVersion toPECVersion() {
         return ClientVersion.getById(this.protocolVersion);
+    }
+
+    public ServerVersion toPESVersion() {
+        return ServerVersion.getById(this.protocolVersion);
     }
 
     @Retention(RetentionPolicy.RUNTIME)

@@ -392,12 +392,12 @@ public class ReflectStructure<T, C> {
 
         private final Object handle;
         private final JavaConverter<T, C> converter;
-        private final Object[] params;
+        private final Object[] varargs;
 
-        public StructureModifier(Object handle, JavaConverter<T, C> converter, Object... params) {
+        public StructureModifier(Object handle, JavaConverter<T, C> converter, Object... varargs) {
             this.handle = handle;
             this.converter = converter;
-            this.params = params;
+            this.varargs = varargs;
         }
 
         public ReflectStructure<?, C> getStructure() {
@@ -524,7 +524,7 @@ public class ReflectStructure<T, C> {
             }
 
             if (converter != null) {
-                return converter.convertDelegate(accessor.get(handle), params);
+                return converter.convertDelegate(accessor.get(handle), varargs);
             } else {
                 return (C) accessor.get(handle);
             }
@@ -566,7 +566,7 @@ public class ReflectStructure<T, C> {
                     }
                 }
 
-                return converter.convertDelegate(originalValue, params);
+                return converter.convertDelegate(originalValue, varargs);
             }
 
             return null;

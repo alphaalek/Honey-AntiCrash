@@ -7,6 +7,7 @@ import me.alek.honey.netty.injector.SpigotServerInjector;
 import me.alek.honey.netty.packet.*;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.processor.PacketProcessor;
@@ -109,23 +110,23 @@ public class PacketLibrary {
         return this.packetProcessor;
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
+    public <WP extends SourcedWrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
         this.packetProcessor.addListener(listener, state, priority, types);
     }
 
-    public <WP extends WrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, PacketType... types) {
+    public <WP extends SourcedWrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, PacketType... types) {
         addListeners(listener, state, priority, Arrays.asList(types));
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListener(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {
+    public <WP extends SourcedWrappedPacket<WP>> void removeListener(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {
         removeListeners(listener, state, PacketTypes.getTypesAvailable().stream().collect(Collectors.toList()));
     }
 
-    public <WP extends WrappedPacket<WP>> void removeListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, List<PacketType> types) {
+    public <WP extends SourcedWrappedPacket<WP>> void removeListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, List<PacketType> types) {
         this.packetProcessor.removeListener(listener, state, types);
     }
 
-    public <WP extends WrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {
+    public <WP extends SourcedWrappedPacket<WP>> boolean isRegistered(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {
         return this.packetProcessor.isRegistered(listener, state);
     }
 

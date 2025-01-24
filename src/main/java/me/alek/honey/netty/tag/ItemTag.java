@@ -53,7 +53,7 @@ public interface ItemTag {
 
         T get();
 
-        static <T> Representation<T> of(T val) {
+        static <T> Representation<T> as(T val) {
             return new Representation<T>() {
                 @Override
                 public boolean isPresent() {

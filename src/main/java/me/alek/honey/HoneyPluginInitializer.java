@@ -17,6 +17,11 @@ public class HoneyPluginInitializer extends JavaPlugin {
     }
 
     @Override
+    public void onLoad() {
+        plugin.onLoad();
+    }
+
+    @Override
     public void onEnable() {
         plugin.onEnable();
     }

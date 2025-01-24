@@ -5,6 +5,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
@@ -16,11 +17,10 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.KeyedViolationValidation;
+import me.alek.honey.validation.types.KeyedVlValidation;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 import org.bukkit.GameMode;
@@ -28,7 +28,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
-public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
+public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
 
     public static final ValidationPipeline<ViolationValidation.IntViolation> PACKET_DROP_PIPELINE = ValidationPipeline.from(new FloodE());
     private static final Map<UUID, Integer> lastSetCreativeSlot = new HashMap<>();
@@ -77,7 +77,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         return ValidationPipeline.from(new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());
     }
 
-    public static abstract class AbstractCustomizableFloodCheck<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static abstract class AbstractCustomizableFloodCheck<WP extends SourcedWrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -89,7 +89,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
     }
 
-    public static class FloodA<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
+    public static class FloodA<WP extends SourcedWrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -114,7 +114,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
     }
 
-    public static class FloodB<WP extends WrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
+    public static class FloodB<WP extends SourcedWrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 
@@ -139,7 +139,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
     }
 
-    public static class FloodC<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
+    public static class FloodC<WP extends SourcedWrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
         private static final IDRegistry packetTypes = new IDRegistry();
@@ -162,7 +162,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
                     && packetTypes.hasID(packet.getType().getHoneyID())) {
 
                 for (ItemStack item : packet.getContainer().getStructure().getItems().readFieldValues()) {
-                    CompoundTag nbt = NBTFactory.fromItem(item, false, true);
+                    CompoundTag nbt = NBTFactory.fromItem(item, false);
                     if (nbt != null && !nbt.isEmpty()) {
                         return ValidationViolationContext.Builder.validate().flag(NBTFactory.getAmountOfTags(nbt)).build();
                     }
@@ -193,7 +193,7 @@ public class FloodValidations<WP extends WrappedPacket<WP>> extends AbstractVali
         }
     }
 
-    public static class FloodD<WP extends WrappedPacket<WP>> implements PacketValidation<WP>, KeyedViolationValidation<WP> {
+    public static class FloodD<WP extends SourcedWrappedPacket<WP>> implements PacketValidation<WP>, KeyedVlValidation<WP> {
 
         private static final int id = IDRegistry.CHECKS.acquire();
 

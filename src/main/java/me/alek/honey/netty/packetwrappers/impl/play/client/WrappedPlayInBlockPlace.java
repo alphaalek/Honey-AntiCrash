@@ -4,7 +4,7 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.protocol.InteractionHand;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.block.BlockFace;
@@ -13,7 +13,7 @@ import org.bukkit.util.Vector;
 import java.util.Arrays;
 import java.util.List;
 
-public class WrappedPlayInBlockPlace extends ByteWrappedPacket<WrappedPlayInBlockPlace> {
+public class WrappedPlayInBlockPlace extends ByteInWrappedPacket<WrappedPlayInBlockPlace> {
 
     private static final List<BlockFace> CARTESIAN_FACES = Arrays.asList(BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
 

@@ -3,6 +3,7 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import org.bukkit.Location;
+import org.bukkit.World;
 
 public abstract class MovementPacketWrapper<WP extends MovementPacketWrapper<WP>> extends ObjectWrappedPacket<WP> {
 
@@ -19,35 +20,15 @@ public abstract class MovementPacketWrapper<WP extends MovementPacketWrapper<WP>
         super(rawPacket, packetContainer);
     }
 
-    public Location getLocation() {
+    public Location getLocation(World world) {
         return location != null ? location : (location = new Location(
-                getPlayer().getWorld(),
+                world,
                 getContainer().getStructure().getDoubles().readField(0),
                 getContainer().getStructure().getDoubles().readField(1),
                 getContainer().getStructure().getDoubles().readField(2),
                 getContainer().getStructure().getFloats().readField(0),
                 getContainer().getStructure().getFloats().readField(1)
         ));
-    }
-
-    public double getX() {
-        return getLocation().getX();
-    }
-
-    public double getY() {
-        return getLocation().getY();
-    }
-
-    public double getZ() {
-        return getLocation().getZ();
-    }
-
-    public float getYaw() {
-        return getLocation().getYaw();
-    }
-
-    public float getPitch() {
-        return getLocation().getPitch();
     }
 
     public void setX(double x) {
@@ -70,7 +51,7 @@ public abstract class MovementPacketWrapper<WP extends MovementPacketWrapper<WP>
         getContainer().getStructure().getFloats().writeField(1, pitch);
     }
 
-    public boolean onGround() {
+    public boolean isOnGround() {
         return getContainer().getStructure().getBooleans().readField(0);
     }
 }

@@ -6,7 +6,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.Callback;
 import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.Bukkit;
@@ -28,7 +28,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
 
                 data.addEmpty();
                 data.addValue(" Packet", packet.getType() + " (id " + packet.getType().getMinecraftID().get() + ")");
-                data.addValue(" Buffer", Optional.ofNullable(packet.getInitialByteWrapped()).map(ByteWrappedPacket::getByteSize).orElse(-1) + " bytes");
+                data.addValue(" Buffer", Optional.ofNullable(packet.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes");
                 data.addValue(" Version", Bukkit.getServer().getVersion());
                 data.removeLastInternalData();
                 data.addEmpty();

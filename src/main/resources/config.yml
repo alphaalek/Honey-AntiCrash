@@ -503,7 +503,7 @@ custom-payload:
 
   b:
     enabled: true
-    threshold: 10000
+    threshold: 30000
 
   c:
     enabled: true
@@ -511,10 +511,7 @@ custom-payload:
 
   d:
     enabled: true
-
-  e:
-    enabled: true
-    max: 110
+    max: 100
 
 # |--- held item ---|
 held-item:
@@ -660,11 +657,6 @@ set-creative-slot:
 
 # |--- sign ---|
 sign:
-  a:
-    enabled: true
-
-# |--- book edit ---|
-book-edit:
   a:
     enabled: true
 

@@ -2,7 +2,6 @@ package me.alek.honey.netty.packet.type;
 
 import me.alek.honey.util.Identifiable;
 import me.alek.honey.util.LazyInit;
-import org.omg.CORBA.UNKNOWN;
 
 public interface PacketType extends Identifiable {
 

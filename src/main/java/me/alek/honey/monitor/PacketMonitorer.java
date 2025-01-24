@@ -1,13 +1,14 @@
 package me.alek.honey.monitor;
 
 import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class PacketMonitorer<WP extends WrappedPacket<WP>> implements IndependentMonitorer<PacketContainer<WP>> {
+public class PacketMonitorer<WP extends SourcedWrappedPacket<WP>> implements IndependentMonitorer<PacketContainer<WP>> {
 
     private final FlagRunner.Env<WP> flags;
     private final MonitorSendAt sendAt;

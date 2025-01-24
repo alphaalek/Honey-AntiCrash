@@ -7,6 +7,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -101,7 +102,7 @@ public class MonitorManager {
         return monitorer;
     }
 
-    public <WP extends WrappedPacket<WP>> void setupPacketMonitor(CommandSender sender, FlagRunner.Env<WP> flags) {
+    public <WP extends SourcedWrappedPacket<WP>> void setupPacketMonitor(CommandSender sender, FlagRunner.Env<WP> flags) {
         removeIfHasMonitor(sender, false);
 
         Monitorer monitorer = new PacketMonitorer<>(flags);
@@ -142,7 +143,7 @@ public class MonitorManager {
         }
     }
 
-    public void sendPacketInfo(PacketContainer<? extends WrappedPacket<?>> packetContainer, MonitorSendAt sendAt) {
+    public void sendPacketInfo(PacketContainer<?> packetContainer, MonitorSendAt sendAt) {
         if (packetMonitorers.isEmpty()) {
             return;
         }
@@ -153,8 +154,7 @@ public class MonitorManager {
             }
 
             @SuppressWarnings("unchecked")
-            IndependentMonitorer<PacketContainer<? extends WrappedPacket<?>>> independentMonitorer =
-                    (IndependentMonitorer<PacketContainer<? extends WrappedPacket<?>>>) packetMonitorer;
+            IndependentMonitorer<PacketContainer<?>> independentMonitorer = (IndependentMonitorer<PacketContainer<?>>) packetMonitorer;
             if (!independentMonitorer.getSendAt().equals(sendAt)) {
                 continue;
             }

@@ -6,7 +6,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 import me.alek.honey.validation.types.HoneyValidation;
-import me.alek.honey.validation.types.KeyedViolationValidation;
+import me.alek.honey.validation.types.KeyedVlValidation;
 import me.alek.honey.validation.types.ViolationValidation;
 
 public class Settings {
@@ -33,7 +33,7 @@ public class Settings {
         ViolationValidation<?> violationCheck = (ViolationValidation<?>) validation;
         if (packet != null && violationCheck.isKeyed()) {
             @SuppressWarnings("unchecked")
-            KeyedViolationValidation<WP> keyedViolationCheck = (KeyedViolationValidation<WP>) violationCheck;
+            KeyedVlValidation<WP> keyedViolationCheck = (KeyedVlValidation<WP>) violationCheck;
             ConfigurationOptions.ViolationSetting setting = keyedViolationCheck.getSetting(packet);
             HoneyKey distributionKey = keyedViolationCheck.getKey(packet);
 

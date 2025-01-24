@@ -59,6 +59,8 @@ public interface HoneyAPI {
 
     Thread getServerThread();
 
+    void onLoad();
+
     void onEnable();
 
     void onDisable();

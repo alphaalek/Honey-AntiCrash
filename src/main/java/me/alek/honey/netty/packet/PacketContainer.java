@@ -5,17 +5,18 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packetwrappers.ByteWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
 
-public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellable {
+public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Cancellable {
 
     enum PipelineState {
-        INITIAL_BYTE, FINAL_BYTE, OBJECT
+        INITIAL_BYTE, FINAL_BYTE, OBJECT;
     }
 
     PacketLifecycleTimings getEventloopStateTimings();
@@ -50,11 +51,13 @@ public interface PacketContainer<WP extends WrappedPacket<WP>> extends Cancellab
 
     ObjectWrappedPacket<WP> getObjectWrapped();
 
-    ByteWrappedPacket<WP> getInitialByteWrapped();
+    ByteInWrappedPacket<WP> getInitialByteWrapped();
 
-    ByteWrappedPacket<WP> getFinalByteWrapped();
+    ByteInWrappedPacket<WP> getFinalByteWrapped();
 
     WP getAnyWrapped();
+
+    WP getCurrentWrapped();
 
     Callback getPostAction();
 
