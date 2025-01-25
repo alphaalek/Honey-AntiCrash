@@ -6,12 +6,11 @@ import io.netty.buffer.ByteBufProcessor;
 import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.codec.types.Types;
-import me.alek.honey.netty.codec.validation.CodecType;
+import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -84,7 +83,7 @@ public class PacketDataSerializer extends ByteBuf {
     public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) {
         WrappedImmutableItemStack stack = readItemStack(protocol);
         if (stack != WrappedImmutableItemStack.AIR) {
-            CodecType.ITEM_STACK.validate(stack, DecodeContext.from(packet));
+            CodecTypeValidation.ITEM_STACK.validate(stack, DecodeContext.from(packet));
         }
 
         return stack;
@@ -103,6 +102,10 @@ public class PacketDataSerializer extends ByteBuf {
 
     public UUID readUUID() {
         return new UUID(this.readLong(), this.readLong());
+    }
+
+    public String readString() {
+        return readString(Short.MAX_VALUE);
     }
 
     public String readString(int i) {

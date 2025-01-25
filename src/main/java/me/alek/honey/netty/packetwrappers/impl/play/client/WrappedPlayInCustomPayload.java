@@ -6,7 +6,7 @@ import com.google.gson.JsonParser;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.validation.CodecType;
+import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
@@ -16,7 +16,6 @@ import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -84,14 +83,14 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         }
 
         private WrappedImmutableItemStack readItemStack(NetProtocol protocol, PacketDataSerializer serializer) {
-            WrappedImmutableItemStack item = serializer.readItemStack(protocol);
+            WrappedImmutableItemStack item = serializer.readItemStackSafely(protocol, this.packet);
 
             if (item == null) {
                 throw new DecoderException("Invalid book!");
             }
 
             boolean signing = this.channel.equals(SIGN_BOOK_CHANNEL);
-            CodecType.BOOK_EDIT_ITEM_STACK.validate(item, new DecodeContext.BookEditContext<>(this.packet, signing));
+            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(item, new DecodeContext.BookEditContext<>(this.packet, signing));
 
             applyTagLegacy(protocol, item, signing);
             return item;

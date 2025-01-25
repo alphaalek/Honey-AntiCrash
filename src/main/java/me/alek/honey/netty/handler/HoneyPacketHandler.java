@@ -78,6 +78,10 @@ public class HoneyPacketHandler {
         return getProtocolState(bound).getTypes()[bound.ordinal()].get(id);
     }
 
+    public int getPacketId(PacketType type) {
+        return type.getState().getTypes()[type.getBound().ordinal()].indexOf(type);
+    }
+
     public void resolve(PacketBound bound, boolean state) {
         if (bound.equals(PacketBound.CLIENT)) {
             resolvingClientbound = state;
@@ -152,6 +156,21 @@ public class HoneyPacketHandler {
         }
 
         return getPacketType(PacketBound.SERVER, id);
+    }
+
+    public int getPacketId(PacketType type, boolean useVia) {
+        if (useVia
+                && ViaProtocol.ViaValidator.VALIDATOR.find().get()
+                && type.getState() != PacketState.HANDSHAKE
+                && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())) {
+
+            if (this.viaProtocol == null) {
+                this.viaProtocol = ViaProtocol.getViaProtocolFrom(this.player.clientInfo.getProtocol());
+            }
+            return this.viaProtocol.getTypes(type.getBound(), type.getState()).indexOf(type);
+        }
+
+        return getPacketId(type);
     }
 
     public boolean isCancelled(PacketContainer<?> packet) {

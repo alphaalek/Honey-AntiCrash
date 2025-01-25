@@ -6,7 +6,7 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.codec.types.Types;
-import me.alek.honey.netty.codec.validation.CodecType;
+import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBookEdit;
 import me.alek.honey.netty.tag.ItemTag;
@@ -15,13 +15,10 @@ import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemFactory;
-import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -83,8 +80,8 @@ public class WrappedImmutableItemStack implements Cloneable {
     }
 
     static {
-        CodecType.ITEM_STACK.addValidation(WrappedImmutableItemStack::validate);
-        CodecType.BOOK_EDIT_ITEM_STACK.addValidation(WrappedImmutableItemStack::validateBookEdit);
+        CodecTypeValidation.ITEM_STACK.addValidation(WrappedImmutableItemStack::validate);
+        CodecTypeValidation.BOOK_EDIT_ITEM_STACK.addValidation(WrappedImmutableItemStack::validateBookEdit);
     }
 
     public static void validate(WrappedImmutableItemStack item, DecodeContext<?> context) {
@@ -131,7 +128,7 @@ public class WrappedImmutableItemStack implements Cloneable {
 
         if (tag.asNBT().isPresent()) {
             CompoundTag nbt = tag.asNBT().get();
-            CodecType.BOOK_EDIT_TAG.validate(nbt, context);
+            CodecTypeValidation.BOOK_EDIT_TAG.validate(nbt, context);
         }
     }
 

@@ -22,8 +22,18 @@ public class ObjectWrappedPacket<WP extends SourcedWrappedPacket<WP>> extends Wr
     }
 
     @Override
+    public boolean isAbstract() {
+        return !getClass().equals(ObjectWrappedPacket.class);
+    }
+
+    @Override
     public HoneyPlayer getPlayer() {
         return packet.getPlayer();
+    }
+
+    @Override
+    public PacketContainer.PipelineState getState() {
+        return PacketContainer.PipelineState.OBJECT;
     }
 
     @Override

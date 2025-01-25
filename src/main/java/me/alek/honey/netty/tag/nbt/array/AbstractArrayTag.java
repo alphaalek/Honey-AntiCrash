@@ -1,18 +1,18 @@
 package me.alek.honey.netty.tag.nbt.array;
 
-import com.google.common.collect.Iterables;
-import me.alek.honey.netty.tag.nbt.AbstractTag;
-import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.TagType;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -32,7 +32,7 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
         this(typeOf, new ArrayList<>());
     }
 
-    public AbstractArrayTag(TagType typeOf, List<?> array) {
+    public AbstractArrayTag(TagType typeOf, Iterable<?> array) {
         super(createBaseFromArray(array, typeOf.getTypeId()));
         this.typeOf = typeOf;
 
@@ -45,11 +45,11 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
         }
     }
 
-    private static Object createBaseFromArray(List<?> array, byte typeId) {
+    private static Object createBaseFromArray(Iterable<?> array, byte typeId) {
         if (TYPE.equals(TagType.ARRAY_LEGACY)) {
             return TYPE.createRawDelegate();
         } else if (TYPE.equals(TagType.ARRAY_MODERN)) {
-            return TYPE.getBaseInvoker().invoke(array, typeId);
+            return TYPE.getBaseInvoker().invoke(StreamSupport.stream(array.spliterator(), false).collect(Collectors.toList()), typeId);
         } else {
             throw new IllegalStateException();
         }

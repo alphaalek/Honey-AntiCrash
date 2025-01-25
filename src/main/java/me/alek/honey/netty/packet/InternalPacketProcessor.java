@@ -19,7 +19,7 @@ import java.util.logging.Level;
 public class InternalPacketProcessor implements PacketProcessor {
 
     private final Array<EventBus<?>> eventBusses = new Array<>();
-    private final Array<List<PacketExecutor<?>>> packetExecutors = new Array<>();
+    private final Array<Array<PacketExecutor<?>>> packetExecutors = new Array<>();
     private final Array<Callback> postActions = new Array<>();
 
     private static class EventBus<WP extends SourcedWrappedPacket<WP>> {
@@ -33,7 +33,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
         {
             for (PacketContainer.PipelineState state : PacketContainer.PipelineState.values()) {
-                stateBusses.put(state, new StateBus());
+                this.stateBusses.put(state, new StateBus());
             }
         }
 
@@ -158,18 +158,18 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public void addPacketExecutor(PacketType type, PacketExecutor<?> packetExecutor) {
-        packetExecutors.get(type, ArrayList::new)
+        this.packetExecutors.get(type, Array::new)
                 .add(packetExecutor);
     }
 
     @Override
     public <WP extends SourcedWrappedPacket<WP>> Runnable getPacketExecutorTask(PacketContainer<WP> packet) {
         if (PacketTypes.isUnknown(packet.getType())
-                || !packetExecutors.has(packet.getType())) {
+                || !this.packetExecutors.has(packet.getType())) {
             return null;
         }
 
-        List<PacketExecutor<?>> executors = packetExecutors.get(packet.getType());
+        Array<PacketExecutor<?>> executors = this.packetExecutors.get(packet.getType());
         if (executors.isEmpty()) {
             return null;
         }
@@ -216,23 +216,23 @@ public class InternalPacketProcessor implements PacketProcessor {
     @Override
     public void removeListener(PacketListener<?> listener, PacketContainer.PipelineState state, List<PacketType> types) {
         for (PacketType type : types) {
-            if (!eventBusses.has(type)) {
+            if (!this.eventBusses.has(type)) {
                 continue;
             }
 
-            eventBusses.get(type).removeListener(state, listener);
+            this.eventBusses.get(type).removeListener(state, listener);
 
             // check if there are no listeners for this type left
             if (Arrays.stream(PacketContainer.PipelineState.values())
-                    .allMatch(s -> eventBusses.get(type).getStateBus(s).priorityMap.isEmpty())) {
-                eventBusses.remove(type);
+                    .allMatch(s -> this.eventBusses.get(type).getStateBus(s).priorityMap.isEmpty())) {
+                this.eventBusses.remove(type);
             }
         }
     }
 
     @Override
     public <WP extends SourcedWrappedPacket<WP>> boolean isRegistered(PacketListener<WP> listener, PacketContainer.PipelineState state) {
-        for (EventBus<?> bus : eventBusses) {
+        for (EventBus<?> bus : this.eventBusses) {
             if (bus != null && existsInBus(bus, state, listener)) {
                 return true;
             }
@@ -252,11 +252,11 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     private void call(PacketType type, Consumer<EventBus<?>> callToEventBus) {
         if (PacketTypes.isUnknown(type)
-                || !eventBusses.has(type)) {
+                || !this.eventBusses.has(type)) {
             return;
         }
 
-        callToEventBus.accept(eventBusses.get(type));
+        callToEventBus.accept(this.eventBusses.get(type));
     }
 
     @Override
@@ -320,7 +320,7 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public Callback getPostAction(PacketType type) {
-        return PacketTypes.isUnknown(type) ? null : postActions.get(type);
+        return PacketTypes.isUnknown(type) ? null : this.postActions.get(type);
     }
 
     @Override
@@ -329,7 +329,7 @@ public class InternalPacketProcessor implements PacketProcessor {
             return;
         }
 
-        Callback callback = postActions.get(type, Callback::new);
+        Callback callback = this.postActions.get(type, Callback::new);
         callback.addAction(action);
     }
 }

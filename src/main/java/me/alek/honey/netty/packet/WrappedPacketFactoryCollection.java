@@ -66,7 +66,7 @@ public class WrappedPacketFactoryCollection {
     }
 
     private static void loadWrapper(PacketType type, PacketContainer.PipelineState state) {
-        TYPES_PIPELINE_STATES.getOr(type, IDRegistry::new).add(state.ordinal());
+        TYPES_PIPELINE_STATES.get(type, IDRegistry::new).add(state.ordinal());
     }
 
     public static IDRegistry getPipelineStates(PacketType type) {

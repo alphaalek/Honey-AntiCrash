@@ -1,6 +1,5 @@
 package me.alek.honey.netty.tag.nbt.array;
 
-import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.TagType;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +19,7 @@ public class GeneticArrayTypes {
             super(TagType.getFromCollection(TagType.Collection.COMPOUND));
         }
 
-        public ArrayOfCompoundTag(List<Object> array) {
+        public ArrayOfCompoundTag(Iterable<Object> array) {
             super(TagType.getFromCollection(TagType.Collection.COMPOUND), array);
         }
 
@@ -41,7 +40,7 @@ public class GeneticArrayTypes {
             super(TagType.getFromCollection(TagType.Collection.ARRAY));
         }
 
-        public ArrayOfArrayTag(List<Object> array) {
+        public ArrayOfArrayTag(Iterable<Object> array) {
             super(TagType.getFromCollection(TagType.Collection.ARRAY), array);
         }
 

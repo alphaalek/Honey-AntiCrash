@@ -4,8 +4,8 @@ import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginOutDisconnect;
+import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packetwrappers.impl.login.WrappedPlayOutDisconnect;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
@@ -190,8 +190,8 @@ public class HoneyPlayer implements Identifiable {
 
     public void kick(Component reason) {
         this.online = false;
-        WrappedLoginOutDisconnect packet = new WrappedLoginOutDisconnect(this.clientInfo.getProtocol(), reason);
-        packet.sendSilently(this.channel);
+        WrappedPlayOutDisconnect packet = WrappedPlayOutDisconnect.of(this.packetHandler.getProtocolState(PacketBound.CLIENT), this.clientInfo.getProtocol(), reason);
+        packet.sendSilently(this);
     }
 
     public boolean isStreamActive() {

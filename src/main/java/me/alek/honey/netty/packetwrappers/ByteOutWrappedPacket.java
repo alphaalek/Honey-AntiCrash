@@ -1,6 +1,6 @@
 package me.alek.honey.netty.packetwrappers;
 
-import io.netty.channel.Channel;
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -16,15 +16,15 @@ public class ByteOutWrappedPacket<WP extends WrappedPacket<WP>> implements ByteW
         this.protocol = protocol;
     }
 
-    public void sendSilently(Channel channel) {
+    public void sendSilently(HoneyPlayer player) {
         PacketDataSerializer serializer = new PacketDataSerializer();
+        serializer.writeVarInt(player.packetHandler.getPacketId(this.type));
         write(serializer);
 
-        HoneyPlugin.get().getPacketLibrary().getPacketManager().sendPacketSilently(channel, serializer);
+        HoneyPlugin.get().getPacketLibrary().getPacketManager().sendPacketSilently(player.channel, serializer);
     }
 
     public void write(PacketDataSerializer serializer) {
-
     }
 
     @Override

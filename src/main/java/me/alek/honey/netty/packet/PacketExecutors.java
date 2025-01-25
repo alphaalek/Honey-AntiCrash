@@ -39,11 +39,12 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class PacketExecutors {
 
     public static void register() {
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2)) {
+        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPacketExecutor(PacketTypes.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor<>());
         }
     }
@@ -86,13 +87,12 @@ public class PacketExecutors {
 
             String channel = packet.getAnyWrapped().getPayloadData().getChannel();
             if (channel.equals(WrappedPlayInCustomPayload.PayloadData.EDIT_BOOK_CHANNEL)) {
-                Runnable edit = handleBookEdit0(item, heldItem);
+                Runnable edit = handleBookEdit0(packet.getPlayer(), item, heldItem);
                 if (edit != null) {
                     return edit;
                 }
             } else if (channel.equals(WrappedPlayInCustomPayload.PayloadData.SIGN_BOOK_CHANNEL)) {
-
-                Runnable sign = handleBookSign0(item, heldItem);
+                Runnable sign = handleBookSign0(packet.getPlayer(), item, heldItem);
                 if (sign != null) {
                     return sign;
                 }
@@ -101,75 +101,94 @@ public class PacketExecutors {
             return INVALID_BOOK_DATA.apply(packet.getPlayer());
         }
 
-        private Runnable handleBookEdit0(WrappedImmutableItemStack item, ItemStack heldItem) {
+        private Runnable handleBookEdit0(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
             if (item.getType() != ItemTypes.WRITABLE_BOOK) {
                 return null;
             }
 
             ItemTag tag = item.getTag();
             if (tag.asComponentMap().isPresent()) {
+                ComponentMap map = tag.asComponentMap().get();
+                WritableBookContent content = map.get(ComponentTypes.WRITABLE_BOOK_CONTENT).get();
                 return () -> {
-                    ComponentMap map = tag.asComponentMap().get();
-                    WritableBookContent content = map.get(ComponentTypes.WRITABLE_BOOK_CONTENT).get();
-
                     addPagesToWritableBook(heldItem, content.getPages().stream().map(Filterable::getRaw).collect(Collectors.toList()));
+                    player.setItemInMainHand(heldItem);
+
+                    Bukkit.broadcastMessage("Edit " + heldItem);
                 };
             } else if (tag.asNBT().isPresent()) {
+                CompoundTag nbt = tag.asNBT().get();
+                ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
                 return () -> {
-                    CompoundTag nbt = tag.asNBT().get();
-                    ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
-
                     addPagesToWritableBook(heldItem, pages);
+                    player.setItemInMainHand(heldItem);
+
+                    Bukkit.broadcastMessage("Edit " + heldItem);
                 };
             } else {
                 return null;
             }
         }
 
-        private void addPagesToWritableBook(ItemStack item, Iterable<String> pages) {
+        private CompoundTag addPagesToWritableBook(ItemStack item, Iterable<String> pages) {
             CompoundTag tag = NBTFactory.fromItem(item, true);
             ArrayTag<String> pagesTag = new ArrayTag<>(TagType.STRING);
             pagesTag.addAll(pages);
             tag.put("pages", pagesTag);
+            return tag;
         }
 
-        private Runnable handleBookSign0(WrappedImmutableItemStack item, ItemStack heldItem) {
+        private Runnable handleBookSign0(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
             if (item.getType() != ItemTypes.WRITTEN_BOOK) {
                 return null;
             }
 
             ItemTag tag = item.getTag();
             if (tag.asComponentMap().isPresent()) {
-                return () -> {
-                    ComponentMap map = tag.asComponentMap().get();
-                    WrittenBookContent content = map.get(ComponentTypes.WRITTEN_BOOK_CONTENT).get();
+                ComponentMap map = tag.asComponentMap().get();
+                WrittenBookContent content = map.get(ComponentTypes.WRITTEN_BOOK_CONTENT).get();
 
-                    addContentToWrittenBook(heldItem,
-                            content.getPages().stream()
-                                    .map(Filterable::getRaw)
-                                    .map(p -> AdventureSerializer.getGsonSerializer().serialize(p))
-                                    .collect(Collectors.toList()),
-                            content.getAuthor(), content.getTitle().getRaw());
-                };
+                List<String> pages = content.getPages().stream()
+                        .map(Filterable::getRaw)
+                        .map(p -> AdventureSerializer.getGsonSerializer().serialize(p))
+                        .collect(Collectors.toList());
+                String author = content.getAuthor();
+                String title = content.getTitle().getRaw();
+                return () -> applyContent(player, heldItem, pages, author, title);
             } else if (tag.asNBT().isPresent()) {
-                return () -> {
-                    CompoundTag nbt = tag.asNBT().get();
-                    ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
-
-                    addPagesToWritableBook(heldItem, pages);
-                };
+                CompoundTag nbt = tag.asNBT().get();
+                ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
+                String author = nbt.getString("author");
+                String title = nbt.getString("title");
+                return () -> applyContent(player, heldItem, pages, author, title);
             } else {
                 return null;
             }
         }
 
-        private void addContentToWrittenBook(ItemStack item, Iterable<String> pages, String author, String title) {
+        private void applyContent(HoneyPlayer player, ItemStack heldItem, Iterable<String> pages, String author, String title) {
+            CompoundTag heldItemTag = addContentToWrittenBook(heldItem, pages, author, title);
+
+            ItemStack newItem = new ItemStack(ItemFactory.getMaterial(ItemTypes.WRITTEN_BOOK));
+            ItemFactory.setItemTag(newItem, heldItemTag);
+            player.setItemInMainHand(newItem);
+
+            Bukkit.broadcastMessage("Sign " + newItem + " " + heldItemTag);
+        }
+
+        private CompoundTag addContentToWrittenBook(ItemStack item, Iterable<String> pages, String author, String title) {
             CompoundTag tag = NBTFactory.fromItem(item, true);
-            ArrayTag<String> pagesTag = new ArrayTag<>(TagType.STRING);
-            pagesTag.addAll(pages);
-            tag.put("pages", pagesTag);
+            Bukkit.broadcastMessage(StreamSupport.stream(pages.spliterator(), false)
+                    .map(p -> AdventureSerializer.getLegacySerializer().serialize(Component.text(p)))
+                    .collect(Collectors.toList()) + "");
+            tag.put("pages", new ArrayTag<>(TagType.STRING,
+                    StreamSupport.stream(pages.spliterator(), false)
+                            .map(p -> AdventureSerializer.getLegacySerializer().serialize(Component.text(p)))
+                            .collect(Collectors.toList())
+            ));
             tag.put("author", new PrimitiveTag<>(TagType.STRING, author));
             tag.put("title", new PrimitiveTag<>(TagType.STRING, title));
+            return tag;
         }
 
         /*

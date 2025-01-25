@@ -4,10 +4,12 @@ import com.github.retrooper.packetevents.protocol.component.ComponentType;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import io.netty.buffer.ByteBufInputStream;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,13 +40,17 @@ public class ComponentMap implements ItemTag {
             }
 
             PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(serializer);
+            wrapper.setClientVersion(this.protocol.toPECVersion());
+            wrapper.setServerVersion(this.protocol.toPESVersion());
+
             List<Val<?>> bases = context.get().getComponents().getDelegate().entrySet().stream()
                     .map(e -> new ComponentMap.Val<>((ComponentType<Object>) e.getKey(), e.getValue(), ComponentSource.BASE))
                     .collect(Collectors.toList());
             ComponentMap map = new ComponentMap(bases);
             for (int i = 0; i < present; i++) {
                 ComponentType<Object> type = readType(serializer);
-                map.set(type, type.read(wrapper));
+                Object val = type.read(wrapper);
+                map.set(type, val);
             }
             for (int i = 0; i < absent; i++) {
                 map.remove(readType(serializer));

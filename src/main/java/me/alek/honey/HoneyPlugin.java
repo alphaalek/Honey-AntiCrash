@@ -24,6 +24,7 @@ import me.alek.honey.listeners.TeleportListener;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.PacketLibrarySettings;
+import me.alek.honey.netty.handler.MinecraftHandlers;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -152,7 +153,7 @@ public class HoneyPlugin implements HoneyAPI {
                 return;
             }
 
-            channel.pipeline().addBefore("packet_handler", "honey-invalid-session", new ChannelInboundHandlerAdapter() {
+            channel.pipeline().addBefore(MinecraftHandlers.MANAGER, "honey-invalid-session", new ChannelInboundHandlerAdapter() {
 
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) {

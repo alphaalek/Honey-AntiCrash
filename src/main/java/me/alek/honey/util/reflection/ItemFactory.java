@@ -1,5 +1,6 @@
 package me.alek.honey.util.reflection;
 
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import me.alek.honey.netty.structure.IStructureModifier;
@@ -128,6 +129,10 @@ public class ItemFactory {
         return ItemFactory.asNMSCopy(item);
     }
 
+    public static Material getMaterial(ItemType type) {
+        return getMaterialFromId(type.getId(NetProtocol.getProtocol().toPECVersion()));
+    }
+
     public static Material getMaterialFromId(int id) {
         return getMaterialFromItem(getItemFromId(id));
     }
@@ -162,6 +167,10 @@ public class ItemFactory {
 
     public static boolean isCraftItem(Object item) {
         return NMS.getCraftItemStackClass().isInstance(item);
+    }
+
+    public static void setItemTag(ItemStack item, ItemTag tag) {
+        setItemTag(ItemFactory.getHandleItem(item), tag);
     }
 
     public static void setItemTag(Object item, ItemTag tag) {

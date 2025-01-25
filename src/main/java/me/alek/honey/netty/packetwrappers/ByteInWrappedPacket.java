@@ -20,6 +20,7 @@ import java.util.Map;
 public class ByteInWrappedPacket<WP extends SourcedWrappedPacket<WP>> implements ByteWrappedPacket<WP>, SourcedWrappedPacket<WP> {
 
     private final PacketContainer<WP> packet;
+    private final PacketContainer.PipelineState state;
     private final PacketDataSerializer buf;
     private final int byteSize;
     private final int accumulatedByteSize;
@@ -28,6 +29,7 @@ public class ByteInWrappedPacket<WP extends SourcedWrappedPacket<WP>> implements
     public ByteInWrappedPacket(PacketDataSerializer buf, PacketContainer<WP> packet) {
         this.buf = buf;
         this.packet = packet;
+        this.state = packet.getPipelineState();
         this.byteSize = buf.readableBytes();
 
         if (packet.getInitialByteWrapped() == null) {
@@ -49,6 +51,7 @@ public class ByteInWrappedPacket<WP extends SourcedWrappedPacket<WP>> implements
         }
     }
 
+    @Override
     public boolean isAbstract() {
         return !getClass().equals(ByteInWrappedPacket.class);
     }
@@ -72,6 +75,11 @@ public class ByteInWrappedPacket<WP extends SourcedWrappedPacket<WP>> implements
     @Override
     public HoneyPlayer getPlayer() {
         return this.packet.getPlayer();
+    }
+
+    @Override
+    public PacketContainer.PipelineState getState() {
+        return this.state;
     }
 
     @Override

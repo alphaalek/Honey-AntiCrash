@@ -8,7 +8,10 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.*;
+import me.alek.honey.netty.packetwrappers.AutoReleasable;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -24,6 +27,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     private PacketType type;
     private boolean cancelled;
+    private boolean logged;
     private boolean dumped;
     private PipelineState pipelineState;
     private InternalObjectPacketStructure structure;
@@ -55,7 +59,9 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         }
 
         this.pipelineState = createdState;
-        if (serializer != null && createdState != PipelineState.OBJECT && !PacketTypes.isUnknown(type)) {
+        if (serializer != null && createdState != PipelineState.OBJECT && !PacketTypes.isUnknown(type)
+                && (this.initialByteWrapped == null || !this.initialByteWrapped.isAbstract())
+                && (this.finalByteWrapped == null || !this.finalByteWrapped.isAbstract())) {
             ByteInWrappedPacket<WP> byteWrappedPacket = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
 
             boolean validate = this.initialByteWrapped == null && this.finalByteWrapped == null;
@@ -205,6 +211,11 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
+    public boolean isLogged() {
+        return this.logged;
+    }
+
+    @Override
     public boolean isCancelled() {
         return this.cancelled;
     }
@@ -221,6 +232,11 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     @Override
     public void dump() {
         this.dumped = true;
+    }
+
+    @Override
+    public void log() {
+        this.logged = true;
     }
 
     @Override
@@ -258,6 +274,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     @Override
     public WP getAnyWrapped() {
+        // TODO: settings to prioritize order (choose which pipeline state to log)
         if (this.objectWrapped != null && !this.objectWrapped.getClass().equals(ObjectWrappedPacket.class)) {
             return this.objectWrapped.get();
         } else if (this.finalByteWrapped != null && !this.finalByteWrapped.getClass().equals(ByteInWrappedPacket.class)) {

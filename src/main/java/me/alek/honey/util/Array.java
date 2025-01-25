@@ -117,6 +117,10 @@ public class Array<T> implements Iterable<T> {
         return array;
     }
 
+    public int indexOf(T val) {
+        return Arrays.asList(this.data).indexOf(val);
+    }
+
     private void resolve(int index) {
         if (index >= data.length) {
             synchronized (this) {
@@ -288,12 +292,7 @@ public class Array<T> implements Iterable<T> {
     }
 
     public boolean has(Identifiable identifiable) {
-        try {
-            return has(identifiable.getAsInt());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException();
-        }
+        return has(identifiable.getAsInt());
     }
 
     public void clear() {

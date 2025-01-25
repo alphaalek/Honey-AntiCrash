@@ -56,11 +56,11 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacket<WrappedPlayInW
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
             this.slots = serializer.readMap(
                     serializerInput -> Math.toIntExact(serializerInput.readShort()),
-                    serializerInput -> serializerInput.readItemStack(protocol)
+                    serializerInput -> serializerInput.readItemStackSafely(protocol, this)
             );
         }
 
-        this.carriedItemStack = serializer.readItemStack(protocol);
+        this.carriedItemStack = serializer.readItemStackSafely(protocol, this);
     }
 
     public int getWindowId() {

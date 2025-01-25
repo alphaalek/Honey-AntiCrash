@@ -6,9 +6,32 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Properties;
 
 public class ServerPacketManager {
+
+    private final boolean useCompressing;
+
+    {
+        boolean c;
+        try {
+            Properties properties = new Properties();
+            properties.load(new FileInputStream("server.properties"));
+
+            c = Integer.parseInt(properties.getProperty("network-compression-threshold")) > 0;
+        } catch (IOException ex) {
+            c = false;
+        }
+        this.useCompressing = c;
+    }
 
     public <WP extends SourcedWrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, ObjectWrappedPacket<WP> packet) {
         HoneyPacketEncodePreparation encoder = getEncoder(player.channel);
@@ -20,7 +43,11 @@ public class ServerPacketManager {
     }
 
     public void sendPacketSilently(Channel channel, Object obj) {
-       channel.pipeline().context(MinecraftHandlers.ENCODER).writeAndFlush(obj);
+        if (this.useCompressing) {
+            channel.pipeline().context(MinecraftHandlers.COMPRESS).writeAndFlush(obj);
+        } else {
+            channel.pipeline().context(MinecraftHandlers.PREPENDER).writeAndFlush(obj);
+        }
     }
 
     public void receivePacketSilently(Channel channel, Object obj) {

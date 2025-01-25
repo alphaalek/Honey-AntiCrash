@@ -16,8 +16,10 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempIntervalTracker;
+import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.counter.DecayingWindowCounter;
 import me.alek.honey.util.statics.NumberUtils;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -56,6 +58,11 @@ public class HoneyLogger {
 
             @Override
             public void onPacketReceive(HoneyPlayer player, PacketContainer<WP> packet) {
+                if (packet.isLogged()) {
+                    return;
+                }
+                packet.log();
+
                 if (monitorManager.hasMonitorers()) {
                     if (player.isBukkitReady()) {
                         long time = System.currentTimeMillis();
@@ -164,30 +171,30 @@ public class HoneyLogger {
     }
 
     public void removePacketData(HoneyPlayer player) {
-        recentPackets.remove(player.uuid);
-        packetRate.remove(player.uuid);
+        this.recentPackets.remove(player.uuid);
+        this.packetRate.remove(player.uuid);
     }
 
     public double getPacketRatePerQueueExecution(Timespan timespan) {
-        int length = packetRatePerQueueExecution.getLength(timespan);
+        int length = this.packetRatePerQueueExecution.getLength(timespan);
         if (length == 0) {
             return 0;
         }
 
-        return ((double) packetRatePerQueueExecution.getTotal(timespan)) / length;
+        return ((double) this.packetRatePerQueueExecution.getTotal(timespan)) / length;
     }
 
     public void registerQueueExecutionPacket() {
-        currentQueueExecutionPacket.addAndGet(1);
+        this.currentQueueExecutionPacket.addAndGet(1);
     }
 
     public void registerQueueExecutionStop() {
-        packetRatePerQueueExecution.add(currentQueueExecutionPacket.get());
-        currentQueueExecutionPacket.set(0);
+        this.packetRatePerQueueExecution.add(currentQueueExecutionPacket.get());
+        this.currentQueueExecutionPacket.set(0);
     }
 
     public void logToMonitors(HoneyPlayer player, PacketContainer<?> packet) {
-        if (player.isBukkitReady() && monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
+        if (player.isBukkitReady() && this.monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
                 && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getType().toString()))) {
             synchronized (this) {
                 Queue<PacketType> recentPackets = HoneyLogger.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());
@@ -198,8 +205,8 @@ public class HoneyLogger {
                     if (packetType == null) packetType = sentPacketType;
 
                     int packetRate = getPacketRate(player);
-                    monitorManager.sendPlayerInfo(player, "§8[§6§l!§8] §e" + player.name
-                            + " §8(" + notificationService.formatPing(player) + "ms§8) §7"
+                    this.monitorManager.sendPlayerInfo(player, "§8[§6§l!§8] §e" + player.name
+                            + " §8(" + this.notificationService.formatPing(player) + "ms§8) §7"
                             + packetRate + " pps §8(" + getPacketRateGrade(player, packetRate) + "§8)"
                             + " §7Packet: " + packetType + (recentPackets.size() <= 1 ? "" : " §f(x" + recentPackets.size() + ")"));
                     recentPackets.clear();
@@ -211,7 +218,7 @@ public class HoneyLogger {
             }
         }
 
-        monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_HONEY_HANDLE);
+        this.monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_HONEY_HANDLE);
     }
 
     public void dumpAutoHeavyPacket(PacketContainer<?> packet) {
@@ -232,19 +239,32 @@ public class HoneyLogger {
     }
 
     public <WP extends SourcedWrappedPacket<WP>> void logPacket(PacketContainer<WP> packet, String playerName, boolean detailed, long comparingTime) {
-        if (ignoredPlayers.contains(playerName)
-                || ignoredPackets.contains(packet.getType().toString())) {
+        if (this.ignoredPlayers.contains(playerName)
+                || this.ignoredPackets.contains(packet.getType().toString())) {
             return;
         }
 
         StringBuilder message = new StringBuilder();
         if (comparingTime > packet.getTimeCreated()) {
-            message.append("(" + (comparingTime - packet.getTimeCreated()) + "ms ago): ");
+            message.append("(")
+                   .append(comparingTime - packet.getTimeCreated())
+                   .append("ms ago) ");
         }
-        message.append(playerName + " sent " + formatPacketType(packet.getType()));
+        message.append(playerName)
+               .append(" sent ")
+               .append(formatPacketType(packet.getType()))
+               .append(" (")
+               .append(packet.getAnyWrapped().getState().toString().toLowerCase().split("_")[0].charAt(0))
+               .append(")");
+
+        IDRegistry states = WrappedPacketFactoryCollection.getPipelineStates(packet.getType());
+        if (packet.getAnyWrapped().isAbstract() && !states.hasID(packet.getAnyWrapped().getState().ordinal())) {
+            message.append(" (invoked)");
+        }
 
         if (detailed && !PacketTypes.isUnknown(packet.getType())) {
-            message.append(": " + filterTooMuchData(formatPacketEntries(packet)));
+            message.append(" ")
+                   .append(filterTooMuchData(formatPacketEntries(packet)));
         }
 
         getLogger().info(message.toString());

@@ -4,7 +4,11 @@ public class MinecraftHandlers {
 
     public static String SPLITTER = "splitter";
 
+    public static String PREPENDER = "prepender";
+
     public static String DECOMPRESS = "decompress";
+
+    public static String COMPRESS = "compress";
 
     public static String DECODER = "decoder";
 

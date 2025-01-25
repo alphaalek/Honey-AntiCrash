@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.validation.CodecType;
+import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
@@ -63,7 +63,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             this.signing = false;
         }
 
-        CodecType.BOOK_EDIT_TAG.validate(tag, new DecodeContext.BookEditContext<>(this, this.signing));
+        CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, new DecodeContext.BookEditContext<>(this, this.signing));
     }
 
     public int getSlot() {

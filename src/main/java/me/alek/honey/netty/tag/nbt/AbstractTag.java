@@ -10,6 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> extends WrappedObject<AbstractTag<T, V, TAG>> implements Cloneable, Serializable {
@@ -52,7 +53,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     public abstract void write(DataOutputStream output) throws IOException;
 
     public V getValue() {
-        if (this.value == null) {
+        if (this.value == null && this.valueStructureModifier != null) {
             this.value = this.valueStructureModifier.readFieldAndApplyMapping(0);
         }
         return this.value;
@@ -60,13 +61,13 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
 
     public void setValue(V value) {
         this.value = value;
-        this.valueStructureModifier.writeField(0, value);
+        if (this.valueStructureModifier != null) {
+            this.valueStructureModifier.writeField(0, value);
+        }
     }
 
     public boolean isNull() {
-        return this.valueStructureModifier == null
-                || getReflectionStructure() == null
-                || this.handle == null;
+        return this.handle == null;
     }
 
     public AbstractArrayTag<?, ?, ?> asArray() {
@@ -171,10 +172,10 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
             return false;
         }
         AbstractTag<?, ?, ?> base = (AbstractTag<?, ?, ?>) object;
-        if (base.getType() != getType()) {
+        if (base.getType().equals(getType())) {
             return false;
         }
-        return this == object;
+        return Objects.equals(getValue(), base.getValue());
     }
 
     @Override

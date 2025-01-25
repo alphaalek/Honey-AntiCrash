@@ -69,9 +69,13 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
 
     boolean isDumped();
 
+    boolean isLogged();
+
     void cancel();
 
     void dump();
+
+    void log();
 
     void releaseIfAutoReleasable();
 }

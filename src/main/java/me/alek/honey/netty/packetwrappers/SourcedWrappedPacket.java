@@ -30,6 +30,10 @@ public interface SourcedWrappedPacket<WP extends SourcedWrappedPacket<WP>> exten
         return getContainer().getProtocol();
     }
 
+    boolean isAbstract();
+
+    PacketContainer.PipelineState getState();
+
     PacketContainer<WP> getContainer();
 
     HoneyPlayer getPlayer();
