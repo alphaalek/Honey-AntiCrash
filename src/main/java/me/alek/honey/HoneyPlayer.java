@@ -5,7 +5,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packetwrappers.impl.login.WrappedPlayOutDisconnect;
+import me.alek.honey.netty.packetwrappers.impl.WrappedPlayOutDisconnect;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
@@ -173,15 +173,13 @@ public class HoneyPlayer implements Identifiable {
         }
 
         this.online = false;
-        HoneyPlugin.get().sync(() -> {
-            if (this.bukkit != null) {
-                if (ex != null && ex.getMessage() != null) {
-                    kick(Component.text(ex.getMessage()));
-                } else {
-                    kick(DISCONNECTED);
-                }
+        if (this.bukkit != null) {
+            if (ex.getMessage() != null) {
+                kick(Component.text(ex.getMessage()));
+            } else {
+                kick(DISCONNECTED);
             }
-        });
+        }
     }
 
     public void kick() {
@@ -190,8 +188,8 @@ public class HoneyPlayer implements Identifiable {
 
     public void kick(Component reason) {
         this.online = false;
-        WrappedPlayOutDisconnect packet = WrappedPlayOutDisconnect.of(this.packetHandler.getProtocolState(PacketBound.CLIENT), this.clientInfo.getProtocol(), reason);
-        packet.sendSilently(this);
+        WrappedPlayOutDisconnect packet = WrappedPlayOutDisconnect.of(this.packetHandler.getProtocolState(PacketBound.CLIENT), reason);
+        packet.write(this);
     }
 
     public boolean isStreamActive() {

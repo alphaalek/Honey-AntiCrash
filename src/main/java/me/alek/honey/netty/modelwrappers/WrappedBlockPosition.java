@@ -173,6 +173,6 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
 
     @Override
     public String toString() {
-        return x + "," + y + "," + z;
+        return x + ";" + y + ";" + z;
     }
 }

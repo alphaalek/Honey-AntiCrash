@@ -7,6 +7,7 @@ import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CodecTypes {
 
@@ -271,9 +272,9 @@ public class CodecTypes {
             int depth = limiter.incrementNestingDepth();
 
             int length = input.readInt();
-            List<Object> array = new ArrayList<>();
+            List<T> array = new ArrayList<>();
             for (int i = 0; i < length; i++) {
-                array.add(Optional.ofNullable(type.getCodec().read(input, limiter)).map(AbstractTag::getHandle).orElse(null));
+                array.add(type.<T>getCodec().read(input, limiter));
             }
 
             limiter.setNestingDepthLevel(depth);
@@ -282,22 +283,30 @@ public class CodecTypes {
             if (type.hasCollection()) {
                 switch (type.getCollection()) {
                     case ARRAY:
-                        wrappedArray = (R) new GeneticArrayTypes.ArrayOfArrayTag<>(array);
+                        wrappedArray = (R) createArrayOfArray(array);
                         break;
                     case COMPOUND:
-                        wrappedArray = (R) new GeneticArrayTypes.ArrayOfCompoundTag(array);
+                        wrappedArray = (R) new GeneticArrayTypes.ArrayOfCompoundTag((List<CompoundTag>) array);
                         break;
                     default:
                         throw new DecoderException("Wrong array type");
                 }
             } else {
-                wrappedArray = (R) new ArrayTag<>(array, type);
+                wrappedArray = (R) new ArrayTag<>(type,
+                        array.stream()
+                                .map(v -> v.asPrimitive().getValue())
+                                .collect(Collectors.toList()));
             }
 
             return wrappedArray
                     .incrementComplexity(limiter)
                     .incrementBytes(limiter, ARRAY_BYTES)
                     .incrementBytes(limiter, ARRAY_ELEMENT_BYTES * wrappedArray.size());
+        }
+
+        @SuppressWarnings("unchecked")
+        private <ARRAY extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN>, IN extends AbstractArrayTag<?, IN, ?>> GeneticArrayTypes.ArrayOfArrayTag<?, IN> createArrayOfArray(Iterable<T> array) {
+            return new GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN>((Iterable<IN>) array);
         }
     }
 

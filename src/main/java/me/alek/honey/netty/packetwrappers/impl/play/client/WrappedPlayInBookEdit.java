@@ -10,7 +10,9 @@ import me.alek.honey.netty.tag.nbt.PrimitiveTag;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +29,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
     @Property
     private final boolean signing;
     @Property
-    private final List<String> pages;
+    private final List<String> pages = new ArrayList<>();
     @Property
     @Property.IgnoreIfNull
     private String author;
@@ -48,16 +50,14 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
         }
 
         CompoundTag tag = new CompoundTag();
-        ArrayTag<String> pages = new ArrayTag<>(TagType.STRING);
         for (int i = 0; i < pageCount; i++) {
-            pages.add(buf.readString(PAGE_CHAR_LIMIT));
+            this.pages.add(buf.readString(PAGE_CHAR_LIMIT));
         }
-        tag.put("pages", pages);
-        this.pages = pages.stream().collect(Collectors.toList());
+        tag.putArray("pages", TagType.STRING, this.pages);
 
         if (buf.readBoolean()) {
-            tag.put("title", new PrimitiveTag<>(TagType.STRING, this.title = buf.readString(TITLE_CHAR_LIMIT)));
-            tag.put("author", new PrimitiveTag<>(TagType.STRING, this.author = packet.getPlayer().name));
+            tag.putPrimitive("title", TagType.STRING, this.title = buf.readString(TITLE_CHAR_LIMIT));
+            tag.putPrimitive("author", TagType.STRING, this.author = packet.getPlayer().name);
             this.signing = true;
         } else {
             this.signing = false;

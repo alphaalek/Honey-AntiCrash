@@ -12,14 +12,13 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.util.Callback;
 
 import java.lang.reflect.Method;
 
 @ChannelHandler.Sharable
-public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter {
+public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
 
     private static final PacketProcessor packetProcessor = HoneyPlugin.get().getPacketLibrary().getPacketProcessor();
     private static final Method packetEncode;
@@ -39,7 +38,7 @@ public class HoneyPacketEncodePreparation extends ChannelOutboundHandlerAdapter 
     private final Channel channel;
     private final HoneyPlayer player;
 
-    public HoneyPacketEncodePreparation(Channel channel, AsyncPacketStream async, HoneyPacketHandler packetHandler) {
+    public HoneyPacketOutStream(Channel channel, AsyncPacketStream async, HoneyPacketHandler packetHandler) {
         this.channel = channel;
         this.async = async;
         this.packetHandler = packetHandler;

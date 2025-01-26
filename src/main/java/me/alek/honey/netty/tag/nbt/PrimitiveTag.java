@@ -2,6 +2,7 @@ package me.alek.honey.netty.tag.nbt;
 
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -20,7 +21,7 @@ public class PrimitiveTag<T> extends AbstractTag<T, T, PrimitiveTag<T>> {
     }
 
     public PrimitiveTag(TagType type, T value) {
-        super(type.getBaseInvoker().invoke(value));
+        super(type.getNMSInvoker().invoke(value));
     }
 
     @Override

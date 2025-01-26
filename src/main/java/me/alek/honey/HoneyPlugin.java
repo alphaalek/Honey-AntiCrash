@@ -1,12 +1,6 @@
 package me.alek.honey;
 
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.PacketEventsAPI;
-import com.github.retrooper.packetevents.injector.ChannelInjector;
-import com.github.retrooper.packetevents.manager.player.PlayerManager;
-import com.github.retrooper.packetevents.manager.protocol.ProtocolManager;
-import com.github.retrooper.packetevents.manager.server.ServerManager;
-import com.github.retrooper.packetevents.netty.NettyManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;

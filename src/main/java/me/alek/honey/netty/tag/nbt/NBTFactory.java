@@ -149,8 +149,14 @@ public class NBTFactory {
             return null;
         }
 
-        Object nmsItem = ItemFactory.getHandleItem(item);
-        if (nmsItem == null) {
+        Object nmsItem;
+        try {
+            nmsItem = ItemFactory.getHandleItem(item);
+            if (nmsItem == null) {
+                return null;
+            }
+        } catch (Exception ex) {
+            Bukkit.getLogger().log(Level.SEVERE, "Failed to get handle item", ex);
             return null;
         }
 
@@ -187,7 +193,7 @@ public class NBTFactory {
             return null;
         }
 
-        ConstructorInvoker<? extends AbstractTag<?, ?, ?>> constructorInvoker = type.getWrappedInvoker();
+        ConstructorInvoker<? extends AbstractTag<?, ?, ?>> constructorInvoker = type.getBridgeWrapperInvoker();
         if (constructorInvoker == null) {
             return null;
         }
@@ -229,19 +235,6 @@ public class NBTFactory {
         return value.getType();
     }
 
-    public static byte getTypeId(IStructureModifier<Byte> structureModifier) {
-        if (structureModifier == null) {
-            return -1;
-        }
-
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
-            return structureModifier.invokeMethod(null, "getTypeId", 0);
-        } else {
-            return structureModifier.invokeMethod(null,
-                    (index, invoker) -> invoker.getHandle().getDeclaringClass().equals(NMS.getNBTBaseClass()));
-        }
-    }
-
     public static TagType getType(Object handle, boolean ignoreNestedArrays) {
         if (handle == null) {
             return null;
@@ -251,7 +244,13 @@ public class NBTFactory {
                 .withBytes()
                 .withTarget(handle);
 
-        byte typeId = getTypeId(structureModifier);
+        byte typeId;
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
+            typeId = structureModifier.invokeMethod(null, "getTypeId", 0);
+        } else {
+            typeId = structureModifier.invokeMethod(null,
+                    (index, invoker) -> invoker.getHandle().getDeclaringClass().equals(NMS.getNBTBaseClass()));
+        }
 
         TagType type = TagType.getFromTypeId(typeId);
         if (type != null && type.getCollection() == TagType.Collection.ARRAY && !ignoreNestedArrays) {

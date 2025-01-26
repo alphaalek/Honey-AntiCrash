@@ -6,13 +6,13 @@ import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.TagType;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -32,24 +32,22 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
         this(typeOf, new ArrayList<>());
     }
 
-    public AbstractArrayTag(TagType typeOf, Iterable<?> array) {
-        super(createBaseFromArray(array, typeOf.getTypeId()));
+    public AbstractArrayTag(TagType typeOf, Iterable<C> array) {
+        super(createBaseFromArray(typeOf));
         this.typeOf = typeOf;
 
-        if (TYPE.equals(TagType.ARRAY_LEGACY)) {
-            for (Object val : array) {
-                getValue().add(val);
-            }
-            ReflectStructure.Provider.acquireStructure(TYPE.getDelegateClass())
-                    .withBytes().withTarget(getHandle()).writeField(0, this.typeOf.getTypeId());
+        for (C val : array) {
+            getValue().addConverted(to(val));
         }
+        ReflectStructure.Provider.acquireStructure(TYPE.getDelegateClass())
+                .withBytes().withTarget(getHandle()).writeField(0, this.typeOf.getTypeId());
     }
 
-    private static Object createBaseFromArray(Iterable<?> array, byte typeId) {
+    private static Object createBaseFromArray(TagType typeOf) {
         if (TYPE.equals(TagType.ARRAY_LEGACY)) {
             return TYPE.createRawDelegate();
         } else if (TYPE.equals(TagType.ARRAY_MODERN)) {
-            return TYPE.getBaseInvoker().invoke(StreamSupport.stream(array.spliterator(), false).collect(Collectors.toList()), typeId);
+            return TYPE.getNMSInvoker().invoke(new ArrayList<>(), typeOf.getTypeId());
         } else {
             throw new IllegalStateException();
         }

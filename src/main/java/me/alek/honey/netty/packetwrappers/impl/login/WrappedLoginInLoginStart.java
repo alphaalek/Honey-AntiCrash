@@ -14,8 +14,11 @@ public class WrappedLoginInLoginStart extends ByteInWrappedPacket<WrappedLoginIn
 
     public static final int USERNAME_MAX_LENGTH = 16;
 
+    @Property
     private final String username;
+    @Property
     private UUID UUID;
+    @Property
     private SignatureData signatureData;
 
     public WrappedLoginInLoginStart(PacketDataSerializer serializer, PacketContainer<WrappedLoginInLoginStart> packet) {

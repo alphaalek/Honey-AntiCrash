@@ -8,7 +8,6 @@ import me.alek.honey.netty.packet.*;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.netty.processor.TypeProcessors;
@@ -90,12 +89,12 @@ public class PacketLibrary {
         return this.settings.getChannelInitName();
     }
 
-    public String getDecoderName() {
-        return this.settings.getDecoderName();
+    public String getInStreamName() {
+        return this.settings.getInStreamName();
     }
 
-    public String getEncoderName() {
-        return this.settings.getEncoderName();
+    public String getOutStreamName() {
+        return this.settings.getOutStreamName();
     }
 
     public String getDebuggerName() {

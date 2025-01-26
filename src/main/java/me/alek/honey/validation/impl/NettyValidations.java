@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 
 public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends AbstractValidationPacketListener<WP> {
 
-    public static final ValidationPipeline<ViolationValidation.IntViolation> PRINT_FILTER_PIPELINE = ValidationPipeline.from(new NettyA(), new NettyC());
-
     public NettyValidations(PacketLibrary library) {
         super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGH, getPacketTypes());
     }
@@ -44,30 +42,6 @@ public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
     @Override
     public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
         return ValidationPipeline.from(new NettyH<>(), new NettyI<>());
-    }
-
-    public static class NettyA implements ViolationValidation.IntViolation {
-        private static final int id = IDRegistry.CHECKS.acquire();
-
-        @Override
-        public int getID() {
-            return id;
-        }
-
-        @Override
-        public String getName() {
-            return "Netty.A";
-        }
-
-        @Override
-        public String getDescription() {
-            return Lang.get("validation.netty.a");
-        }
-
-        @Override
-        public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyA.class);
-        }
     }
 
     public static class NettyB<WP extends SourcedWrappedPacket<WP>> extends AbstractValidationPacketListener<WP> implements PacketValidation<WP>, ViolationValidation<WP> {
@@ -180,31 +154,6 @@ public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
             return Settings.getSetting(this, ConfigurationOptions.Netty.NettyB.class);
-        }
-    }
-
-    public static class NettyC implements ViolationValidation.IntViolation {
-
-        private static final int id = IDRegistry.CHECKS.acquire();
-
-        @Override
-        public int getID() {
-            return id;
-        }
-
-        @Override
-        public String getName() {
-            return "Netty.C";
-        }
-
-        @Override
-        public String getDescription() {
-            return Lang.get("validation.netty.c");
-        }
-
-        @Override
-        public ConfigurationOptions.ViolationSetting getSetting() {
-            return Settings.getSetting(this, ConfigurationOptions.Netty.NettyC.class);
         }
     }
 

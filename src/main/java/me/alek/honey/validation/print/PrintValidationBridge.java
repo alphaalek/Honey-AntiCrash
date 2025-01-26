@@ -2,12 +2,12 @@ package me.alek.honey.validation.print;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.InboundPacketFilter;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.tickloop.packet.TaskLifecycleHandler;
-import me.alek.honey.validation.impl.NettyValidations;
+import me.alek.honey.validation.impl.PrintValidations;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
@@ -52,14 +52,14 @@ public class PrintValidationBridge {
         Cancellable.Trigger cancellable = new Cancellable.Trigger();
         HoneyPlayer player = packet.getPlayer();
         int calculated = length.get();
-        NettyValidations.PRINT_FILTER_PIPELINE.doStreamOtherPipeline(
+        PrintValidations.PIPELINE.doStreamOtherPipeline(
                 player,
                 (validation, context) -> validation.validate(player, calculated, context),
                 cancellable);
 
         Filter.Result result;
-        if (cancellable.isCancelled()) {
-            result = Filter.Result.NEUTRAL;
+        if (cancellable.isCancelled() && ConfigurationOptions.Print.BLOCK_MESSAGE) {
+            result = Filter.Result.DENY;
         } else {
             result = Filter.Result.NEUTRAL;
         }

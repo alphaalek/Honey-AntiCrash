@@ -8,8 +8,8 @@ public class PacketLibrarySettings {
     private final String filterName;
     private final String connectorName;
     private final String channelInitName;
-    private final String decoderName;
-    private final String encoderName;
+    private final String inStreamName;
+    private final String outStreamName;
     private final String debuggerName;
 
     public PacketLibrarySettings(
@@ -17,16 +17,15 @@ public class PacketLibrarySettings {
             String filterName,
             String connectorName,
             String channelInitName,
-            String decoderName,
-            String encoderName,
-            String debuggerName
-    ) {
+            String inStreamName,
+            String outStreamName,
+            String debuggerName) {
         this.plugin = plugin;
         this.filterName = filterName;
         this.connectorName = connectorName;
         this.channelInitName = channelInitName;
-        this.decoderName = decoderName;
-        this.encoderName = encoderName;
+        this.inStreamName = inStreamName;
+        this.outStreamName = outStreamName;
         this.debuggerName = debuggerName;
     }
 
@@ -42,12 +41,12 @@ public class PacketLibrarySettings {
         return channelInitName;
     }
 
-    public String getDecoderName() {
-        return decoderName;
+    public String getInStreamName() {
+        return inStreamName;
     }
 
-    public String getEncoderName() {
-        return encoderName;
+    public String getOutStreamName() {
+        return outStreamName;
     }
 
     public String getDebuggerName() {

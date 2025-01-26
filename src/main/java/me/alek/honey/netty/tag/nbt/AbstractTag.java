@@ -5,6 +5,7 @@ import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -25,13 +26,9 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
         super(handle);
         this.handle = handle;
 
-        if (handle != null) {
-            this.valueStructureModifier = applyStructure(getNBTConverter())
-                    .apply(getReflectionStructure())
-                    .withTarget(handle);
-        } else {
-            this.valueStructureModifier = null;
-        }
+        this.valueStructureModifier = applyStructure(getNBTConverter())
+                .apply(getReflectionStructure())
+                .withTarget(handle);
 
         getValue();
     }
@@ -53,7 +50,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     public abstract void write(DataOutputStream output) throws IOException;
 
     public V getValue() {
-        if (this.value == null && this.valueStructureModifier != null) {
+        if (this.value == null) {
             this.value = this.valueStructureModifier.readFieldAndApplyMapping(0);
         }
         return this.value;
@@ -61,9 +58,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
 
     public void setValue(V value) {
         this.value = value;
-        if (this.valueStructureModifier != null) {
-            this.valueStructureModifier.writeField(0, value);
-        }
+        this.valueStructureModifier.writeField(0, value);
     }
 
     public boolean isNull() {
@@ -84,18 +79,11 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
         return (CompoundTag) this;
     }
 
-    public PrimitiveTag<V> asElement() {
+    public <T> PrimitiveTag<T> asPrimitive() {
         if (getType().hasCollection()) {
             return null;
         }
-        return (PrimitiveTag<V>) this;
-    }
-
-    public <R> PrimitiveTag<R> asElement(Class<R> clazz) {
-        if (getType().hasCollection()) {
-            return null;
-        }
-        return (PrimitiveTag<R>) this;
+        return (PrimitiveTag<T>) this;
     }
 
     public TagType getType() {

@@ -127,11 +127,6 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
     }
 
     @Override
-    public Object getRaw(K key) {
-        return declaringMap.get(key);
-    }
-
-    @Override
     public JavaConverter<V, T> getHandle() {
         return converter;
     }

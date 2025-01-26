@@ -5,22 +5,23 @@ import me.alek.honey.netty.tag.nbt.TagType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
-import java.util.List;
 
 public class GeneticArrayTypes {
 
     public static class ArrayOfCompoundTag extends AbstractArrayTag<CompoundTag, ArrayOfCompoundTag, CompoundTag> {
 
+        private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.COMPOUND);
+
         public ArrayOfCompoundTag(Object base) {
-            super(base, TagType.getFromCollection(TagType.Collection.COMPOUND));
+            super(base, TYPE);
         }
 
         public ArrayOfCompoundTag() {
-            super(TagType.getFromCollection(TagType.Collection.COMPOUND));
+            super(TYPE);
         }
 
-        public ArrayOfCompoundTag(Iterable<Object> array) {
-            super(TagType.getFromCollection(TagType.Collection.COMPOUND), array);
+        public ArrayOfCompoundTag(Iterable<CompoundTag> array) {
+            super(TYPE, array);
         }
 
         @NotNull
@@ -32,16 +33,18 @@ public class GeneticArrayTypes {
 
     public static class ArrayOfArrayTag<ARRAY extends ArrayOfArrayTag<ARRAY, IN>, IN extends AbstractArrayTag<?, IN, ?>> extends AbstractArrayTag<IN, ARRAY, IN> {
 
+        private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.ARRAY);
+
         public ArrayOfArrayTag(Object base) {
-            super(base, TagType.getFromCollection(TagType.Collection.ARRAY));
+            super(base, TYPE);
         }
 
         public ArrayOfArrayTag() {
-            super(TagType.getFromCollection(TagType.Collection.ARRAY));
+            super(TYPE);
         }
 
-        public ArrayOfArrayTag(Iterable<Object> array) {
-            super(TagType.getFromCollection(TagType.Collection.ARRAY), array);
+        public ArrayOfArrayTag(Iterable<IN> array) {
+            super(TYPE, array);
         }
 
         @NotNull

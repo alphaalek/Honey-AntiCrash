@@ -56,62 +56,20 @@ public class ItemFactory {
         return CHAT_SERIALIZER_GSON.toJsonTree(component);
     }
 
-    public static List<Object> getPages(BookMeta meta) {
-        IStructureModifier<List<Object>> bookMetaPageModifier = ReflectStructure.Provider.acquireStructure(meta.getClass())
-                .<List<Object>>withWeakTypeWithoutCache(List.class)
-                .withSuperClass(false)
-                .withTarget(meta);
-
-        return bookMetaPageModifier.readField(null, "pages", 0);
+    public static ItemStack asBukkitCopy(Object itemStack) throws Exception {
+        return bukkitCopyInvoker.invokeWithException(null, itemStack);
     }
 
-    public static void setPages(BookMeta meta, List<Object> pages) {
-        IStructureModifier<List<Object>> bookMetaPageModifier = ReflectStructure.Provider.acquireStructure(meta.getClass())
-                .<List<Object>>withWeakTypeWithoutCache(List.class)
-                .withSuperClass(false)
-                .withTarget(meta);
-
-        bookMetaPageModifier.writeField(null, "pages", 0, pages);
+    public static ItemStack asCraftMirror(Object itemStack) throws Exception {
+        return craftMirrorInvoker.invokeWithException(null, itemStack);
     }
 
-    public static ItemStack asBukkitCopy(Object itemStack) {
-        if (itemStack != null) {
-            try {
-                if (NMS.getItemStackClass().isInstance(itemStack)) {
-                    return bukkitCopyInvoker.invokeWithException(null, itemStack);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        return new ItemStack(Material.AIR);
+    public static Object asNMSCopy(ItemStack item) throws Exception {
+        return nmsCopyInvoker.invokeWithException(null, item);
     }
 
-    public static ItemStack asCraftMirror(Object itemStack) {
-        if (itemStack != null) {
-            try {
-                if (NMS.getItemStackClass().isInstance(itemStack)) {
-                    return craftMirrorInvoker.invokeWithException(null, itemStack);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        return new ItemStack(Material.AIR);
-    }
-
-    public static Object asNMSCopy(ItemStack item) {
-        if (item != null) {
-            try {
-                return nmsCopyInvoker.invokeWithException(null, item);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        return null;
+    public static ItemStack createLiteralItem(ItemStack item) throws Exception {
+        return asCraftMirror(asNMSCopy(item));
     }
 
     public static Object getHandleItem(ItemStack item) {
@@ -126,7 +84,11 @@ public class ItemFactory {
             }
         }
 
-        return ItemFactory.asNMSCopy(item);
+        try {
+            return ItemFactory.asNMSCopy(item);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     public static Material getMaterial(ItemType type) {

@@ -79,7 +79,7 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         if (TYPE.equals(TagType.COMPOUND_LEGACY)) {
             return TYPE.createRawDelegate();
         } else if (TYPE.equals(TagType.COMPOUND_MODERN)) {
-            return TYPE.getBaseInvoker().invoke(map);
+            return TYPE.getNMSInvoker().invoke(map);
         } else {
             throw new IllegalStateException();
         }
@@ -131,8 +131,8 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         return getValue().getConverted(key);
     }
 
-    public Object getRaw(String key) {
-        return getValue().getRaw(key);
+    public <T> T getPrimitive(String key) {
+        return get(key).<T>asPrimitive().getValue();
     }
 
     public boolean hasKey(String key) {
@@ -149,6 +149,28 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
 
     public void put(String key, AbstractTag<?, ?, ?> base) {
         getValue().putConverted(key, base);
+    }
+
+    public void putPrimitive(String key, TagType type, Object val) {
+        getValue().putConverted(key, type.getWrapperInvoker().invoke(type, val));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <IN, IN_ARRAY extends AbstractArrayTag<?, IN_ARRAY, IN>> void putArray(String key, TagType of, Iterable<IN> array) {
+        AbstractArrayTag<?, ?, ?> tag;
+        if (of.equals(TagType.getFromCollection(TagType.Collection.ARRAY))) {
+            tag = new GeneticArrayTypes.ArrayOfArrayTag<>((Iterable<IN_ARRAY>) array);
+        } else if (of.equals(TagType.getFromCollection(TagType.Collection.COMPOUND))) {
+            tag = new GeneticArrayTypes.ArrayOfCompoundTag((Iterable<CompoundTag>) array);
+        } else {
+            tag = new ArrayTag<>(of, array);
+        }
+
+        getValue().putConverted(key, tag);
+    }
+
+    public void putCompound(String key, Map<String, Object> map) {
+        getValue().putConverted(key, new CompoundTag(map));
     }
 
     public void putIfAbsent(String key, AbstractTag<?, ?, ?> base) {

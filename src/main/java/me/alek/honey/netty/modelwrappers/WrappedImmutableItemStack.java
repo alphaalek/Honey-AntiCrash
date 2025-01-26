@@ -22,6 +22,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.logging.Level;
 
 public class WrappedImmutableItemStack implements Cloneable {
 
@@ -174,12 +175,16 @@ public class WrappedImmutableItemStack implements Cloneable {
             bukkitStack = new ItemStack(type, this.amount, this.durability);
         }
 
-        Object nmsStack = ItemFactory.asNMSCopy(bukkitStack);
-        if (hasTag()) {
-            ItemFactory.setItemTag(nmsStack, this.tag);
+        try {
+            Object nmsStack = ItemFactory.asNMSCopy(bukkitStack);
+            if (hasTag()) {
+                ItemFactory.setItemTag(nmsStack, this.tag);
+            }
+            return nmsStack;
+        } catch (Exception ex) {
+            Bukkit.getLogger().log(Level.SEVERE, "Failed to apply item tag", ex);
+            return null;
         }
-
-        return nmsStack;
     }
 
     private final NetProtocol protocol;

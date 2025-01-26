@@ -18,7 +18,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 
@@ -31,7 +30,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 
 @ChannelHandler.Sharable
-public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
+public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
 
     private final AsyncPacketStream stream;
     private final HoneyPacketHandler packetHandler;
@@ -39,7 +38,7 @@ public class HoneyPacketDecodePreparation extends ChannelInboundHandlerAdapter {
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
-    public HoneyPacketDecodePreparation(Channel channel, AsyncPacketStream async, HoneyPacketHandler packetHandler) {
+    public HoneyPacketInStream(Channel channel, AsyncPacketStream async, HoneyPacketHandler packetHandler) {
         this.stream = async;
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();

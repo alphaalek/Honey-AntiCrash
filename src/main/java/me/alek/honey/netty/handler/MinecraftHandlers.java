@@ -10,6 +10,10 @@ public class MinecraftHandlers {
 
     public static String COMPRESS = "compress";
 
+    public static String DECRYPT = "decrypt";
+
+    public static String ENCRYPT = "encrypt";
+
     public static String DECODER = "decoder";
 
     public static String ENCODER = "encoder";

@@ -19,6 +19,7 @@ import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.Queue;

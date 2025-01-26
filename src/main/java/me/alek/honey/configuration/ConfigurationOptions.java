@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.util.reflection.ConstructorInvoker;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -56,7 +57,6 @@ public class ConfigurationOptions {
             loadingLatch.countDown();
             loading = false;
             return true;
-
         } finally {
             loadingLatch.countDown();
             loading = false;
@@ -88,22 +88,23 @@ public class ConfigurationOptions {
         }
     }
 
+    @SuppressWarnings({"unchecked", "UnstableApiUsage"})
     public static void setViolationSetting(Class<? extends ViolationSetting> clazz, PacketLimitHandlerType type, String[] prefixPaths) {
-        final Class<? extends ViolationSetting> classCopy = clazz;
-        final ViolationSetting setting = vlSettings.computeIfAbsent(clazz, (d) -> {
+        Class<? extends ViolationSetting> classCopy = clazz;
+        ViolationSetting setting = vlSettings.computeIfAbsent(clazz, __ -> {
             try {
-                final Constructor<? extends ViolationSetting> constructor = classCopy.getDeclaredConstructor();
-                return constructor.newInstance();
+                return new ConstructorInvoker<>(classCopy).invoke();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
             return null;
         });
-        if (setting == null) return;
+        if (setting == null) {
+            return;
+        }
+
         setting.packetLimitHandlerType = type;
-
         vlSettings.put(clazz, setting);
-
         // checks if this violation setting is a flood setting, so we can register it to the map of flood settings
         if (clazz.isAnnotationPresent(Flood.class)) {
             Flood flood = clazz.getAnnotation(Flood.class);
@@ -116,12 +117,11 @@ public class ConfigurationOptions {
             setting.keyedAnnotation = clazz.getAnnotation(Keyed.class);
         }
 
-        final Set<ViolationSettingType> requiredVlSettingImplTypes = new HashSet<>();
+        Set<ViolationSettingType> requiredVlSettingImplTypes = new HashSet<>();
         if (setting instanceof VlRequiredContentsSetting) {
             VlRequiredContentsSetting vlRequiredContentsSetting = (VlRequiredContentsSetting) setting;
             requiredVlSettingImplTypes.addAll(vlRequiredContentsSetting.getRequiredTypes());
         }
-
         // check if the configuration is misconfigured or just from an old version
         for (String prefixPath : prefixPaths) {
             // check if this memory section exists, if it does not then disable the plugin
@@ -150,29 +150,30 @@ public class ConfigurationOptions {
         }
 
         // set the values of the violation setting
-        while (true) {
+        for (;;) {
             for (Field field : clazz.getDeclaredFields()) {
-
                 // check if this field is associated with a setting value
                 VlSettingImpl vlSettingImpl = field.getAnnotation(VlSettingImpl.class);
-                if (vlSettingImpl == null) continue;
+                if (vlSettingImpl == null) {
+                    continue;
+                }
 
                 for (String prefixPath : prefixPaths) {
                     String configPath = prefixPath + "." + vlSettingImpl.value().getPathName();
                     Object value = file.get(configPath);
-
-                    // check if this value is not present or if this field is not an interval check setting
-                    if (value == null) continue;
+                    // check if this value is not present
+                    if (value == null) {
+                        continue;
+                    }
 
                     try {
-                        if (value.getClass() == Double.class)
+                        if (value.getClass() == Double.class) {
                             field.setDouble(setting, file.getDouble(configPath));
-
-                        else if (value.getClass() == Integer.class)
+                        } else if (value.getClass() == Integer.class) {
                             field.setInt(setting, file.getInt(configPath));
-
-                        else if (value.getClass() == Boolean.class)
+                        } else if (value.getClass() == Boolean.class) {
                             field.setBoolean(setting, file.getBoolean(configPath));
+                        }
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -192,7 +193,6 @@ public class ConfigurationOptions {
         if (loading) {
             try {
                 loadingLatch.await();
-
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -251,7 +251,6 @@ public class ConfigurationOptions {
     public interface VlRequiredContentsSetting {
 
         Set<ViolationSettingType> getRequiredTypes();
-
     }
 
     public interface VlMaxRequiredContentsSetting extends VlRequiredContentsSetting {
@@ -286,17 +285,6 @@ public class ConfigurationOptions {
             return Sets.newHashSet(
                     ViolationSettingType.MAX_PER_INTERVAL,
                     ViolationSettingType.INTERVAL
-            );
-        }
-    }
-
-    public interface VlIntervalThrottleRequiredContentsSetting extends VlRequiredContentsSetting {
-
-        default Set<ViolationSettingType> getRequiredTypes() {
-            return Sets.newHashSet(
-                    ViolationSettingType.INTERVAL,
-                    ViolationSettingType.THRESHOLD,
-                    ViolationSettingType.UNTIL
             );
         }
     }
@@ -403,7 +391,6 @@ public class ConfigurationOptions {
                     }
 
                     Object value = field.get(this);
-
                     // check if this field is associated with a setting value from this check
                     if (settingImpl != null && value != null) {
                         if (!getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())){
@@ -751,6 +738,124 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class Print {
+
+        public static boolean BLOCK_MESSAGE;
+
+        public void load() {
+            BLOCK_MESSAGE = file.getBoolean("print.block-message-on-flag");
+        }
+
+        @Setting
+        @Violation(prefixPaths = "print.a", packetHandler = PacketLimitHandlerType.BUFFER_OVERFLOW)
+        public static class PrintA extends ViolationSetting implements VlBufferOverflowRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "print.b", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class PrintB extends ViolationSetting implements VlSingleOverflowRequiredContentsSetting {
+
+        }
+    }
+
+    @Setting
+    public static class Netty {
+
+        @Setting
+        @Violation(prefixPaths = "netty.b", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class NettyB extends ViolationSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.d", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class NettyD extends ViolationSetting implements VlSingleOverflowRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.e", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
+        public static class NettyE extends ViolationSetting implements VlBufferThrottleRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.f", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
+        public static class NettyF extends ViolationSetting implements VlBufferThrottleRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.g", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class NettyG extends ViolationSetting implements VlSingleOverflowRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.h", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
+        public static class NettyH extends ViolationSetting implements VlSingleOverflowRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.i", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
+        public static class NettyI extends ViolationSetting implements VlBufferThrottleRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
+        @Keyed(amount = 2)
+        public static class NettyK extends ViolationSetting implements VlTriggerThrottleRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.l", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class NettyL extends ViolationSetting implements VlIntervalRequiredContentsSetting {
+
+            @Override
+            public Set<ViolationSettingType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        ViolationSettingType.MAX_PER_INTERVAL,
+                        ViolationSettingType.INTERVAL,
+                        ViolationSettingType.VLS_AMOUNT,
+                        ViolationSettingType.MAX
+                );
+            }
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.m", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class NettyM extends ViolationSetting implements VlIntervalRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.n", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class NettyN extends ViolationSetting implements VlIntervalRequiredContentsSetting {
+
+        }
+
+        @Setting
+        @Violation(prefixPaths = "netty.o", packetHandler = PacketLimitHandlerType.INTERVAL)
+        public static class NettyO extends ViolationSetting implements VlIntervalRequiredContentsSetting {
+
+            @Override
+            public Set<ViolationSettingType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        ViolationSettingType.MAX_PER_INTERVAL,
+                        ViolationSettingType.INTERVAL,
+                        ViolationSettingType.VLS_AMOUNT,
+                        ViolationSettingType.MAX
+                );
+            }
+        }
+    }
+
+    @Setting
     public static class Payload {
 
         @Setting
@@ -784,12 +889,6 @@ public class ConfigurationOptions {
         @Setting
         @Violation(prefixPaths = "held-item.a", packetHandler = PacketLimitHandlerType.SIMPLE)
         public static class HeldItemA extends ViolationSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "held-item.b", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class HeldItemB extends ViolationSetting {
 
         }
     }
@@ -1030,114 +1129,6 @@ public class ConfigurationOptions {
 
         }
 
-    }
-
-    @Setting
-    public static class Netty {
-
-        @Setting
-        @Violation(prefixPaths = "netty.a", packetHandler = PacketLimitHandlerType.BUFFER_OVERFLOW)
-        public static class NettyA extends ViolationSetting implements VlBufferOverflowRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.b", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class NettyB extends ViolationSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.c", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        public static class NettyC extends ViolationSetting implements VlSingleOverflowRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.d", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        public static class NettyD extends ViolationSetting implements VlSingleOverflowRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.e", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
-        public static class NettyE extends ViolationSetting implements VlBufferThrottleRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.f", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
-        public static class NettyF extends ViolationSetting implements VlBufferThrottleRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.g", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        public static class NettyG extends ViolationSetting implements VlSingleOverflowRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.h", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        public static class NettyH extends ViolationSetting implements VlSingleOverflowRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.i", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
-        public static class NettyI extends ViolationSetting implements VlBufferThrottleRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
-        @Keyed(amount = 2)
-        public static class NettyK extends ViolationSetting implements VlTriggerThrottleRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.l", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class NettyL extends ViolationSetting implements VlIntervalRequiredContentsSetting {
-
-            @Override
-            public Set<ViolationSettingType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        ViolationSettingType.MAX_PER_INTERVAL,
-                        ViolationSettingType.INTERVAL,
-                        ViolationSettingType.VLS_AMOUNT,
-                        ViolationSettingType.MAX
-                );
-            }
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.m", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class NettyM extends ViolationSetting implements VlIntervalRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.n", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class NettyN extends ViolationSetting implements VlIntervalRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.o", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class NettyO extends ViolationSetting implements VlIntervalRequiredContentsSetting {
-
-            @Override
-            public Set<ViolationSettingType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        ViolationSettingType.MAX_PER_INTERVAL,
-                        ViolationSettingType.INTERVAL,
-                        ViolationSettingType.VLS_AMOUNT,
-                        ViolationSettingType.MAX
-                );
-            }
-        }
     }
 
     @Setting

@@ -20,9 +20,7 @@ import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayload<WP>> extends SourcedWrappedPacket<WP>, AutoReleasable {
 
@@ -101,11 +99,11 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             CompoundTag serialized = item.getTag().asNBT().get();
             tag.put("pages", serialized.getArrayOf("pages", TagType.STRING));
             if (signing) {
-                tag.put("author", new PrimitiveTag<>(TagType.STRING, serialized.getString("author")));
-                tag.put("title", new PrimitiveTag<>(TagType.STRING, serialized.getString("title")));
+                tag.put("author", serialized.get("author"));
+                tag.put("title", serialized.get("title"));
 
                 if (protocol.isEqual(NetProtocol.v1_8_8)) {
-                    ArrayTag<String> newPages = new ArrayTag<>(TagType.STRING);
+                    List<String> newPages = new ArrayList<>();
                     for (String page : tag.<String>getArrayOf("pages", TagType.STRING)) {
                         JsonElement element = JSON_PARSER.parse(page);
                         if (element.isJsonObject()) {
@@ -114,7 +112,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
                             newPages.add(element.getAsString());
                         }
                     }
-                    tag.put("pages", newPages);
+                    tag.putArray("pages", TagType.STRING, newPages);
                 }
             }
             item.setTag(tag);
