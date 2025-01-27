@@ -108,7 +108,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -154,7 +154,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -193,7 +193,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

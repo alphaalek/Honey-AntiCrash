@@ -99,7 +99,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -124,7 +124,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -173,7 +173,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -207,7 +207,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -237,7 +237,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

@@ -35,7 +35,7 @@ public class NettyDecodeValidations {
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -69,7 +69,7 @@ public class NettyDecodeValidations {
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -103,7 +103,7 @@ public class NettyDecodeValidations {
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -137,7 +137,7 @@ public class NettyDecodeValidations {
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -167,7 +167,7 @@ public class NettyDecodeValidations {
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -243,7 +243,7 @@ public class NettyDecodeValidations {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -302,7 +302,7 @@ public class NettyDecodeValidations {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -327,7 +327,7 @@ public class NettyDecodeValidations {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -389,7 +389,7 @@ public class NettyDecodeValidations {
         private final LocalCategorizedHandler categorizedHandler = new LocalCategorizedHandler(this::getSetting);
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

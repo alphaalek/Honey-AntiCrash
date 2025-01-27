@@ -2,14 +2,14 @@ package me.alek.honey.tracker;
 
 import com.google.common.collect.Sets;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.Identifiable;
+import me.alek.honey.util.id.IntIdentifiable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-public class RegistryHandleTracker<T extends Identifiable> implements KeyedHandleTracker<Double, T> {
+public class RegistryHandleTracker<T extends IntIdentifiable> implements KeyedHandleTracker<Double, T> {
 
     private final Array<Long> handleTime = new Array<>();
     private final Array<Integer> handleIndices = new Array<>();
@@ -145,7 +145,7 @@ public class RegistryHandleTracker<T extends Identifiable> implements KeyedHandl
     }
 
     @Override
-    public int getID() {
+    public Integer getID() {
         return -1;
     }
 }

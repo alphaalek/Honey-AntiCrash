@@ -107,7 +107,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -149,7 +149,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

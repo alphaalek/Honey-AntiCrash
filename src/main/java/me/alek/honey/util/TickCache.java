@@ -13,11 +13,11 @@ public class TickCache<T> {
     private int lastTick;
 
     public T get(Supplier<T> or) {
-        if (tickSupplier.getAsInt() == lastTick) {
-            return reference != null ? reference : (reference = or.get());
+        if (tickSupplier.getAsInt() == this.lastTick) {
+            return this.reference != null ? this.reference : (this.reference = or.get());
         }
 
-        lastTick = tickSupplier.getAsInt();
-        return reference = or.get();
+        this.lastTick = tickSupplier.getAsInt();
+        return this.reference = or.get();
     }
 }

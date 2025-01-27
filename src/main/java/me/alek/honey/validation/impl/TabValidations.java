@@ -74,7 +74,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -121,7 +121,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -174,7 +174,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

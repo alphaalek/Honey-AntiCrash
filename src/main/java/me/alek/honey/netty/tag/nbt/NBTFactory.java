@@ -20,7 +20,10 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class NBTFactory {
 
@@ -145,7 +148,7 @@ public class NBTFactory {
             .withType(NMS.getNBTTagCompoundClass(), TagConverter.CONVERTER);
 
     public static CompoundTag fromItem(ItemStack item, boolean createIfNone) {
-        if (item == null || item.getType() == Material.AIR) {
+        if (item.getType() == Material.AIR) {
             return null;
         }
 
@@ -189,10 +192,6 @@ public class NBTFactory {
 
     @SuppressWarnings("unchecked")
     public static <T extends AbstractTag<K, V, T>, K, V> T copyFromType(TagType type, Object handle) {
-        if (type == null) {
-            return null;
-        }
-
         ConstructorInvoker<? extends AbstractTag<?, ?, ?>> constructorInvoker = type.getBridgeWrapperInvoker();
         if (constructorInvoker == null) {
             return null;
@@ -206,10 +205,6 @@ public class NBTFactory {
     }
 
     public static TagType getArrayType(Object handle) {
-        if (handle == null) {
-            return null;
-        }
-
         IStructureModifier<Byte> byteModifier = ReflectStructure.Provider.acquireStructure(NMS.getNBTTagListClass())
                 .withBytes()
                 .withTarget(handle);
@@ -236,14 +231,9 @@ public class NBTFactory {
     }
 
     public static TagType getType(Object handle, boolean ignoreNestedArrays) {
-        if (handle == null) {
-            return null;
-        }
-
         IStructureModifier<Byte> structureModifier = ReflectStructure.Provider.acquireStructure(NMS.getNBTBaseClass())
                 .withBytes()
                 .withTarget(handle);
-
         byte typeId;
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
             typeId = structureModifier.invokeMethod(null, "getTypeId", 0);
@@ -266,5 +256,48 @@ public class NBTFactory {
         }
 
         return type;
+    }
+
+    public static AbstractTag<?, ?, ?> createTag(Object value) {
+        if (AbstractTag.class.isAssignableFrom(value.getClass())) {
+            return (AbstractTag<?, ?, ?>) value;
+        }
+
+        TagType type = TagType.getFromClass(value.getClass());
+        if (type == null) {
+            return null;
+        }
+        return createTag(type, value);
+    }
+
+    public static AbstractTag<?, ?, ?> createTag(TagType type, Object value) {
+        if (type.getCollection() == TagType.Collection.ARRAY) {
+            List<?> array = (List<?>) value;
+            TagType of = null;
+            if (!array.isEmpty()) {
+                Object first = array.get(0);
+                if (List.class.isAssignableFrom(first.getClass())) {
+                    type = TagType.getFromCollection(TagType.Collection.ARRAY_OF_ARRAY);
+                } else if (Map.class.isAssignableFrom(first.getClass())) {
+                    type = TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND);
+                } else {
+                    of = TagType.getFromClass(first.getClass());
+                }
+            }
+
+            if (type.getCollection() == TagType.Collection.ARRAY) {
+                return type.getWrapperInvoker().invoke(of, array);
+            } else {
+                List<?> converted = array.stream()
+                        .map(NBTFactory::createTag)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
+                return type.getWrapperInvoker().invoke(converted);
+            }
+        } else if (type.getCollection() == TagType.Collection.COMPOUND) {
+            return type.getWrapperInvoker().invoke(value);
+        } else {
+            return type.getWrapperInvoker().invoke(type, value);
+        }
     }
 }

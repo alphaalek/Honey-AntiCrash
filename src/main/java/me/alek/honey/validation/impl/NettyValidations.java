@@ -137,7 +137,7 @@ public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -182,7 +182,7 @@ public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -212,7 +212,7 @@ public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

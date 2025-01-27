@@ -16,7 +16,7 @@ import java.util.function.Function;
 
 public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> extends WrappedObject<AbstractTag<T, V, TAG>> implements Cloneable, Serializable {
 
-    private final Object handle;
+    protected final Object handle;
     protected final IStructureModifier<V> valueStructureModifier;
 
     private TagType type;

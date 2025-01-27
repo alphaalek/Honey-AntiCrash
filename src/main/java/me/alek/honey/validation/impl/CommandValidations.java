@@ -149,7 +149,7 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
     }
 
     @Override
-    public int getID() {
+    public Integer getID() {
         return id;
     }
 

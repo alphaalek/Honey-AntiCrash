@@ -14,9 +14,7 @@ import me.alek.honey.netty.structure.converters.MapConverter;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?, ?>>, CompoundTag> implements ItemTag {
@@ -67,19 +65,18 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
     }
 
     public CompoundTag(Map<String, Object> map) {
-        super(createBaseFromMap(map));
+        super(createBase());
 
-        if (TYPE.equals(TagType.COMPOUND_LEGACY)) {
-            getNBTConverter().inject(map);
-            setValue(this.delegate);
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            getValue().putConverted(entry.getKey(), NBTFactory.createTag(entry.getValue()));
         }
     }
 
-    private static Object createBaseFromMap(Map<String, Object> map) {
+    private static Object createBase() {
         if (TYPE.equals(TagType.COMPOUND_LEGACY)) {
             return TYPE.createRawDelegate();
         } else if (TYPE.equals(TagType.COMPOUND_MODERN)) {
-            return TYPE.getNMSInvoker().invoke(map);
+            return TYPE.getNMSInvoker().invoke(new HashMap<>());
         } else {
             throw new IllegalStateException();
         }

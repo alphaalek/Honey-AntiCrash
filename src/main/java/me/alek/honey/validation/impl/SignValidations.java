@@ -66,7 +66,7 @@ public class SignValidations extends AbstractValidationPacketListener<WrappedPla
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

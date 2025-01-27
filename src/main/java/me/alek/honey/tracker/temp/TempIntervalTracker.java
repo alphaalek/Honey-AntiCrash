@@ -25,7 +25,8 @@ public class TempIntervalTracker implements HoneyTracker {
         return this.fixed;
     }
 
-    public int getID() {
+    @Override
+    public Integer getID() {
         return id;
     }
 

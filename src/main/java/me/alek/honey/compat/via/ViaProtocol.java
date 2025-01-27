@@ -13,10 +13,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +24,7 @@ public enum ViaProtocol {
 
     v1_8(NetProtocol.v1_8, LegacyHolder.LEGACY ? "protocol1_8" : getPackageBetween(NetProtocol.v1_8, NetProtocol.v1_9)),
     v1_9(NetProtocol.v1_9, getPackageBetween(NetProtocol.v1_8, NetProtocol.v1_9)),
-    v1_9_3(NetProtocol.v1_9_3, LegacyHolder.LEGACY ? "protocol1_9_3to1_9_1_2" : getPackageBetween(NetProtocol.v1_9_1, NetProtocol.v1_9_3, false)),
+    v1_9_3(NetProtocol.v1_9_3, LegacyHolder.LEGACY ? "protocol1_9_3to1_9_1_2" : getPackageBetween(NetProtocol.v1_9_1, NetProtocol.v1_9_3)),
     v1_12(NetProtocol.v1_12, getPackageBetween(NetProtocol.v1_11_1, NetProtocol.v1_12)),
     v1_12_1(NetProtocol.v1_12_1, getPackageBetween(NetProtocol.v1_12, NetProtocol.v1_12_1)),
     v1_13(NetProtocol.v1_13, getPackageBetween(NetProtocol.v1_12_2, NetProtocol.v1_13)),
@@ -46,14 +43,18 @@ public enum ViaProtocol {
     v1_20_2(NetProtocol.v1_20_2, getPackageBetween(NetProtocol.v1_20, NetProtocol.v1_20_2, true)),
     v1_20_3(NetProtocol.v1_20_3, getPackageBetween(NetProtocol.v1_20_2, NetProtocol.v1_20_3, true)),
     v1_20_5(NetProtocol.v1_20_5, getPackageBetween(NetProtocol.v1_20_3, NetProtocol.v1_20_5, true)),
+    v1_21(NetProtocol.v1_21, getPackageBetween(NetProtocol.v1_20_5, NetProtocol.v1_21)),
+    v1_21_2(NetProtocol.v1_21_2, getPackageBetween(NetProtocol.v1_21, NetProtocol.v1_21_2)),
+    v1_21_4(NetProtocol.v1_21_4, getPackageBetween(NetProtocol.v1_21_2, NetProtocol.v1_21_4))
     ;
 
     private static class LegacyHolder {
+        private static final LibraryVersion LATEST_LEGACY = new LibraryVersion("4.10.2");
         private static final boolean LEGACY;
 
         static {
             LibraryVersion version = new LibraryVersion(Bukkit.getPluginManager().getPlugin("ViaVersion").getDescription().getVersion());
-            LEGACY = !version.isNewerThan(new LibraryVersion("4.10.2"));
+            LEGACY = !version.isNewerThan(LATEST_LEGACY);
         }
     }
 
@@ -135,12 +136,14 @@ public enum ViaProtocol {
             PacketType viaType = PacketTypes.getTypeFromViaKey(this.protocol, state, bound, name);
             if (PacketTypes.isUnknown(viaType)) {
                 PacketType type = PacketTypes.getTypeFromKey(state, bound, name);
-                try {
-                    if (type != null && type.getClass().getField(type.toString()).getAnnotation(IgnoreIfMissing.class) != null) {
-                        continue;
+                if (!PacketTypes.isUnknown(type)) {
+                    try {
+                        if (type.getClass().getField(type.toString()).getAnnotation(IgnoreIfMissing.class) != null) {
+                            continue;
+                        }
+                    } catch (Exception ex) {
+                        Bukkit.getLogger().log(Level.SEVERE, "Failed to acquire packet type via data from via key for type " + type, ex);
                     }
-                } catch (Exception ex) {
-                    Bukkit.getLogger().log(Level.SEVERE, "Failed to acquire packet type via data from via key for type " + type, ex);
                 }
 
                 throw new IllegalStateException("Could not find matching via packet type: protocol: " + this.protocol + ", name: " + name + ", bound: " + bound + ", state: " + state + ", ordinal: " + constant.ordinal());
@@ -212,7 +215,8 @@ public enum ViaProtocol {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    public @interface Unique {
+    @Repeatable(MultipleNames.class)
+    public @interface Name {
 
         String name();
 
@@ -242,9 +246,9 @@ public enum ViaProtocol {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    public @interface MultipleUnique {
+    public @interface MultipleNames {
 
-        Unique[] uniques();
+        Name[] value();
     }
 
     public static class ViaValidator implements ServiceValidator {

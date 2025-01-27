@@ -276,7 +276,7 @@ public class TempIntervalTrackerManager implements TimedManualHandleTracker<Long
     }
 
     @Override
-    public int getID() {
+    public Integer getID() {
         return -1;
     }
 }

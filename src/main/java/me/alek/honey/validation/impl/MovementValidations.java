@@ -164,7 +164,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -245,7 +245,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -301,7 +301,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -356,7 +356,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -390,7 +390,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -509,7 +509,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -539,7 +539,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -611,7 +611,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -659,7 +659,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -725,7 +725,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

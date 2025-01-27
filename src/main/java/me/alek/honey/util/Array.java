@@ -1,5 +1,6 @@
 package me.alek.honey.util;
 
+import me.alek.honey.util.id.IntIdentifiable;
 import org.apache.commons.lang3.Validate;
 
 import java.util.*;
@@ -22,15 +23,15 @@ public class Array<T> implements Iterable<T> {
         }
 
         public T getVal() {
-            return data;
+            return this.data;
         }
 
         public int getIndex() {
-            return index;
+            return this.index;
         }
 
         public boolean isNull() {
-            return data == null;
+            return this.data == null;
         }
     }
 
@@ -187,8 +188,8 @@ public class Array<T> implements Iterable<T> {
         return get(index, null);
     }
 
-    public T get(Identifiable identifiable) {
-        return get(identifiable.getAsInt(), null);
+    public T get(IntIdentifiable identifiable) {
+        return get(identifiable.getID(), null);
     }
 
     public T getFirst() {
@@ -224,8 +225,8 @@ public class Array<T> implements Iterable<T> {
         return (T) data[index];
     }
 
-    public T get(Identifiable identifiable, Supplier<T> or) {
-        return get(identifiable.getAsInt(), or);
+    public T get(IntIdentifiable identifiable, Supplier<T> or) {
+        return get(identifiable.getID(), or);
     }
 
     public T getOr(int index, Supplier<T> or) {
@@ -237,8 +238,8 @@ public class Array<T> implements Iterable<T> {
         return get(index);
     }
 
-    public T getOr(Identifiable identifiable, Supplier<T> or) {
-        return getOr(identifiable.getAsInt(), or);
+    public T getOr(IntIdentifiable identifiable, Supplier<T> or) {
+        return getOr(identifiable.getID(), or);
     }
 
     public synchronized void move(int start, int by) {
@@ -291,8 +292,8 @@ public class Array<T> implements Iterable<T> {
         return data[index] != null;
     }
 
-    public boolean has(Identifiable identifiable) {
-        return has(identifiable.getAsInt());
+    public boolean has(IntIdentifiable identifiable) {
+        return has(identifiable.getID());
     }
 
     public void clear() {
@@ -312,8 +313,8 @@ public class Array<T> implements Iterable<T> {
         return get(index);
     }
 
-    public T setAndGet(Identifiable identifiable, T val) {
-        return setAndGet(identifiable.getAsInt(), val);
+    public T setAndGet(IntIdentifiable identifiable, T val) {
+        return setAndGet(identifiable.getID(), val);
     }
 
     public synchronized boolean set(int index, T val) {
@@ -325,8 +326,8 @@ public class Array<T> implements Iterable<T> {
         return present;
     }
 
-    public synchronized boolean set(Identifiable identifiable, T val) {
-        return set(identifiable.getAsInt(), val);
+    public synchronized boolean set(IntIdentifiable identifiable, T val) {
+        return set(identifiable.getID(), val);
     }
 
     public synchronized boolean remove(int index) {
@@ -346,8 +347,8 @@ public class Array<T> implements Iterable<T> {
         return removed;
     }
 
-    public boolean remove(Identifiable identifiable) {
-        return remove(identifiable.getAsInt());
+    public boolean remove(IntIdentifiable identifiable) {
+        return remove(identifiable.getID());
     }
 
     public synchronized boolean remove(T val, boolean resolve) {
@@ -365,8 +366,8 @@ public class Array<T> implements Iterable<T> {
         return remove(val, true);
     }
     
-    public T removeAndGet(Identifiable identifiable) {
-        return removeAndGet(identifiable.getAsInt());
+    public T removeAndGet(IntIdentifiable identifiable) {
+        return removeAndGet(identifiable.getID());
     }
     
     public synchronized T removeAndGet(int index) {

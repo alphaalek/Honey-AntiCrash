@@ -1,9 +1,9 @@
 package me.alek.honey.netty.packet.type;
 
-import me.alek.honey.util.Identifiable;
+import me.alek.honey.util.id.IntIdentifiable;
 import me.alek.honey.util.LazyInit;
 
-public interface PacketType extends Identifiable {
+public interface PacketType extends IntIdentifiable {
 
     PacketType UNKNOWN = new PacketType() {
         @Override
@@ -37,7 +37,8 @@ public interface PacketType extends Identifiable {
         }
     };
 
-    default int getID() {
+    @Override
+    default Integer getID() {
         return getHoneyID();
     }
 

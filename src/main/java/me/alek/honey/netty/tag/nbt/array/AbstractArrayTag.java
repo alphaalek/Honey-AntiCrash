@@ -5,6 +5,7 @@ import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.NBTFactory;
 import me.alek.honey.netty.tag.nbt.TagType;
 import org.bukkit.Bukkit;
 
@@ -12,6 +13,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -21,7 +23,7 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
     private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.ARRAY);
 
     private ListConverter<Object, IN> delegate;
-    protected final TagType typeOf;
+    protected TagType typeOf;
 
     public AbstractArrayTag(Object base, TagType typeOf) {
         super(base);
@@ -39,15 +41,17 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
         for (C val : array) {
             getValue().addConverted(to(val));
         }
-        ReflectStructure.Provider.acquireStructure(TYPE.getDelegateClass())
-                .withBytes().withTarget(getHandle()).writeField(0, this.typeOf.getTypeId());
+        if (this.typeOf != null) {
+            ReflectStructure.Provider.acquireStructure(TYPE.getDelegateClass())
+                    .withBytes().withTarget(getHandle()).writeField(0, this.typeOf.getTypeId());
+        }
     }
 
     private static Object createBaseFromArray(TagType typeOf) {
         if (TYPE.equals(TagType.ARRAY_LEGACY)) {
             return TYPE.createRawDelegate();
         } else if (TYPE.equals(TagType.ARRAY_MODERN)) {
-            return TYPE.getNMSInvoker().invoke(new ArrayList<>(), typeOf.getTypeId());
+            return TYPE.getNMSInvoker().invoke(new ArrayList<>(), Optional.ofNullable(typeOf).map(TagType::getTypeId).orElse((byte) 0));
         } else {
             throw new IllegalStateException();
         }
@@ -88,8 +92,8 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
     @SuppressWarnings("unchecked")
     @Override
     public ArrayTag<IN> asArray() {
-        if (this.typeOf.getCollection() == TagType.Collection.ARRAY
-                || this.typeOf.getCollection() == TagType.Collection.COMPOUND) {
+        if (getTypeOf().getCollection() == TagType.Collection.ARRAY
+                || getTypeOf().getCollection() == TagType.Collection.COMPOUND) {
             return null;
         }
 
@@ -98,8 +102,8 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
 
     @SuppressWarnings("unchecked")
     public <R> ArrayTag<R> asArrayOf(Class<R> clazz) {
-        if (this.typeOf.getCollection() == TagType.Collection.ARRAY
-                || this.typeOf.getCollection() == TagType.Collection.COMPOUND) {
+        if (getTypeOf().getCollection() == TagType.Collection.ARRAY
+                || getTypeOf().getCollection() == TagType.Collection.COMPOUND) {
             return null;
         }
 
@@ -109,14 +113,14 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
 
     @SuppressWarnings("unchecked")
     public <ARRAY2 extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2>, IN2 extends AbstractArrayTag<?, IN2, ?>> GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2> asArrayOfArray() {
-        if (this.typeOf.getCollection() != TagType.Collection.ARRAY) {
+        if (getTypeOf().getCollection() != TagType.Collection.ARRAY) {
             return null;
         }
         return (GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2>) this;
     }
 
     public GeneticArrayTypes.ArrayOfCompoundTag asArrayOfCompound() {
-        if (this.typeOf.getCollection() != TagType.Collection.COMPOUND) {
+        if (getTypeOf().getCollection() != TagType.Collection.COMPOUND) {
             return null;
         }
         return (GeneticArrayTypes.ArrayOfCompoundTag) this;
@@ -135,6 +139,9 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
     }
 
     public TagType getTypeOf() {
+        if (this.typeOf == null) {
+            this.typeOf = NBTFactory.getArrayType(this.handle);
+        }
         return this.typeOf;
     }
 

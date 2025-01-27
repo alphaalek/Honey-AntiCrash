@@ -5,7 +5,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.via.ViaHandlers;
-import me.alek.honey.netty.codec.EmulatorCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
@@ -89,43 +88,41 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf byteBuf = createByteBuf(EmulatorCodec.LEGACY ? PacketTypes.Play.Client.PLAYER_MOVEMENT : PacketTypes.Play.Client.GROUND,
-                serializer -> serializer.writeBoolean(false));
+        ByteBuf buf = createByteBuf(PacketTypes.Play.Client.KEEP_ALIVE, serializer -> serializer.writeLong(System.currentTimeMillis()));
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
-                handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
-
-                    @Override
-                    public void channelRead(ChannelHandlerContext ctx, Object o) {
-                        if (position.get() != null) {
-                            return;
-                        }
-
-                        String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
-                        if (!(o instanceof ByteBuf)) {
-                            position.set(prev.get());
-                            return;
-                        }
-                        try {
-                            prev.set(name);
-
-                            ChannelHandler intercepted = ctx.pipeline().get(name);
-                            if (intercepted != null && !name.equals(ViaHandlers.DECODER)) {
-                                ((ChannelInboundHandler) intercepted).channelRead(ctx, byteBuf.copy());
-                            } else {
-                                ctx.fireChannelRead(o);
-                            }
-                        } catch (Exception ignored) {
-                        }
+            handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {
+                @Override
+                public void channelRead(ChannelHandlerContext ctx, Object o) {
+                    if (position.get() != null) {
+                        return;
                     }
 
-                    @Override
-                    public void handlerRemoved(ChannelHandlerContext ctx) {
-                        // to do nothing
+                    String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
+                    if (!(o instanceof ByteBuf)) {
+                        position.set(prev.get());
+                        return;
                     }
+                    try {
+                        prev.set(name);
 
-                });
+                        ChannelHandler intercepted = ctx.pipeline().get(name);
+                        if (intercepted != null && !name.equals(ViaHandlers.DECODER)) {
+                            ((ChannelInboundHandler) intercepted).channelRead(ctx, buf.copy());
+                        } else {
+                            ctx.fireChannelRead(o);
+                        }
+                    } catch (Exception ignored) {
+                    }
+                }
+
+                @Override
+                public void handlerRemoved(ChannelHandlerContext ctx) {
+                    // to do nothing
+                }
+            }
+        );
 
         String start = pipeline.get(MinecraftHandlers.DECOMPRESS) != null ? MinecraftHandlers.DECOMPRESS : MinecraftHandlers.SPLITTER;
         for (String name : pipeline.names()) {
@@ -137,52 +134,45 @@ public class PacketInterceptorResolver {
             }
         }
 
-        pipeline.fireChannelRead(byteBuf);
+        pipeline.fireChannelRead(buf);
 
         return handlers;
     }
 
-    private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf buf = createByteBuf(PacketTypes.Play.Server.PLAYER_POSITION, serializer -> {
-            serializer.writeDouble(Double.MAX_VALUE);
-            serializer.writeDouble(Double.MAX_VALUE);
-            serializer.writeDouble(Double.MAX_VALUE);
-            serializer.writeFloat(Float.MAX_VALUE);
-            serializer.writeFloat(Float.MAX_VALUE);
-            serializer.writeShort(0);
-            serializer.writeInt(0);
-        }).copy();
-        Object raw = PacketFactory.createPacket(PacketTypes.Play.Server.PLAYER_POSITION, buf);
+    private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> pos) {
+        ByteBuf buf = createByteBuf(PacketTypes.Play.Server.KEEP_ALIVE, serializer -> serializer.writeLong(System.currentTimeMillis()));
+        Object raw = PacketFactory.createPacket(PacketTypes.Play.Server.KEEP_ALIVE, buf);
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, false, handler -> handler instanceof ChannelOutboundHandler,
-                handler -> new WrappedChannelOutboundHandler((ChannelOutboundHandler) handler) {
-                    @Override
-                    public void write(ChannelHandlerContext ctx, Object o, ChannelPromise promise) {
-                        if (position.get() != null) {
-                            return;
-                        }
-
-                        String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
-                        if (o instanceof ByteBuf) {
-                            position.set(prev.get() != null ? prev.get() : name);
-                            return;
-                        }
-
-                        try {
-                            prev.set(name);
-
-                            ChannelHandler intercepted = ctx.pipeline().get(name);
-                            if (intercepted != null && !name.equals(ViaHandlers.ENCODER)) {
-                                ((ChannelOutboundHandler) intercepted).write(ctx, raw, promise);
-                            } else {
-                                ctx.write(raw, promise);
-                            }
-                        } catch (Exception ignored) {
-                        }
+            handler -> new WrappedChannelOutboundHandler((ChannelOutboundHandler) handler) {
+                @Override
+                public void write(ChannelHandlerContext ctx, Object o, ChannelPromise promise) {
+                    if (pos.get() != null) {
+                        return;
                     }
-                });
 
+                    String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
+                    if (o instanceof ByteBuf) {
+                        pos.set(prev.get() != null ? prev.get() : name);
+                        return;
+                    }
+
+                    try {
+                        prev.set(name);
+
+                        ChannelHandler intercepted = ctx.pipeline().get(name);
+                        if (intercepted != null && !name.equals(ViaHandlers.ENCODER)) {
+                            ((ChannelOutboundHandler) intercepted).write(ctx, raw, promise);
+                        } else {
+                            ctx.write(raw, promise);
+                        }
+                    } catch (Exception ignored) {
+                        // to do nothing
+                    }
+                }
+            }
+        );
         pipeline.channel().writeAndFlush(raw);
 
         return handlers;
@@ -194,16 +184,16 @@ public class PacketInterceptorResolver {
 
         List<String> names = pipeline.names();
         Collections.reverse(names);
+
         for (String name : names) {
-            ChannelHandler handler;
-            if (pipeline.context(name) == null
-                    || !accept.test(handler = pipeline.context(name).handler())) {
+            ChannelHandlerContext ctx = pipeline.context(name);
+            if (ctx == null || !accept.test(ctx.handler())) {
                 continue;
             }
 
             String prevInterceptor = pipeline.get(prevName + INTERCEPTOR) != null ? prevName + INTERCEPTOR : prevName;
             wrappedHandlers.add(name + INTERCEPTOR);
-            ChannelHandler interceptor = handlerSupplier.apply(handler);
+            ChannelHandler interceptor = handlerSupplier.apply(ctx.handler());
             try {
                 if (prevName == null) {
                     if (asc) {
@@ -214,8 +204,8 @@ public class PacketInterceptorResolver {
                 } else {
                     pipeline.addBefore(prevInterceptor, name + INTERCEPTOR, interceptor);
                 }
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            } catch (Exception ignored) {
+                // to do nothing
             }
             prevName = name;
         }

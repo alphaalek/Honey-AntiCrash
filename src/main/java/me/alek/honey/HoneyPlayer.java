@@ -11,6 +11,7 @@ import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
 import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.*;
+import me.alek.honey.util.id.IntIdentifiable;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
@@ -26,7 +27,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-public class HoneyPlayer implements Identifiable {
+public class HoneyPlayer implements IntIdentifiable {
 
     private static final Map<UUID, HoneyPlayer> HONEY_PLAYER_LOOKUP = new HashMap<>();
     private static final Array<HoneyPlayer> PLAYERS = new Array<>();
@@ -260,7 +261,7 @@ public class HoneyPlayer implements Identifiable {
     }
 
     @Override
-    public int getID() {
+    public Integer getID() {
         return this.registryID;
     }
 }

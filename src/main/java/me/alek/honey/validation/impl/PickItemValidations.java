@@ -51,7 +51,7 @@ public class PickItemValidations extends AbstractValidationPacketListener<Wrappe
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

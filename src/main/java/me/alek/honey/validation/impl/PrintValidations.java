@@ -15,7 +15,7 @@ public class PrintValidations {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -40,7 +40,7 @@ public class PrintValidations {
         private static final int id = IDRegistry.CHECKS.acquire();
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

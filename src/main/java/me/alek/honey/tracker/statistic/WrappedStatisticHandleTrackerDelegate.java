@@ -115,7 +115,7 @@ public class WrappedStatisticHandleTrackerDelegate<T> implements StatisticHandle
     }
 
     @Override
-    public int getID() {
+    public Integer getID() {
         return -1;
     }
 }

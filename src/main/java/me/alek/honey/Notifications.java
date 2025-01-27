@@ -36,12 +36,12 @@ import java.util.logging.Level;
 
 public class Notifications {
 
+    public static String PREFIX;
+
     private final Map<CommandSender, NotificationListener> observerMap = new HashMap<>();
     private final List<CommandSender> untoggledlist = new ArrayList<>();
     private final Map<UUID, DecayingListeningCounter> cancelledPackets = new HashMap<>();
     private final Map<UUID, DecayingListeningCounter> postponedPackets = new HashMap<>();
-
-    public static String PREFIX;
     private MessageFormat violationFormat;
     private MessageFormat punishFormat;
     private String packetFilterPre;

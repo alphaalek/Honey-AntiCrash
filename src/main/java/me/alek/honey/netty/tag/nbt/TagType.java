@@ -128,15 +128,14 @@ public enum TagType {
 
     public static TagType getFromClass(Class<?> clazz) {
         TagType type = TYPE_LOOKUP.get(clazz);
-
         if (type != null) {
             return type;
         }
 
-        for (Class<?> interfaceOfClass : clazz.getInterfaces()) {
-            TagType targetTypeFromLookup = TYPE_LOOKUP.get(interfaceOfClass);
-            if (targetTypeFromLookup != null) {
-                return targetTypeFromLookup;
+
+        for (TagType t : TagType.values()) {
+            if (t.dataTypeClass.isAssignableFrom(clazz)) {
+                return t;
             }
         }
 

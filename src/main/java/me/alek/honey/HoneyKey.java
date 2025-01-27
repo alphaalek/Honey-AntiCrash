@@ -1,10 +1,10 @@
 package me.alek.honey;
 
-import me.alek.honey.util.Identifiable;
+import me.alek.honey.util.id.IntIdentifiable;
 
 import java.util.Objects;
 
-public class HoneyKey implements Identifiable, Cloneable {
+public class HoneyKey implements IntIdentifiable, Cloneable {
 
     private final int key;
     private final String identifier;
@@ -22,7 +22,7 @@ public class HoneyKey implements Identifiable, Cloneable {
         return new HoneyKey(key, identifier);
     }
 
-    public static HoneyKey of(Identifiable identifiable) {
+    public static HoneyKey of(IntIdentifiable identifiable) {
         return of(identifiable.getID());
     }
 
@@ -31,7 +31,7 @@ public class HoneyKey implements Identifiable, Cloneable {
     }
 
     public String getIdentifier() {
-        return identifier;
+        return this.identifier;
     }
 
     @Override
@@ -61,11 +61,11 @@ public class HoneyKey implements Identifiable, Cloneable {
 
     @Override
     public String toString() {
-        return "id=" + key + ",identifier=" + identifier;
+        return "id=" + this.key + ",identifier=" + this.identifier;
     }
 
     @Override
-    public int getID() {
-        return getRegistryId();
+    public Integer getID() {
+        return this.key;
     }
 }

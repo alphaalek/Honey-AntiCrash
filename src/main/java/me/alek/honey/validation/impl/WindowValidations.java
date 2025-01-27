@@ -79,7 +79,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -113,7 +113,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -150,7 +150,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -188,7 +188,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

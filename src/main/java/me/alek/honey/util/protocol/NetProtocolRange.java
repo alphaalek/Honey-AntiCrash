@@ -19,12 +19,12 @@ public class NetProtocolRange {
         return new NetProtocolRange(NetProtocol.getOldest(), protocol);
     }
 
-    public static NetProtocolRange between(NetProtocol protocol1, NetProtocol protocol2) {
-        return new NetProtocolRange(protocol1, protocol2);
+    public static NetProtocolRange between(NetProtocol from, NetProtocol to) {
+        return new NetProtocolRange(from, to);
     }
 
     public static NetProtocolRange only(NetProtocol protocol) {
-        return new NetProtocolRange(protocol, protocol);
+        return new NetProtocolRange(protocol);
     }
 
     public static boolean matchProtocol(NetProtocol.To to, NetProtocol.From from) {
@@ -44,17 +44,21 @@ public class NetProtocolRange {
         return range.match(protocol);
     }
 
-    private final NetProtocol bound;
+    private final NetProtocol from;
     private final NetProtocol to;
     private final List<NetProtocolRange> exclude = new ArrayList<>();
 
-    private NetProtocolRange(NetProtocol bound, NetProtocol to) {
-        this.bound = NetProtocol.get(bound);
+    private NetProtocolRange(NetProtocol from, NetProtocol to) {
+        this.from = NetProtocol.get(from);
         this.to = NetProtocol.get(to);
     }
 
-    public NetProtocol getBound() {
-        return this.bound;
+    private NetProtocolRange(NetProtocol protocol) {
+        this(protocol, protocol);
+    }
+
+    public NetProtocol getFrom() {
+        return this.from;
     }
 
     public NetProtocol getTo() {
@@ -71,7 +75,7 @@ public class NetProtocolRange {
     }
 
     public boolean match(NetProtocol protocol) {
-        return protocol.isBetween(this.bound, this.to) && this.exclude.stream().noneMatch(p -> p.match(protocol));
+        return protocol.isBetween(this.from, this.to) && this.exclude.stream().noneMatch(p -> p.match(protocol));
     }
 
     public boolean match() {

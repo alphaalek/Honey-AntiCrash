@@ -56,7 +56,7 @@ public class LoginValidations extends AbstractValidationPacketListener<WrappedLo
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

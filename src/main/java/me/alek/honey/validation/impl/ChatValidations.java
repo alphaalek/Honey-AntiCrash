@@ -57,7 +57,7 @@ public class ChatValidations extends AbstractValidationPacketListener<WrappedPla
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -101,7 +101,7 @@ public class ChatValidations extends AbstractValidationPacketListener<WrappedPla
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

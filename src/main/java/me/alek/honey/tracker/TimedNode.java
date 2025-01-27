@@ -1,8 +1,8 @@
 package me.alek.honey.tracker;
 
-import me.alek.honey.util.Identifiable;
+import me.alek.honey.util.id.IntIdentifiable;
 
-public class TimedNode<T> implements Identifiable {
+public class TimedNode<T> implements IntIdentifiable {
 
     public TimedNode(T value, int identifier, long insertionInstant) {
         this.value = value;
@@ -26,7 +26,8 @@ public class TimedNode<T> implements Identifiable {
         return value;
     }
 
-    public int getID() {
+    @Override
+    public Integer getID() {
         return identifier;
     }
 

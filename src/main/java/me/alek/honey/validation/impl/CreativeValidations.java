@@ -53,7 +53,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -93,7 +93,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -141,7 +141,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 

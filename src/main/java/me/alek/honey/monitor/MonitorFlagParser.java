@@ -114,7 +114,7 @@ public class MonitorFlagParser {
         } else if (operator.equals(LogicalOperator.NOT)) {
             Object next;
             if (index == parsed.size() - 1
-                    || !(next = parsed.get(index + 1).get()).equals(LogicalOperator.PARANTHESIS_START) || next instanceof MonitorFlag) {
+                    || !((next = parsed.get(index + 1).get()).equals(LogicalOperator.PARANTHESIS_START) || next instanceof MonitorFlag)) {
                 wrongSyntaxMessage.set(Lang.get("packetmonitor.operator.no.flag"));
                 return false;
             }

@@ -1,6 +1,7 @@
 package me.alek.honey.netty.tag.nbt.array;
 
 import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.PrimitiveTag;
 import me.alek.honey.netty.tag.nbt.TagType;
 import org.jetbrains.annotations.NotNull;
 

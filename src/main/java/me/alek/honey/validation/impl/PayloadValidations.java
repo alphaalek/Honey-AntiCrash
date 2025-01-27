@@ -60,7 +60,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -94,7 +94,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -144,7 +144,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
@@ -188,7 +188,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         }
 
         @Override
-        public int getID() {
+        public Integer getID() {
             return id;
         }
 
