@@ -215,7 +215,11 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
             Flag.checkSyntax(args, this, 1);
 
             this.specified = MonitorFlagParser.getFromArgs(args);
-            Optional<PacketType> type = PacketTypes.getPacketType(specified, PacketTypes::isServerbound, PacketTypes.NameGetStrategy.EITHER);
+            if (this.specified.equalsIgnoreCase("any")) {
+                this.type = PacketType.UNKNOWN;
+                return 1;
+            }
+            Optional<PacketType> type = PacketTypes.getPacketType(this.specified, PacketTypes::isServerbound, PacketTypes.NameGetStrategy.EITHER);
             if (type.isPresent()) {
                 this.type = type.get();
                 return 1;
@@ -226,12 +230,12 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
 
         @Override
         public boolean test(PacketContainer<?> input) {
-            return input.getType().equals(this.type);
+            return this.type.equals(PacketType.UNKNOWN) || input.getType().equals(this.type);
         }
 
         @Override
         public String getWrongSyntaxMessage() {
-            return "Couldn't find any packet type matching \"" + Optional.ofNullable(specified).orElse("") + "\"";
+            return "Couldn't find any packet type matching \"" + Optional.ofNullable(this.specified).orElse("") + "\"";
         }
     }
 

@@ -4,7 +4,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
@@ -138,7 +137,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                     prev);
 
             prev.releaseIfAutoReleasable();
-            this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(prev);
+            this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(prev);
             InboundPacketFilter.removeMarker();
         }
 
@@ -147,7 +146,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         try {
             // initialize packet container
             PacketType type = this.packetHandler.getPacketType(serializer, false, this.packetHandler.getSimulatedServerboundProtocolState(), PacketBound.SERVER, true);
-            Bukkit.getLogger().info("Filter " + type + " " + ctx.pipeline().names());
+            Bukkit.getLogger().info("Filter " + type + " " + ctx.channel().config().isAutoRead());
             if (type == null) {
                 // invalid packet
                 serializer.resetReaderIndex();
@@ -188,7 +187,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (Exception ex) {
-            ex.printStackTrace();
             if (this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet
                 // most likely something pinging this server without following the Minecraft protocol

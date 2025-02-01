@@ -47,11 +47,17 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             WrappedImmutableItemStack stack = buf.readItemStackSafely(protocol, this);
             tag = stack.getTag().asNBT().get();
 
+            for (String page : tag.<String>getArrayOf("pages", TagType.STRING)) {
+                this.pages.add(page);
+            }
             this.signing = buf.readBoolean();
+            if (this.signing) {
+                this.author = tag.getString("author");
+                this.title = tag.getString("title");
+            }
+
             this.slot = buf.readVarInt();
         } else {
-            tag = new CompoundTag();
-
             this.slot = buf.readVarInt();
 
             int pageCount = buf.readVarInt();
@@ -59,10 +65,10 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
                     || protocol.isOlderThan(NetProtocol.v1_14) && pageCount > MAX_PAGES_1_13_2) {
                 throw new IllegalStateException("Too many pages: " + pageCount + ", limit: " + (protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_PAGES : MAX_PAGES_1_13_2));
             }
-
             for (int i = 0; i < pageCount; i++) {
                 this.pages.add(buf.readString(PAGE_CHAR_LIMIT));
             }
+            tag = new CompoundTag();
             tag.putArray("pages", TagType.STRING, this.pages);
 
             if (buf.readBoolean()) {

@@ -33,7 +33,6 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
         onExceptionCaught(ctx.channel(), cause);
         try {
             ctx.fireExceptionCaught(cause);

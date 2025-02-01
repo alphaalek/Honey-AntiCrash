@@ -11,9 +11,11 @@ import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBookEdit;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
+import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ItemFactory;
 import org.bukkit.Bukkit;
@@ -21,6 +23,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 
@@ -82,54 +85,11 @@ public class WrappedImmutableItemStack implements Cloneable {
 
     static {
         CodecTypeValidation.ITEM_STACK.addValidation(WrappedImmutableItemStack::validate);
-        CodecTypeValidation.BOOK_EDIT_ITEM_STACK.addValidation(WrappedImmutableItemStack::validateBookEdit);
     }
 
     public static void validate(WrappedImmutableItemStack item, DecodeContext<?> context) {
         if (item.getType() == ItemTypes.WRITABLE_BOOK || item.getType() == ItemTypes.WRITTEN_BOOK) {
-            validateBook(item, context);
-        }
-    }
-
-    public static void validateBook(WrappedImmutableItemStack item, DecodeContext<?> context) {
-        ItemTag tag = item.getTag();
-        if (tag.asNBT().isPresent()) {
-            CompoundTag nbt = tag.asNBT().get();
-            if (nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
-                ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
-                NetProtocol protocol = context.packet().getProtocol();
-                if (protocol.isNewerThanOrEqual(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES
-                        || protocol.isOlderThan(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES_1_13_2) {
-                    throw new IllegalStateException("Too many pages: " + pages.size() + ", limit: "
-                            + (protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? WrappedPlayInBookEdit.MAX_PAGES : WrappedPlayInBookEdit.MAX_PAGES_1_13_2));
-                }
-            }
-
-            if (nbt.hasKeyOfType("title", TagType.STRING)
-                    && (nbt.getString("title").isEmpty() || nbt.getString("title").length() > WrappedPlayInBookEdit.TITLE_CHAR_LIMIT)) {
-                throw new DecoderException("Invalid book data! Too long title: " + nbt.getString("title").length() + ", limit: " + WrappedPlayInBookEdit.TITLE_CHAR_LIMIT);
-            }
-
-            if (nbt.hasKeyOfType("author", TagType.STRING)
-                    && (nbt.getString("author").isEmpty() || nbt.getString("author").length() > WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT)) {
-                throw new DecoderException("Invalid book data! Too long author: " + nbt.getString("author").length() + ", limit: " + WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT);
-            }
-        }
-    }
-
-    public static void validateBookEdit(WrappedImmutableItemStack item, DecodeContext.BookEditContext<?> context) {
-        if (item.getType() != ItemTypes.WRITTEN_BOOK && item.getType() != ItemTypes.WRITABLE_BOOK) {
-            throw new DecoderException("Invalid book edit item-stack! Item-stack type: " + item.getType());
-        }
-
-        ItemTag tag = item.getTag();
-        if (tag.isEmpty()) {
-            throw new DecoderException("Invalid book data: no tag");
-        }
-
-        if (tag.asNBT().isPresent()) {
-            CompoundTag nbt = tag.asNBT().get();
-            CodecTypeValidation.BOOK_EDIT_TAG.validate(nbt, context);
+            BookTag.validateBook(item, context);
         }
     }
 
@@ -188,14 +148,14 @@ public class WrappedImmutableItemStack implements Cloneable {
     }
 
     private final NetProtocol protocol;
+    private final ItemType type;
     private ItemTag tag = ItemTag.EMPTY;
     private int amount;
     private short durability = -1; // until 1.13
-    private ItemType type = ItemTypes.AIR;
 
     public WrappedImmutableItemStack(NetProtocol protocol, ItemType type, int amount, ItemTag tag) {
         this.protocol = protocol;
-        this.type = type;
+        this.type = Optional.ofNullable(type).orElse(ItemTypes.AIR);
         this.amount = amount;
         if (tag != null) {
             this.tag = tag;
@@ -216,6 +176,7 @@ public class WrappedImmutableItemStack implements Cloneable {
     }
 
     private WrappedImmutableItemStack() {
+        this.type = ItemTypes.AIR;
         this.protocol = NetProtocol.UNKNOWN;
     }
 

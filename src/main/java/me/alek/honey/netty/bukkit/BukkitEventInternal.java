@@ -26,7 +26,7 @@ public class BukkitEventInternal implements Listener {
 
         Channel channel = NMS.getChannel(player.getName());
         if (channel == null) {
-            kickPlayerBukkit(player);
+            HoneyPlayer.kick(player, BROKEN_PIPE_KICK_MESSAGE);
             return;
         }
 
@@ -40,18 +40,8 @@ public class BukkitEventInternal implements Listener {
 
             HoneyPlayer.register(honeyPlayer, player);
         } catch (MissingHandlerException ex) {
-            ex.printStackTrace();
             HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
-                    () -> kickPlayerBukkit(player));
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private void kickPlayerBukkit(Player player) {
-        if (Paper.IS_PAPER && NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
-            player.kick(Component.text(BROKEN_PIPE_KICK_MESSAGE));
-        } else {
-            player.kickPlayer(BROKEN_PIPE_KICK_MESSAGE);
+                    () -> HoneyPlayer.kick(player, BROKEN_PIPE_KICK_MESSAGE));
         }
     }
 

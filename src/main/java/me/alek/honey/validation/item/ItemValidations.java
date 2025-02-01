@@ -59,7 +59,7 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             if (nbt.hasKeyOfType("Enchantments", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))) {
                 GeneticArrayTypes.ArrayOfCompoundTag enchantments = nbt.getArrayOfCompound("Enchantments");
-                for (CompoundTag enchantment : enchantments) {
+                for (CompoundTag enchantment : enchantments.getValues()) {
                     short level = enchantment.getShort("lvl");
                     if (level > ConfigurationOptions.ItemAnalysis.MAX_ENCHANTMENT_LEVEL) {
                         return true;

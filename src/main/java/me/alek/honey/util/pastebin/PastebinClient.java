@@ -43,7 +43,6 @@ public class PastebinClient {
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             return reader.readLine();
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }

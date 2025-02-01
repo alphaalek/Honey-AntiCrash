@@ -70,7 +70,7 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
                     HoneyPlugin.get().getNotificationService().showQuarantinedAsyncWorker(player, System.currentTimeMillis() - lastHandledTask.get());
                 }
                 if (time > 10_000) {
-                    player.kick(Component.text(Lang.get("kick.too.long.packet.handle")));
+                    player.kick(Lang.get("kick.too.long.packet.handle"));
                 }
             }
         }

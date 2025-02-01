@@ -26,6 +26,8 @@ public interface MapConverter<K, V, T> extends JavaConverter<Map<K, V>, MapConve
 
     Collection<T> convertedValues();
 
+    Map<K, T> getDelegatedMap();
+
     T getConverted(K key);
 
     JavaConverter<V, T> getHandle();

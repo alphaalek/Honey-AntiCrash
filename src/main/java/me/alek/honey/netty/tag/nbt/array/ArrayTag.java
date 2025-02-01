@@ -26,9 +26,14 @@ public class ArrayTag<T> extends AbstractArrayTag<PrimitiveTag<T>, ArrayTag<T>, 
         return tag.getValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public PrimitiveTag<T> to(T val) {
-        return new PrimitiveTag<>(this.typeOf, val);
+        if (val instanceof PrimitiveTag) {
+            return (PrimitiveTag<T>) val;
+        } else {
+            return new PrimitiveTag<>(this.typeOf, val);
+        }
     }
 
     @NotNull

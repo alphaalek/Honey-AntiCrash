@@ -37,13 +37,13 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
             return true;
         }
 
-        int delegatedSize = delegatedMap.size();
-        int declaringSize = declaringMap.size();
+        int delegatedSize = this.delegatedMap.size();
+        int declaringSize = this.declaringMap.size();
 
         if (delegatedSize != declaringSize) {
-            delegatedMap.clear();
-            for (K declaringKey : declaringMap.keySet()) {
-                delegatedMap.put(declaringKey, converter.convertDelegate(declaringMap.get(declaringKey)));
+            this.delegatedMap.clear();
+            for (K declaringKey : this.declaringMap.keySet()) {
+                this.delegatedMap.put(declaringKey, this.converter.convertDelegate(this.declaringMap.get(declaringKey)));
             }
         }
 
@@ -53,46 +53,46 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
     public Set<K> keySet() {
         checkMap();
 
-        return delegatedMap.keySet();
+        return this.delegatedMap.keySet();
     }
 
     public void clear() {
         if (checkMap()) return;
 
-        declaringMap.clear();
-        delegatedMap.clear();
+        this.declaringMap.clear();
+        this.delegatedMap.clear();
     }
 
     @Override
     public int size() {
-        return delegatedMap.size();
+        return this.delegatedMap.size();
     }
 
     public boolean containsKey(K key) {
         checkMap();
 
-        return delegatedMap.containsKey(key);
+        return this.delegatedMap.containsKey(key);
     }
 
     @Override
     public boolean isEmpty() {
         checkMap();
 
-        return delegatedMap.isEmpty();
+        return this.delegatedMap.isEmpty();
     }
 
     public T removeConverted(K key) {
         if (checkMap()) return null;
 
-        delegatedMap.remove(key);
-        return converter.convertDelegate(declaringMap.remove(key));
+        this.delegatedMap.remove(key);
+        return this.converter.convertDelegate(this.declaringMap.remove(key));
     }
 
     public T putConverted(K key, T value) {
         if (checkMap()) return null;
 
-        delegatedMap.put(key, value);
-        declaringMap.put(key, converter.convertDeclaring(value));
+        this.delegatedMap.put(key, value);
+        this.declaringMap.put(key, this.converter.convertDeclaring(value));
         return value;
     }
 
@@ -100,35 +100,42 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
         if (checkMap()) return;
 
         for (Map.Entry<? extends K, ? extends V> entry : otherMap.entrySet()) {
-            delegatedMap.put(entry.getKey(), converter.convertDelegate(entry.getValue()));
+            this.delegatedMap.put(entry.getKey(), this.converter.convertDelegate(entry.getValue()));
         }
-        declaringMap.putAll(otherMap);
+        this.declaringMap.putAll(otherMap);
     }
 
     public void putAllOther(Map<? extends K, ? extends T> otherMap) {
         if (checkMap()) return;
 
         for (Map.Entry<? extends K, ? extends T> entry : otherMap.entrySet()) {
-            declaringMap.put(entry.getKey(), converter.convertDeclaring(entry.getValue()));
+            this.declaringMap.put(entry.getKey(), this.converter.convertDeclaring(entry.getValue()));
         }
-        delegatedMap.putAll(otherMap);
+        this.delegatedMap.putAll(otherMap);
     }
 
     public Collection<T> convertedValues() {
         checkMap();
 
-        return delegatedMap.values();
+        return this.delegatedMap.values();
+    }
+
+    @Override
+    public Map<K, T> getDelegatedMap() {
+        checkMap();
+
+        return this.delegatedMap;
     }
 
     public T getConverted(K key) {
         checkMap();
 
-        return delegatedMap.get(key);
+        return this.delegatedMap.get(key);
     }
 
     @Override
     public JavaConverter<V, T> getHandle() {
-        return converter;
+        return this.converter;
     }
 
     @Override
@@ -142,6 +149,6 @@ public class SimpleMapConverter<K, V, T> implements MapConverter<K, V, T> {
     public Map<K, V> convertDeclaring(MapConverter<K, V, T> object) {
         checkMap();
 
-        return declaringMap;
+        return this.declaringMap;
     }
 }

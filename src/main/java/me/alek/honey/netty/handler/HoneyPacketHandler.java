@@ -221,8 +221,6 @@ public class HoneyPacketHandler {
         if (resetToStartIndex) {
             buf.resetReaderIndex();
         }
-        Bukkit.getLogger().info("Id " + id);
-
         // check if the client protocol version is not the same as the server protocol version
         // if it is not the same, then we will acquire the packet type with ViaVersion
         if (useVia
@@ -277,7 +275,6 @@ public class HoneyPacketHandler {
         if (this.configuringServerbound && !HoneyPlugin.get().getPacketLibrary().getPipelineInjector().isConfigurationActive(this.channel.pipeline(), PacketBound.SERVER)) {
             this.configuringServerbound = false;
         }
-
         executeDelayedTasks(PacketBound.SERVER);
 
         if (isCancelled(packet)) {
@@ -293,9 +290,7 @@ public class HoneyPacketHandler {
         if (this.configuringClientbound && !HoneyPlugin.get().getPacketLibrary().getPipelineInjector().isConfigurationActive(this.channel.pipeline(), PacketBound.CLIENT)) {
             this.configuringClientbound = false;
         }
-
         checkViaCompressionOrder();
-
         executeDelayedTasks(PacketBound.CLIENT);
 
         return !isCancelled(packet);

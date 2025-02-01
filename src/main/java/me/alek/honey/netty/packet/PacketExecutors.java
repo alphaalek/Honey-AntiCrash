@@ -52,7 +52,7 @@ public class PacketExecutors {
 
     private static class CustomPayloadPacketExecutor<CP extends WrappedPlayInCustomPayload<CP>> implements PacketExecutor<CP> {
 
-        private static final Function<HoneyPlayer, Runnable> INVALID_BOOK_DATA = player -> () -> player.kick(Component.text("Invalid book data!"));
+        private static final Function<HoneyPlayer, Runnable> INVALID_BOOK_DATA = player -> () -> player.kick("Invalid book data!");
 
         @Override
         public boolean test(PacketContainer<CP> packet) {

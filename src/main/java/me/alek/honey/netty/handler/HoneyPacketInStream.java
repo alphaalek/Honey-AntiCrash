@@ -14,7 +14,6 @@ import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
@@ -153,7 +152,6 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                 ctx.channel().eventLoop().execute(() -> firePacketRead(ctx, finalPacket, packetExecutorTask));
             }
         } catch (Throwable ex) {
-            ex.printStackTrace();
             try {
                 super.exceptionCaught(ctx, ex);
             } catch (Exception ignored) {
@@ -169,7 +167,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
         }
         packet.handle();
 
-        this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(packet);
+        this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(packet);
 
         if (packetExecutorTask != null) {
             HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue().add(packetExecutorTask);

@@ -45,7 +45,7 @@ public class HoneyPlayer implements IntIdentifiable {
         return HONEY_PLAYER_LOOKUP.values();
     }
 
-    private static final Component DISCONNECTED = Component.text("Disconnected");
+    private static final String DISCONNECTED = "Disconnected";
 
     public final Channel channel;
     public final int registryID = IDRegistry.PLAYERS.acquire();
@@ -177,7 +177,7 @@ public class HoneyPlayer implements IntIdentifiable {
         this.online = false;
         if (this.bukkit != null) {
             if (ex.getMessage() != null) {
-                kick(Component.text(ex.getMessage()));
+                kick(ex.getMessage());
             } else {
                 kick(DISCONNECTED);
             }
@@ -190,10 +190,17 @@ public class HoneyPlayer implements IntIdentifiable {
         kick(DISCONNECTED);
     }
 
-    public void kick(Component reason) {
-        this.online = false;
-        WrappedPlayOutDisconnect packet = WrappedPlayOutDisconnect.of(this.packetHandler.getProtocolState(PacketBound.CLIENT), reason);
-        packet.write(this);
+    public void kick(String reason) {
+        kick(this.bukkit, reason);
+    }
+
+    @SuppressWarnings("deprecation")
+    public static void kick(Player player, String reason) {
+        if (Paper.IS_PAPER && NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
+            player.kick(Component.text(reason));
+        } else {
+            player.kickPlayer(reason);
+        }
     }
 
     public boolean isStreamActive() {

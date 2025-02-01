@@ -16,6 +16,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.io.InputStream;

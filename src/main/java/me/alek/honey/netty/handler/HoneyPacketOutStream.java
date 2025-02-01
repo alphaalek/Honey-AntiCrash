@@ -31,8 +31,7 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
             PACKET_ENCODING = MessageToByteEncoder.class.getDeclaredMethod("encode", ChannelHandlerContext.class, Object.class, ByteBuf.class);
             PACKET_ENCODING.setAccessible(true);
         } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Failed to setup packet encoder environment!");
+            throw new RuntimeException("Failed to setup packet encoder environment!", ex);
         }
     }
 

@@ -120,22 +120,9 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled()) {
+            if (getSetting().isEnabled() && packet.getPayloadData().isBookChannel()) {
                 WrappedImmutableItemStack item = packet.getPayloadData().getBookChannelItemStack();
                 if (item != null) {
-                    // TODO: fix
-                    int nbtSize;
-                    if (item.getTag() != null && (nbtSize = item.getTag().toString().getBytes().length) > getSetting().max) {
-                        return ValidationViolationContext.Builder.validate().cancel().flag()
-                                .onViolation(generateKey(), (keyInner, onViolation) -> {
-                                    if (onViolation != null) {
-                                        onViolation.run();
-                                    }
-                                    context.getDevelopmentData(keyInner).addPoint("NBT Size", nbtSize);
-                                })
-                                .build();
-                    }
-
                     return ItemAnalysis.flagIf(player, item, generateKey(), context);
                 }
             }

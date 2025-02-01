@@ -12,7 +12,6 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 
 public class ProtocolSwapHandler {
 
@@ -71,10 +70,10 @@ public class ProtocolSwapHandler {
             // already handled in swap protocol filter
             return;
         }
-        swapProtocolInboundNotPreDecode(packet);
+        swapProtocolInbound(packet);
     }
 
-    public void swapProtocolInboundNotPreDecode(PacketContainer<?> packet) {
+    public void swapProtocolInbound(PacketContainer<?> packet) {
         HoneyPacketHandler handler = packet.getPacketHandler();
 
         // login -> configuration (client -> server)

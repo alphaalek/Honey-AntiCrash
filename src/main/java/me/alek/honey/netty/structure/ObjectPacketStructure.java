@@ -1,6 +1,5 @@
 package me.alek.honey.netty.structure;
 
-import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.structure.converters.JavaConverter;

@@ -33,13 +33,15 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
         getValue();
     }
 
+    @SuppressWarnings("unchecked")
     public TAG incrementBytes(TagLimiter limiter, int bytes) {
         limiter.incrementBytes(bytes);
         return (TAG) this;
     }
 
+    @SuppressWarnings("unchecked")
     public TAG incrementComplexity(TagLimiter limiter) {
-        limiter.incrementNestingDepth();
+        limiter.incrementComplexity();
         return (TAG) this;
     }
 
@@ -79,11 +81,12 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
         return (CompoundTag) this;
     }
 
-    public <T> PrimitiveTag<T> asPrimitive() {
+    @SuppressWarnings("unchecked")
+    public <C> PrimitiveTag<C> asPrimitive() {
         if (getType().hasCollection()) {
             return null;
         }
-        return (PrimitiveTag<T>) this;
+        return (PrimitiveTag<C>) this;
     }
 
     public TagType getType() {
@@ -160,7 +163,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
             return false;
         }
         AbstractTag<?, ?, ?> base = (AbstractTag<?, ?, ?>) object;
-        if (base.getType().equals(getType())) {
+        if (!base.getType().equals(getType())) {
             return false;
         }
         return Objects.equals(getValue(), base.getValue());

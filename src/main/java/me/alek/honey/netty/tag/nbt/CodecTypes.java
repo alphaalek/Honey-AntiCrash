@@ -4,10 +4,12 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
+import org.bukkit.Bukkit;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CodecTypes {
 
@@ -262,12 +264,12 @@ public class CodecTypes {
             }
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "DataFlowIssue"})
         @Override
         public R read(DataInputStream input, TagLimiter limiter) throws IOException {
             TagType type = TagType.getFromTypeId(input.readByte());
             if (type == null) {
-                throw new IOException();
+                throw new IOException("Invalid type");
             }
             int depth = limiter.incrementNestingDepth();
 
@@ -286,16 +288,13 @@ public class CodecTypes {
                         wrappedArray = (R) createArrayOfArray(array);
                         break;
                     case COMPOUND:
-                        wrappedArray = (R) new GeneticArrayTypes.ArrayOfCompoundTag((List<CompoundTag>) array);
+                        wrappedArray = (R) new GeneticArrayTypes.ArrayOfCompoundTag(array);
                         break;
                     default:
                         throw new DecoderException("Wrong array type");
                 }
             } else {
-                wrappedArray = (R) new ArrayTag<>(type,
-                        array.stream()
-                                .map(v -> v.asPrimitive().getValue())
-                                .collect(Collectors.toList()));
+                wrappedArray = (R) new ArrayTag<>(type, array);
             }
 
             return wrappedArray
@@ -304,9 +303,8 @@ public class CodecTypes {
                     .incrementBytes(limiter, ARRAY_ELEMENT_BYTES * wrappedArray.size());
         }
 
-        @SuppressWarnings("unchecked")
-        private <ARRAY extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN>, IN extends AbstractArrayTag<?, IN, ?>> GeneticArrayTypes.ArrayOfArrayTag<?, IN> createArrayOfArray(Iterable<T> array) {
-            return new GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN>((Iterable<IN>) array);
+        private <ARRAY extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN, C>, IN extends AbstractArrayTag<C, IN, ?>, C extends AbstractTag<?, ?, C>> GeneticArrayTypes.ArrayOfArrayTag<?, IN, C> createArrayOfArray(Iterable<T> array) {
+            return new GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN, C>(array);
         }
     }
 
@@ -340,13 +338,14 @@ public class CodecTypes {
             while ((b = input.readByte()) != 0) {
                 TagType type = TagType.getFromTypeId(b);
                 if (type == null) {
-                    throw new IOException();
+                    throw new IOException("Invalid type");
                 }
 
                 String key = input.readUTF();
-                Object value = Optional.ofNullable(type.getCodec().read(input, limiter)).map(AbstractTag::getHandle).orElse(null);
-
-                map.put(key, value);
+                Object value = type.getCodec().read(input, limiter);
+                if (value != null) {
+                    map.put(key, value);
+                }
             }
 
             limiter.setNestingDepthLevel(depth);

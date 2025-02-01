@@ -74,7 +74,8 @@ public enum TagType {
     ARRAY_OF_INT((byte) 11, CodecTypes.IntArrayCodec.class, getNBTClass("NBTTagIntArray"), int[].class),
     @NetProtocol.From(from = NetProtocol.v1_12_2) @NMSInvoker(params = {long[].class})
     ARRAY_OF_LONG((byte) 12, CodecTypes.LongArrayCodec.class,
-            NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2) ? getNBTClass("NBTTagLongArray") : null, long[].class),;
+            NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2) ? getNBTClass("NBTTagLongArray") : null, long[].class),
+    ;
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
@@ -93,8 +94,7 @@ public enum TagType {
         COMPOUND,
         ARRAY,
         ARRAY_OF_COMPOUND,
-        ARRAY_OF_ARRAY
-        ;
+        ARRAY_OF_ARRAY;
 
         @Retention(RetentionPolicy.RUNTIME)
         @Target(ElementType.FIELD)
@@ -191,11 +191,12 @@ public enum TagType {
         try {
             if (AbstractTag.class.isAssignableFrom(clazz)) {
                 return (Class<? extends AbstractTag<?, ?, ?>>) clazz.asSubclass(AbstractTag.class);
+            } else {
+                return null;
             }
         } catch (Exception ignored) {
+            return null;
         }
-
-        return null;
     }
 
     public boolean isValid() {
@@ -205,9 +206,7 @@ public enum TagType {
             NetProtocol.To to = field.getAnnotation(NetProtocol.To.class);
 
             return NetProtocolRange.matchProtocol(to, from);
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -216,8 +215,7 @@ public enum TagType {
         try {
             Field field = TagType.class.getField(this.name());
             return field.isAnnotationPresent(Collection.OfCollection.class);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception ignored) {
             return false;
         }
     }
@@ -228,11 +226,12 @@ public enum TagType {
             Collection.OfCollection ofCollection = field.getAnnotation(Collection.OfCollection.class);
             if (ofCollection != null) {
                 return ofCollection.collection();
+            } else {
+                return null;
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception ignored) {
+            return null;
         }
-        return null;
     }
 
     TagType(byte typeId, Class<?> codec, Class<?> delegateClass, Class<?> dataTypeClass) {

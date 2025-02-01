@@ -66,7 +66,6 @@ public class DiscordWebhook {
             }
             connection.getInputStream().close();
             connection.disconnect();
-
         } catch (IOException ex) {
             ex.printStackTrace();
         }

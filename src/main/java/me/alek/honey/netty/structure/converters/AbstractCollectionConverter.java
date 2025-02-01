@@ -1,5 +1,7 @@
 package me.alek.honey.netty.structure.converters;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -21,20 +23,20 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
     }
 
     public boolean isInvalid() {
-        return declaringCollection == null || delegatedCollection == null;
+        return this.declaringCollection == null || this.delegatedCollection == null;
     }
 
     protected boolean checkCollections() {
-        if (declaringCollection == null) {
+        if (this.declaringCollection == null) {
             return true;
         }
 
-        int delegatedSize = delegatedCollection.size();
-        int declaringSize = declaringCollection.size();
+        int delegatedSize = this.delegatedCollection.size();
+        int declaringSize = this.declaringCollection.size();
         if (delegatedSize != declaringSize) {
-            delegatedCollection.clear();
-            for (K declaring : declaringCollection) {
-                delegatedCollection.add(converter.convertDelegate(declaring));
+            this.delegatedCollection.clear();
+            for (K declaring : this.declaringCollection) {
+                this.delegatedCollection.add(this.converter.convertDelegate(declaring));
             }
         }
 
@@ -45,55 +47,55 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
     public int size() {
         if (checkCollections()) return 0;
 
-        return declaringCollection.size();
+        return this.declaringCollection.size();
     }
 
     @Override
     public void clear() {
         if (checkCollections()) return;
 
-        delegatedCollection.clear();
-        declaringCollection.clear();
+        this.delegatedCollection.clear();
+        this.declaringCollection.clear();
     }
 
     @Override
     public boolean isEmpty() {
         if (checkCollections()) return true;
 
-        return declaringCollection.isEmpty();
+        return this.declaringCollection.isEmpty();
     }
 
     @Override
     public boolean remove(K o) {
         if (checkCollections()) return false;
 
-        declaringCollection.remove(o);
-        return delegatedCollection.remove(converter.convertDelegate(o));
+        this.declaringCollection.remove(o);
+        return this.delegatedCollection.remove(this.converter.convertDelegate(o));
     }
 
     @Override
     public boolean removeConverted(V value) {
         if (checkCollections()) return false;
 
-        declaringCollection.remove(converter.convertDeclaring(value));
-        return delegatedCollection.remove(value);
+        this.declaringCollection.remove(this.converter.convertDeclaring(value));
+        return this.delegatedCollection.remove(value);
     }
 
     @Override
     public boolean removeIfConverted(Predicate<V> tester) {
         Iterator<V> iteratorConverted = iterator();
-        Iterator<K> iterator = declaringCollection.iterator();
+        Iterator<K> iterator = this.declaringCollection.iterator();
         boolean removed = false;
         while (iteratorConverted.hasNext()) {
             V converted = iteratorConverted.next();
             K val = iterator.next();
 
             if (tester.test(converted)) {
-                if (converted.equals(converter.convertDelegate(val))) {
+                if (converted.equals(this.converter.convertDelegate(val))) {
                     iterator.remove();
                     removed = true;
                 } else {
-                    removed = declaringCollection.removeIf(k -> converter.convertDelegate(k).equals(converted));
+                    removed = this.declaringCollection.removeIf(k -> this.converter.convertDelegate(k).equals(converted));
                 }
 
                 if (removed) {
@@ -109,31 +111,31 @@ public class AbstractCollectionConverter<K, V> implements CollectionConverter<K,
     public boolean contains(K o) {
         if (checkCollections()) return false;
 
-        return declaringCollection.contains(o);
+        return this.declaringCollection.contains(o);
     }
 
     @Override
     public boolean containsConverted(V value) {
-        return contains(converter.convertDeclaring(value));
+        return contains(this.converter.convertDeclaring(value));
     }
 
     @Override
     public boolean add(K value) {
         if (checkCollections()) return false;
 
-        declaringCollection.add(value);
-        return delegatedCollection.add(converter.convertDelegate(value));
+        this.declaringCollection.add(value);
+        return this.delegatedCollection.add(this.converter.convertDelegate(value));
     }
 
     @Override
     public boolean addConverted(V value) {
-        return add(converter.convertDeclaring(value));
+        return add(this.converter.convertDeclaring(value));
     }
 
     @Override
-    public Iterator<V> iterator() {
+    public @NotNull Iterator<V> iterator() {
         if (checkCollections()) return Collections.emptyIterator();
 
-        return delegatedCollection.iterator();
+        return this.delegatedCollection.iterator();
     }
 }

@@ -11,6 +11,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -18,39 +19,6 @@ import java.util.*;
 import java.util.function.Function;
 
 public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?, ?>>, CompoundTag> implements ItemTag {
-
-    static {
-        CodecTypeValidation.BOOK_EDIT_TAG.addValidation(CompoundTag::validateBookEdit);
-    }
-
-    public static void validateBookEdit(CompoundTag nbt, DecodeContext.BookEditContext<?> context) {
-        if (!nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))) {
-            throw new DecoderException("Invalid book data: no pages tag");
-        }
-
-        if (context.isSigning()) {
-            if (!nbt.hasKeyOfType("title", TagType.STRING)) {
-                throw new DecoderException("Invalid book data: no title tag in sign context");
-            }
-
-            if (!nbt.hasKeyOfType("author", TagType.STRING) || !nbt.getString("author").equals(context.packet().getContainer().getPlayerName())) {
-                throw new DecoderException("Invalid book data: no author tag in sign context");
-            }
-
-            if (nbt.getKeys().stream().anyMatch(k ->
-                       !k.equals("pages")
-                    && !k.equals("filtered_pages")
-                    && !k.equals("title")
-                    && !k.equals("filtered_title")
-                    && !k.equals("author"))) {
-                throw new DecoderException("Invalid book data: extra tags");
-            }
-        } else if (nbt.getKeys().stream().anyMatch(k ->
-                !k.equals("pages")
-             && !k.equals("filtered_pages"))) {
-            throw new DecoderException("Invalid book data: extra tags");
-        }
-    }
 
     private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.COMPOUND);
 
@@ -229,7 +197,7 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         return getAbstractArrayOf(key, TagType.getFromCollection(TagType.Collection.COMPOUND));
     }
 
-    public <ARRAY extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN>, IN extends AbstractArrayTag<?, IN, ?>> GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN> getArrayOfArray(String key) {
+    public <ARRAY extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN, C>, IN extends AbstractArrayTag<C, IN, ?>, C extends AbstractTag<?, ?, C>> GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN, C> getArrayOfArray(String key) {
         return getAbstractArrayOf(key, TagType.getFromCollection(TagType.Collection.ARRAY));
     }
 

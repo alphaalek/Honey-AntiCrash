@@ -11,7 +11,6 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.Callback;
-import org.bukkit.Bukkit;
 
 import java.util.function.Function;
 
@@ -44,13 +43,13 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                 PacketContainer<WP> newPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(this.packetHandler.getPlayer(), msg, packet);
 
                 if (newPacket != null && (packet == null || newPacket.getType().equals(packet.getType()))) {
-                    this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(newPacket);
+                    this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(newPacket);
                 } else {
                     if (packet != null) {
-                        this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(packet);
+                        this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(packet);
                     }
                     if (newPacket != null) {
-                        this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(newPacket);
+                        this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(newPacket);
                     }
                 }
 

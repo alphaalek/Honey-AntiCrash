@@ -57,16 +57,19 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
         }
     }
 
+    @SuppressWarnings("unchecked")
     public C from(IN in) {
         // to be overridden
         return (C) in;
     }
 
+    @SuppressWarnings("unchecked")
     public IN to(C context) {
         // to be overridden
         return (IN) context;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void write(DataOutputStream output) throws IOException {
         getType().<ARRAY>getCodec().write(output, (ARRAY) this);
@@ -112,11 +115,11 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
 
 
     @SuppressWarnings("unchecked")
-    public <ARRAY2 extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2>, IN2 extends AbstractArrayTag<?, IN2, ?>> GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2> asArrayOfArray() {
+    public <ARRAY2 extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2, C>, IN2 extends AbstractArrayTag<C, IN2, ?>, C extends AbstractTag<?, ?, C>> GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2, C> asArrayOfArray() {
         if (getTypeOf().getCollection() != TagType.Collection.ARRAY) {
             return null;
         }
-        return (GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2>) this;
+        return (GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2, C>) this;
     }
 
     public GeneticArrayTypes.ArrayOfCompoundTag asArrayOfCompound() {
