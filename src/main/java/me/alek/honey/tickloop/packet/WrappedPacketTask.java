@@ -19,7 +19,7 @@ public class WrappedPacketTask {
     }
 
     public boolean runCheck() {
-        return packet.getPlayer().isStreamActive();
+        return this.packet.getPlayer().isStreamActive();
     }
 
     public void runPre() {
@@ -29,9 +29,9 @@ public class WrappedPacketTask {
 
     public void runPost() {
         this.done = true;
-        packet.invokeServerCallback();
+        this.packet.invokeServerCallback();
 
-        TaskLifecycleHandler.unregisterTask(packet);
+        TaskLifecycleHandler.unregisterTask(this.packet);
     }
 
     public void initPacketTask(Runnable packetTask) {
@@ -39,34 +39,34 @@ public class WrappedPacketTask {
     }
 
     public HoneyPlayer getPlayer() {
-        return packet.getPlayer();
+        return this.packet.getPlayer();
     }
 
     public PacketContainer<?> getPacket() {
-        return packet;
+        return this.packet;
     }
 
     public Runnable getPacketTask() {
-        return packetTask;
+        return this.packetTask;
     }
 
     public long getStarted() {
-        return started;
+        return this.started;
     }
 
     public boolean isPostponed() {
-        return postponed;
+        return this.postponed;
     }
 
     public void postpone() {
-        postponed = true;
+        this.postponed = true;
     }
 
     public int getTickAdded() {
-        return tickAdded;
+        return this.tickAdded;
     }
 
     public boolean isDone() {
-        return done;
+        return this.done;
     }
 }

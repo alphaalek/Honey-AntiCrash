@@ -330,7 +330,7 @@ public class Notifications {
         }
 
         try {
-            ObjectWrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketTypes.Play.Server.PLAYER_CHAT, player);
+            ObjectWrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketTypes.Play.Server.CHAT, player);
             PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
 
             packetContainer.getStructure().getBytes().writeField(0, (byte) 2);
@@ -343,7 +343,7 @@ public class Notifications {
             Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
             packetContainer.getStructure().getObjectsOf(NMS.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
-            HoneyPlugin.get().getPacketLibrary().getPacketManager().writeForcedPacket(player, actionBarPacket);
+            HoneyPlugin.get().getPacketLibrary().getChannelManager().writeForcedPacket(player, actionBarPacket);
         } catch (Exception ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to send action bar packet", ex);
         }

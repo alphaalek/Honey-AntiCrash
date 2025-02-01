@@ -3,6 +3,7 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
@@ -39,28 +40,38 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
 
     public WrappedPlayInBookEdit(PacketDataSerializer buf, PacketContainer<WrappedPlayInBookEdit> packet) {
         super(buf, packet);
-
-        this.slot = buf.readVarInt();
-
         NetProtocol protocol = packet.getProtocol();
-        int pageCount = buf.readVarInt();
-        if (protocol.isNewerThanOrEqual(NetProtocol.v1_14) && pageCount > MAX_PAGES
-                || protocol.isOlderThan(NetProtocol.v1_14) && pageCount > MAX_PAGES_1_13_2) {
-            throw new IllegalStateException("Too many pages: " + pageCount + ", limit: " + (protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_PAGES : MAX_PAGES_1_13_2));
-        }
 
-        CompoundTag tag = new CompoundTag();
-        for (int i = 0; i < pageCount; i++) {
-            this.pages.add(buf.readString(PAGE_CHAR_LIMIT));
-        }
-        tag.putArray("pages", TagType.STRING, this.pages);
+        CompoundTag tag;
+        if (protocol.isOlderThanOrEqual(NetProtocol.v1_17)) {
+            WrappedImmutableItemStack stack = buf.readItemStackSafely(protocol, this);
+            tag = stack.getTag().asNBT().get();
 
-        if (buf.readBoolean()) {
-            tag.putPrimitive("title", TagType.STRING, this.title = buf.readString(TITLE_CHAR_LIMIT));
-            tag.putPrimitive("author", TagType.STRING, this.author = packet.getPlayer().name);
-            this.signing = true;
+            this.signing = buf.readBoolean();
+            this.slot = buf.readVarInt();
         } else {
-            this.signing = false;
+            tag = new CompoundTag();
+
+            this.slot = buf.readVarInt();
+
+            int pageCount = buf.readVarInt();
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_14) && pageCount > MAX_PAGES
+                    || protocol.isOlderThan(NetProtocol.v1_14) && pageCount > MAX_PAGES_1_13_2) {
+                throw new IllegalStateException("Too many pages: " + pageCount + ", limit: " + (protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_PAGES : MAX_PAGES_1_13_2));
+            }
+
+            for (int i = 0; i < pageCount; i++) {
+                this.pages.add(buf.readString(PAGE_CHAR_LIMIT));
+            }
+            tag.putArray("pages", TagType.STRING, this.pages);
+
+            if (buf.readBoolean()) {
+                tag.putPrimitive("title", TagType.STRING, this.title = buf.readString(TITLE_CHAR_LIMIT));
+                tag.putPrimitive("author", TagType.STRING, this.author = packet.getPlayer().name);
+                this.signing = true;
+            } else {
+                this.signing = false;
+            }
         }
 
         CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, new DecodeContext.BookEditContext<>(this, this.signing));

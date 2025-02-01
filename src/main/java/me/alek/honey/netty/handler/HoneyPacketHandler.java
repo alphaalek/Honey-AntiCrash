@@ -2,9 +2,12 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.compat.via.ViaHandlers;
 import me.alek.honey.compat.via.ViaProtocol;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.CodecFactory;
@@ -15,13 +18,12 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
 import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 
@@ -35,13 +37,20 @@ public class HoneyPacketHandler {
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
     private final Channel channel;
     private final HoneyPlayer player;
+    private boolean hasCompression;
+    private boolean dependentOnVia;
+    private boolean relocatedViaInterceptor;
     private ViaProtocol viaProtocol;
     private PacketState clientboundProtocolState = PacketState.HANDSHAKE;
+    private PacketState simulatedClientboundProtocolState = PacketState.HANDSHAKE;
+    private PacketState simulatedServerboundProtocolState = PacketState.HANDSHAKE;
     private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
     private EmulatorCodec<Object, PacketDataSerializer> clientboundProtocol;
     private EmulatorCodec<Object, PacketDataSerializer> serverboundProtocol;
     private String playerName = UNKNOWN;
 
+    private boolean configuringClientbound;
+    private boolean configuringServerbound;
     private boolean resolvingClientbound;
     private boolean resolvingServerbound;
 
@@ -51,32 +60,52 @@ public class HoneyPacketHandler {
     }
 
     public Channel getChannel() {
-        return channel;
+        return this.channel;
     }
 
     public HoneyPlayer getPlayer() {
-        return player;
+        return this.player;
     }
 
     public void setPlayerName(String playerName) {
-        player.name = playerName;
+        this.player.name = playerName;
         this.playerName = playerName;
     }
 
+    public void hasCompression() {
+        this.hasCompression = true;
+    }
+
     public String getPlayerName() {
-        return playerName;
+        return this.playerName;
+    }
+
+    public ProtocolSwapHandler getProtocolSwapHandler() {
+        return this.protocolSwapHandler;
     }
 
     public PacketState getProtocolState(PacketBound bound) {
-        return bound.equals(PacketBound.CLIENT) ? clientboundProtocolState : serverboundProtocolState;
+        return bound.equals(PacketBound.CLIENT) ? this.clientboundProtocolState : this.serverboundProtocolState;
+    }
+
+    public PacketState getSimulatedClientboundProtocolState() {
+        return this.simulatedClientboundProtocolState;
+    }
+
+    public PacketState getSimulatedServerboundProtocolState() {
+        return this.simulatedServerboundProtocolState;
     }
 
     public EmulatorCodec<Object, PacketDataSerializer> getProtocolCodec(PacketBound bound) {
-        return bound.equals(PacketBound.CLIENT) ? clientboundProtocol : serverboundProtocol;
+        return bound.equals(PacketBound.CLIENT) ? this.clientboundProtocol : this.serverboundProtocol;
     }
 
     public PacketType getPacketType(PacketBound bound, int id) {
-        return getProtocolState(bound).getTypes()[bound.ordinal()].get(id);
+        return getPacketType(bound, getProtocolState(bound), id);
+    }
+
+    public PacketType getPacketType(PacketBound bound, PacketState state, int id) {
+        return state.getTypes()[bound.ordinal()].get(id);
     }
 
     public int getPacketId(PacketType type) {
@@ -85,69 +114,120 @@ public class HoneyPacketHandler {
 
     public void resolve(PacketBound bound, boolean state) {
         if (bound.equals(PacketBound.CLIENT)) {
-            resolvingClientbound = state;
+            this.resolvingClientbound = state;
         } else if (bound.equals(PacketBound.SERVER)) {
-            resolvingServerbound = state;
+            this.resolvingServerbound = state;
         }
     }
 
     public boolean isResolving(PacketBound bound) {
-        return bound.equals(PacketBound.CLIENT) ? resolvingClientbound : resolvingServerbound;
+        return bound.equals(PacketBound.CLIENT) ? this.resolvingClientbound : this.resolvingServerbound;
     }
 
-    public void updateProtocol(PacketState previous, PacketBound bound) {
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_6)) {
-            if (bound.equals(PacketBound.SERVER)
-                    && ConfigurationOptions.Decoder.USE_DEFAULT) {
-                return;
-            }
+    public boolean isConfiguring(PacketBound bound) {
+        return bound.equals(PacketBound.CLIENT) ? this.configuringClientbound : this.configuringServerbound;
+    }
 
-            if (previous.equals(PacketState.HANDSHAKE)
-                    || bound.equals(PacketBound.SERVER)) {
-                updateProtocolAttributeKey(bound);
-            } else {
-                DELAYED_TASKS[bound.ordinal()].get().add(() -> {
-                    updateProtocolAttributeKey(bound);
-                });
-            }
+    public boolean hasResolvedBound(PacketBound bound) {
+        return bound.equals(PacketBound.SERVER) && HoneyPlugin.get().getPacketLibrary().getChannelManager().getInStream(this.channel) != null
+                || bound.equals(PacketBound.CLIENT) && HoneyPlugin.get().getPacketLibrary().getChannelManager().getOutStream(this.channel) != null;
+    }
+
+    public void updateProtocol(PacketBound bound) {
+        // emulate protocol swap handler if not handled in default codec handlers
+        if (NetProtocol.getProtocol().isBetween(NetProtocol.v1_20_2, NetProtocol.v1_20_4)
+                && !ConfigurationOptions.Decoder.USE_DEFAULT && hasResolvedBound(bound)) {
+            updateProtocolAttributeKey(bound);
         }
     }
 
     private void updateProtocolAttributeKey(PacketBound bound) {
-        Attribute<Object> protocolAttribute = channel.attr(LegacyProtocol.getProtocolAttributeKey(channel, bound));
+        Attribute<Object> protocolAttribute = this.channel.attr(LegacyProtocol.getProtocolAttributeKey(this.channel, bound));
         protocolAttribute.set(LegacyProtocol.getEnumProtocolDelegate(bound, getProtocolState(bound)).getHandle());
     }
 
     public void setProtocolState(PacketBound bound, PacketState state) {
-        if (!PacketBound.CLIENT.equals(bound)) {
-            PacketState previous = getProtocolState(PacketBound.SERVER);
-            serverboundProtocolState = state;
-            serverboundProtocol = CodecFactory.createInboundCodec(state);
-            updateProtocol(previous, PacketBound.SERVER);
+        if (bound.equals(PacketBound.SERVER)) {
+            this.channel.config().setAutoRead(true);
+            this.serverboundProtocolState = state;
+            this.serverboundProtocol = getCodecFor(bound, state);
+            updateProtocol(PacketBound.SERVER);
         }
-        if (!PacketBound.SERVER.equals(bound)) {
-            PacketState previous = getProtocolState(PacketBound.CLIENT);
-            clientboundProtocolState = state;
-            clientboundProtocol = CodecFactory.createOutboundCodec(state);
-            updateProtocol(previous, PacketBound.CLIENT);
+        if (bound.equals(PacketBound.CLIENT)) {
+            this.clientboundProtocolState = state;
+            this.clientboundProtocol = getCodecFor(bound, state);
+            updateProtocol(PacketBound.CLIENT);
         }
     }
 
-    public PacketType getPacketType(ByteBuf buf, boolean resetToStartIndex, PacketBound bound, boolean useVia) {
+    public void setSimulatedClientboundProtocolState(PacketState state) {
+        this.simulatedClientboundProtocolState = state;
+    }
+
+    public void setSimulatedServerboundProtocolState(PacketState state) {
+        this.simulatedServerboundProtocolState = state;
+    }
+
+    public void setGlobalClientboundProtocolState(PacketState state) {
+        setSimulatedClientboundProtocolState(state);
+        setProtocolState(PacketBound.CLIENT, state);
+    }
+
+    public void setGlobalServerboundProtocolState(PacketState state) {
+        setSimulatedServerboundProtocolState(state);
+        setProtocolState(PacketBound.SERVER, state);
+    }
+
+    private EmulatorCodec<Object, PacketDataSerializer> getCodecFor(PacketBound bound, PacketState state) {
+        if (state.equals(PacketState.CONFIGURATION) && NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
+            return CodecFactory.NO_OP_CODEC;
+        } else {
+            if (bound.equals(PacketBound.SERVER)) {
+                return CodecFactory.createInboundCodec(state);
+            } else {
+                return CodecFactory.createOutboundCodec(state);
+            }
+        }
+    }
+
+    public void setConfiguration(PacketBound bound) {
+        if (bound.equals(PacketBound.SERVER) && !HoneyPlugin.get().getPacketLibrary().getPipelineInjector().isConfigurationActive(this.channel.pipeline(), bound)) {
+            this.configuringServerbound = true;
+            this.channel.config().setAutoRead(false);
+            this.channel.pipeline().addBefore(MinecraftHandlers.DECODER, MinecraftHandlers.INBOUND_CONFIG, new UnconfiguredPipelineHandler.Inbound());
+            this.channel.pipeline().remove(MinecraftHandlers.DECODER);
+
+            if (HoneyPlugin.get().getPacketLibrary().getChannelManager().getInStream(this.channel) != null) {
+                this.channel.pipeline().remove(HoneyPlugin.get().getPacketLibrary().getInStreamName());
+            }
+        }
+        if (bound.equals(PacketBound.CLIENT) && !HoneyPlugin.get().getPacketLibrary().getPipelineInjector().isConfigurationActive(this.channel.pipeline(), bound)) {
+            this.configuringClientbound = true;
+            this.channel.pipeline().addAfter(MinecraftHandlers.ENCODER, MinecraftHandlers.OUTBOUND_CONFIG, new UnconfiguredPipelineHandler.Outbound());
+            this.channel.pipeline().remove(MinecraftHandlers.ENCODER);
+
+            if (HoneyPlugin.get().getPacketLibrary().getChannelManager().getOutStream(this.channel) != null) {
+                this.channel.pipeline().remove(HoneyPlugin.get().getPacketLibrary().getOutStreamName());
+            }
+        }
+
+        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().togglePreResolvedBounds(this.channel, this);
+    }
+
+    public PacketType getPacketType(ByteBuf buf, boolean resetToStartIndex, PacketState state, PacketBound bound, boolean useVia) {
         buf.markReaderIndex();
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         int id = serializer.readVarInt();
         if (resetToStartIndex) {
             buf.resetReaderIndex();
         }
-
-        PacketState state = getProtocolState(bound);
+        Bukkit.getLogger().info("Id " + id);
 
         // check if the client protocol version is not the same as the server protocol version
         // if it is not the same, then we will acquire the packet type with ViaVersion
         if (useVia
                 && ViaProtocol.ViaValidator.VALIDATOR.find().get()
-                && state != PacketState.HANDSHAKE
+                && !state.equals(PacketState.HANDSHAKE)
                 && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())) {
 
             if (this.viaProtocol == null) {
@@ -156,7 +236,11 @@ public class HoneyPacketHandler {
             return this.viaProtocol.getTypes(bound, state).get(id);
         }
 
-        return getPacketType(PacketBound.SERVER, id);
+        return getPacketType(PacketBound.SERVER, state, id);
+    }
+
+    public PacketType getPacketType(ByteBuf buf, boolean resetToStartIndex, PacketBound bound, boolean useVia) {
+        return getPacketType(buf, resetToStartIndex, getProtocolState(bound), bound, useVia);
     }
 
     public int getPacketId(PacketType type, boolean useVia) {
@@ -177,41 +261,66 @@ public class HoneyPacketHandler {
     public boolean isCancelled(PacketContainer<?> packet) {
         if (packet.isCancelled()) {
             if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
-                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled: " + packet.getType() + ", " + getProtocolState(packet.getType().getBound()) + ", " + packet.getType().getBound() + ", " + packet.getPlayerName());
+                HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: Packet cancelled: " + packet.getType() + ", " + getProtocolState(packet.getType().getBound()) + ", " + packet.getType().getBound() + ", " + packet.getPlayerName());
             }
-
             return true;
+        } else {
+            return false;
         }
-        return false;
     }
 
     public boolean isPacket(Object raw) {
         return NMS.getPacketClass().isInstance(raw);
     }
 
-    public boolean handleNonPacket(Object raw) {
-        if (raw.toString().contains("UnconfiguredPipelineHandler")
-                && !HoneyPlugin.get().getPacketLibrary().getPipelineInjector().isConfigurationActive(channel.pipeline())) {
-            return false;
+    public synchronized boolean read(PacketContainer<?> packet) {
+        if (this.configuringServerbound && !HoneyPlugin.get().getPacketLibrary().getPipelineInjector().isConfigurationActive(this.channel.pipeline(), PacketBound.SERVER)) {
+            this.configuringServerbound = false;
         }
 
-        return true;
-    }
+        executeDelayedTasks(PacketBound.SERVER);
 
-    public synchronized boolean read(PacketContainer<?> packet) {
         if (isCancelled(packet)) {
             return false;
         }
 
-        protocolSwapHandler.swapProtocolIfNeeded(packet);
         MARK.set(packet);
 
         return true;
     }
 
     public boolean write(PacketContainer<?> packet) {
-        protocolSwapHandler.swapProtocolIfNeeded(packet);
+        if (this.configuringClientbound && !HoneyPlugin.get().getPacketLibrary().getPipelineInjector().isConfigurationActive(this.channel.pipeline(), PacketBound.CLIENT)) {
+            this.configuringClientbound = false;
+        }
+
+        checkViaCompressionOrder();
+
+        executeDelayedTasks(PacketBound.CLIENT);
+
         return !isCancelled(packet);
+    }
+
+    private void checkViaCompressionOrder() {
+        if (this.dependentOnVia && !this.relocatedViaInterceptor && this.hasCompression) {
+            List<String> handlers = this.channel.pipeline().names();
+            if (handlers.indexOf(ViaClientboundInterceptor.NAME) < handlers.indexOf(MinecraftHandlers.COMPRESS)) {
+                this.channel.pipeline().addAfter(MinecraftHandlers.COMPRESS, ViaHandlers.ENCODER, this.channel.pipeline().remove(ViaHandlers.ENCODER));
+                this.channel.pipeline().addAfter(MinecraftHandlers.DECOMPRESS, ViaHandlers.DECODER, this.channel.pipeline().remove(ViaHandlers.DECODER));
+                this.channel.pipeline().addBefore(ViaHandlers.ENCODER, ViaClientboundInterceptor.NAME, this.channel.pipeline().remove(ViaClientboundInterceptor.NAME));
+                this.relocatedViaInterceptor = true;
+            }
+        }
+    }
+
+    public void handleViaClientboundInterceptor() {
+        if (ViaProtocol.ViaValidator.VALIDATOR.find().get()
+                && !player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())
+                && this.channel.pipeline().get(ViaHandlers.ENCODER) != null
+                && this.channel.pipeline().get(ViaClientboundInterceptor.NAME) == null) {
+            this.dependentOnVia = true;
+            this.channel.pipeline().addBefore(ViaHandlers.ENCODER, ViaClientboundInterceptor.NAME, new ViaClientboundInterceptor(this));
+        }
     }
 
     public void executeDelayedTasks(PacketBound bound) {

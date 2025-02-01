@@ -35,6 +35,11 @@ public interface PacketType extends IntIdentifiable {
         public PacketBound getBound() {
             return null;
         }
+
+        @Override
+        public String toString() {
+            return "<UNKNOWN>";
+        }
     };
 
     @Override

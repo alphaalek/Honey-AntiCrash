@@ -1,6 +1,9 @@
 package me.alek.honey.netty.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.CodecException;
+import io.netty.handler.codec.EncoderException;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -11,24 +14,24 @@ public interface EmulatorCodec<T, B extends ByteBuf> {
 
     T decodeModern(ByteBuf buf, PacketState state) throws CodecException;
 
-    T decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) throws CodecException;
+    T decodeLegacy(ByteBuf buf, PacketState state, PacketCodecInitializer<PacketType, LegacyCodec.Callback> codec) throws CodecException;
 
-    B encodeModern(T val, PacketState state, PacketBuilder<PacketType, B> function) throws CodecException;
+    B encodeModern(B buf, T val, PacketState state) throws CodecException;
 
-    B encodeLegacy(T val, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) throws CodecException;
+    B encodeLegacy(T val, PacketState state, PacketCodecInitializer<PacketType, LegacyCodec.Callback> codec) throws CodecException;
 
     @FunctionalInterface
-    interface PacketBuilder<K1, K2> {
+    interface PacketCodecInitializer<K1, K2> {
         void accept(K1 k1, K2 k2) throws CodecException;
     }
 
     interface In<T, B extends ByteBuf> extends EmulatorCodec<T, B> {
 
-        default B encodeModern(T val, PacketState state, PacketBuilder<PacketType, B> function) {
+        default B encodeModern(B buf, T val, PacketState state) {
             throw new UnsupportedOperationException();
         }
 
-        default B encodeLegacy(T val, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) {
+        default B encodeLegacy(T val, PacketState state, PacketCodecInitializer<PacketType, LegacyCodec.Callback> codec) {
             throw new UnsupportedOperationException();
         }
     }
@@ -39,7 +42,7 @@ public interface EmulatorCodec<T, B extends ByteBuf> {
             throw new UnsupportedOperationException();
         }
 
-        default T decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) {
+        default T decodeLegacy(ByteBuf buf, PacketState state, PacketCodecInitializer<PacketType, LegacyCodec.Callback> codec) {
             throw new UnsupportedOperationException();
         }
     }

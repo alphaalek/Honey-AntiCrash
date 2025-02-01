@@ -6,89 +6,69 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.handler.MinecraftHandlers;
-import me.alek.honey.netty.structure.IStructureModifier;
-import me.alek.honey.netty.structure.ReflectStructure;
+import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.Reflection;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class SpigotServerInjector {
 
+    private static final FieldAccessor<List<ChannelFuture>> listeningChannelsAccessor;
+    private static final FieldAccessor<List<Object>> connectedChannelsAccessor;
+
+    static {
+        listeningChannelsAccessor = Reflection.getParameterizedField(NMS.getServerConnectionClass(), List.class, ChannelFuture.class);
+        connectedChannelsAccessor = Reflection.getParameterizedField(NMS.getServerConnectionClass(), List.class, NMS.getNetworkManagerClass());
+    }
+
+
+    private List<ChannelFuture> delegatedConnectedChannelsList;
     private boolean injected;
-    private int channelFuturesFieldIndex = -1;
-    private IStructureModifier<List<?>> serverConnectionListAccessor;
-    private List<ChannelFuture> channelFutures;
-    public static List<Object> networkManagers;
+    private final Object serverConnection = NMS.getServerConnection();
 
-    public boolean isServerBound() {
-        getChannelFutures();
-
-        return channelFutures != null;
+    public boolean hasAnyListeningChannel() {
+        return !listeningChannelsAccessor.get(this.serverConnection).isEmpty();
     }
 
-    private <T> List<T> getNonEmptyServerConnectionList(Class<T> clazz) {
-        if (serverConnectionListAccessor == null) {
-            Object serverConnection = NMS.getServerConnection();
-
-            serverConnectionListAccessor = ReflectStructure.Provider.acquireStructure(NMS.getServerConnectionClass())
-                    .<List<?>>withWeakType(List.class).withTarget(serverConnection);
-        }
-        if (serverConnectionListAccessor == null) {
-            return null;
-        }
-
-        for (List<?> list : serverConnectionListAccessor.readFieldValues()) {
-            if (!list.isEmpty() && clazz.isAssignableFrom(list.get(0).getClass())) {
-                return (List<T>) list;
-            }
-        }
-
-        return null;
-    }
-
-    private void getChannelFutures() {
-        List<ChannelFuture> channelFutures = getNonEmptyServerConnectionList(ChannelFuture.class);
-        if (channelFutures == null) {
+    public synchronized void inject() {
+        if (this.injected) {
             return;
         }
 
-        int fieldIndex = channelFuturesFieldIndex;
-        if (fieldIndex == -1) {
-            boolean foundChannelFutures = false;
-            for (List<?> list : serverConnectionListAccessor.readFieldValues()) {
-                if (!foundChannelFutures) {
-                    fieldIndex++;
-                }
-
-                if (list.equals(channelFutures)) {
-                    foundChannelFutures = true;
-                } else {
-                    networkManagers = (List<Object>) list;
-                }
+        this.delegatedConnectedChannelsList = listeningChannelsAccessor.get(this.serverConnection);
+        synchronized (this.delegatedConnectedChannelsList) {
+            for (ChannelFuture listeningChannel : this.delegatedConnectedChannelsList) {
+                injectServerChannel(listeningChannel.channel());
             }
-            channelFuturesFieldIndex = fieldIndex;
+            listeningChannelsAccessor.set(this.serverConnection, new ArrayList<ChannelFuture>(this.delegatedConnectedChannelsList) {
+
+                @Override
+                public boolean add(ChannelFuture future) {
+                    if (injected) {
+                        injectServerChannel(future.channel());
+                    }
+                    return delegatedConnectedChannelsList.add(future);
+                }
+            });
         }
 
-        serverConnectionListAccessor.writeField(fieldIndex, this.channelFutures = new ArrayList<ChannelFuture>() {
-
-            @Override
-            public boolean add(ChannelFuture future) {
-                injectServerChannel(future.channel());
-                return super.add(future);
+        List<Object> connectedChannels = connectedChannelsAccessor.get(this.serverConnection);
+        for (Object connectedChannel : connectedChannels) {
+            Channel channel = NMS.getChannelFromNetworkManager(connectedChannel);
+            if (channel == null) {
+                continue;
             }
-        });
-
-        // we can't use ArrayList#addAll, because then the overridden method will not be run
-        for (ChannelFuture channelFuture : channelFutures) {
-            this.channelFutures.add(channelFuture);
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
         }
+
+        this.injected = true;
     }
 
-    private synchronized void injectServerChannel(Channel channel) {
-        ChannelPipeline pipeline = channel.pipeline();
+    private void injectServerChannel(Channel serverChannel) {
+        ChannelPipeline pipeline = serverChannel.pipeline();
 
         String connectorName = HoneyPlugin.get().getPacketLibrary().getConnectorName();
         if (pipeline.get(connectorName) != null) {
@@ -102,21 +82,11 @@ public class SpigotServerInjector {
             pipeline.addFirst(connectorName, new BeginInitProtocolInjector());
         }
 
-        if (networkManagers == null) {
-            return;
-        }
-
-        synchronized (networkManagers) {
-            for (Object networkManager : networkManagers) {
-
-                Channel networkManagerChannel = NMS.getChannelFromNetworkManager(networkManager);
-                if (networkManagerChannel == null || !networkManagerChannel.isOpen()) {
-                    continue;
-                }
-
-                if (networkManagerChannel.localAddress().equals(channel.localAddress()) && networkManagerChannel.isOpen()) {
-                    networkManagerChannel.close();
-                }
+        List<Object> connectedChannels = connectedChannelsAccessor.get(this.serverConnection);
+        for (Object connectedChannel : connectedChannels) {
+            Channel client = NMS.getChannelFromNetworkManager(connectedChannel);
+            if (client != null && client.isOpen() && client.localAddress().equals(serverChannel.localAddress())) {
+                client.close();
             }
         }
     }
@@ -126,6 +96,7 @@ public class SpigotServerInjector {
         String lastPrioritizedHandler = null;
         int lastPrioritizedHandlerIndex = -1;
 
+        // ProtocolSupport
         if (pipeline.get("SpigotNettyServerChannelHandler#0") != null) {
             int index = handlersOrdered.indexOf("SpigotNettyServerChannelHandler#0");
             if (index > lastPrioritizedHandlerIndex) {
@@ -133,7 +104,7 @@ public class SpigotServerInjector {
                 lastPrioritizedHandler = "SpigotNettyServerChannelHandler0";
             }
         }
-
+        // Floodgate
         if (pipeline.get("floodgate-init") != null) {
             int index = handlersOrdered.indexOf("floodgate-init");
             if (index > lastPrioritizedHandlerIndex) {
@@ -141,14 +112,14 @@ public class SpigotServerInjector {
                 lastPrioritizedHandler = "floodgate-init";
             }
         }
-
+        // Some forks
         if (pipeline.get("MinecraftPipeline#0") != null) {
             int index = handlersOrdered.indexOf("MinecraftPipeline#0");
             if (index > lastPrioritizedHandlerIndex) {
                 lastPrioritizedHandler = "MinecraftPipeline#0";
             }
         }
-
+        // PacketEvents
         for (String handler : handlersOrdered) {
             if (handler.startsWith("pe-connection-handler")) {
                 int index = handlersOrdered.indexOf(handler);
@@ -162,71 +133,32 @@ public class SpigotServerInjector {
     }
 
     public Object getNetworkManagerFor(Channel channel) {
-        return channel.pipeline().get(MinecraftHandlers.MANAGER);
-    }
-
-    public void removeNetworkManager(Object networkManager) {
-        synchronized (networkManagers) {
-            networkManagers.remove(networkManager);
-        }
-    }
-
-    public synchronized void inject() {
-        if (injected) {
-            return;
-        }
-
-        if (channelFutures == null) {
-            getChannelFutures();
-            if (channelFutures == null) {
-                return;
-            }
-        }
-
-        synchronized (networkManagers) {
-            for (Object networkManager : networkManagers) {
-                Channel channel = NMS.getChannelFromNetworkManager(networkManager);
-                if (channel == null) {
-                    continue;
-                }
-
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
-            }
-        }
-        injected = true;
+        return channel.pipeline().get(MinecraftHandlers.CONNECTION);
     }
 
     public synchronized void eject() {
-        if (channelFutures != null) {
-            synchronized (channelFutures) {
-                serverConnectionListAccessor.writeField(channelFuturesFieldIndex, Collections.synchronizedList(new ArrayList<>(channelFutures)));
-
-                for (ChannelFuture channelFuture : channelFutures) {
-                    for (Map.Entry<String, ChannelHandler> handler : channelFuture.channel().pipeline()) {
-                        if (handler.getValue() instanceof BeginInitProtocolInjector) {
-                            channelFuture.channel().pipeline().remove(handler.getValue());
-                        }
-                    }
+        List<ChannelFuture> listeningChannels = listeningChannelsAccessor.get(this.serverConnection);
+        for (ChannelFuture channelFuture : listeningChannels) {
+            for (Map.Entry<String, ChannelHandler> handler : channelFuture.channel().pipeline()) {
+                if (handler.getValue() instanceof BeginInitProtocolInjector) {
+                    channelFuture.channel().pipeline().remove(handler.getValue());
                 }
             }
         }
 
-        if (networkManagers != null) {
-            synchronized (networkManagers) {
-                for (Object networkManager : networkManagers) {
-                    Channel channel = NMS.getChannelFromNetworkManager(networkManager);
-                    if (channel == null) {
-                        continue;
-                    }
-
-                    HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
-                }
+        List<Object> connectedChannels = connectedChannelsAccessor.get(this.serverConnection);
+        for (Object connectedChannel : connectedChannels) {
+            Channel channel = NMS.getChannelFromNetworkManager(connectedChannel);
+            if (channel == null) {
+                continue;
             }
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
         }
-        injected = false;
+
+        this.injected = false;
     }
 
     public boolean isInjected() {
-        return injected;
+        return this.injected;
     }
 }

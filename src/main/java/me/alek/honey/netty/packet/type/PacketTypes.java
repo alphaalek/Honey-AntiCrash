@@ -28,13 +28,15 @@ public class PacketTypes {
         return type == null || type == PacketType.UNKNOWN;
     }
 
-    private static final NetProtocol protocolVersion = NetProtocol.getProtocol();
-    private static final List<PacketType> allPacketTypes = new LinkedList<>();
-    private static final Map<Class<?>, Array<PacketType>> registeredPackets = new HashMap<>();
-    private static final Map<String, List<PacketType>> registeredPacketsByClassName = new HashMap<>();
-    private static final Map<String, List<PacketType>> registeredPacketsByName = new HashMap<>();
-    private static final Map<PacketState, List<PacketType>> packetFromStateLookup = new HashMap<>();
-    private static final IDRegistry idRegistry = new IDRegistry();
+    public static boolean isRegistered(PacketType type) {
+        return !isUnknown(type) && type.getNmsClass() != null;
+    }
+    private static final List<PacketType> ALL_TYPES = new LinkedList<>();
+    private static final Map<Class<?>, Array<PacketType>> REGISTERED_TYPES = new HashMap<>();
+    private static final Map<String, List<PacketType>> TYPES_BY_CLASS_NAME = new HashMap<>();
+    private static final Map<String, List<PacketType>> TYPES_BY_NAME = new HashMap<>();
+    private static final Map<PacketState, List<PacketType>> TYPES_FROM_STATE_LOOKUP = new HashMap<>();
+    private static final IDRegistry ID_REGISTRY = new IDRegistry();
 
     public static boolean isServerbound(PacketType type) {
         return type.getBound().equals(PacketBound.SERVER);
@@ -46,7 +48,7 @@ public class PacketTypes {
 
     public static void load() {
         for (PacketState state : PacketState.values()) {
-            packetFromStateLookup.put(state, new ArrayList<>());
+            TYPES_FROM_STATE_LOOKUP.put(state, new ArrayList<>());
         }
 
         register(PacketState.HANDSHAKE, PacketBound.SERVER, Handshake.Client.values());
@@ -61,7 +63,7 @@ public class PacketTypes {
     }
 
     private static void registerPacketDetails(PacketType type) {
-        allPacketTypes.add(type);
+        ALL_TYPES.add(type);
 
         if (type instanceof RangedPacketType
                 && !((RangedPacketType) type).exists()) {
@@ -70,13 +72,13 @@ public class PacketTypes {
 
         type.getState().getTypes()[type.getBound().ordinal()].add(type);
 
-        packetFromStateLookup.computeIfAbsent(type.getState(), d -> new ArrayList<>())
+        TYPES_FROM_STATE_LOOKUP.computeIfAbsent(type.getState(), d -> new ArrayList<>())
                 .add(type);
-        registeredPackets.computeIfAbsent(type.getNmsClass(), d -> new Array<>())
+        REGISTERED_TYPES.computeIfAbsent(type.getNmsClass(), d -> new Array<>())
                 .set(type.getState().ordinal(), type);
-        registeredPacketsByName.computeIfAbsent(type.toString().toLowerCase(), d -> new ArrayList<>())
+        TYPES_BY_NAME.computeIfAbsent(type.toString().toLowerCase(), d -> new ArrayList<>())
                 .add(type);
-        registeredPacketsByClassName.computeIfAbsent(type.getNmsClass().getSimpleName(), d -> new ArrayList<>())
+        TYPES_BY_CLASS_NAME.computeIfAbsent(type.getNmsClass().getSimpleName(), d -> new ArrayList<>())
                 .add(type);
     }
 
@@ -126,10 +128,6 @@ public class PacketTypes {
     }
 
     public static Array<PacketType> getTypesAvailableFor(NetProtocol protocol, PacketState state, PacketBound bound) {
-        if (protocol.equals(NetProtocol.getProtocol())) {
-            return getTypesAvailableFor(state, bound);
-        }
-
         return Array.from(getAllTypesAvailableFor(state, bound).stream()
                 .filter(t -> !(t instanceof NetProtocolRange.Ranged) || ((NetProtocolRange.Ranged) t).getRange().match(protocol))
                 .toArray());
@@ -176,6 +174,10 @@ public class PacketTypes {
     }
 
     public static PacketType getTypeFromViaKey(NetProtocol protocol, PacketState state, PacketBound bound, String key) {
+        if (key.equals(Play.Server.BUNDLE.getKeyName())) {
+            return Play.Server.BUNDLE;
+        }
+
         for (PacketType type : getTypesAvailableFor(protocol, state, bound)) {
             try {
                 Field field = type.getClass().getField(((Enum<?>)type).name());
@@ -221,7 +223,7 @@ public class PacketTypes {
         }
 
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-            Object streamCodec = CodecFactory.getStreamCodec1_20_6(type.getBound(), type.getState());
+            Object streamCodec = CodecFactory.getStreamCodec1_20_5(type.getBound(), type.getState());
 
             List<Object> codecs = ReflectStructure.Provider.acquireStructure(streamCodec.getClass())
                     .<List<Object>>withWeakType(List.class).withTarget(streamCodec)
@@ -250,11 +252,11 @@ public class PacketTypes {
     }
 
     public static Map<Class<?>, Array<PacketType>> getRegisteredPackets() {
-        return registeredPackets;
+        return REGISTERED_TYPES;
     }
 
     public static List<PacketType> getAllPacketTypes() {
-        return allPacketTypes;
+        return ALL_TYPES;
     }
 
     public static Optional<PacketType> getPacketType(Class<?> clazz, PacketState state) {
@@ -262,13 +264,13 @@ public class PacketTypes {
     }
 
     public static Array<PacketType> getPacketTypes(Class<?> clazz) {
-        return registeredPackets.getOrDefault(clazz, UNKNOWN_ARRAY);
+        return REGISTERED_TYPES.getOrDefault(clazz, UNKNOWN_ARRAY);
     }
 
     public static Optional<PacketType> getPacketType(String name, Predicate<PacketType> filter, NameGetStrategy strategy) {
-        Optional<PacketType> byName = Optional.ofNullable(registeredPacketsByName.get(name.toLowerCase()))
+        Optional<PacketType> byName = Optional.ofNullable(TYPES_BY_NAME.get(name.toLowerCase()))
                 .flatMap(l -> l.stream().filter(filter).findFirst());
-        Optional<PacketType> byClassName = Optional.ofNullable(registeredPacketsByClassName.get(name.toLowerCase()))
+        Optional<PacketType> byClassName = Optional.ofNullable(TYPES_BY_CLASS_NAME.get(name.toLowerCase()))
                 .flatMap(l -> l.stream().filter(filter).findFirst());
 
         switch (strategy) {
@@ -349,7 +351,7 @@ public class PacketTypes {
             private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
-            private final int packetId = idRegistry.acquire();
+            private final int packetId = ID_REGISTRY.acquire();
 
             Client(Class<?> nmsPacket, String keyName) {
                 this.nmsPacket = nmsPacket;
@@ -396,14 +398,14 @@ public class PacketTypes {
         private static Class<?> LOGIN_ACKNOWLEDGED_CLASS;
 
         static {
-            if (protocolVersion.isBetween(NetProtocol.v1_13, NetProtocol.v1_20_1)) {
+            if (NetProtocol.getProtocol().isBetween(NetProtocol.v1_13, NetProtocol.v1_20_1)) {
                 CUSTOM_PAYLOAD_CLIENT_CLASS = Reflection.getClass("{login}.PacketLoginInCustomPayload");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 CUSTOM_PAYLOAD_CLIENT_CLASS = Reflection.getClass("{login}.ServerboundCustomQueryAnswerPacket");
                 LOGIN_ACKNOWLEDGED_CLASS = Reflection.getClass("{login}.ServerboundLoginAcknowledgedPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_6)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
                 COOKIE_RESPONSE_CLASS = Reflection.getClass("{cookie}.ServerboundCookieResponsePacket");
             }
         }
@@ -422,7 +424,7 @@ public class PacketTypes {
             private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
-            private final int packetId = idRegistry.acquire();
+            private final int packetId = ID_REGISTRY.acquire();
             private final NetProtocolRange protocolRange;
 
             Client(Class<?> nmsPacket, String keyName) {
@@ -479,10 +481,10 @@ public class PacketTypes {
         private static Class<?> CUSTOM_PAYLOAD_SERVER_CLASS;
 
         static {
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_13)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
                 CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{login}.PacketLoginOutCustomPayload");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_6)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
                 COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
             }
         }
@@ -503,7 +505,7 @@ public class PacketTypes {
             private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
-            private final int packetId = idRegistry.acquire();
+            private final int packetId = ID_REGISTRY.acquire();
             private final NetProtocolRange protocolRange;
 
             Server(Class<?> nmsPacket, String keyName) {
@@ -567,7 +569,7 @@ public class PacketTypes {
             private final String keyName;
             private final Class<?> nmsClass;
             private final NetProtocolRange protocolRange;
-            private final int packetId = idRegistry.acquire();
+            private final int packetId = ID_REGISTRY.acquire();
 
             Client(Class<?> nmsClass, String keyName) {
                 this(nmsClass, keyName, NetProtocolRange.ALL);
@@ -627,7 +629,7 @@ public class PacketTypes {
             private final String keyName;
             private final Class<?> nmsClass;
             private final NetProtocolRange protocolRange;
-            private final int packetId = idRegistry.acquire();
+            private final int packetId = ID_REGISTRY.acquire();
 
             Server(Class<?> nmsPacket, String keyName) {
                 this(nmsPacket, keyName, NetProtocolRange.ALL);
@@ -747,36 +749,36 @@ public class PacketTypes {
         private static Class<?> VEHICLE_MOVE_CLASS;
 
         static {
-            if (protocolVersion.isEqual(NetProtocol.v1_8_8)) {
+            if (NetProtocol.getProtocol().isEqual(NetProtocol.v1_8_8)) {
                 BLOCK_PLACE_CLASS = Reflection.getClass("{play}.PacketPlayInBlockPlace");
             }
-            if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_16_5)) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
                 PLAYER_MOVEMENT_CLASS = Reflection.getClass("{play}.PacketPlayInFlying");
                 PLAYER_POSITION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPosition");
                 PLAYER_POS_ROT_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
                 PLAYER_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
                 TRANSACTION_CLASS = Reflection.getClass("{play}.PacketPlayInTransaction");
             }
-            if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
+            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
                 CLIENT_INFORMATION_CLASS = Reflection.getClass("{play}.PacketPlayInSettings");
             }
 
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_9)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
                 USE_ITEM_CLASS = Reflection.getClass("{play}.PacketPlayInBlockPlace");
                 BOAT_MOVE_CLASS = Reflection.getClass("{play}.PacketPlayInBoatMove");
                 BLOCK_PLACE_CLASS = Reflection.getClass("{play}.PacketPlayInUseItem");
                 TELEPORT_CONFIRM_CLASS = Reflection.getClass("{play}.PacketPlayInTeleportAccept");
                 VEHICLE_MOVE_CLASS = Reflection.getClass("{play}.PacketPlayInVehicleMove");
             }
-            if (protocolVersion.isEqual(NetProtocol.v1_12)) {
+            if (NetProtocol.getProtocol().isEqual(NetProtocol.v1_12)) {
                 PREPARE_CRAFTING_GRID_CLASS = Reflection.getClass("{play}.PacketPlayInPrepareCraftingGrid");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_12)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12)) {
                 AUTO_RECIPE_CLASS = Reflection.getClass("{play}.PacketPlayInAutoRecipe");
                 RECIPE_DISPLAYED_CLASS = Reflection.getClass("{play}.PacketPlayInRecipeDisplayed");
                 ADVANCEMENTS_CLASS = Reflection.getClass("{play}.PacketPlayInAdvancements");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_13)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
                 TILE_NBT_QUERY_CLASS = Reflection.getClass("{play}.PacketPlayInTileNBTQuery");
                 ENTITY_NBT_QUERY_CLASS = Reflection.getClass("{play}.PacketPlayInEntityNBTQuery");
                 BOOK_EDIT_CLASS = Reflection.getClass("{play}.PacketPlayInBEdit");
@@ -786,59 +788,59 @@ public class PacketTypes {
                 UPDATE_COMMAND_BLOCK_CLASS = Reflection.getClass("{play}.PacketPlayInSetCommandBlock");
                 SET_COMMAND_MINECART_CLASS = Reflection.getClass("{play}.PacketPlayInSetCommandMinecart");
                 STRUCT_CLASS = Reflection.getClass("{play}.PacketPlayInStruct");
-                if (protocolVersion.isOlderThan(NetProtocol.v1_21_4)) {
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_21_4)) {
                     PICK_ITEM_CLASS = Reflection.getClass("{play}.PacketPlayInPickItem");
                 }
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_14)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
                 DIFFICULTY_CHANGE_CLASS = Reflection.getClass("{play}.PacketPlayInDifficultyChange");
                 DIFFICULTY_LOCK_CLASS = Reflection.getClass("{play}.PacketPlayInDifficultyLock");
                 SET_JIGSAW_CLASS = Reflection.getClass("{play}.PacketPlayInSetJigsaw");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_16)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_16)) {
                 GENERATE_JIGSAW_CLASS = Reflection.getClass("{play}.PacketPlayInJigsawGenerate");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_16_2)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_16_2)) {
                 RECIPE_SETTINGS_CLASS = Reflection.getClass("{play}.PacketPlayInRecipeSettings");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_17)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
                 PLAYER_POSITION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPosition");
                 PLAYER_POS_ROT_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
                 PLAYER_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
                 GROUND_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$d");
                 PONG_RESPONSE_CLASS = Reflection.getUnsureClass("{play}.ServerboundPongPacket", "{common}.ServerboundPongPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19)) {
                 CHAT_COMMAND_CLASS = Reflection.getClass("{play}.ServerboundChatCommandPacket");
-                if (protocolVersion.isOlderThan(NetProtocol.v1_19_3)) {
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19_3)) {
                     CHAT_PREVIEW_CLIENT_CLASS = Reflection.getClass("{play}.ServerboundChatPreviewPacket");
                 }
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19_1)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19_1)) {
                 CHAT_ACKNOWLEDGED_CLASS = Reflection.getClass("{play}.ServerboundChatAckPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19_3)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19_3)) {
                 CHAT_SESSION_UPDATE_CLASS = Reflection.getClass("{play}.ServerboundChatSessionUpdatePacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 CHUNK_BATCH_RECEIVED_CLASS = Reflection.getClass("{play}.ServerboundChunkBatchReceivedPacket");
                 CLIENT_INFORMATION_CLASS = Reflection.getClass("{common}.ServerboundClientInformationPacket");
                 CONFIGURATION_START_ACKNOWLEDGED_CLASS = Reflection.getClass("{play}.ServerboundConfigurationAcknowledgedPacket");
                 PING_REQUEST_CLASS = Reflection.getUnsureClass("{status}.PacketStatusInPing", "{ping}.ServerboundPingRequestPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_4)) {
                 CONTAINER_SLOT_STATE_CHANGED_CLASS = Reflection.getClass("{play}.ServerboundContainerSlotStateChangedPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_6)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
                 CHAT_COMMAND_SIGNED_CLASS = Reflection.getClass("{play}.ServerboundChatCommandSignedPacket");
                 COOKIE_RESPONSE_CLASS = Reflection.getClass("{cookie}.ServerboundCookieResponsePacket");
                 DEBUG_SAMPLE_SUBSCRIPTION_CLASS = Reflection.getClass("{play}.ServerboundDebugSampleSubscriptionPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_21_2)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21_2)) {
                 BUNDLE_SELECT_CLASS = Reflection.getClass("{play}.ServerboundSelectBundleItemPacket");
                 TICK_END_CLASS = Reflection.getClass("{play}.ServerboundClientTickEndPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_21_4)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21_4)) {
                 PICK_ITEM_FROM_BLOCK_CLASS = Reflection.getClass("{play}.ServerboundPickItemFromBlockPacket");
                 PICK_ITEM_FROM_ENTITY_CLASS = Reflection.getClass("{play}.ServerboundPickItemFromEntityPacket");
                 PLAYER_LOADED_CLASS = Reflection.getClass("{play}.ServerboundPlayerLoadedPacket");
@@ -902,6 +904,7 @@ public class PacketTypes {
             @ViaProtocol.Name(name = "generate_jigsaw", target = ViaProtocol.Name.Target.LEGACY)
             GENERATE_JIGSAW(GENERATE_JIGSAW_CLASS, "jigsaw_generate", NetProtocolRange.since(NetProtocol.v1_16)),
             KEEP_ALIVE(KEEP_ALIVE_CLIENT_CLASS, "keep_alive"),
+            @ViaProtocol.IgnoreIfMissing
             PICK_ITEM(PICK_ITEM_CLASS, "pick_item", NetProtocolRange.between(NetProtocol.v1_13, NetProtocol.v1_21_3)),
             PICK_ITEM_FROM_BLOCK(PICK_ITEM_FROM_BLOCK_CLASS, "pick_item_from_block", NetProtocolRange.since(NetProtocol.v1_21_4)),
             PICK_ITEM_FROM_ENTITY(PICK_ITEM_FROM_ENTITY_CLASS, "pick_item_from_entity", NetProtocolRange.since(NetProtocol.v1_21_4)),
@@ -962,7 +965,7 @@ public class PacketTypes {
             private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsClass;
-            private final int packetId = idRegistry.acquire();
+            private final int packetId = ID_REGISTRY.acquire();
             private final NetProtocolRange protocolRange;
 
             Client(Class<?> nmsClass, String keyName) {
@@ -1079,6 +1082,7 @@ public class PacketTypes {
         private static Class<?> BUNDLE_CLASS;
         private static Class<?> BUNDLE_DELIMITER_CLASS;
         private static Class<?> CHAT_PREVIEW_SERVER_CLASS;
+        private static Class<?> CHAT_CLASS;
         private static Class<?> CHUNK_BIOMES_CLASS;
         private static Class<?> CHUNK_BATCH_FINISHED_CLASS;
         private static Class<?> CHUNK_BATCH_START_CLASS;
@@ -1109,7 +1113,6 @@ public class PacketTypes {
         private static Class<?> OPEN_WINDOW_HORSE_CLASS;
         private static Class<?> OPEN_WINDOW_MERCHANT_CLASS;
         private static Class<?> PING_CLASS;
-        private static Class<?> PLAYER_CHAT_CLASS;
         private static Class<?> PLAYER_CHAT_HEADER_CLASS;
         private static Class<?> PLAYER_COMBAT_END_CLASS;
         private static Class<?> PLAYER_COMBAT_ENTER_CLASS;
@@ -1169,72 +1172,72 @@ public class PacketTypes {
         private static Class<?> WORLD_BORDER_LERP_SIZE_CLASS;
 
         static {
-            if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_8_8)) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                 MAP_BULK_CHUNK_CLASS = Reflection.getClass("{play}.PacketPlayOutMapChunkBulk");
                 UPDATE_ENTITY_NBT_CLASS = Reflection.getClass("{play}.PacketPlayOutUpdateEntityNBT");
                 SET_COMPRESSION_CLASS = Reflection.getClass("{play}.PacketPlayOutSetCompression");
             }
-            if (protocolVersion.isBetween(NetProtocol.v1_9, NetProtocol.v1_19_2)) {
+            if (NetProtocol.getProtocol().isBetween(NetProtocol.v1_9, NetProtocol.v1_19_2)) {
                 CUSTOM_SOUND_EFFECT_CLASS = Reflection.getClass("{play}.PacketPlayOutCustomSoundEffect");
             }
-            if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_9_2)) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_9_2)) {
                 UPDATE_SIGN_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutUpdateSign");
             }
-            if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_13_2)) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_13_2)) {
                 PLAYER_SLEEP_CLASS = Reflection.getClass("{play}.PacketPlayOutBed");
             }
-            if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_15_2)) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_15_2)) {
                 SPAWN_GLOBAL_ENTITY_CLASS = Reflection.getClass("{play}.PacketPlayOutSpawnEntityWeather");
             }
-            if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_16_5)) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_16_5)) {
                 COMBAT_EVENT_CLASS = Reflection.getClass("{play}.PacketPlayOutCombatEvent");
                 TRANSACTION_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutTransaction");
                 TITLE_CLASS = Reflection.getClass("{play}.PacketPlayOutTitle");
                 WORLD_BORDER_CLASS = Reflection.getClass("{play}.PacketPlayOutWorldBorder");
             }
-            if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_17_1)) {
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
                 MAP_CHUNK_CLASS = Reflection.getClass("{play}.PacketPlayOutMapChunk");
             }
-            if (protocolVersion.isOlderThanOrEqual(NetProtocol.v1_18_2)) {
-                PLAYER_CHAT_CLASS = Reflection.getClass("{play}.PacketPlayOutChat");
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_18_2)) {
+                CHAT_CLASS = Reflection.getClass("{play}.PacketPlayOutChat");
                 SPAWN_ENTITY_LIVING_CLASS = Reflection.getClass("{play}.PacketPlayOutSpawnEntityLiving");
                 SPAWN_ENTITY_PAINTING_CLASS = Reflection.getClass("{play}.PacketPlayOutSpawnEntityPainting");
             }
-            if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
+            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
                 SPAWN_NAMED_ENTITY_CLASS = Reflection.getClass("{play}.PacketPlayOutNamedEntitySpawn");
             }
-            if (protocolVersion.isOlderThan(NetProtocol.v1_20_4)) {
+            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_4)) {
                 RESOURCE_PACK_SEND_CLASS = Reflection.getUnsureClass("{play}.PacketPlayOutResourcePackSend", "{common}.ClientboundResourcePackPacket");
             }
 
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_9)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
                 BOSS_BAR_CLASS = Reflection.getClass("{play}.PacketPlayOutBoss");
                 MOUNT_CLASS = Reflection.getClass("{play}.PacketPlayOutMount");
                 UNLOAD_CHUNK_CLASS = Reflection.getClass("{play}.PacketPlayOutUnloadChunk");
                 VEHICLE_MOVE_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutVehicleMove");
                 SET_COOLDOWN_CLASS = Reflection.getClass("{play}.PacketPlayOutSetCooldown");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_12)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12)) {
                 ADVANCEMENTS_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutAdvancements");
                 SELECT_ADVANCEMENT_TAB_CLASS = Reflection.getClass("{play}.PacketPlayOutSelectAdvancementTab");
-                if (protocolVersion.isOlderThan(NetProtocol.v1_21_2)) {
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_21_2)) {
                     RECIPES_CLASS = Reflection.getClass("{play}.PacketPlayOutRecipes");
                 }
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_12_1)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_1)) {
                 AUTO_RECIPE_SERVER_CLASS = Reflection.getClass("{play}.PacketPlayOutAutoRecipe");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_13)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
                 COMMANDS_CLASS = Reflection.getClass("{play}.PacketPlayOutCommands");
                 NBT_QUERY_CLASS = Reflection.getClass("{play}.PacketPlayOutNBTQuery");
                 RECIPE_UPDATE_CLASS = Reflection.getClass("{play}.PacketPlayOutRecipeUpdate");
                 STOP_SOUND_CLASS = Reflection.getClass("{play}.PacketPlayOutStopSound");
                 LOOK_AT_CLASS = Reflection.getClass("{play}.PacketPlayOutLookAt");
-                if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
                     UPDATE_TAGS_CLASS = Reflection.getClass("{play}.PacketPlayOutTags");
                 }
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_14)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
                 ENTITY_SOUND_CLASS = Reflection.getClass("{play}.PacketPlayOutEntitySound");
                 LIGHT_UPDATE_CLASS = Reflection.getClass("{play}.PacketPlayOutLightUpdate");
                 OPEN_BOOK_CLASS = Reflection.getClass("{play}.PacketPlayOutOpenBook");
@@ -1243,10 +1246,10 @@ public class PacketTypes {
                 VIEW_CENTER_CLASS = Reflection.getClass("{play}.PacketPlayOutViewCentre");
                 VIEW_DISTANCE_CLASS = Reflection.getClass("{play}.PacketPlayOutViewDistance");
             }
-            if (protocolVersion.isBetween(NetProtocol.v1_14_4, NetProtocol.v1_18_2)) {
+            if (NetProtocol.getProtocol().isBetween(NetProtocol.v1_14_4, NetProtocol.v1_18_2)) {
                 BLOCK_BROKE_ACK_CLASS = Reflection.getClass("{play}.PacketPlayOutBlockBreak");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_17)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
                 CLEAR_TITLES_CLASS = Reflection.getClass("{play}.ClientboundClearTitlesPacket");
                 INITIALIZE_BORDER_CLASS = Reflection.getClass("{play}.ClientboundInitializeBorderPacket");
                 PING_CLASS = Reflection.getUnsureClass("{play}.ClientboundPingPacket", "{common}.ClientboundPingPacket");
@@ -1263,74 +1266,74 @@ public class PacketTypes {
                 SET_TITLE_TEXT_CLASS = Reflection.getClass("{play}.ClientboundSetTitleTextPacket");
                 SET_TITLES_ANIMATION_CLASS = Reflection.getClass("{play}.ClientboundSetTitlesAnimationPacket");
                 WORLD_BORDER_CLASS = Reflection.getClass("{play}.ClientboundInitializeBorderPacket");
-                if (protocolVersion.isOlderThan(NetProtocol.v1_19)) {
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19)) {
                     ADD_VIBRATION_SIGNAL_CLASS = Reflection.getClass("{play}.ClientboundAddVibrationSignalPacket");
                 }
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_18)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_18)) {
                 MAP_CHUNK_CLASS = Reflection.getClass("{play}.ClientboundLevelChunkWithLightPacket");
                 SET_SIMULATION_DISTANCE_CLASS = Reflection.getClass("{play}.ClientboundSetSimulationDistancePacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19)) {
                 BLOCK_CHANGED_ACK_CLASS = Reflection.getClass("{play}.ClientboundBlockChangedAckPacket");
-                PLAYER_CHAT_CLASS = Reflection.getClass("{play}.ClientboundPlayerChatPacket");
+                CHAT_CLASS = Reflection.getClass("{play}.ClientboundPlayerChatPacket");
                 SERVER_DATA_CLASS = Reflection.getClass("{play}.ClientboundServerDataPacket");
                 SYSTEM_CHAT_CLASS = Reflection.getClass("{play}.ClientboundSystemChatPacket");
-                if (protocolVersion.isOlderThan(NetProtocol.v1_19_3)) {
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19_3)) {
                     CHAT_PREVIEW_SERVER_CLASS = Reflection.getClass("{play}.ClientboundChatPreviewPacket");
                     SET_DISPLAY_CHAT_PREVIEW_CLASS = Reflection.getClass("{play}.ClientboundSetDisplayChatPreviewPacket");
                 }
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19_1)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19_1)) {
                 CUSTOM_CHAT_COMPLETIONS_CLASS = Reflection.getClass("{play}.ClientboundCustomChatCompletionsPacket");
                 DELETE_CHAT_MESSAGE_CLASS = Reflection.getClass("{play}.ClientboundDeleteChatPacket");
-                if (protocolVersion.isOlderThan(NetProtocol.v1_19_3)) {
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_19_3)) {
                     PLAYER_CHAT_HEADER_CLASS = Reflection.getClass("{play}.ClientboundPlayerChatHeaderPacket");
                 }
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19_3)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19_3)) {
                 DISGUISED_CHAT_CLASS = Reflection.getClass("{play}.ClientboundDisguisedChatPacket");
                 PLAYER_INFO_REMOVE_CLASS = Reflection.getClass("{play}.ClientboundPlayerInfoRemovePacket");
                 PLAYER_INFO_UPDATE_CLASS = Reflection.getClass("{play}.ClientboundPlayerInfoUpdatePacket");
-                if (protocolVersion.isOlderThan(NetProtocol.v1_20_2)) {
+                if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
                     UPDATE_ENABLED_FEATURES_CLASS = Reflection.getClass("{play}.ClientboundUpdateEnabledFeaturesPacket");
                 }
             } else {
                 PLAYER_INFO_CLASS = Reflection.getClass("{play}.PacketPlayOutPlayerInfo");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_19_4)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19_4)) {
                 BUNDLE_CLASS = Reflection.getClass("{play}.ClientboundBundlePacket");
                 BUNDLE_DELIMITER_CLASS = Reflection.getUnsureClass("{play}.ClientboundBundleDelimiterPacket", "{nms}.network.protocol.BundleDelimiterPacket");
                 CHUNK_BIOMES_CLASS = Reflection.getClass("{play}.ClientboundChunksBiomesPacket");
                 DAMAGE_EVENT_CLASS = Reflection.getClass("{play}.ClientboundDamageEventPacket");
                 HURT_ANIMATION_CLASS = Reflection.getClass("{play}.ClientboundHurtAnimationPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 CHUNK_BATCH_FINISHED_CLASS = Reflection.getClass("{play}.ClientboundChunkBatchFinishedPacket");
                 CHUNK_BATCH_START_CLASS = Reflection.getClass("{play}.ClientboundChunkBatchStartPacket");
                 START_CONFIGURATION_CLASS = Reflection.getClass("{play}.ClientboundStartConfigurationPacket");
                 PONG_CLASS = Reflection.getUnsureClass("{status}.PacketStatusOutPong", "{ping}.ClientboundPongResponsePacket");
                 UPDATE_TAGS_CLASS = Reflection.getClass("{common}.ClientboundUpdateTagsPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_4)) {
                 RESET_SCORE_CLASS = Reflection.getClass("{play}.ClientboundResetScorePacket");
                 RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPopPacket");
                 RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPushPacket");
                 TICKING_STATE_CLASS = Reflection.getClass("{play}.ClientboundTickingStatePacket");
                 TICKING_STEP_CLASS = Reflection.getClass("{play}.ClientboundTickingStepPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_6)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
                 COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
                 DEBUG_SAMPLE_CLASS = Reflection.getClass("{play}.ClientboundDebugSamplePacket");
                 PROJECTILE_POWER_CLASS = Reflection.getClass("{play}.ClientboundProjectilePowerPacket");
                 STORE_COOKIE_CLASS = Reflection.getClass("{common}.ClientboundStoreCookiePacket");
                 TRANSFER_CLASS = Reflection.getClass("{common}.ClientboundTransferPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_21)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21)) {
                 CUSTOM_REPORT_DETAILS_CLASS = Reflection.getClass("{common}.ClientboundCustomReportDetailsPacket");
                 SERVER_LINKS_CLASS = Reflection.getClass("{common}.ClientboundServerLinksPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_21_2)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21_2)) {
                 ENTITY_POSITION_SYNC_CLASS = Reflection.getClass("{play}.ClientboundEntityPositionSyncPacket");
                 MOVE_MINECART_CLASS = Reflection.getClass("{play}.ClientboundMoveMinecartPacket");
                 PLAYER_ROTATION_SERVER_CLASS = Reflection.getClass("{play}.ClientboundPlayerRotationPacket");
@@ -1367,6 +1370,9 @@ public class PacketTypes {
             BOSS_BAR(BOSS_BAR_CLASS, "boss_event", NetProtocolRange.since(NetProtocol.v1_9)),
             BUNDLE(BUNDLE_CLASS, "bundle", NetProtocolRange.since(NetProtocol.v1_19_4)),
             BUNDLE_DELIMITER(BUNDLE_DELIMITER_CLASS, "bundle_delimiter", NetProtocolRange.since(NetProtocol.v1_19_4)),
+            @ViaProtocol.Name(name = "chat_message", target = ViaProtocol.Name.Target.LEGACY)
+            @ViaProtocol.Name(name = "chat", target = ViaProtocol.Name.Target.MODERN)
+            CHAT(CHAT_CLASS, "player_chat"),
             CHAT_PREVIEW(CHAT_PREVIEW_SERVER_CLASS, "chat_preview", NetProtocolRange.between(NetProtocol.v1_19, NetProtocol.v1_19_2)),
             @ViaProtocol.Name(name = "chunk_biomes", target = ViaProtocol.Name.Target.LEGACY)
             CHUNK_BIOMES(CHUNK_BIOMES_CLASS, "chunks_biomes", NetProtocolRange.since(NetProtocol.v1_19_4)),
@@ -1466,9 +1472,6 @@ public class PacketTypes {
             @ViaProtocol.Name(name = "trade_list", target = ViaProtocol.Name.Target.LEGACY)
             OPEN_WINDOW_MERCHANT(OPEN_WINDOW_MERCHANT_CLASS, "merchant_offers", NetProtocolRange.since(NetProtocol.v1_14)),
             PING(PING_CLASS, "ping", NetProtocolRange.since(NetProtocol.v1_17)),
-            @ViaProtocol.Name(name = "chat_message", target = ViaProtocol.Name.Target.LEGACY)
-            @ViaProtocol.Name(name = "chat", target = ViaProtocol.Name.Target.MODERN)
-            PLAYER_CHAT(PLAYER_CHAT_CLASS, "player_chat"),
             PLAYER_CHAT_HEADER(PLAYER_CHAT_HEADER_CLASS, "player_chat_header", NetProtocolRange.between(NetProtocol.v1_19_1, NetProtocol.v1_19_2)),
             @ViaProtocol.Name(name = "combat_end", target = ViaProtocol.Name.Target.LEGACY)
             PLAYER_COMBAT_END(PLAYER_COMBAT_END_CLASS, "player_combat_end", NetProtocolRange.since(NetProtocol.v1_17)),
@@ -1489,6 +1492,7 @@ public class PacketTypes {
             RECIPE_BOOK_REMOVE(RECIPE_BOOK_REMOVE_CLASS, "recipe_book_remove", NetProtocolRange.since(NetProtocol.v1_21_2)),
             RECIPE_BOOK_SETTINGS(RECIPE_BOOK_SETTINGS_CLASS, "recipe_book_settings", NetProtocolRange.since(NetProtocol.v1_21_2)),
             @ViaProtocol.Name(name = "unlock_recipes", target = ViaProtocol.Name.Target.LEGACY)
+            @ViaProtocol.IgnoreIfMissing
             RECIPES(RECIPES_CLASS, "recipe", NetProtocolRange.between(NetProtocol.v1_12, NetProtocol.v1_21_1)),
             @ViaProtocol.Name(name = "declare_recipes", target = ViaProtocol.Name.Target.LEGACY)
             RECIPE_UPDATE(RECIPE_UPDATE_CLASS, "update_recipes", NetProtocolRange.since(NetProtocol.v1_13)),
@@ -1608,7 +1612,7 @@ public class PacketTypes {
             private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsClass;
-            private final int packetId = idRegistry.acquire();
+            private final int packetId = ID_REGISTRY.acquire();
             private final NetProtocolRange protocolRange;
 
             Server(Class<?> nmsClass, String keyName) {
@@ -1670,7 +1674,7 @@ public class PacketTypes {
         private static Class<?> SELECT_KNOWN_PACKS_CLIENT_CLASS;
 
         static {
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 CLIENT_INFORMATION_CLASS = Reflection.getClass("{common}.ServerboundClientInformationPacket");
                 CUSTOM_PAYLOAD_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundCustomPayloadPacket");
                 FINISH_CONFIGURATION_CLIENT_CLASS = Reflection.getClass("{configuration}.ServerboundFinishConfigurationPacket");
@@ -1678,7 +1682,7 @@ public class PacketTypes {
                 PONG_CLASS = Reflection.getClass("{common}.ServerboundPongPacket");
                 RESOURCE_PACK_SEND_CLIENT_CLASS = Reflection.getClass("{common}.ServerboundResourcePackPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_6)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
                 COOKIE_RESPONSE_CLASS = Reflection.getClass("{cookie}.ServerboundCookieResponsePacket");
                 SELECT_KNOWN_PACKS_CLIENT_CLASS = Reflection.getClass("{configuration}.ServerboundSelectKnownPacks");
             }
@@ -1698,7 +1702,7 @@ public class PacketTypes {
             private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
-            private final int packetId = idRegistry.acquire();
+            private final int packetId = ID_REGISTRY.acquire();
             private final NetProtocolRange protocolRange;
 
             Client(Class<?> nmsPacket, String keyName, NetProtocolRange protocolRange) {
@@ -1763,10 +1767,10 @@ public class PacketTypes {
         private static Class<?> UPDATE_TAGS_CLASS;
 
         static {
-            if (protocolVersion.isEqual(NetProtocol.v1_20_2)) {
+            if (NetProtocol.getProtocol().isEqual(NetProtocol.v1_20_2)) {
                 RESOURCE_PACK_SEND_SERVER_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_2)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 CUSTOM_PAYLOAD_SERVER_CLASS = Reflection.getClass("{common}.ClientboundCustomPayloadPacket");
                 FINISH_CONFIGURATION_SERVER_CLASS = Reflection.getClass("{configuration}.ClientboundFinishConfigurationPacket");
                 KEEP_ALIVE_SERVER_CLASS = Reflection.getClass("{common}.ClientboundKeepAlivePacket");
@@ -1776,18 +1780,18 @@ public class PacketTypes {
                 UPDATE_ENABLED_FEATURES_CLASS = Reflection.getClass("{configuration}.ClientboundUpdateEnabledFeaturesPacket");
                 UPDATE_TAGS_CLASS = Reflection.getClass("{common}.ClientboundUpdateTagsPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_4)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_4)) {
                 RESOURCE_PACK_POP_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPopPacket");
                 RESOURCE_PACK_PUSH_CLASS = Reflection.getClass("{common}.ClientboundResourcePackPushPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_20_6)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)) {
                 COOKIE_REQUEST_CLASS = Reflection.getClass("{cookie}.ClientboundCookieRequestPacket");
                 RESET_CHAT_CLASS = Reflection.getClass("{configuration}.ClientboundResetChatPacket");
                 SELECT_KNOWN_PACKS_SERVER_CLASS = Reflection.getClass("{configuration}.ClientboundSelectKnownPacks");
                 STORE_COOKIE_CLASS = Reflection.getClass("{common}.ClientboundStoreCookiePacket");
                 TRANSFER_CLASS = Reflection.getClass("{common}.ClientboundTransferPacket");
             }
-            if (protocolVersion.isNewerThanOrEqual(NetProtocol.v1_21)) {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_21)) {
                 CUSTOM_REPORT_DETAILS_CLASS = Reflection.getClass("{common}.ClientboundCustomReportDetailsPacket");
                 SERVER_LINKS_CLASS = Reflection.getClass("{common}.ClientboundServerLinksPacket");
             }
@@ -1817,7 +1821,7 @@ public class PacketTypes {
             private final LazyInit<Integer> minecraftIdInit = new LazyInit<>(() -> getMinecraftId(this));
             private final String keyName;
             private final Class<?> nmsPacket;
-            private final int packetId = idRegistry.acquire();
+            private final int packetId = ID_REGISTRY.acquire();
             private final NetProtocolRange protocolRange;
 
             Server(Class<?> nmsPacket, String keyName, NetProtocolRange protocolRange) {

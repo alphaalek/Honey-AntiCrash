@@ -1,7 +1,7 @@
 package me.alek.honey.netty;
 
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
-import me.alek.honey.netty.injector.ServerPacketManager;
+import me.alek.honey.netty.injector.ChannelManager;
 import me.alek.honey.netty.injector.SpigotPipelineInjector;
 import me.alek.honey.netty.injector.SpigotServerInjector;
 import me.alek.honey.netty.packet.*;
@@ -23,7 +23,7 @@ public class PacketLibrary {
     private final PacketProcessor packetProcessor;
     private final SpigotPipelineInjector pipelineInjector;
     private final SpigotServerInjector serverInjector;
-    private final ServerPacketManager packetManager;
+    private final ChannelManager channelManager;
     private boolean enabled = true;
 
     private static PacketLibrary INSTANCE;
@@ -49,11 +49,11 @@ public class PacketLibrary {
         WrappedPacketFactoryCollection.loadWrappers();
 
         this.packetProcessor = new InternalPacketProcessor();
-        this.packetManager = new ServerPacketManager();
+        this.channelManager = new ChannelManager();
 
         this.pipelineInjector = new SpigotPipelineInjector();
         this.serverInjector = new SpigotServerInjector();
-        if (serverInjector.isServerBound()) {
+        if (serverInjector.hasAnyListeningChannel()) {
             this.serverInjector.inject();
         } else {
             // late bind, so we inject a bit later
@@ -73,8 +73,8 @@ public class PacketLibrary {
         return this.pipelineInjector;
     }
 
-    public ServerPacketManager getPacketManager() {
-        return this.packetManager;
+    public ChannelManager getChannelManager() {
+        return this.channelManager;
     }
 
     public String getFilterName() {

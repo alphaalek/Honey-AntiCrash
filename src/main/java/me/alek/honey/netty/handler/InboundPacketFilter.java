@@ -4,11 +4,14 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.codec.HoneyPacketDecoder;
+import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.injector.ChannelCloseInspection;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
@@ -17,7 +20,6 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
@@ -44,6 +46,10 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         }
     }
 
+    public static void removeMarker() {
+        MARK.remove();
+    }
+
     private final HoneyPlayer player;
     private final HoneyPacketHandler packetHandler;
     private boolean hasCalledChannelInactive;
@@ -63,7 +69,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
         if (ctx.channel().remoteAddress() == null) {
             // null ping (1.8.8 bug)
-            ctx.channel().close();
+            ChannelCloseInspection.close(ctx.channel());
             return;
         }
 
@@ -102,9 +108,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         }
     }
 
+    public void handleViaDroppedPacket(PacketContainer<?> packet) {
+        this.packetHandler.getProtocolSwapHandler().swapProtocolViaDropped(packet);
+    }
+
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
-        if (!player.isStreamActive()) {
+        if (!this.player.isStreamActive()) {
             return;
         }
 
@@ -120,25 +130,28 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         // if the filter mark has a value, it means that a channel handler between
         // the filter and decode preparation dropped this packet
         // and did not clear the marker properly
-        if (prev != null && !PacketTypes.isUnknown(prev.getType())) {
+        if (prev != null && !PacketTypes.isUnknown(prev.getType()) && !prev.isHandled()) {
+            HoneyPlayer player = prev.getPlayer();
             FloodValidations.PACKET_DROP_PIPELINE.doStreamOtherPipeline(
-                    this.player,
-                    (validation, context) -> validation.validate(this.player, context),
+                    player,
+                    (validation, context) -> validation.validate(player, context),
                     prev);
 
             prev.releaseIfAutoReleasable();
+            this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(prev);
+            InboundPacketFilter.removeMarker();
         }
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketContainer<?> packet = null;
         try {
             // initialize packet container
-            PacketType type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, true);
+            PacketType type = this.packetHandler.getPacketType(serializer, false, this.packetHandler.getSimulatedServerboundProtocolState(), PacketBound.SERVER, true);
+            Bukkit.getLogger().info("Filter " + type + " " + ctx.pipeline().names());
             if (type == null) {
                 // invalid packet
-                ctx.channel().close();
-                list.add(Unpooled.buffer());
-                return;
+                serializer.resetReaderIndex();
+                throw new DecoderException("Invalid packet, state " + this.packetHandler.getSimulatedServerboundProtocolState() + ", id " + serializer.readVarInt());
             }
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
             MARK.set(packet);
@@ -146,7 +159,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             if (packet.getInitialByteWrapped().isAbstract()) {
                 // check if any bytes has not been decoded
                 // if any is left, the protocol has not been followed properly
-                HoneyPacketDecoder.checkReadable(packet.getProtocol(), type, null, serializer);
+                HoneyPacketCodec.checkReadable(packet.getProtocol(), type, null, serializer);
             }
 
             // call listeners
@@ -157,28 +170,29 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             }
 
             if (type == PacketTypes.Play.Client.CUSTOM_PAYLOAD) {
-                WrappedPlayInCustomPayload.PayloadData<?> data = ((WrappedPlayInCustomPayload<?>) packet.getAnyWrapped()).getPayloadData();
+                WrappedPlayInCustomPayload.PayloadData<?> data = ((WrappedPlayInCustomPayload<?>) packet.getCurrentWrapped()).getPayloadData();
                 if (data.isBookChannel() && data.isItemInitialized()) {
-                    HoneyPacketDecoder.checkReadable(packet.getProtocol(), packet.getType(), null, data.getSerializer());
+                    HoneyPacketCodec.checkReadable(packet.getProtocol(), packet.getType(), null, data.getSerializer());
                 }
             }
 
             if (!this.packetHandler.isCancelled(packet)) {
-                list.add(serializer
-                        .readerIndex(0)
-                        .retain());
+                list.add(serializer.readerIndex(0).retain());
             } else {
                 list.add(Unpooled.buffer());
                 packet.releaseIfAutoReleasable();
             }
 
+            this.packetHandler.getProtocolSwapHandler().swapProtocolInboundFilter(packet);
+
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (Exception ex) {
+            ex.printStackTrace();
             if (this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet
                 // most likely something pinging this server without following the Minecraft protocol
-                ctx.channel().close();
+                ChannelCloseInspection.close(ctx.channel());
                 return;
             }
 
@@ -187,6 +201,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                         "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
                                 + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
             }
+
+            list.clear();
+            list.add(Unpooled.buffer());
 
             this.player.failPacket(ex, packet);
         }

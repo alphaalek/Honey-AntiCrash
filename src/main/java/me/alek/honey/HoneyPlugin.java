@@ -147,7 +147,7 @@ public class HoneyPlugin implements HoneyAPI {
                 return;
             }
 
-            channel.pipeline().addBefore(MinecraftHandlers.MANAGER, "honey-invalid-session", new ChannelInboundHandlerAdapter() {
+            channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, "honey-invalid-session", new ChannelInboundHandlerAdapter() {
 
                 @Override
                 public void channelRead(ChannelHandlerContext ctx, Object msg) {

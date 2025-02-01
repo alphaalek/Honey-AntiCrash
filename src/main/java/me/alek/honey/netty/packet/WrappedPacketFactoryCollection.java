@@ -43,7 +43,7 @@ public class WrappedPacketFactoryCollection {
         loadObjectWrapper(PacketTypes.Play.Client.UPDATE_SIGN, WrappedPlayInUpdateSign::new);
         loadObjectWrapper(PacketTypes.Play.Client.TAB_COMPLETE, WrappedPlayInTabComplete::new);
 
-        loadObjectWrapper(PacketTypes.Play.Server.PLAYER_CHAT, WrappedPlayOutChat::new);
+        loadObjectWrapper(PacketTypes.Play.Server.CHAT, WrappedPlayOutChat::new);
         loadObjectWrapper(PacketTypes.Play.Server.DISCONNECT, WrappedPlayOutDisconnect::new);
         loadObjectWrapper(PacketTypes.Play.Server.OPEN_WINDOW, WrappedPlayOutOpenWindow::new);
         loadObjectWrapper(PacketTypes.Play.Server.PLAYER_POSITION, WrappedPlayOutPosition::new);

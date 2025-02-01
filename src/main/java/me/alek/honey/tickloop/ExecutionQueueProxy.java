@@ -10,7 +10,6 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.tickloop.packet.PacketTaskProvider;
 import me.alek.honey.tickloop.packet.WrappedPacketTask;
@@ -118,7 +117,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 EMPTY_TICK_TASK = null;
             }
 
-            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_18)) {
+            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) {
                 tickTaskConstructor = null;
             }
         }
@@ -209,7 +208,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
                     HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled due to postpone overload: "
                             + task.getPacket().getType() + ", "
-                            + task.getPlayer().packetHandler.getProtocolState(task.getPacket().getType().getBound()) + ", "
+                            + task.getPacket().getPacketHandler().getProtocolState(task.getPacket().getType().getBound()) + ", "
                             + task.getPacket().getType().getBound() + ", "
                             + task.getPacket().getPlayerName());
                 }

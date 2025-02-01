@@ -290,7 +290,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                 earlyInitializedPacket.callPostMinecraftDecode(objectPacket, type);
                 packet = earlyInitializedPacket;
             } else {
-                packet = new InternalPacketContainer<>(objectPacket, player, type, getPostAction(type));
+                packet = new InternalPacketContainer<>(objectPacket, player, type, null);
             }
 
             if (packet.getState().equals(PacketState.PLAY) && !packet.getPlayer().isBukkitReady()) {
@@ -325,12 +325,10 @@ public class InternalPacketProcessor implements PacketProcessor {
 
     @Override
     public synchronized void addPostAction(PacketType type, Callback.Action action) {
-        if (PacketTypes.isUnknown(type)) {
-            return;
+        if (!PacketTypes.isUnknown(type)) {
+            Callback callback = this.postActions.get(type, Callback::new);
+            callback.addAction(action);
         }
-
-        Callback callback = this.postActions.get(type, Callback::new);
-        callback.addAction(action);
     }
 }
 

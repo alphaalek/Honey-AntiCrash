@@ -3,6 +3,7 @@ package me.alek.honey;
 import io.netty.channel.Channel;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
+import me.alek.honey.netty.injector.ChannelCloseInspection;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.impl.WrappedPlayOutDisconnect;
@@ -180,6 +181,8 @@ public class HoneyPlayer implements IntIdentifiable {
             } else {
                 kick(DISCONNECTED);
             }
+        } else {
+            ChannelCloseInspection.close(this.channel);
         }
     }
 

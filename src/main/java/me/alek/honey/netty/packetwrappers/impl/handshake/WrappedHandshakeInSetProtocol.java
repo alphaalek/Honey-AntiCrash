@@ -3,6 +3,7 @@ package me.alek.honey.netty.packetwrappers.impl.handshake;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
+import org.bukkit.Bukkit;
 
 public class WrappedHandshakeInSetProtocol extends ByteInWrappedPacket<WrappedHandshakeInSetProtocol> {
 

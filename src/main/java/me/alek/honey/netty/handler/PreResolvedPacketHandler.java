@@ -10,18 +10,19 @@ import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
 import java.util.function.Function;
 
 public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
+    public static final String NAME = "pre-resolved-packet-handler";
+
     private final HoneyPacketHandler packetHandler;
 
     public boolean read = true;
     public boolean write = true;
-    private boolean hasBeenRelocated;
     private boolean resolving;
 
     public PreResolvedPacketHandler(HoneyPacketHandler packetHandler) {
@@ -32,17 +33,29 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         return this.packetHandler;
     }
 
-    public boolean streams(PacketBound bound) {
-        return bound.equals(PacketBound.SERVER) ? this.read : this.write;
-    }
-
     @SuppressWarnings("unchecked")
     private <WP extends SourcedWrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Object msg, PacketBound bound) {
         switch (bound) {
             case SERVER:
                 PacketContainer<WP> packet = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
-                InboundPacketFilter.MARK.remove();
-                return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(this.packetHandler.getPlayer(), msg, packet);
+                if (packet != null && packet.isHandled()) {
+                    return packet;
+                }
+                PacketContainer<WP> newPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(this.packetHandler.getPlayer(), msg, packet);
+
+                if (newPacket != null && (packet == null || newPacket.getType().equals(packet.getType()))) {
+                    this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(newPacket);
+                } else {
+                    if (packet != null) {
+                        this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(packet);
+                    }
+                    if (newPacket != null) {
+                        this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(newPacket);
+                    }
+                }
+
+                InboundPacketFilter.removeMarker();
+                return newPacket;
             case CLIENT:
                 return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().writeObjectPacket(this.packetHandler.getPlayer(), msg);
         }
@@ -70,57 +83,41 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (this.resolving) {
+        if (this.resolving || !this.read) {
             ctx.fireChannelRead(msg);
             return;
         }
-        checkRelocation();
 
+        checkRelocation(PacketBound.SERVER);
         if (!this.packetHandler.isPacket(msg)) {
-            if (!this.packetHandler.handleNonPacket(msg)) {
-                return;
-            }
+            ctx.fireChannelRead(msg);
+            return;
+        }
+
+        PacketContainer<?> packet = initPacketContainer(msg, PacketBound.SERVER);
+        if (packet == null) {
+            return;
+        }
+        if (packet.isHandled()) {
             ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
             return;
         }
 
-        if (!this.read) {
-            ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
-            return;
-        }
-
-        try {
-            PacketContainer<?> packet = initPacketContainer(msg, PacketBound.SERVER);
-            if (packet == null) {
-                return;
-            }
-            streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
     }
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (this.resolving) {
+        if (this.resolving || !this.write) {
             ctx.write(msg, promise);
             return;
         }
 
-        this.packetHandler.executeDelayedTasks(PacketBound.CLIENT);
-        checkRelocation();
-
-        if (!this.packetHandler.isPacket(msg)) {
-            if (!this.packetHandler.handleNonPacket(msg)) {
-                promise.setSuccess();
-                return;
-            }
+        checkRelocation(PacketBound.CLIENT);
+        // don't handle this packet right now if the out stream has been relocated into the pipeline,
+        // because then that handler will handle it instead
+        if (!this.write || !this.packetHandler.isPacket(msg)) {
             ctx.write(msg, promise);
-            return;
-        }
-
-        if (!this.write) {
-            ctx.write(ReferenceCountUtil.retain(msg));
             return;
         }
 
@@ -128,18 +125,29 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         if (packet == null) {
             return;
         }
+        if (packet.isHandled()) {
+            ctx.write(ReferenceCountUtil.retain(msg));
+            return;
+        }
+        packet.handle();
+
+        this.packetHandler.getProtocolSwapHandler().swapProtocolOutbound(packet);
         streamToPipeline(msg, packet, this.packetHandler::write, () -> ctx.write(ReferenceCountUtil.retain(msg), promise));
+        this.packetHandler.getProtocolSwapHandler().swapProtocolOutboundPostPipeline(packet);
     }
 
-    public void checkRelocation() {
-        if (!this.hasBeenRelocated && !this.resolving) {
-            try {
-                this.resolving = true;
-                this.hasBeenRelocated = HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packetHandler.getChannel());
-            } catch (MissingHandlerException ex) {
-                this.hasBeenRelocated = false;
+    public void checkRelocation(PacketBound bound) {
+        try {
+            this.resolving = true;
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(this.packetHandler.getChannel());
+            if (bound.equals(PacketBound.SERVER) && HoneyPlugin.get().getPacketLibrary().getChannelManager().getInStream(this.packetHandler.getChannel()) != null) {
+                this.read = false;
+            } else if (bound.equals(PacketBound.CLIENT) && HoneyPlugin.get().getPacketLibrary().getChannelManager().getOutStream(this.packetHandler.getChannel()) != null) {
+                this.write = false;
             }
-            this.resolving = false;
+        } catch (MissingHandlerException ex) {
+            this.packetHandler.getChannel().close();
         }
+        this.resolving = false;
     }
 }

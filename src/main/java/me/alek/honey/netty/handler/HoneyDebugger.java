@@ -1,10 +1,13 @@
 package me.alek.honey.netty.handler;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.injector.ChannelCloseInspection;
+import me.alek.honey.netty.packet.PacketContainer;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -30,22 +33,27 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        onExceptionCaught(cause, !ctx.channel().isOpen());
+        cause.printStackTrace();
+        onExceptionCaught(ctx.channel(), cause);
         try {
             ctx.fireExceptionCaught(cause);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        player.online = false;
-        ctx.channel().close();
+        this.player.online = false;
+        ChannelCloseInspection.close(ctx.channel());
     }
 
-    public static void onExceptionCaught(Throwable throwable, boolean channelClosed) {
+    public static void onExceptionCaught(Channel channel, Throwable throwable) {
         String message = Optional.ofNullable(throwable.getMessage()).orElse("");
 
         if (message.equals(VIA_VERSION_CANCEL)) {
-            InboundPacketFilter.MARK.remove();
+            PacketContainer<?> packet = InboundPacketFilter.MARK.get();
+            if (packet != null) {
+                HoneyPlugin.get().getPacketLibrary().getChannelManager().getFilter(channel).handleViaDroppedPacket(packet);
+            }
+            InboundPacketFilter.removeMarker();
             return;
         }
 
@@ -56,7 +64,7 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_BROKEN_PIPE)
                 && /* Netty */ !message.equals(NETTY_NATIVE_WRITE_RESET)
                 && /* Netty */ !message.equals(NETTY_CONNECTION_RESET)) {
-            HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "DEBUG: Exception was caught in a channel handler:" + (channelClosed ? " (Closed Channel)" : ""), throwable);
+            HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "DEBUG: Exception was caught in a channel handler:" + (!channel.isOpen() ? " (Closed Channel)" : ""), throwable);
         }
     }
 }

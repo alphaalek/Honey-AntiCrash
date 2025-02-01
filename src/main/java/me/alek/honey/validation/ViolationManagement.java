@@ -5,13 +5,12 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
+import me.alek.honey.netty.injector.ChannelCloseInspection;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.discord.DiscordWebhook;
 import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.validation.types.HoneyValidation;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -66,16 +65,15 @@ public class ViolationManagement {
     }
 
     public synchronized void punish(Runnable onPunish, HoneyPlayer player, HoneyValidation<?> validation, HoneyKey violationKey) {
-        if (onPunish != null) onPunish.run();
-
-        if (player.punished) return;
+        if (onPunish != null) {
+            onPunish.run();
+        }
+        if (player.punished) {
+            return;
+        }
         player.punished = true;
 
-        player.channel.eventLoop().execute(() -> {
-            if (player.channel.isActive()) {
-                player.channel.close();
-            }
-        });
+        player.channel.eventLoop().execute(() -> ChannelCloseInspection.close(player.channel));
 
         if (player.isBukkitReady() && player.isOnlineBukkit()) {
             player.kick();

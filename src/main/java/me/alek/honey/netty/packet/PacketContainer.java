@@ -3,12 +3,14 @@ package me.alek.honey.netty.packet;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
+import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -39,21 +41,27 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
 
     void invokeServerCallback();
 
-    Channel getChannel();
-
     PacketType getType();
 
-    PacketState getState();
+    default PacketState getState() {
+        return getType().getState();
+    }
+
+    default PacketState getProtocolState() {
+        return getPacketHandler().getProtocolState(getType().getBound());
+    }
 
     PipelineState getPipelineState();
 
-    PacketState getProtocolState();
+    PipelineState getCreatedPipelineState();
 
     ObjectWrappedPacket<WP> getObjectWrapped();
 
     ByteInWrappedPacket<WP> getInitialByteWrapped();
 
     ByteInWrappedPacket<WP> getFinalByteWrapped();
+
+    ByteInWrappedPacket<WP> getAnyByteWrapped();
 
     WP getAnyWrapped();
 
@@ -63,15 +71,34 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
 
     HoneyPlayer getPlayer();
 
-    String getPlayerName();
+    default HoneyPacketHandler getPacketHandler() {
+        return getPlayer().packetHandler;
+    }
+
+    default Channel getChannel() {
+        return getPlayer().channel;
+    }
+
+    default String getPlayerName() {
+        // if this is called before HELLO post action, the player name is not yet updated
+        if (getType() == PacketTypes.Login.Client.HELLO) {
+            return ((WrappedLoginInLoginStart) getAnyWrapped()).getUsername();
+        }
+
+        return getPacketHandler().getPlayerName();
+    }
 
     boolean isCancelled();
+
+    boolean isHandled();
 
     boolean isDumped();
 
     boolean isLogged();
 
     void cancel();
+
+    void handle();
 
     void dump();
 

@@ -1,9 +1,11 @@
 package me.alek.honey.util;
 
 import me.alek.honey.util.id.IntIdentifiable;
-import org.apache.commons.lang3.Validate;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -231,7 +233,6 @@ public class Array<T> implements Iterable<T> {
 
     public T getOr(int index, Supplier<T> or) {
         if (!has(index)) {
-            Validate.notNull(or);
             return or.get();
         }
 
@@ -406,6 +407,10 @@ public class Array<T> implements Iterable<T> {
 
     public synchronized boolean removeLast() {
         return removeLast(true);
+    }
+
+    public boolean equals(Array<?> array) {
+        return Arrays.equals(this.data, array.getHandle());
     }
 
     @Override

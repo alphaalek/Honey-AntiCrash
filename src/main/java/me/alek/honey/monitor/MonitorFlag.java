@@ -26,6 +26,9 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
         STATE("state", "--state [packet state]", false, StateFlag::new),
         CANCELLED("cancelled", "--cancelled", false, CancelledFlag::new),
         DETAILED("detailed", "--detailed", false, DetailedFlag::new),
+        BYTE_SIZE("bytes", "--bytes", false, BytesFlag::new),
+        ACCUMULATED_BYTE_SIZE("accumulated-bytes", "--accumulated-bytes", false, AccumulatedBytesFlag::new),
+        BYTE_DOUBLE_SEQUENCES("byte-sequences", "--byte-sequences", false, ByteSequenceSFlag::new),
         DECODE("min-decode", "--min-decode [number (as decimal) (in millis)]", false, DecodeTimingsFlag::new),
         IN_BETWEEN("min-in-between", "--min-in-between [number (as decimal) (in millis)]", false, InBetweenFlag::new),
         HONEY_HANDLE("min-honey-handle", "--min-honey-handle [number (as decimal) (in millis)]", true, HoneyHandleTimingsFlag::new),
@@ -81,6 +84,14 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
             if (takes > args.size()) {
                 throw WrongMonitorFlagSyntaxException.wrongFlagUsage(flag);
             }
+        }
+    }
+
+    interface AcceptsAllMonitorFlag<F> extends MonitorFlag<F> {
+
+        @Override
+        default boolean test(F input) {
+            return true;
         }
     }
 
@@ -270,16 +281,38 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
     }
 
     @FlagAnnotation(Flag.DETAILED)
-    class DetailedFlag implements NoArgumentMonitorFlag<PacketContainer<?>> {
-
-        @Override
-        public boolean test(PacketContainer<?> input) {
-            return true;
-        }
+    class DetailedFlag implements NoArgumentMonitorFlag<PacketContainer<?>>, AcceptsAllMonitorFlag<PacketContainer<?>> {
 
         @Override
         public void append(PacketContainer<?> input, List<String> data) {
             data.add(HoneyPlugin.get().getLogger().formatPacketEntries(input));
+        }
+    }
+
+    @FlagAnnotation(Flag.BYTE_SIZE)
+    class BytesFlag implements NoArgumentMonitorFlag<PacketContainer<?>>, AcceptsAllMonitorFlag<PacketContainer<?>> {
+
+        @Override
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add(input.getAnyByteWrapped().getByteSize() + " bytes");
+        }
+    }
+
+    @FlagAnnotation(Flag.ACCUMULATED_BYTE_SIZE)
+    class AccumulatedBytesFlag implements NoArgumentMonitorFlag<PacketContainer<?>>, AcceptsAllMonitorFlag<PacketContainer<?>> {
+
+        @Override
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add(input.getAnyByteWrapped().getAccumulatedByteSize() + " accumulated bytes");
+        }
+    }
+
+    @FlagAnnotation(Flag.BYTE_DOUBLE_SEQUENCES)
+    class ByteSequenceSFlag implements NoArgumentMonitorFlag<PacketContainer<?>>, AcceptsAllMonitorFlag<PacketContainer<?>> {
+
+        @Override
+        public void append(PacketContainer<?> input, List<String> data) {
+            data.add(input.getAnyByteWrapped().getDoubleByteSequences() + " byte sequences");
         }
     }
 

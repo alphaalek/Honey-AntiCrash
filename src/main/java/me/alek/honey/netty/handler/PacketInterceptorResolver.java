@@ -8,10 +8,13 @@ import me.alek.honey.compat.via.ViaHandlers;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
+import me.alek.honey.netty.injector.ChannelCloseInspection;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,6 +53,7 @@ public class PacketInterceptorResolver {
             toggleResolving(pipeline.channel(), PacketBound.SERVER, false);
         }
 
+
         return decoderPosition;
     }
 
@@ -67,7 +71,7 @@ public class PacketInterceptorResolver {
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(channel).resolve(bound, state);
         } catch (Exception ex) {
-            channel.close();
+            ChannelCloseInspection.close(channel);
         }
     }
 
@@ -88,7 +92,15 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
-        ByteBuf buf = createByteBuf(PacketTypes.Play.Client.KEEP_ALIVE, serializer -> serializer.writeLong(System.currentTimeMillis()));
+        ByteBuf buf = createByteBuf(PacketTypes.Play.Client.KEEP_ALIVE, serializer -> {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2)) {
+                serializer.writeLong(System.currentTimeMillis());
+            } else {
+                serializer.writeVarInt((int) System.currentTimeMillis());
+            }
+        });
+
+        pipeline.channel().read();
 
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
@@ -114,6 +126,7 @@ public class PacketInterceptorResolver {
                             ctx.fireChannelRead(o);
                         }
                     } catch (Exception ignored) {
+                        // to do nothing
                     }
                 }
 
@@ -140,7 +153,13 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> pos) {
-        ByteBuf buf = createByteBuf(PacketTypes.Play.Server.KEEP_ALIVE, serializer -> serializer.writeLong(System.currentTimeMillis()));
+        ByteBuf buf = createByteBuf(PacketTypes.Play.Server.KEEP_ALIVE, serializer -> {
+            if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2)) {
+                serializer.writeLong(System.currentTimeMillis());
+            } else {
+                serializer.writeVarInt((int) System.currentTimeMillis());
+            }
+        });
         Object raw = PacketFactory.createPacket(PacketTypes.Play.Server.KEEP_ALIVE, buf);
 
         AtomicReference<String> prev = new AtomicReference<>();
@@ -213,7 +232,7 @@ public class PacketInterceptorResolver {
         return wrappedHandlers;
     }
 
-    private static ByteBuf createByteBuf(PacketType packetType, Consumer<ByteBuf> write) {
+    private static ByteBuf createByteBuf(PacketType packetType, Consumer<PacketDataSerializer> write) {
         PacketDataSerializer serializer = new PacketDataSerializer(Unpooled.buffer());
         serializer.writeByte(packetType.getMinecraftID().get());
         write.accept(serializer);

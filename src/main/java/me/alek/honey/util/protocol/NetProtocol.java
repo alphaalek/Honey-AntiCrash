@@ -80,11 +80,11 @@ public enum NetProtocol {
         return UNKNOWN;
     }
 
-    public static NetProtocol getMajorFrom(int protocolVersion) {
+    public static NetProtocol getMajorProtocolFrom(int protocolVersion) {
         for (NetProtocol protocol : getReversedProtocols()) {
             if (protocolVersion >= protocol.getProtocolVersion()
-                    && (protocolVersion < protocol.getAfter().getProtocolVersion()
-                        || protocol.getAfter().isEqual(protocol))) {
+                    && (protocolVersion < protocol.getAfterProtocol().getProtocolVersion()
+                        || protocol.getAfterProtocol().isEqual(protocol))) {
                 return protocol;
             }
         }
@@ -142,25 +142,33 @@ public enum NetProtocol {
         return getProtocolVersion() == target.getProtocolVersion();
     }
 
-    public NetProtocol getBefore() {
+    public NetProtocol getBeforeVersion() {
+        return getProtocols().get(Math.max(0, getProtocols().indexOf(this) - 1));
+    }
+
+    public NetProtocol getAfterVersion() {
+        return getProtocols().get(Math.min(getProtocols().size() - 1, getProtocols().indexOf(this) + 1));
+    }
+
+    public NetProtocol getBeforeProtocol() {
         if (ordinal() == 0) {
             return this;
         }
         NetProtocol protocol = NetProtocol.values()[ordinal() - 1];
         if (protocol.getProtocolVersion() == getProtocolVersion()) {
-            return protocol.getBefore();
+            return protocol.getBeforeProtocol();
         }
 
         return protocol;
     }
 
-    public NetProtocol getAfter() {
+    public NetProtocol getAfterProtocol() {
         if (ordinal() == getProtocols().size() - 1) {
             return this;
         }
         NetProtocol protocol = NetProtocol.values()[ordinal() + 1];
         if (protocol.getProtocolVersion() == getProtocolVersion()) {
-            return protocol.getAfter();
+            return protocol.getAfterProtocol();
         }
 
         return protocol;

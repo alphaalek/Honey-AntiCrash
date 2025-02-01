@@ -1,8 +1,7 @@
 package me.alek.honey.util.reflection;
 
 import io.netty.channel.Channel;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.LazyInit;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -26,8 +25,8 @@ public class NMS {
     );
 
     private static final HashMap<String, Channel> lookupChannels = new HashMap<>();
-    private static Object minecraftServer;
-    private static Object serverConnection;
+    private static final LazyInit<Object> minecraftServer = new LazyInit<>(NMS::acquireMinecraftServer);
+    private static final LazyInit<Object> serverConnection = new LazyInit<>(NMS::acquireServerConnection);
 
     public static synchronized Channel getChannel(String name) {
         return lookupChannels.get(name);
@@ -61,26 +60,29 @@ public class NMS {
         return networkManager.get(getPlayerConnection(player));
     }
 
+    private static Object acquireMinecraftServer() {
+        return Reflection.getFieldAssignableFrom(NMS.getCraftServerClass(), 0, NMS.getMinecraftServerClass())
+                .get(Bukkit.getServer());
+    }
+
+    private static Object acquireServerConnection() {
+        Object firstTry;
+        return (firstTry = acquireOrCreateServerConnection(0)) != null
+                ? firstTry
+                : acquireOrCreateServerConnection(1);
+    }
+
+    private static Object acquireOrCreateServerConnection(int fieldIndex) {
+        return Reflection.getMethodFromReturnType(NMS.getMinecraftServerClass(), fieldIndex, NMS.getServerConnectionClass())
+                .invoke(getMinecraftServer());
+    }
+
     public static Object getMinecraftServer() {
-        return minecraftServer != null
-                ? minecraftServer
-                : Reflection.getFieldAssignableFrom(NMS.getCraftServerClass(), 0, NMS.getMinecraftServerClass())
-                        .get(Bukkit.getServer());
+        return minecraftServer.get();
     }
 
     public static Object getServerConnection() {
-        Object firstTry;
-
-        return serverConnection != null ?
-                serverConnection
-                : ( (firstTry = getOrCreateServerConnection(0)) != null
-                        ? firstTry
-                        : getOrCreateServerConnection(1) );
-    }
-
-    private static Object getOrCreateServerConnection(int fieldIndex) {
-        return Reflection.getMethodFromReturnType(NMS.getMinecraftServerClass(), fieldIndex, NMS.getServerConnectionClass())
-                .invoke(getMinecraftServer());
+        return serverConnection.get();
     }
 
     public static InetSocketAddress getSocketAddress(Player player) {
@@ -422,15 +424,7 @@ public class NMS {
 
     private static Class<Object> object2IntMapClass;
     public static Class<Object> getObject2IntMapClass() {
-        if (object2IntMapClass != null) {
-            return object2IntMapClass;
-        }
-
-        if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
-            return object2IntMapClass = getUnsureClass("org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2IntMap");
-        }
-
-        return object2IntMapClass = (Class<Object>) (Class<?>) Object2IntMap.class;
+        return object2IntMapClass != null ? object2IntMapClass : (object2IntMapClass = Reflection.getLibraryClass("it.unimi.dsi.fastutil.objects.Object2IntMap"));
     }
 
     public static boolean isFakeChannel(Channel channel) {

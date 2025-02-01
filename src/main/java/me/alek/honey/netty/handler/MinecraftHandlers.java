@@ -18,5 +18,9 @@ public class MinecraftHandlers {
 
     public static String ENCODER = "encoder";
 
-    public static String MANAGER = "packet_handler";
+    public static String CONNECTION = "packet_handler";
+
+    public static String INBOUND_CONFIG = "inbound_config";
+
+    public static String OUTBOUND_CONFIG = "outbound_config";
 }

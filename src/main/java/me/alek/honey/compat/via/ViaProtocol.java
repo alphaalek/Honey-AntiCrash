@@ -81,7 +81,7 @@ public enum ViaProtocol {
         Collections.reverse(protocols);
 
         for (ViaProtocol viaProtocol : protocols) {
-            if (viaProtocol.getProtocol().isOlderThanOrEqual(protocol)) {
+            if (viaProtocol.existsProtocol() && viaProtocol.getProtocol().isOlderThanOrEqual(protocol)) {
                 return viaProtocol;
             }
         }
@@ -91,7 +91,9 @@ public enum ViaProtocol {
 
     static {
         for (ViaProtocol protocol : values()) {
-            protocol.load();
+            if (protocol.existsProtocol()) {
+                protocol.load();
+            }
         }
     }
 
@@ -102,13 +104,19 @@ public enum ViaProtocol {
 
     private void load() {
         for (PacketState state : PacketState.values()) {
-            if (state == PacketState.ANY || state == PacketState.UNKNOWN) {
-                continue;
+            if (PacketState.isValid(state)) {
+                this.serverboundTypes[state.ordinal()] = initTypes(PacketBound.SERVER, state);
+                this.clientboundTypes[state.ordinal()] = initTypes(PacketBound.CLIENT, state);
             }
-
-            this.serverboundTypes[state.ordinal()] = initTypes(PacketBound.SERVER, state);
-            this.clientboundTypes[state.ordinal()] = initTypes(PacketBound.CLIENT, state);
         }
+    }
+
+    private NetProtocol getLowerBound() {
+        NetProtocol prev = this.protocol.getBeforeProtocol();
+        while (!prev.equals(NetProtocol.getOldest()) && prev.isEqual(prev.getBeforeVersion())) {
+            prev = prev.getBeforeVersion();
+        }
+        return prev;
     }
 
     private ViaProtocol getPreviousProtocol() {
@@ -133,6 +141,7 @@ public enum ViaProtocol {
         Enum<?>[] constants = getEnumConstants(bound, state);
         for (Enum<?> constant : constants) {
             String name = constant.name().toLowerCase();
+
             PacketType viaType = PacketTypes.getTypeFromViaKey(this.protocol, state, bound, name);
             if (PacketTypes.isUnknown(viaType)) {
                 PacketType type = PacketTypes.getTypeFromKey(state, bound, name);
@@ -159,22 +168,46 @@ public enum ViaProtocol {
         return types;
     }
 
-    private Enum<?>[] getEnumConstants(PacketBound bound, PacketState state) {
+    private boolean existsProtocol() {
+        if (this.protocol.isOlderThanOrEqual(NetProtocol.v1_12)) {
+            return true;
+        }
         try {
-            String className = bound.getName() + (state.equals(PacketState.PLAY) ? "" : state.getName()) + "Packets" + protocol.toString();
-            Class<Enum<?>> clazz = Reflection.getClass(PACKAGE + ".protocols." + packageName + "." + className);
-
-            return clazz.getEnumConstants();
-        } catch (Exception ex) {
-            if (ordinal() == 0) {
-                return getBaseEnumConstants(bound, state);
+            String base = PACKAGE + ".protocols." + this.packageName.replace(".packet", "") + ".Protocol";
+            if (LegacyHolder.LEGACY) {
+                Class.forName(base + this.protocol + "To" + getLowerBound());
+            } else {
+                Class.forName(base + getLowerBound() + "To" + this.protocol);
             }
-
-            return getPreviousProtocol().getEnumConstants(bound, state);
+            return true;
+        } catch (ClassNotFoundException ex) {
+            return false;
         }
     }
 
-    private Enum<?>[] getBaseEnumConstants(PacketBound bound, PacketState state) {
+    private Enum<?>[] getEnumConstants(PacketBound bound, PacketState state) {
+        Class<? extends Enum<?>> clazz = getClass(bound, state);
+        if (clazz == null) {
+            if (ordinal() == 0) {
+                return getBaseEnumConstants(bound, state);
+            } else {
+                return getPreviousProtocol().getEnumConstants(bound, state);
+            }
+        } else {
+            return clazz.getEnumConstants();
+        }
+    }
+
+    private Class<? extends Enum<?>> getClass(PacketBound bound, PacketState state) {
+        try {
+            String className = bound.getName() + (state.equals(PacketState.PLAY) ? "" : state.getName()) + "Packets" + this.protocol.toString();
+            return Reflection.getClass(PACKAGE + ".protocols." + this.packageName + "." + className);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private static Enum<?>[] getBaseEnumConstants(PacketBound bound, PacketState state) {
         try {
             String className = bound.getName() + (state.equals(PacketState.PLAY) ? "" : state.getName()) + "Packets";
             Class<Enum<?>> clazz = Reflection.getClass(PACKAGE + ".protocols.base." + className);
@@ -215,7 +248,7 @@ public enum ViaProtocol {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    @Repeatable(MultipleNames.class)
+    @Repeatable(Names.class)
     public @interface Name {
 
         String name();
@@ -246,7 +279,7 @@ public enum ViaProtocol {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    public @interface MultipleNames {
+    public @interface Names {
 
         Name[] value();
     }

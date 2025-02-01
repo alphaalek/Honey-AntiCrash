@@ -1,7 +1,6 @@
 package me.alek.honey.netty.packet.type;
 
 import me.alek.honey.util.Array;
-import org.apache.commons.lang3.text.WordUtils;
 
 public enum PacketState {
 
@@ -25,10 +24,14 @@ public enum PacketState {
     };
 
     public String getName() {
-        return WordUtils.capitalize(name().toLowerCase());
+        return String.valueOf(name().charAt(0)).toUpperCase() + name().substring(1).toLowerCase();
     }
 
     public Array<PacketType>[] getTypes() {
         return types;
+    }
+
+    public static boolean isValid(PacketState state) {
+        return state != UNKNOWN && state != ANY;
     }
 }

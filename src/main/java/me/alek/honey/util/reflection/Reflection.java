@@ -1,5 +1,6 @@
 package me.alek.honey.util.reflection;
 
+import me.alek.honey.util.Paper;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 
@@ -54,7 +55,16 @@ public class Reflection {
     private static final String NMS_PREFIX;
     private static final String VERSION = OBC_PREFIX.replace(
             "org.bukkit.craftbukkit", "").replace(".", "");
+    private static final String CBS_LIBS_PACKAGE = "org.bukkit.craftbukkit.libs";
     private static final Pattern MATCH_VARIABLE = Pattern.compile("\\{([^\\}]+)\\}");
+
+    public static <T> Class<T> getLibraryClass(String name) {
+        if (!Paper.IS_PAPER && NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_18)) {
+            return getClass(CBS_LIBS_PACKAGE + "." + name);
+        } else {
+            return getClass(name);
+        }
+    }
 
     public static <T> Class<?> getSubClass(Class<?> superClass, String name) {
         for (Class<?> subClass : superClass.getDeclaredClasses()) {
@@ -198,8 +208,8 @@ public class Reflection {
                 return new MethodInvoker<>(method);
             }
         }
-        if (target.getSuperclass() != null) {
-            return getMethod(target, methodPredicate);
+        if (target.getSuperclass() != Object.class) {
+            return getMethod(target.getSuperclass(), methodPredicate);
         }
         throw new RuntimeException("Reflection error (method predicate): " + target.getName());
     }
@@ -215,7 +225,7 @@ public class Reflection {
                 }
             }
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getMethod(target.getSuperclass(), index, parameters);
         }
         throw new RuntimeException("Reflection error (method): " + target.getName() + ", " + index + ", " + Arrays.toString(parameters));
@@ -228,7 +238,7 @@ public class Reflection {
             }
             return new MethodInvoker<>(method);
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getMethod(target.getSuperclass(), name, parameters);
         }
         throw new RuntimeException("Reflection error (method): " + target.getName() + ", " + name + ", " + Arrays.toString(parameters));
@@ -244,10 +254,10 @@ public class Reflection {
                 currentIndex++;
             }
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getMethodFromReturnType(target.getSuperclass(), index, returnType);
         }
-        throw new RuntimeException("Reflection error (method): " + index + " " + target.getName() + ", " + returnType + ", " + returnType);
+        throw new RuntimeException("Reflection error (method): " + index + " " + target.getName() + ", " + returnType);
     }
 
     public static <T> MethodInvoker<T> getMethodFromReturnType(Class<?> target, String name, Class<?> returnType) {
@@ -257,26 +267,26 @@ public class Reflection {
             }
             return new MethodInvoker<>(method);
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getMethodFromReturnType(target.getSuperclass(), name, returnType);
         }
-        throw new RuntimeException("Reflection error (method):" + name + " " + target.getName() + ", " + returnType + ", " + returnType);
+        throw new RuntimeException("Reflection error (method):" + name + " " + target.getName() + ", " + returnType);
     }
 
     public static <T> MethodInvoker<T> getMethodFromReturnType(Class<?> target, int index, Class<?> returnType, Class<?>... parameters) {
         int currentIndex = 0;
         for (Method method : getDeclaredMethods(target)) {
-            if (method.getReturnType() == returnType && Arrays.equals(method.getParameterTypes(), parameters)) {
+            if (method.getReturnType().equals(returnType) && Arrays.equals(method.getParameterTypes(), parameters)) {
                 if (currentIndex == index) {
                     return new MethodInvoker<>(method);
                 }
                 currentIndex++;
             }
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getMethodFromReturnType(target.getSuperclass(), index, returnType, parameters);
         }
-        throw new RuntimeException("Reflection error (method): " + index + " " + target.getName() + ", " + returnType + ", " + returnType);
+        throw new RuntimeException("Reflection error (method): " + index + " " + target.getName() + ", " + returnType + ", " + Arrays.toString(parameters));
     }
 
     public static <T> FieldAccessor<T> getNullableField(Class<?> target, String name, Class<?> type) {
@@ -289,7 +299,7 @@ public class Reflection {
 
             return new FieldAccessor<>(field);
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getNullableField(target.getSuperclass(), name, type);
         }
 
@@ -306,7 +316,7 @@ public class Reflection {
             }
         }
 
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getNullableField(target.getSuperclass(), index, type);
         }
 
@@ -322,7 +332,7 @@ public class Reflection {
             return new FieldAccessor<>(field);
         }
 
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getNullableFieldAssignableFrom(target.getSuperclass(), name, type);
         }
 
@@ -337,7 +347,7 @@ public class Reflection {
             }
         }
 
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getNullableFieldAssignableFrom(target.getSuperclass(), index, type);
         }
 
@@ -364,7 +374,7 @@ public class Reflection {
             }
         }
 
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getField(target.getSuperclass(), name, types);
         }
 
@@ -378,7 +388,7 @@ public class Reflection {
                 return accessor;
             }
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getField(target.getSuperclass(), index, types);
         }
         throw new RuntimeException("Reflection error (field): " + target.getName() + ", " + index + ", " + Arrays.toString(types));
@@ -391,7 +401,7 @@ public class Reflection {
                 return accessor;
             }
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getFieldAssignableFrom(target.getSuperclass(), name, types);
         }
         throw new RuntimeException("Reflection error (assignable type field): " + target.getName() + ", " + name + ", " + Arrays.toString(types));
@@ -404,7 +414,7 @@ public class Reflection {
                 return accessor;
             }
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getFieldAssignableFrom(target.getSuperclass(), index, types);
         }
         throw new RuntimeException("Reflection error (assignable type field): " + target.getName() + ", " + index + ", " + Arrays.toString(types));
@@ -422,7 +432,7 @@ public class Reflection {
                 }
             }
         }
-        if (target.getSuperclass() != null) {
+        if (target.getSuperclass() != Object.class) {
             return getParameterizedField(target.getSuperclass(), bound, generic);
         }
         throw new RuntimeException("Reflection error (parameterized field):" + target.getName() + ", " + bound + ", " + Arrays.toString(generic));

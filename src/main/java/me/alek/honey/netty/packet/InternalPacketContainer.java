@@ -12,7 +12,6 @@ import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
@@ -23,12 +22,10 @@ import me.alek.honey.validation.impl.NettyDecodeValidations;
 
 import java.util.Optional;
 
-public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> implements PacketContainer<WP> {
+public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> extends PacketContainerLifecycle<WP> implements PacketContainer<WP> {
 
+    private final PipelineState createdPipelineState;
     private PacketType type;
-    private boolean cancelled;
-    private boolean logged;
-    private boolean dumped;
     private PipelineState pipelineState;
     private InternalObjectPacketStructure structure;
     private ObjectWrappedPacket<WP> objectWrapped;
@@ -39,7 +36,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     private final HoneyPlayer player;
     private final long timeCreated = System.currentTimeMillis();
     private final PacketLifecycleTimings eventLoopStateTracker = new PacketLifecycleTimings();
-    private final Callback callbackAction = new Callback();
+    private final Callback serverCallback = new Callback();
 
     public InternalPacketContainer(Object handle, HoneyPlayer player, PacketType type, Callback postAction) {
         this(PipelineState.OBJECT, null, player, type, postAction);
@@ -50,15 +47,13 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         this.player = player;
         this.type = type;
 
-        Callback registeredPostAction = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPostAction(type);
-        if (registeredPostAction != null && !registeredPostAction.isEmpty()) {
-            this.postAction = Optional.ofNullable(postAction).orElseGet(Callback::new);
-            this.postAction.getActions().addAll(registeredPostAction.getActions());
-        } else {
-            this.postAction = postAction;
+        this.postAction = new Callback();
+        if (postAction != null) {
+            this.postAction.getActions().addAll(postAction.getActions());
         }
+        applyPostActions();
 
-        this.pipelineState = createdState;
+        this.createdPipelineState = this.pipelineState = createdState;
         if (serializer != null && createdState != PipelineState.OBJECT && !PacketTypes.isUnknown(type)
                 && (this.initialByteWrapped == null || !this.initialByteWrapped.isAbstract())
                 && (this.finalByteWrapped == null || !this.finalByteWrapped.isAbstract())) {
@@ -90,17 +85,27 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
                 throw new DecoderException("Failed byte filter validation");
             }
         }
+    }
 
+    private void applyPostActions() {
+        Callback registeredPostAction = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPostAction(this.type);
+        if (registeredPostAction != null) {
+            this.postAction.getActions().addAll(registeredPostAction.getActions());
+        }
     }
 
     @Override
     public void handleRewritten(PacketType type, PipelineState state) {
         if (!this.type.equals(type)) {
             // rewritten new type by ViaVersion
+            this.type = type;
+            this.handled = false;
             this.initialByteWrapped = null;
             this.finalByteWrapped = null;
+
+            this.postAction.clear();
+            applyPostActions();
         }
-        this.type = type;
         this.pipelineState = state;
     }
 
@@ -168,12 +173,12 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     @Override
     public void addServerCallbackAction(Callback.Action action) {
-        this.callbackAction.addAction(action);
+        this.serverCallback.addAction(action);
     }
 
     @Override
     public void invokeServerCallback() {
-        this.callbackAction.call(this);
+        this.serverCallback.call(this);
     }
 
     @Override
@@ -188,11 +193,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     @Override
     public PacketState getState() {
-        if (this.type == null) {
-            return PacketState.UNKNOWN;
-        }
-
-        return this.type.getState();
+        return Optional.ofNullable(this.type).map(PacketType::getState).orElse(PacketState.UNKNOWN);
     }
 
     @Override
@@ -201,42 +202,22 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
+    public PipelineState getCreatedPipelineState() {
+        return this.createdPipelineState;
+    }
+
+    @Override
     public PacketState getProtocolState() {
-        return this.player.packetHandler.getProtocolState(type.getBound());
-    }
-
-    @Override
-    public boolean isDumped() {
-        return this.dumped;
-    }
-
-    @Override
-    public boolean isLogged() {
-        return this.logged;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
+        return getPacketHandler().getProtocolState(this.type.getBound());
     }
 
     @Override
     public void cancel() {
         if (!this.cancelled) {
-            HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(player, true, true);
+            HoneyPlugin.get().getNotificationService().showPacketFilterActionBar(this.player, true, true);
         }
 
         this.cancelled = true;
-    }
-
-    @Override
-    public void dump() {
-        this.dumped = true;
-    }
-
-    @Override
-    public void log() {
-        this.logged = true;
     }
 
     @Override
@@ -270,6 +251,23 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     @Override
     public ByteInWrappedPacket<WP> getFinalByteWrapped() {
         return this.finalByteWrapped;
+    }
+
+    @Override
+    public ByteInWrappedPacket<WP> getAnyByteWrapped() {
+        if (this.initialByteWrapped != null && !this.initialByteWrapped.getClass().equals(ByteInWrappedPacket.class)) {
+            return this.initialByteWrapped;
+        } else if (this.finalByteWrapped != null && !this.finalByteWrapped.getClass().equals(ByteInWrappedPacket.class)) {
+            return this.finalByteWrapped;
+        } else {
+            if (this.initialByteWrapped != null) {
+                return this.initialByteWrapped;
+            } else if (this.finalByteWrapped != null) {
+                return this.finalByteWrapped;
+            } else {
+                throw new IllegalStateException();
+            }
+        }
     }
 
     @Override
@@ -313,16 +311,6 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     @Override
     public HoneyPlayer getPlayer() {
         return this.player;
-    }
-
-    @Override
-    public String getPlayerName() {
-        // if this is called before HELLO post action, the player name is not yet updated
-        if (this.type == PacketTypes.Login.Client.HELLO) {
-            return ((WrappedLoginInLoginStart) getAnyWrapped()).getUsername();
-        }
-
-        return this.player.packetHandler.getPlayerName();
     }
 
     @Override

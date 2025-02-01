@@ -44,7 +44,7 @@ public class Callback {
     private final List<Action> actions = new LinkedList<>();
 
     public void addAction(Action callback) {
-        actions.add(callback);
+        this.actions.add(callback);
     }
 
     public List<Action> getActions() {
@@ -56,14 +56,18 @@ public class Callback {
             return;
         }
 
-        for (Action callback : actions) {
+        for (Action callback : this.actions) {
             if (callback.test(data)) {
                 callback.call(data);
             }
         }
     }
 
+    public void clear() {
+        this.actions.clear();
+    }
+
     public boolean isEmpty(){
-        return actions.isEmpty();
+        return this.actions.isEmpty();
     }
 }

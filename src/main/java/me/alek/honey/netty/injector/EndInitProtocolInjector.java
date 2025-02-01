@@ -34,7 +34,6 @@ public class EndInitProtocolInjector {
     private static void handleChannelInitialization(ChannelHandler handler, Channel channel) {
         try {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannel(channel);
-
         } catch (Exception ex) {
             Bukkit.getLogger().log(Level.SEVERE, "Error occurred when initializing channel", ex);
 
@@ -42,7 +41,7 @@ public class EndInitProtocolInjector {
                 channel.pipeline().remove(handler);
             }
 
-            channel.close();
+            ChannelCloseInspection.close(channel);
         }
     }
 }

@@ -1,10 +1,13 @@
 package me.alek.honey.netty.codec;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.CodecException;
 import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -12,13 +15,37 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.GameMode;
 
-public class HoneyPacketDecoder {
+import java.util.function.Supplier;
 
-    public static Object decodePacket(HoneyPlayer player, PacketState state, EmulatorCodec<Object, PacketDataSerializer> protocol, ByteBuf buf) throws DecoderException {
+public class HoneyPacketCodec {
+
+    private static final Supplier<PacketDataSerializer> OUTBOUND_SERIALIZER_CONST = PacketDataSerializer::new;
+
+    public static PacketDataSerializer encodePacket(HoneyPlayer player, Object packet) throws CodecException {
+        EmulatorCodec<Object, PacketDataSerializer> protocol = player.packetHandler.getProtocolCodec(PacketBound.CLIENT);
         if (protocol == null) {
-            return null;
+            throw new IllegalStateException("No outbound protocol");
         }
 
+        PacketState state = player.packetHandler.getProtocolState(PacketBound.CLIENT);
+        try {
+            if (EmulatorCodec.LEGACY) {
+                return protocol.encodeLegacy(packet, state, (type, callback) -> callback.apply(LegacyCodec.createDefault(type, PacketBound.CLIENT)));
+            } else {
+                return protocol.encodeModern(OUTBOUND_SERIALIZER_CONST.get(), packet, state);
+            }
+        } catch (CodecException ex) {
+            throw new CodecException("Failed to serialize packet " + PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketType.UNKNOWN) + ", state " + state, ex);
+        }
+    }
+
+    public static Object decodePacket(HoneyPlayer player, ByteBuf buf) throws DecoderException {
+        EmulatorCodec<Object, PacketDataSerializer> protocol = player.packetHandler.getProtocolCodec(PacketBound.SERVER);
+        if (protocol == null) {
+            throw new IllegalStateException("No inbound protocol");
+        }
+
+        PacketState state = player.packetHandler.getProtocolState(PacketBound.SERVER);
         Object packet;
         try {
             if (EmulatorCodec.LEGACY) {
@@ -35,7 +62,7 @@ public class HoneyPacketDecoder {
                             && player.isBukkitReady() && !player.bukkit.getGameMode().equals(GameMode.CREATIVE)) {
                         // don't apply anything
                     } else {
-                        callback.apply(LegacyCodec.createDefault(type));
+                        callback.apply(LegacyCodec.createDefault(type, PacketBound.SERVER));
                     }
                 });
             } else {
@@ -49,7 +76,8 @@ public class HoneyPacketDecoder {
 
             checkReadable(NetProtocol.getProtocol(), PacketTypes.getPacketType(packet.getClass(), state).orElse(PacketType.UNKNOWN), packet, buf);
         } catch (CodecException ex) {
-            throw new DecoderException("Failed to create packet with ID " + ex.getPacketID() + ", " + state, ex);
+            buf.resetReaderIndex();
+            throw new DecoderException("Failed to create packet with ID " + new PacketDataSerializer(buf).readVarInt() + ", state " + state, ex);
         }
 
         if (!PacketTypes.getPacketType(packet.getClass(), state).isPresent()) {

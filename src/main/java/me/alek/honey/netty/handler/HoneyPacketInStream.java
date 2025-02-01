@@ -7,13 +7,14 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.codec.HoneyPacketDecoder;
+import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
@@ -83,72 +84,73 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void invokeRead(PacketContainer<?> earlyPacketContainer, ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
+    private void invokeRead(PacketContainer<?> earlyPacket, ChannelHandlerContext ctx, ByteBuf buf) {
         if (!buf.isReadable()) {
             return;
         }
 
         try {
-            earlyPacketContainer.getEventloopStateTimings().startTimings(LifecycleState.DECODE);
+            earlyPacket.getEventloopStateTimings().startTimings(LifecycleState.DECODE);
 
-            Object packet;
+            Object packetObject;
             try {
                 if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
-                    packet = HoneyPacketDecoder.decodePacket(this.player, this.packetHandler.getProtocolState(PacketBound.SERVER), packetHandler.getProtocolCodec(PacketBound.SERVER), buf);
+                    packetObject = HoneyPacketCodec.decodePacket(this.player, buf);
                 } else {
+                    List<Object> list = new ArrayList<>();
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = this.decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, buf, list});
 
                     if (list.isEmpty()) {
-                        stopTimings(earlyPacketContainer);
+                        stopTimings(earlyPacket);
                         return;
                     }
-                    packet = list.get(0);
+                    packetObject = list.get(0);
                 }
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
                     Bukkit.getLogger().log(Level.WARNING,
-                            "Error occurred while decoding packet " + earlyPacketContainer.getType() + " (id " + earlyPacketContainer.getType().getMinecraftID().get()
-                                    + ") sent by " + this.player.name + ", " + Optional.ofNullable(earlyPacketContainer.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
+                            "Error occurred while decoding packet " + earlyPacket.getType() + " (id " + earlyPacket.getType().getMinecraftID().get()
+                                    + ") sent by " + this.player.name + ", " + Optional.ofNullable(earlyPacket.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
 
-                this.player.failPacket(ex, earlyPacketContainer);
+                this.player.failPacket(ex, earlyPacket);
                 return;
             }
 
             buf.release();
 
-            if (packet == null) {
-                stopTimings(earlyPacketContainer);
+            if (packetObject == null) {
+                stopTimings(earlyPacket);
                 return;
             }
 
-            earlyPacketContainer.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
+            earlyPacket.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
             // ignore all transaction packets, as well as players with permission to bypass all validations
-            if (earlyPacketContainer.getType() == PacketTypes.Play.Client.TRANSACTION
+            if (earlyPacket.getType() == PacketTypes.Play.Client.TRANSACTION
                     || this.player.bypassEverything()) {
-                ctx.fireChannelRead(packet);
-                stopTimings(earlyPacketContainer);
+                ctx.fireChannelRead(packetObject);
+                stopTimings(earlyPacket);
                 return;
             }
 
-            PacketContainer<?> finalPacketContainer = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(player, packet, earlyPacketContainer);
+            PacketContainer<?> finalPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(player, packetObject, earlyPacket);
 
             Runnable packetExecutorTask;
-            if (!finalPacketContainer.isCancelled()) {
-                packetExecutorTask = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPacketExecutorTask(finalPacketContainer);
+            if (!finalPacket.isCancelled()) {
+                packetExecutorTask = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPacketExecutorTask(finalPacket);
             } else {
                 packetExecutorTask = null;
             }
 
-            stopTimings(earlyPacketContainer);
+            stopTimings(earlyPacket);
 
             if (ctx.channel().eventLoop().inEventLoop()) {
-                firePacketRead(ctx, finalPacketContainer, packetExecutorTask);
+                firePacketRead(ctx, finalPacket, packetExecutorTask);
             } else {
-                ctx.channel().eventLoop().execute(() -> firePacketRead(ctx, finalPacketContainer, packetExecutorTask));
+                ctx.channel().eventLoop().execute(() -> firePacketRead(ctx, finalPacket, packetExecutorTask));
             }
         } catch (Throwable ex) {
             ex.printStackTrace();
@@ -157,14 +159,17 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             } catch (Exception ignored) {
             }
 
-            stopTimings(earlyPacketContainer);
+            stopTimings(earlyPacket);
         }
     }
 
-    private <WP extends SourcedWrappedPacket<WP>> void firePacketRead(ChannelHandlerContext ctx, PacketContainer<WP> packetContainer, Runnable packetExecutorTask) {
-        if (!this.packetHandler.read(packetContainer)) {
+    private <WP extends SourcedWrappedPacket<WP>> void firePacketRead(ChannelHandlerContext ctx, PacketContainer<WP> packet, Runnable packetExecutorTask) {
+        if (!this.packetHandler.read(packet)) {
             return;
         }
+        packet.handle();
+
+        this.packetHandler.getProtocolSwapHandler().swapProtocolInboundNotPreDecode(packet);
 
         if (packetExecutorTask != null) {
             HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue().add(packetExecutorTask);
@@ -172,27 +177,26 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        if (packetContainer.getObjectWrapped() != null) {
-            ctx.fireChannelRead(packetContainer.getObjectWrapped().getHandle());
+        if (packet.getObjectWrapped() != null) {
+            ctx.fireChannelRead(packet.getObjectWrapped().getHandle());
         }
 
-        Callback postAction = packetContainer.getPostAction();
+        Callback postAction = packet.getPostAction();
         if (postAction != null) {
-            postAction.call(packetContainer);
+            postAction.call(packet);
         }
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object o) {
         if (!read(ctx, o)) {
-            // not async
-            PacketContainer<?> packet = InboundPacketFilter.MARK.get();
+            PacketContainer<?> packet = HoneyPacketHandler.MARK.get();
             if (packet != null) {
                 packet.releaseIfAutoReleasable();
             }
         }
 
-        InboundPacketFilter.MARK.remove();
+        InboundPacketFilter.removeMarker();
     }
 
     public boolean read(ChannelHandlerContext ctx, Object msg) {
@@ -247,13 +251,12 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
 
             serializer.readerIndex(0);
 
-            List<Object> nonRecycledList = new ArrayList<>();
             // TODO:
             // force sync packet stream until fixed
             if (true || !ConfigurationOptions.AsyncDecoder.ENABLED
                     || !this.player.isBukkitReady()
                     || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
-                invokeRead(packet, ctx, buf, nonRecycledList);
+                invokeRead(packet, ctx, buf);
                 return false;
             } else {
                 ByteBuf wrapped = buf.readBytes(buf.readableBytes()).retain();
@@ -264,11 +267,11 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                     InboundPacketFilter.MARK.set(copy);
 
                     if (this.player.isStreamActive()) {
-                        invokeRead(copy, ctx, wrapped, nonRecycledList);
+                        invokeRead(copy, ctx, wrapped);
                     }
 
                     copy.releaseIfAutoReleasable();
-                    InboundPacketFilter.MARK.remove();
+                    InboundPacketFilter.removeMarker();
                 });
 
                 return true;
@@ -276,7 +279,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
         } catch (Exception ex) {
             if (packet != null && HoneyPlugin.get().getLogger().isDebug()) {
                 Bukkit.getLogger().log(Level.WARNING,
-                        "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
+                        "Error occurred while handling packet " + packet.getType() + " (id " + Optional.ofNullable(packet.getType()).map(t -> t.getMinecraftID().get()).orElse(-1)
                                 + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
             }
             serializer.release();

@@ -8,6 +8,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
+import org.bukkit.Bukkit;
 
 import java.util.Map;
 

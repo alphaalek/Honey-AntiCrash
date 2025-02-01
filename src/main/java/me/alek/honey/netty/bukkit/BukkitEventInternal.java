@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
+import me.alek.honey.util.Paper;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
 import net.kyori.adventure.text.Component;
@@ -39,6 +40,7 @@ public class BukkitEventInternal implements Listener {
 
             HoneyPlayer.register(honeyPlayer, player);
         } catch (MissingHandlerException ex) {
+            ex.printStackTrace();
             HoneyPlugin.get().getPlugin().getServer().getScheduler().runTask(HoneyPlugin.get().getPlugin(),
                     () -> kickPlayerBukkit(player));
         }
@@ -46,7 +48,7 @@ public class BukkitEventInternal implements Listener {
 
     @SuppressWarnings("deprecation")
     private void kickPlayerBukkit(Player player) {
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
+        if (Paper.IS_PAPER && NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             player.kick(Component.text(BROKEN_PIPE_KICK_MESSAGE));
         } else {
             player.kickPlayer(BROKEN_PIPE_KICK_MESSAGE);

@@ -1,7 +1,8 @@
 package me.alek.honey.netty.codec;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.CodecException;
+import io.netty.handler.codec.EncoderException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -18,13 +19,14 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class CodecFactory {
 
+    public static final EmulatorCodec<Object, PacketDataSerializer> NO_OP_CODEC = new NoOpCodec();
+
     public static final int VIA_VERSION_PASSTHROUGH_ID = 1000;
 
-    public static Object getProtocolInfo1_20_6(PacketBound bound, PacketState state) {
+    public static Object getProtocolInfo1_20_5(PacketBound bound, PacketState state) {
         Class<Object> protocolInfoClass = NMS.getProtocolInfoClass();
         Class<Object> protocolInfoBinderClass = NMS.getProtocolInfoBinderClass();
 
@@ -40,7 +42,7 @@ public class CodecFactory {
                 }
                 return get.apply(Protocols.HANDSHAKE_CLASS, protocolInfoClass).readField(0);
             case PLAY:
-                return bindProtocolInfo1_20_6(
+                return bindProtocolInfo1_20_5(
                         get.apply(Protocols.GAME_CLASS, protocolInfoBinderClass).readField(index));
             case STATUS:
                 return get.apply(Protocols.STATUS_CLASS, protocolInfoClass).readField(index);
@@ -53,13 +55,13 @@ public class CodecFactory {
         }
     }
 
-    public static Object bindProtocolInfo1_20_6(Object protocolInfoBinder) {
+    public static Object bindProtocolInfo1_20_5(Object protocolInfoBinder) {
         return ReflectStructure.Provider.acquireStructure(NMS.getProtocolInfoBinderClass())
                 .withType(NMS.getProtocolInfoClass()).withTarget(protocolInfoBinder)
-                .invokeMethod(null, "bind", 0, getRegistryCustomFunction1_20_6());
+                .invokeMethod(null, "bind", 0, getRegistryCustomFunction1_20_5());
     }
 
-    public static Function<ByteBuf, Object> getRegistryCustomFunction1_20_6() {
+    public static Function<ByteBuf, Object> getRegistryCustomFunction1_20_5() {
         Object layeredRegistryAccess = ReflectStructure.Provider.acquireStructure(NMS.getMinecraftServerClass())
                 .withType(NMS.getLayeredRegistryAccessClass()).withTarget(NMS.getMinecraftServer())
                 .readField(0);
@@ -73,7 +75,7 @@ public class CodecFactory {
                 .invokeMethod(null, 0, registryCustomDimension);
     }
 
-    public static Collection<FieldAccessor<Object>> getPacketTypes1_20_6(PacketState state) {
+    public static Collection<FieldAccessor<Object>> getPacketTypes1_20_5(PacketState state) {
         Function<Class<Object>, Collection<FieldAccessor<Object>>> get = c -> ReflectStructure.Provider.acquireStructure(c)
                 .withType(NMS.getPacketTypeClass()).withTarget(null).getAccessors();
 
@@ -93,15 +95,15 @@ public class CodecFactory {
         }
     }
 
-    public static Object getStreamCodec1_20_6(PacketBound bound, PacketState state) {
-        Object protocolInfo = getProtocolInfo1_20_6(bound, state);
+    public static Object getStreamCodec1_20_5(PacketBound bound, PacketState state) {
+        Object protocolInfo = getProtocolInfo1_20_5(bound, state);
 
         return ReflectStructure.Provider.acquireStructure(NMS.getProtocolInfoClass())
                 .withType(NMS.getStreamCodecClass()).withTarget(protocolInfo)
                 .invokeMethod(null, 0);
     }
 
-    public static EmulatorCodec<Object, ByteBuf> createFromStreamCodec1_20_6(Object codec, Supplier<? extends ByteBuf> byteBuf) {
+    public static EmulatorCodec<Object, ByteBuf> createFromStreamCodec1_20_5(Object codec) {
         return new EmulatorCodec<Object, ByteBuf>() {
 
             private final MethodInvoker<Object> decoderInvoker = ReflectStructure.Provider.acquireStructure(NMS.getStreamDecoderClass())
@@ -112,23 +114,22 @@ public class CodecFactory {
 
             @Override
             public Object decodeModern(ByteBuf buf, PacketState state) throws CodecException {
-                return decoderInvoker.invoke(codec, buf);
+                return this.decoderInvoker.invoke(codec, buf);
             }
 
             @Override
-            public Object decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) throws CodecException {
+            public Object decodeLegacy(ByteBuf buf, PacketState state, PacketCodecInitializer<PacketType, LegacyCodec.Callback> codec) throws CodecException {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public ByteBuf encodeModern(Object val, PacketState state, PacketBuilder<PacketType, ByteBuf> function) throws CodecException {
-                ByteBuf buf = byteBuf.get();
-                encoderInvoker.invoke(codec, buf, val);
+            public ByteBuf encodeModern(ByteBuf buf, Object val, PacketState state) throws EncoderException {
+                this.encoderInvoker.invoke(codec, buf, val);
                 return buf;
             }
 
             @Override
-            public ByteBuf encodeLegacy(Object val, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) throws CodecException {
+            public ByteBuf encodeLegacy(Object val, PacketState state, PacketCodecInitializer<PacketType, LegacyCodec.Callback> codec) throws EncoderException {
                 throw new UnsupportedOperationException();
             }
         };
@@ -141,8 +142,8 @@ public class CodecFactory {
                     ? LegacyProtocol.getEnumProtocolDelegate(PacketBound.SERVER, state)
                     : null;
 
-            private final EmulatorCodec<Object, ByteBuf> wrappedStreamCodec = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_6)
-                    ? createFromStreamCodec1_20_6(getStreamCodec1_20_6(PacketBound.SERVER, state), Unpooled::buffer)
+            private final EmulatorCodec<Object, ByteBuf> wrappedStreamCodec = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)
+                    ? createFromStreamCodec1_20_5(getStreamCodec1_20_5(PacketBound.SERVER, state))
                     : null;
 
             @Override
@@ -153,7 +154,7 @@ public class CodecFactory {
                 int id = dataSerializer.readVarInt();
 
                 if (id < 0) {
-                    throw new CodecException(id, "Bad Packet ID");
+                    throw new CodecException("Bad Packet ID");
                 }
                 if (id == VIA_VERSION_PASSTHROUGH_ID) {
                     return decodeModern(buf.skipBytes(16).readBytes(buf.readableBytes()), state);
@@ -163,36 +164,36 @@ public class CodecFactory {
                 if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_4)) {
                     try {
                         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
-                            packet = enumProtocol.createModernPacket1_20_1(PacketBound.SERVER, dataSerializer, id);
+                            packet = this.enumProtocol.createModernPacket1_20_1(PacketBound.SERVER, dataSerializer, id);
                         } else {
-                            packet = enumProtocol.createModernPacket1_20_2(dataSerializer, id);
+                            packet = this.enumProtocol.createModernPacket1_20_2(dataSerializer, id);
                         }
                     } catch (Exception ex) {
-                        throw new CodecException(id, ex);
+                        throw new CodecException(ex);
                     }
                 } else {
                     buf.readerIndex(index);
-                    packet = wrappedStreamCodec.decodeModern(buf, state);
+                    packet = this.wrappedStreamCodec.decodeModern(buf, state);
                 }
 
                 if (packet == null) {
-                    throw new CodecException(id, "Bad Packet ID");
+                    throw new CodecException("Bad Packet ID");
                 }
 
                 Optional<PacketType> typeOptional = PacketTypes.getPacketType(packet.getClass(), state);
                 if (!typeOptional.isPresent()) {
-                    throw new CodecException(id, "Wrong protocol state");
+                    throw new CodecException("Wrong protocol state");
                 }
 
                 return packet;
             }
 
             @Override
-            public Object decodeLegacy(ByteBuf buf, PacketState state, PacketBuilder<PacketType, LegacyCodec.Callback> codec) throws CodecException {
+            public Object decodeLegacy(ByteBuf buf, PacketState state, PacketCodecInitializer<PacketType, LegacyCodec.Callback> codec) throws CodecException {
                 PacketDataSerializer dataSerializer = new PacketDataSerializer(buf);
                 int id = dataSerializer.readVarInt();
                 if (id < 0) {
-                    throw new CodecException(id, "Bad Packet ID");
+                    throw new CodecException("Bad Packet ID");
                 }
                 if (id == VIA_VERSION_PASSTHROUGH_ID) {
                     // TODO: call ViaVersion
@@ -201,18 +202,17 @@ public class CodecFactory {
 
                 Object packet;
                 try {
-                    packet = enumProtocol.createLegacyPacket(PacketBound.SERVER, id);
+                    packet = this.enumProtocol.createLegacyPacket(PacketBound.SERVER, id);
                 } catch (Exception ex) {
-                    throw new CodecException(id, ex);
+                    throw new CodecException(ex);
                 }
-
                 if (packet == null) {
-                    throw new CodecException(id, "Bad Packet ID");
+                    throw new CodecException( "Bad Packet ID");
                 }
 
                 Optional<PacketType> typeOptional = PacketTypes.getPacketType(packet.getClass(), state);
                 if (!typeOptional.isPresent()) {
-                    throw new CodecException(id, "Wrong protocol state");
+                    throw new CodecException("Wrong protocol state");
                 }
 
                 PacketType type = typeOptional.get();
@@ -220,8 +220,7 @@ public class CodecFactory {
                     @Override
                     public void apply(LegacyCodec codec) throws CodecException {
                         codec.apply(packet,
-                                ReflectStructure.Provider.acquireStructure(type.getNmsClass())
-                                        .withStatic(false).withTarget(packet),
+                                LegacyCodec.getStructureModifier(type, packet),
                                 dataSerializer);
                     }
                 });
@@ -232,6 +231,48 @@ public class CodecFactory {
     }
 
     public static EmulatorCodec.Out<Object, PacketDataSerializer> createOutboundCodec(PacketState state) {
-        return null;
+        return new EmulatorCodec.Out<Object, PacketDataSerializer>() {
+
+            private final EmulatorCodec<Object, ByteBuf> wrappedStreamCodec = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)
+                    ? createFromStreamCodec1_20_5(getStreamCodec1_20_5(PacketBound.CLIENT, state))
+                    : null;
+
+            private PacketType getType(Object val) {
+                Optional<PacketType> typeOptional = PacketTypes.getPacketType(val.getClass(), state);
+                if (!typeOptional.isPresent()) {
+                    throw new EncoderException("Trying to encode a non-packet object: " + val.getClass());
+                }
+                return typeOptional.get();
+            }
+
+            @Override
+            public PacketDataSerializer encodeModern(PacketDataSerializer serializer, Object val, PacketState state) throws CodecException {
+                PacketType type = getType(val);
+                if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                    return new PacketDataSerializer(this.wrappedStreamCodec.encodeModern(serializer, val, state));
+                } else {
+                    serializer.writeVarInt(type.getMinecraftID().get());
+                    LegacyCodec.createDefault(type, PacketBound.CLIENT)
+                            .apply(val, LegacyCodec.getStructureModifier(type, val), serializer);
+                    return serializer;
+                }
+            }
+
+            @Override
+            public PacketDataSerializer encodeLegacy(Object val, PacketState state, PacketCodecInitializer<PacketType, LegacyCodec.Callback> codec) throws CodecException {
+                PacketType type = getType(val);
+                PacketDataSerializer serializer = new PacketDataSerializer();
+                serializer.writeVarInt(type.getMinecraftID().get());
+
+                codec.accept(type, new LegacyCodec.Callback() {
+                    @Override
+                    public void apply(LegacyCodec codec) throws CodecException {
+                        codec.apply(val, LegacyCodec.getStructureModifier(type, val), serializer);
+                    }
+                });
+
+                return serializer;
+            }
+        };
     }
 }

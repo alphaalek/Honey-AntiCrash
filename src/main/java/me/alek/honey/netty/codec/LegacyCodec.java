@@ -1,9 +1,13 @@
 package me.alek.honey.netty.codec;
 
+import io.netty.handler.codec.CodecException;
+import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.IStructureModifier;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Array;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
 import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.reflection.Reflection;
@@ -17,20 +21,22 @@ import java.util.logging.Level;
 
 public interface LegacyCodec {
 
-    class LookupProvider implements Supplier<EnumMap<PacketState, Array<MethodHandle>>> {
+    class LookupProvider {
 
-        private final EnumMap<PacketState, Array<MethodHandle>> legacySerializerLookup = new EnumMap<>(PacketState.class);
+        private final Array<MethodHandle> legacySerializerLookup = new Array<>();
 
-        public LookupProvider() {
-            for (PacketState state : PacketState.values()) {
-                legacySerializerLookup.put(state, new Array<>());
-            }
+        public Array<MethodHandle> getLookup() {
+            return this.legacySerializerLookup;
         }
 
-        @Override
-        public EnumMap<PacketState, Array<MethodHandle>> get() {
-            return legacySerializerLookup;
+        public MethodHandle get(PacketType type) {
+            return this.legacySerializerLookup.get(type);
         }
+    }
+
+    static IStructureModifier<Object> getStructureModifier(PacketType type, Object packet) {
+        return ReflectStructure.Provider.acquireStructure(type.getNmsClass())
+                .withStatic(false).withTarget(packet);
     }
 
     LookupProvider PROVIDER = new LookupProvider();
@@ -42,17 +48,16 @@ public interface LegacyCodec {
         void apply(LegacyCodec codec) throws CodecException;
     }
 
-    static LegacyCodec createDefault(PacketType type) {
+    static LegacyCodec createDefault(PacketType type, PacketBound bound) {
         return (raw, structure, serializer) -> {
-            int packetId = type.getMinecraftID().get();
-
             // otherwise apply the default implementation for the serializer
-            MethodHandle method = PROVIDER.get().get(type.getState()).get(packetId, () -> {
-                MethodInvoker<?> invoker = Reflection.getMethod(type.getNmsClass(), 0, NMS.getPacketDataSerializerClass());
+            MethodHandle method = PROVIDER.getLookup().get(type, () -> {
+                int methodIdx = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17) || bound.equals(PacketBound.SERVER) ? 0 : 1;
+                MethodInvoker<?> invoker = Reflection.getMethodFromReturnType(type.getNmsClass(), methodIdx, void.class, NMS.getPacketDataSerializerClass());
                 try {
                     return MethodHandles.lookup().unreflect(invoker.getHandle());
                 } catch (IllegalAccessException ex) {
-                    Bukkit.getLogger().log(Level.SEVERE, "Failed to create legacy serializer lookup for packet " + packetId + ", " + type + ", " + type.getState(), ex);
+                    Bukkit.getLogger().log(Level.SEVERE, "Failed to create legacy serializer lookup for packet " + type + ", " + type.getState(), ex);
                     return null;
                 }
             });
@@ -61,7 +66,7 @@ public interface LegacyCodec {
                 // explicit set variable, so Proguard recognizes the method
                 Object empty = method.invokeWithArguments(new Object[]{raw, serializer.getSerializer()});
             } catch (Throwable ex) {
-                throw new CodecException(packetId, "Failed to apply serializer for packet " + packetId + ", " + type + ", " + type.getState());
+                throw new CodecException("Failed to apply serializer for packet " + type + ", " + type.getState(), ex);
             }
         };
     }

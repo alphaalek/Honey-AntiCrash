@@ -21,7 +21,7 @@ public class WrappedPlayInBlockPlace extends ByteInWrappedPacket<WrappedPlayInBl
     private final InteractionHand interactionHand;
     @Property
     private final WrappedBlockPosition blockPosition;
-    private int faceId = -1;
+    private final int faceId;
     @Property(to = @NetProtocol.To(to = NetProtocol.v1_13_2))
     private BlockFace face;
     @Property
@@ -43,6 +43,7 @@ public class WrappedPlayInBlockPlace extends ByteInWrappedPacket<WrappedPlayInBl
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
             this.interactionHand = InteractionHand.values()[serializer.readVarInt()];
             this.blockPosition = serializer.readBlockPosition();
+            this.faceId = serializer.readVarInt();
         } else {
             this.blockPosition = serializer.readBlockPosition();
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_9)) {
@@ -53,14 +54,12 @@ public class WrappedPlayInBlockPlace extends ByteInWrappedPacket<WrappedPlayInBl
                 if (this.faceId == 255) {
                     this.face = BlockFace.SELF;
                 }
-                this.interactionHand = InteractionHand.MAIN_HAND;
-
                 this.itemStack = serializer.readItemStackSafely(protocol, this);
+                this.interactionHand = InteractionHand.MAIN_HAND;
             }
-
-            if (this.face == null && this.faceId != -1) {
-                this.face = CARTESIAN_FACES.get(this.faceId);
-            }
+        }
+        if (this.face == null && this.faceId != -1) {
+            this.face = CARTESIAN_FACES.get(this.faceId);
         }
 
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_11)) {
@@ -72,9 +71,11 @@ public class WrappedPlayInBlockPlace extends ByteInWrappedPacket<WrappedPlayInBl
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
             this.insideBlock = serializer.readBoolean();
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_19)) {
-                this.worldBorderHit = serializer.readBoolean();
+                if (protocol.isNewerThanOrEqual(NetProtocol.v1_21_2)) {
+                    this.worldBorderHit = serializer.readBoolean();
+                }
+                this.sequence = serializer.readVarInt();
             }
-            this.sequence = serializer.readVarInt();
         }
     }
 

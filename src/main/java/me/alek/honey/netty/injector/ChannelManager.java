@@ -12,22 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-public class ServerPacketManager {
-
-    private final boolean useCompressing;
-
-    {
-        boolean c;
-        try {
-            Properties properties = new Properties();
-            properties.load(new FileInputStream("server.properties"));
-
-            c = Integer.parseInt(properties.getProperty("network-compression-threshold")) > 0;
-        } catch (IOException ex) {
-            c = false;
-        }
-        this.useCompressing = c;
-    }
+public class ChannelManager {
 
     public <WP extends SourcedWrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, ObjectWrappedPacket<WP> packet) {
         HoneyPacketOutStream out = getOutStream(player.channel);

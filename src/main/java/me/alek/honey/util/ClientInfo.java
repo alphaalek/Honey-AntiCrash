@@ -14,7 +14,7 @@ public class ClientInfo {
 
     public ClientInfo(int protocolVersion) {
         this.protocolVersion = protocolVersion;
-        this.majorProtocol = NetProtocol.getMajorFrom(protocolVersion);
+        this.majorProtocol = NetProtocol.getMajorProtocolFrom(protocolVersion);
         if (majorProtocol == null) {
             throw new IllegalArgumentException("Could not get major protocol from protocol version " + protocolVersion);
         }
