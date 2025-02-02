@@ -17,6 +17,7 @@ import sun.jvm.hotspot.code.DeoptimizationBlob;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ComponentMap implements ItemTag {
@@ -65,7 +66,11 @@ public class ComponentMap implements ItemTag {
             ComponentMap map = new ComponentMap(bases);
             for (int i = 0; i < present; i++) {
                 ComponentType<Object> type = readType(serializer);
-                if (types.contains(type)) {
+                if (types.contains(type) &&
+                        Optional.ofNullable(map.get(type))
+                                .map(Val::source)
+                                .orElse(ComponentSource.BASE)
+                                .equals(ComponentSource.BASE)) {
                     Object val = type.read(wrapper);
                     map.set(type, val);
                 } else {
