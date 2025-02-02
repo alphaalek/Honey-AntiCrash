@@ -66,7 +66,7 @@ public class ProtocolSwapHandler {
 
     public void swapProtocolViaDropped(PacketContainer<?> packet) {
         if (packet.getType() == PacketTypes.Login.Client.LOGIN_ACKNOWLEDGED
-                && packet.getType() == PacketTypes.Configuration.Client.FINISH_CONFIGURATION) {
+                || packet.getType() == PacketTypes.Configuration.Client.FINISH_CONFIGURATION) {
             // already handled in swap protocol filter
             return;
         }
@@ -89,18 +89,18 @@ public class ProtocolSwapHandler {
                 handler.setProtocolState(PacketBound.CLIENT, PacketState.CONFIGURATION);
                 handler.setProtocolState(PacketBound.SERVER, PacketState.CONFIGURATION);
             }
-            // configuration -> play (client -> server)
+        // configuration -> play (client -> server)
         } else if (packet.getType() == PacketTypes.Configuration.Client.FINISH_CONFIGURATION) {
             setConfigurationBridgePhase(handler, PacketBound.SERVER);
             handler.setGlobalServerboundProtocolState(PacketState.PLAY);
-            // play -> configuration (client -> server)
+        // play -> configuration (client -> server)
         } else if (packet.getType() == PacketTypes.Play.Client.CONFIGURATION_START_ACKNOWLEDGED) {
             setConfigurationBridgePhase(handler, PacketBound.SERVER);
             handler.setSimulatedServerboundProtocolState(PacketState.CONFIGURATION);
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_2)) {
                 handler.setProtocolState(PacketBound.SERVER, PacketState.CONFIGURATION);
             }
-            // handshake -> status/login (client -> server)
+        // handshake -> status/login (client -> server)
         } else if (packet.getType() == PacketTypes.Handshake.Client.SET_PROTOCOL) {
             setConfigurationBridgePhase(handler, PacketBound.SERVER);
 

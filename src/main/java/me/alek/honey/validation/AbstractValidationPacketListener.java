@@ -30,7 +30,7 @@ public abstract class AbstractValidationPacketListener<WP extends SourcedWrapped
     private final ThreadLocal<Boolean> hasCalledCallback = new ThreadLocal<>();
 
     public AbstractValidationPacketListener(PacketLibrary library, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
-        library.addListeners(this, state, priority, types);
+        library.addListener(this, state, priority, types);
     }
 
     @Override

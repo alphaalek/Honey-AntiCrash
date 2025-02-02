@@ -499,27 +499,25 @@ public class ViolationManagement {
 
         @Override
         public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
-            hasDecayed = false;
-            long diff = System.currentTimeMillis() - lastDecay;
-            while (bufferIndex > 0 && (diff -= getSetting().decay) > 0) {
-                hasDecayed = true;
-                lastDecay = System.currentTimeMillis();
+            this.hasDecayed = false;
+            long diff = System.currentTimeMillis() - this.lastDecay;
+            while (this.bufferIndex > 0 && (diff -= getSetting().decay) > 0) {
+                this.hasDecayed = true;
+                this.lastDecay = System.currentTimeMillis();
                 decay();
             }
 
-            if (bufferIndex < 0) {
-                bufferIndex = 0;
+            if (this.bufferIndex < 0) {
+                this.bufferIndex = 0;
             }
-            bufferIndex += amount;
+            this.bufferIndex += amount;
 
-            if (bufferIndex < getSetting().threshold) {
+            if (this.bufferIndex < getSetting().threshold) {
                 return false;
             }
 
-            bufferIndexCopy = bufferIndex;
-            if (getSetting().clearBuffer) {
-                this.bufferIndex = 0;
-            }
+            this.bufferIndexCopy = this.bufferIndex;
+            this.bufferIndex = 0;
 
             return handle(cancellable, validation, onPunish, onViolation, developmentData, violationKey);
         }
@@ -547,21 +545,21 @@ public class ViolationManagement {
 
         @Override
         public void decay() {
-            if (bufferIndex < getSetting().threshold) {
+            if (this.bufferIndex < getSetting().threshold) {
                 super.decay();
                 return;
             }
-            double ratio = (int) ((bufferIndex - getSetting().threshold) / (getSetting().decayAmount * 1.8));
+            double ratio = (int) ((this.bufferIndex - getSetting().threshold) / (getSetting().decayAmount * 1.8));
             double amount = getSetting().decayAmount * Math.pow(1.4, ratio);
 
-            bufferIndex -= amount;
+            this.bufferIndex -= amount;
         }
 
         @Override
         public boolean handle(Cancellable cancellable, HoneyValidation<?> validation, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
             cancellable.cancel();
 
-            if (bufferIndex > getSetting().until && getSetting().isEnabled()) {
+            if (this.bufferIndex > getSetting().until && getSetting().isEnabled()) {
                 violate(cancellable, validation, onPunish, onViolation, developmentData, violationKey);
             }
 
@@ -577,7 +575,7 @@ public class ViolationManagement {
 
         @Override
         public String format() {
-            return "§7buffer: §e" + NumberUtils.format(bufferIndexCopy, 2) + "§7/§e" + getSetting().threshold +
+            return "§7buffer: §e" + NumberUtils.format(this.bufferIndexCopy, 2) + "§7/§e" + getSetting().threshold +
                     "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
         }
 
@@ -606,37 +604,35 @@ public class ViolationManagement {
 
         @Override
         public String format() {
-            return "§7flags: §e" + NumberUtils.format(flaggedCopy, 2) + "§7/§e" + getSetting().maxPerInterval + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls, §e"
+            return "§7flags: §e" + NumberUtils.format(this.flaggedCopy, 2) + "§7/§e" + getSetting().maxPerInterval + "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls, §e"
                     + (getSetting().interval < 1000 ? getSetting().interval + "§7ms" : ((double) getSetting().interval) / 1000 + "§7s");
         }
 
         private synchronized void clearInterval() {
-            violatedForInterval = false;
-            flagged = 0;
-            intervalStart = System.currentTimeMillis();
+            this.violatedForInterval = false;
+            this.flagged = 0;
+            this.intervalStart = System.currentTimeMillis();
         }
 
         public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
-            if (System.currentTimeMillis() - intervalStart >= getSetting().interval) {
+            if (System.currentTimeMillis() - this.intervalStart >= getSetting().interval) {
                 clearInterval();
             }
 
-            flagged += amount;
-            if (flagged < getSetting().maxPerInterval) {
+            this.flagged += amount;
+            if (this.flagged < getSetting().maxPerInterval) {
                 return false;
             }
 
             cancellable.cancel();
 
-            if (violatedForInterval) {
+            if (this.violatedForInterval) {
                 return true;
             }
 
-            violatedForInterval = true;
-            flaggedCopy = flagged;
-            if (getSetting().clearInterval) {
-                clearInterval();
-            }
+            this.violatedForInterval = true;
+            this.flaggedCopy = flagged;
+            clearInterval();
 
             violate(cancellable, validation, onPunish, onViolation, developmentData, violationKey);
             return true;

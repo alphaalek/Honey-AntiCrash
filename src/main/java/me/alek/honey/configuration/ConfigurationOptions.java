@@ -241,7 +241,7 @@ public class ConfigurationOptions {
     }
 
     public enum ViolationSettingType {
-        MAX_PER_INTERVAL, INTERVAL, MIN_VLS, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, CLEAR_BUFFER, CLEAR_INTERVAL, MIN, MAX, ENABLED, THROTTLE_AFTER;
+        MAX_PER_INTERVAL, INTERVAL, MIN_VLS, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, MIN, MAX, ENABLED, THROTTLE_AFTER;
 
         public String getPathName() {
             return name().toLowerCase().replace("_", "-");
@@ -346,18 +346,14 @@ public class ConfigurationOptions {
         @VlSettingImpl(ViolationSettingType.MAX)
         public int max;
 
-        @VlSettingImpl(ViolationSettingType.CLEAR_BUFFER)
-        public boolean clearBuffer;
-        @VlSettingImpl(ViolationSettingType.CLEAR_INTERVAL)
-        public boolean clearInterval;
         @VlSettingImpl(ViolationSettingType.ENABLED)
         public boolean enabled = true;
         public Keyed keyedAnnotation;
 
         private PacketLimitHandlerType packetLimitHandlerType;
 
-        public ViolationSetting(PacketLimitHandlerType packetLimitHandlerType) {
-            this.packetLimitHandlerType = packetLimitHandlerType;
+        public ViolationSetting(PacketLimitHandlerType type) {
+            this.packetLimitHandlerType = type;
         }
 
         public ViolationSetting() {
@@ -365,11 +361,11 @@ public class ConfigurationOptions {
         }
 
         public boolean isEnabled() {
-            return enabled;
+            return this.enabled;
         }
 
         public PacketLimitHandlerType getPacketLimitHandlerType() {
-            return packetLimitHandlerType;
+            return this.packetLimitHandlerType;
         }
 
         @Override
@@ -386,14 +382,15 @@ public class ConfigurationOptions {
             for (Field field : getClass().getFields()) {
                 try {
                     ConfigurationOptions.VlSettingImpl settingImpl = field.getAnnotation(ConfigurationOptions.VlSettingImpl.class);
-                    if (settingImpl == null && field.getDeclaringClass() == ViolationSetting.class) {
+                    boolean isViolationSetting = field.getDeclaringClass() == ViolationSetting.class;
+                    if (settingImpl == null && isViolationSetting) {
                         continue;
                     }
 
                     Object value = field.get(this);
                     // check if this field is associated with a setting value from this check
-                    if (settingImpl != null && value != null) {
-                        if (!getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())){
+                    if (value != null) {
+                        if (isViolationSetting && !getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())){
                             continue;
                         }
 
@@ -821,22 +818,40 @@ public class ConfigurationOptions {
                         ViolationSettingType.MAX_PER_INTERVAL,
                         ViolationSettingType.INTERVAL,
                         ViolationSettingType.VLS_AMOUNT,
-                        ViolationSettingType.MAX
+                        ViolationSettingType.MAX,
+                        ViolationSettingType.MIN
                 );
             }
-
         }
 
         @Setting
         @Violation(prefixPaths = "netty.m", packetHandler = PacketLimitHandlerType.INTERVAL)
         public static class NettyM extends ViolationSetting implements VlIntervalRequiredContentsSetting {
 
+            @Override
+            public Set<ViolationSettingType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        ViolationSettingType.MAX_PER_INTERVAL,
+                        ViolationSettingType.INTERVAL,
+                        ViolationSettingType.VLS_AMOUNT,
+                        ViolationSettingType.MIN
+                );
+            }
         }
 
         @Setting
         @Violation(prefixPaths = "netty.n", packetHandler = PacketLimitHandlerType.INTERVAL)
         public static class NettyN extends ViolationSetting implements VlIntervalRequiredContentsSetting {
 
+            @Override
+            public Set<ViolationSettingType> getRequiredTypes() {
+                return Sets.newHashSet(
+                        ViolationSettingType.MAX_PER_INTERVAL,
+                        ViolationSettingType.INTERVAL,
+                        ViolationSettingType.VLS_AMOUNT,
+                        ViolationSettingType.MIN
+                );
+            }
         }
 
         @Setting
@@ -849,7 +864,8 @@ public class ConfigurationOptions {
                         ViolationSettingType.MAX_PER_INTERVAL,
                         ViolationSettingType.INTERVAL,
                         ViolationSettingType.VLS_AMOUNT,
-                        ViolationSettingType.MAX
+                        ViolationSettingType.MAX,
+                        ViolationSettingType.MIN
                 );
             }
         }
@@ -877,7 +893,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "custom-payload.d", packetHandler = PacketLimitHandlerType.SIMPLE)
+        @Violation(prefixPaths = "custom-payload.d", packetHandler = PacketLimitHandlerType.MAX)
         public static class PayloadD extends ViolationSetting implements VlSimpleMaxRequiredContentsSetting {
 
         }
@@ -957,7 +973,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "block-interact.c", packetHandler = PacketLimitHandlerType.SIMPLE)
+        @Violation(prefixPaths = "block-interact.c", packetHandler = PacketLimitHandlerType.MAX)
         public static class BlockInteractC extends ViolationSetting {
 
         }
@@ -1001,7 +1017,7 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "position.b", packetHandler = PacketLimitHandlerType.SIMPLE)
+        @Violation(prefixPaths = "position.b", packetHandler = PacketLimitHandlerType.MAX)
         @Keyed(amount = 2)
         public static class MovementB extends ViolationSetting implements VlMaxRequiredContentsSetting {
 

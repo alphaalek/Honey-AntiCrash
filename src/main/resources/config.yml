@@ -133,13 +133,12 @@ packet-dump:
   heavy-packet:
     # Should packet dump for heavy handled packets be enabled.
     enabled: true
-    # Min main thread handle time (in millis) for packet to be dumped in log.
+    # Minimum main thread handle time (in millis) for packet to be dumped in log.
     min-server-handle: 150
   server-thread-dump:
     # Should server thread dump for heavy handled packets be enabled.
     enabled: true
-    # Min main thread handle time (in millis) for thread to be dumped in log.
-    # Setting a value below 50 millis doesn't work very well, and it is also not recommended.
+    # Minimum main thread handle time (in millis) for thread to be dumped in log.
     min-server-handle: 750
 
 async-decoder:
@@ -355,7 +354,6 @@ netty:
   n:
     enabled: true # size flood
     min: 40 # difference in received packets. Should be min. this to flag
-    clear-interval: true
     interval: 7500
     threshold: 3000
     max-per-interval: 30
@@ -412,7 +410,6 @@ position:
     vls-amount: 5
   c:
     enabled: true
-    clear-buffer: true
     threshold: 325
     decay: 750
     decay-amount: 125
@@ -429,7 +426,6 @@ position:
     vls-amount: 3
   f:
     enabled: true
-    clear-interval: true
     max-per-interval: 45
     interval: 1000
     vls-amount: 3
@@ -466,7 +462,6 @@ rotation:
     vls-amount: 5
   c:
     enabled: true
-    clear-buffer: true
     threshold: 100000
     decay: 400
     decay-amount: 10000

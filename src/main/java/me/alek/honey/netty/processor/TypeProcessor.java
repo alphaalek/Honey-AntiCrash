@@ -7,7 +7,6 @@ import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.util.Array;
 
 import java.util.LinkedList;
@@ -57,7 +56,7 @@ public class TypeProcessor<WP extends SourcedWrappedPacket<WP>> extends PacketLi
         }
         readerInfos.add(info);
 
-        HoneyPlugin.get().getPacketLibrary().addListeners(this, state, ListenerPriority.HIGHEST, type);
+        HoneyPlugin.get().getPacketLibrary().addListener(this, state, ListenerPriority.HIGHEST, type);
     }
 
     public <T extends SourcedWrappedPacket<T>> void addListener(PacketType type, PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener) {

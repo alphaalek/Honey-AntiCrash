@@ -17,7 +17,7 @@ public class DedicatedConfiguration implements Configuration {
         FileConfiguration configuration = HoneyPlugin.get().getPlugin().getConfig();
         ConfigurationOptions.setFile(configuration);
 
-        misConfigured = ConfigurationOptions.load();
+        this.misConfigured = ConfigurationOptions.load();
     }
 
     public void reload() {
@@ -27,6 +27,6 @@ public class DedicatedConfiguration implements Configuration {
 
     @Override
     public boolean isMisconfigured() {
-        return misConfigured;
+        return this.misConfigured;
     }
 }

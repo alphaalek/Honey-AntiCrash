@@ -17,7 +17,6 @@ public enum PacketLimitHandlerType {
     INTERVAL(Sets.newHashSet(
             ConfigurationOptions.ViolationSettingType.INTERVAL,
             ConfigurationOptions.ViolationSettingType.MAX_PER_INTERVAL,
-            ConfigurationOptions.ViolationSettingType.CLEAR_INTERVAL,
             ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
     )),
 
@@ -37,7 +36,6 @@ public enum PacketLimitHandlerType {
             ConfigurationOptions.ViolationSettingType.DECAY,
             ConfigurationOptions.ViolationSettingType.DECAY_AMOUNT,
             ConfigurationOptions.ViolationSettingType.THRESHOLD,
-            ConfigurationOptions.ViolationSettingType.CLEAR_BUFFER,
             ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
     )),
 
@@ -46,13 +44,23 @@ public enum PacketLimitHandlerType {
             ConfigurationOptions.ViolationSettingType.DECAY_AMOUNT,
             ConfigurationOptions.ViolationSettingType.THRESHOLD,
             ConfigurationOptions.ViolationSettingType.UNTIL,
-            ConfigurationOptions.ViolationSettingType.CLEAR_BUFFER,
             ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
+    )),
+
+    MAX(Sets.newHashSet(
+            ConfigurationOptions.ViolationSettingType.VLS_AMOUNT,
+            ConfigurationOptions.ViolationSettingType.MAX
+    )),
+
+    MIN(Sets.newHashSet(
+            ConfigurationOptions.ViolationSettingType.VLS_AMOUNT,
+            ConfigurationOptions.ViolationSettingType.MIN
     )),
 
     SIMPLE(Sets.newHashSet(
             ConfigurationOptions.ViolationSettingType.VLS_AMOUNT
-    ));
+    )),
+    ;
 
     private final Set<ConfigurationOptions.ViolationSettingType> vlSettingImplTypes;
 

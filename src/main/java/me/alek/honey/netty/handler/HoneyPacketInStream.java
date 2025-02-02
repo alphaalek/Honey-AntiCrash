@@ -55,13 +55,10 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
 
     private void setupMethodInvoke(ChannelPipeline pipeline) {
         try {
-            decoder = pipeline.get(PacketInterceptorResolver.getDecoderPosition(pipeline));
-
-            Method method = decoder.getClass().getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
+            this.decoder = pipeline.get(PacketInterceptorResolver.getDecoderPosition(pipeline));
+            Method method = this.decoder.getClass().getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
             method.setAccessible(true);
-
-            decodeInvoker = MethodHandles.lookup().unreflect(method);
-
+            this.decodeInvoker = MethodHandles.lookup().unreflect(method);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to setup packet decoder environment!", ex);
         }
@@ -84,13 +81,8 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
     }
 
     private void invokeRead(PacketContainer<?> earlyPacket, ChannelHandlerContext ctx, ByteBuf buf) {
-        if (!buf.isReadable()) {
-            return;
-        }
-
+        earlyPacket.getEventloopStateTimings().startTimings(LifecycleState.DECODE);
         try {
-            earlyPacket.getEventloopStateTimings().startTimings(LifecycleState.DECODE);
-
             Object packetObject;
             try {
                 if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
@@ -99,7 +91,6 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                     List<Object> list = new ArrayList<>();
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = this.decodeInvoker.invokeWithArguments(new Object[]{decoder, ctx, buf, list});
-
                     if (list.isEmpty()) {
                         stopTimings(earlyPacket);
                         return;
@@ -113,25 +104,21 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                                     + ") sent by " + this.player.name + ", " + Optional.ofNullable(earlyPacket.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
-
                 this.player.failPacket(ex, earlyPacket);
                 return;
             }
-
             buf.release();
-
             if (packetObject == null) {
                 stopTimings(earlyPacket);
                 return;
             }
-
             earlyPacket.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
             // ignore all transaction packets, as well as players with permission to bypass all validations
             if (earlyPacket.getType() == PacketTypes.Play.Client.TRANSACTION
                     || this.player.bypassEverything()) {
-                ctx.fireChannelRead(packetObject);
                 stopTimings(earlyPacket);
+                ctx.fireChannelRead(packetObject);
                 return;
             }
 
@@ -246,7 +233,6 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             if (WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE)) {
                 packet.callPreMinecraftDecode(serializer);
             }
-
             serializer.readerIndex(0);
 
             // TODO:
@@ -271,7 +257,6 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                     copy.releaseIfAutoReleasable();
                     InboundPacketFilter.removeMarker();
                 });
-
                 return true;
             }
         } catch (Exception ex) {
@@ -281,9 +266,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                                 + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
             }
             serializer.release();
-
             this.player.failPacket(ex, packet);
-
             return false;
         }
     }

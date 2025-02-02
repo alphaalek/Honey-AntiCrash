@@ -131,10 +131,14 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         // and did not clear the marker properly
         if (prev != null && !PacketTypes.isUnknown(prev.getType()) && !prev.isHandled()) {
             HoneyPlayer player = prev.getPlayer();
-            FloodValidations.PACKET_DROP_PIPELINE.doStreamOtherPipeline(
-                    player,
-                    (validation, context) -> validation.validate(player, context),
-                    prev);
+            // ignore TICK_END and PLAYER_MOVEMENT because the client sends a lot of these packets,
+            // and they will all be dropped in the pipeline if the backend server does not support these packet types
+            if (prev.getType() != PacketTypes.Play.Client.TICK_END && prev.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT) {
+                FloodValidations.PACKET_DROP_PIPELINE.doStreamOtherPipeline(
+                        player,
+                        (validation, context) -> validation.validate(player, context),
+                        prev);
+            }
 
             prev.releaseIfAutoReleasable();
             this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(prev);

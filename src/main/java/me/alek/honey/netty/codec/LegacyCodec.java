@@ -34,12 +34,12 @@ public interface LegacyCodec {
         }
     }
 
+    LookupProvider PROVIDER = new LookupProvider();
+
     static IStructureModifier<Object> getStructureModifier(PacketType type, Object packet) {
         return ReflectStructure.Provider.acquireStructure(type.getNmsClass())
                 .withStatic(false).withTarget(packet);
     }
-
-    LookupProvider PROVIDER = new LookupProvider();
 
     void apply(Object raw, IStructureModifier<Object> structure, PacketDataSerializer serializer) throws CodecException;
 

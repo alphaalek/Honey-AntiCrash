@@ -21,10 +21,8 @@ import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.FieldAccessor;
-import me.alek.honey.util.reflection.NMS;
-import me.alek.honey.util.reflection.Reflection;
+import me.alek.honey.util.reflection.*;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -36,7 +34,6 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
 
     private DelegatedWrapper executionQueue;
     private boolean executing;
-    private int doneTicks;
     private int doneExecutionTicks;
 
     public void inject() {
@@ -73,28 +70,18 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
         player.serverThreadTimedQueuedTracker = tracker;
     }
 
-    public Supplier<Integer> getTickAccessor() {
-        IStructureModifier<Integer> tickStructureModifier = ReflectStructure.Provider.acquireStructure(NMS.getMinecraftServerClass())
-                .withInts().withTarget(NMS.getMinecraftServer());
-        int finalFields = (int) tickStructureModifier.getAccessors()
-                .stream()
-                .filter(field -> Modifier.isFinal(field.getHandle().getModifiers()))
-                .count();
+    @Override
+    public List<HoneyPlayer> getTrackersOrdered() {
+        List<HoneyPlayer> trackersList = new ArrayList<>(getTrackers());
+        trackersList.removeIf(player -> getPlayerRate(player, Timespan.FIVE_SECOND, false) == 0);
+        trackersList.sort((o1, o2) -> Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.FIVE_SECOND, true), getTimeToAverageWithoutQuotient(o2, Timespan.FIVE_SECOND, true)));
 
-        return () -> {
-            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
-                return tickStructureModifier.readField(null, "ticks", 0);
-            } else {
-                return tickStructureModifier.readField(finalFields + 1);
-            }
-        };
+        return trackersList;
     }
 
     private final class DelegatedWrapper extends WrappedSynchronizedQueue<Object> {
 
-        private final Supplier<Integer> tickAccessor = getTickAccessor();
-        private Class<Object> tickTaskClass;
-        private ConstructorInvoker<?> tickTaskConstructor;
+        private final MethodInvoker<Object> tickTaskConstructor;
 
         private Array<WrappedPacketTask> submitQueue = new Array<>();
         private final Queue<Integer> collector = new LinkedList<>();
@@ -111,14 +98,11 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             super(new LinkedList<>(delegate));
 
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
-                this.tickTaskConstructor = Reflection.getConstructor((this.tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class);
-                EMPTY_TICK_TASK = this.tickTaskConstructor.invoke(0, Runnables.doNothing());
+                this.tickTaskConstructor = Reflection.getMethodFromReturnType(NMS.getMinecraftServerClass(), 0, NMS.getTickTaskClass(), Runnable.class);
+                EMPTY_TICK_TASK = newTickTask(Runnables.doNothing());
             } else {
-                EMPTY_TICK_TASK = null;
-            }
-
-            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) {
                 this.tickTaskConstructor = null;
+                EMPTY_TICK_TASK = null;
             }
         }
 
@@ -132,22 +116,21 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             return timings != 0 ? timings : getDeltaTime();
         }
 
-        private Object newTickTask(Runnable runnable, int currentTick) {
+        private Object newTickTask(Runnable runnable) {
             if (this.tickTaskConstructor == null) {
                 return runnable;
             }
-
-            return this.tickTaskConstructor.invoke(currentTick, runnable);
+            return this.tickTaskConstructor.invoke(NMS.getMinecraftServer(), runnable);
         }
 
         private Object getEmptyTask() {
-            return newTickTask(new FutureTask<>(Callables.returning(null)), this.tickAccessor.get());
+            return newTickTask(new FutureTask<>(Callables.returning(null)));
         }
 
         @Override
         public Object peek() {
             // if we have any packets ready to be run, we will return an empty value to mark we're ready
-            // if not, we will just return null and tell the server that the delegated queue is empty
+            // if not, we will just return null and tell the server that the 6delegated queue is empty
             if (super.peek() == null) {
                 return null;
             }
@@ -231,7 +214,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             }
 
             this.recentPollStart = System.nanoTime();
-            return newTickTask(task.getPacketTask(), doneTicks);
+            return newTickTask(task.getPacketTask());
         }
 
         @Override
@@ -331,8 +314,8 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                     });
                 }
             } else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_14_4)
-                    && !tickTaskClass.isInstance(otherTask)) {
-                otherTask = newTickTask((Runnable) otherTask, tickAccessor.get());
+                    && !NMS.getTickTaskClass().isInstance(otherTask)) {
+                otherTask = newTickTask((Runnable) otherTask);
             }
 
             return (Runnable) otherTask;
@@ -363,18 +346,8 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 HoneyPlugin.get().getLogger().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
             }
 
-            doneTicks = this.tickAccessor.get();
             doneExecutionTicks++;
             executing = false;
         }
-    }
-
-    @Override
-    public List<HoneyPlayer> getTrackersOrdered() {
-        List<HoneyPlayer> trackersList = new ArrayList<>(getTrackers());
-        trackersList.removeIf(player -> getPlayerRate(player, Timespan.FIVE_SECOND, false) == 0);
-        trackersList.sort((o1, o2) -> Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.FIVE_SECOND, true), getTimeToAverageWithoutQuotient(o2, Timespan.FIVE_SECOND, true)));
-
-        return trackersList;
     }
 }

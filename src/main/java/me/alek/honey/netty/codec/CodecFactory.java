@@ -180,11 +180,6 @@ public class CodecFactory {
                     throw new CodecException("Bad Packet ID");
                 }
 
-                Optional<PacketType> typeOptional = PacketTypes.getPacketType(packet.getClass(), state);
-                if (!typeOptional.isPresent()) {
-                    throw new CodecException("Wrong protocol state");
-                }
-
                 return packet;
             }
 
@@ -214,14 +209,11 @@ public class CodecFactory {
                 if (!typeOptional.isPresent()) {
                     throw new CodecException("Wrong protocol state");
                 }
-
                 PacketType type = typeOptional.get();
                 codec.accept(type, new LegacyCodec.Callback() {
                     @Override
                     public void apply(LegacyCodec codec) throws CodecException {
-                        codec.apply(packet,
-                                LegacyCodec.getStructureModifier(type, packet),
-                                dataSerializer);
+                        codec.apply(packet, LegacyCodec.getStructureModifier(type, packet), dataSerializer);
                     }
                 });
 

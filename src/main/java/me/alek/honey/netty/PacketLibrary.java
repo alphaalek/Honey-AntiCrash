@@ -109,12 +109,12 @@ public class PacketLibrary {
         return this.packetProcessor;
     }
 
-    public <WP extends SourcedWrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
+    public <WP extends SourcedWrappedPacket<WP>> void addListener(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
         this.packetProcessor.addListener(listener, state, priority, types);
     }
 
-    public <WP extends SourcedWrappedPacket<WP>> void addListeners(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, PacketType... types) {
-        addListeners(listener, state, priority, Arrays.asList(types));
+    public <WP extends SourcedWrappedPacket<WP>> void addListener(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state, ListenerPriority priority, PacketType... types) {
+        addListener(listener, state, priority, Arrays.asList(types));
     }
 
     public <WP extends SourcedWrappedPacket<WP>> void removeListener(PacketListenerAdapter<WP> listener, PacketContainer.PipelineState state) {

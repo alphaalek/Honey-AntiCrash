@@ -1,9 +1,6 @@
 package me.alek.honey.util;
 
-import org.bukkit.Bukkit;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class IDRegistry {
@@ -11,7 +8,7 @@ public class IDRegistry {
     /* pre-made ID registries */
     public static final IDRegistry CHECKS = new IDRegistry();
     public static final IDRegistry TRACKER_CONTEXT = new IDRegistry();
-    public static final IDRegistry PLAYERS = IDRegistry.create(1);
+    public static final IDRegistry PLAYERS = new IDRegistry();
 
     private static final int EMPTY = -1;
 
@@ -49,10 +46,8 @@ public class IDRegistry {
     }
 
     public synchronized int acquire() {
-        int i = 0;
-        for (int id : this.ids) {
-            if (id == EMPTY) return this.ids[i] = i;
-            ++i;
+        for (int i = 0; i < this.ids.length; i++) {
+            if (this.ids[i] == EMPTY) return this.ids[i] = i;
         }
         int[] newIds = new int[this.ids.length + 1];
         System.arraycopy(this.ids, 0, newIds, 0, this.ids.length);
@@ -72,8 +67,8 @@ public class IDRegistry {
     public synchronized void remove(int id) {
         this.ids[id] = EMPTY;
         int maxId = 0;
-        for (int id0 : this.ids) {
-            if (id0 != EMPTY) maxId = id0;
+        for (int i = 0; i < this.ids.length; i++) {
+            if (this.ids[i] != EMPTY) maxId = i;
         }
         if (maxId < this.ids.length - 1) {
             int[] newIds = new int[maxId + 1];

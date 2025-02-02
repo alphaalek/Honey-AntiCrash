@@ -70,27 +70,27 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     }
 
     public int getX() {
-        return x;
+        return this.x;
     }
 
     public int getY() {
-        return y;
+        return this.y;
     }
 
     public int getZ() {
-        return z;
+        return this.z;
     }
 
     public boolean isInvalid() {
-        return NumberUtils.isInvalid(x, y, z);
+        return NumberUtils.isInvalid(this.x, this.y, this.z);
     }
 
     public Vector toVector() {
-        return new Vector(x, y, z);
+        return new Vector(this.x, this.y, this.z);
     }
 
     public Location toLocation(World world) {
-        return new Location(world, x, y, z);
+        return new Location(world, this.x, this.y, this.z);
     }
 
     public double distance(WrappedBlockPosition blockPosition) {
@@ -136,11 +136,11 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     }
 
     public WrappedBlockPosition multiply(int factor) {
-        return new WrappedBlockPosition(x * factor, y * factor, z * factor);
+        return new WrappedBlockPosition(this.x * factor, this.y * factor, this.z * factor);
     }
 
     public WrappedBlockPosition divide(int divisor) {
-        return new WrappedBlockPosition(x / divisor, y / divisor, z / divisor);
+        return new WrappedBlockPosition(this.x / divisor, this.y / divisor, this.z / divisor);
     }
 
     @Override
@@ -149,13 +149,13 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
             return false;
         }
         WrappedBlockPosition blockPosition = (WrappedBlockPosition) object;
-        if (x != blockPosition.getX()) {
+        if (this.x != blockPosition.getX()) {
             return false;
         }
-        if (y != blockPosition.getY()) {
+        if (this.y != blockPosition.getY()) {
             return false;
         }
-        if (z != blockPosition.getZ()) {
+        if (this.z != blockPosition.getZ()) {
             return false;
         }
         return true;
@@ -163,16 +163,16 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, y, z);
+        return Objects.hash(this.x, this.y, this.z);
     }
 
     @Override
     public WrappedBlockPosition clone() {
-        return new WrappedBlockPosition(x, y, z);
+        return new WrappedBlockPosition(this.x, this.y, this.z);
     }
 
     @Override
     public String toString() {
-        return x + ";" + y + ";" + z;
+        return this.x + "," + this.y + "," + this.z;
     }
 }

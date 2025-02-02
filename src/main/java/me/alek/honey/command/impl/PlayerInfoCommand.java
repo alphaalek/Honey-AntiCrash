@@ -1,6 +1,7 @@
 package me.alek.honey.command.impl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.Notifications;
@@ -24,9 +25,12 @@ public class PlayerInfoCommand implements CommandImpl {
         }
 
         HoneyPlayer player = target.get();
-        sender.sendMessage(Notifications.PREFIX + " §7Showing info for player §6" + player.name);
+        sender.sendMessage(Notifications.PREFIX + " §7Showing info for player §6" + player.name + " §8(id " + player.registryID + ")");
         sender.sendMessage("§8* §7Using client §8" + player.clientInfo.getBrand());
         sender.sendMessage("§8* §7Using version §8" + player.clientInfo.getProtocol().getName() + ", protocol " + player.clientInfo.getProtocolVersion() + " §7on server version §8" + NetProtocol.getProtocol().getName() + "");
+
+        long livedTicks = HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick() - player.tickInitialized;
+        sender.sendMessage("§8* §7Existed for " + livedTicks + " execution ticks.");
 
         if (player.bypassEverything()) {
             sender.sendMessage("§cThis player bypasses everything!");
@@ -35,7 +39,7 @@ public class PlayerInfoCommand implements CommandImpl {
         }
 
         if (player.floodgate) {
-            sender.sendMessage("§7This player is connected with Floodgate.");
+            sender.sendMessage("§7This player is connected with Floodgate (Bedrock Edition).");
         }
     }
 

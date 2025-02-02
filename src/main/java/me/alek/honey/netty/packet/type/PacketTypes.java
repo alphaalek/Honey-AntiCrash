@@ -23,6 +23,12 @@ import java.util.stream.Collectors;
 public class PacketTypes {
 
     private static final Array<PacketType> UNKNOWN_ARRAY = Array.just(PacketType.UNKNOWN);
+    private static final List<PacketType> ALL_TYPES = new LinkedList<>();
+    private static final Map<Class<?>, Array<PacketType>> REGISTERED_TYPES = new HashMap<>();
+    private static final Map<String, List<PacketType>> TYPES_BY_CLASS_NAME = new HashMap<>();
+    private static final Map<String, List<PacketType>> TYPES_BY_NAME = new HashMap<>();
+    private static final Map<PacketState, List<PacketType>> TYPES_FROM_STATE_LOOKUP = new HashMap<>();
+    private static final IDRegistry ID_REGISTRY = new IDRegistry();
 
     public static boolean isUnknown(PacketType type) {
         return type == null || type == PacketType.UNKNOWN;
@@ -31,12 +37,6 @@ public class PacketTypes {
     public static boolean isRegistered(PacketType type) {
         return !isUnknown(type) && type.getNmsClass() != null;
     }
-    private static final List<PacketType> ALL_TYPES = new LinkedList<>();
-    private static final Map<Class<?>, Array<PacketType>> REGISTERED_TYPES = new HashMap<>();
-    private static final Map<String, List<PacketType>> TYPES_BY_CLASS_NAME = new HashMap<>();
-    private static final Map<String, List<PacketType>> TYPES_BY_NAME = new HashMap<>();
-    private static final Map<PacketState, List<PacketType>> TYPES_FROM_STATE_LOOKUP = new HashMap<>();
-    private static final IDRegistry ID_REGISTRY = new IDRegistry();
 
     public static boolean isServerbound(PacketType type) {
         return type.getBound().equals(PacketBound.SERVER);
@@ -232,7 +232,7 @@ public class PacketTypes {
             for (Object codec : codecs) {
                 Object packetType = ReflectStructure.Provider.acquireStructure(codec.getClass())
                         .withTarget(codec)
-                        .readField(null, (in, f) -> !NMS.getStreamCodecClass().isAssignableFrom(f.getHandle().getType()));
+                        .readField(null, (__, f) -> !NMS.getStreamCodecClass().isAssignableFrom(f.getHandle().getType()));
                 Object minecraftKey = ReflectStructure.Provider.acquireStructure(NMS.getPacketTypeClass())
                         .withType(NMS.getMinecraftKeyClass()).withTarget(packetType)
                         .readField(0);
@@ -317,7 +317,6 @@ public class PacketTypes {
         static Key getKey(NetProtocol protocol, PacketType type) {
             return getKeyOptional(protocol, type.getClass(), type.toString()).orElseThrow(IllegalArgumentException::new);
         }
-
 
         @Retention(RetentionPolicy.RUNTIME)
         @Target(ElementType.FIELD)

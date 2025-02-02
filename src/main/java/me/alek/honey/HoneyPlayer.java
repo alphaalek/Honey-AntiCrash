@@ -57,6 +57,7 @@ public class HoneyPlayer implements IntIdentifiable {
 
     public final Channel channel;
     public final int registryID = IDRegistry.PLAYERS.acquire();
+    public final long tickInitialized = HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick();
 
     public Player bukkit;
     public UUID uuid;

@@ -36,14 +36,14 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public MovementValidations(PacketLibrary library) {
         super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
-        HoneyPlugin.get().getPacketLibrary().addListeners(new PacketListenerAdapter<WrappedPlayOutPosition>() {
+        HoneyPlugin.get().getPacketLibrary().addListener(new PacketListenerAdapter.InboundCommon<WrappedPlayOutPosition>() {
 
             @Override
-            public void onObjectPacketSend(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packet) {
+            public void onPacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayOutPosition> packet) {
                 lastTeleportationLocationMap.put(player.uuid, packet.getPlayer().getLocation());
             }
 
-        }, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, Collections.singletonList(PacketTypes.Play.Server.PLAYER_POSITION));
+        }, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, PacketTypes.Play.Server.PLAYER_POSITION);
     }
 
     private static List<PacketType> getPacketTypes() {
@@ -71,7 +71,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         }
         lastPacketLocation.put(player.uuid, currentLoc);
 
-        // check if the player has moved by checking if the last location is equal to the current location
+        // check if the player has moved since last packet
         if (LocationUtils.compare3DLocation(currentLoc, lastLoc)) {
             return false;
         }
@@ -89,7 +89,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                 final String y = format(currentLoc.getY());
                 final String z = format(currentLoc.getZ());
 
-                context.getDevelopmentData(keyInner).addPoint("Position", x + ", " + y + ", " + z);
+                context.getDevelopmentData(keyInner).addPoint("Position", x + "," + y + "," + z);
             });
         }));
 
@@ -155,7 +155,8 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
             if (getSetting().isEnabled()) {
                 boolean wasOnGround = this.wasOnGround;
-                if ((this.wasOnGround = packet.isOnGround()) != wasOnGround) {
+                this.wasOnGround = packet.isOnGround();
+                if (wasOnGround != this.wasOnGround) {
                     return ValidationViolationContext.Builder.validate().terminate().flag().build();
                 }
             }
@@ -196,7 +197,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
             Location lastKnownLocation = context.getLocation(0);
 
             if (isAnyLatelyTeleportationLocationsCloseTo(
-                    player, 15,
+                    player, getSetting().max,
                     l -> LocationUtils.calculate3DDistance(l, loc))) {
                 return ValidationViolationContext.PASS.copy().skip(3).build();
             }
@@ -211,12 +212,17 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                 ValidationViolationContext.Builder builder = ValidationViolationContext.Builder.validate();
 
                 if (distance2d >= getSetting().max && distance2d != 0) {
+                    final String x = format(lastKnownLocation.getX());
+                    final String y = format(lastKnownLocation.getY());
+                    final String z = format(lastKnownLocation.getZ());
+
                     builder.add(
                             ValidationViolationContext.Builder.validate().cancel().flag().withViolationKey(XZKey)
                                     .onViolation(ViolationKey.of(this, XZKey), (key, onViolation) -> {
                                         if (onViolation != null) {
                                             onViolation.run();
                                         }
+                                        context.getDevelopmentData(key).addPoint("Last Position", x + "," + y + "," + z);
                                         context.getDevelopmentData(key).addPoint("2D Distance", distance2d);
                                     })
                                     .build()
@@ -224,12 +230,17 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                 }
 
                 if (distanceY >= getSetting().max && distanceY != 0) {
+                    final String x = format(lastKnownLocation.getX());
+                    final String y = format(lastKnownLocation.getY());
+                    final String z = format(lastKnownLocation.getZ());
+
                     builder.add(
                             ValidationViolationContext.Builder.validate().cancel().flag().withViolationKey(YKey)
                                     .onViolation(ViolationKey.of(this, YKey), (key, onViolation) -> {
                                         if (onViolation != null) {
                                             onViolation.run();
                                         }
+                                        context.getDevelopmentData(key).addPoint("Last Position", x + "," + y + "," + z);
                                         context.getDevelopmentData(key).addPoint("Y Distance", distanceY);
                                     })
                                     .build()

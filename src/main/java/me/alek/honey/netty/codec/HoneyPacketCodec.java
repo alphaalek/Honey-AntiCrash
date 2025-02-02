@@ -95,8 +95,7 @@ public class HoneyPacketCodec {
                             + " (" + (end + buf.readableBytes()) + "/" + end + ") extra bytes while decoding packet "
                             + HoneyPlugin.get().getLogger().formatPacketType(type) + ", "
                             + " (" + protocol.getName() + ")"
-                            +
-                            (packetObject == null ? "" : ": " +
+                            + (packetObject == null ? "" : ": " +
                             HoneyPlugin.get().getLogger().filterTooMuchData(
                                     HoneyPlugin.get().getLogger().formatPacketEntries(
                                             ReflectStructure.Provider.acquireStructure(packetObject.getClass())

@@ -306,7 +306,7 @@ public class HoneyPlugin implements HoneyAPI {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
             Bukkit.getPluginManager().registerEvents(tabCompleteListener, this.plugin);
         } else {
-            this.packetLibrary.addListeners(tabCompleteListener, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
+            this.packetLibrary.addListener(tabCompleteListener, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGH, PacketTypes.Play.Server.TAB_COMPLETE);
         }
 
         getLogger().getLogger().info(Lang.getFormatted("loaded", this.plugin.getDescription().getVersion()));

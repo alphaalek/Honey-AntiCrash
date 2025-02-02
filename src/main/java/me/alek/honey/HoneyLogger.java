@@ -22,11 +22,12 @@ import me.alek.honey.util.statics.NumberUtils;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class HoneyLogger {
 
-    public static Map<Class<?>, Class<?>> BOXED = new HashMap<Class<?>, Class<?>>() {{
+    private static final Map<Class<?>, Class<?>> BOXED = new HashMap<Class<?>, Class<?>>() {{
         put(Integer.class, int.class);
         put(Float.class, float.class);
         put(Short.class, short.class);
@@ -37,6 +38,7 @@ public class HoneyLogger {
         put(Character.class, char.class);
     }};
     private static final int MAX_PACKET_LOGGING_DATA = 5000;
+    private static final Supplier<DecayingWindowCounter> DECAYING_WINDOW_COUNTER  = () -> new DecayingWindowCounter(1000, 2000, 10000);
 
     private boolean enabled;
     private boolean detailed;
@@ -67,7 +69,7 @@ public class HoneyLogger {
                         long time = System.currentTimeMillis();
                         // register to packet rate
                         synchronized (packetRate) {
-                            packetRate.computeIfAbsent(player.uuid, (d) -> new DecayingWindowCounter(1000, 2000, 10000))
+                            packetRate.computeIfAbsent(player.uuid, __ -> DECAYING_WINDOW_COUNTER.get())
                                     .count(time);
                         }
                         totalPacketRate.count(time);
@@ -127,9 +129,9 @@ public class HoneyLogger {
             }
         }
 
-        HoneyPlugin.get().getPacketLibrary().addListeners(this.holder.packetLogger, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.HIGHEST, initialByteTypes);
-        HoneyPlugin.get().getPacketLibrary().addListeners(this.holder.packetLogger, PacketContainer.PipelineState.FINAL_BYTE, ListenerPriority.HIGHEST, finalByteTypes);
-        HoneyPlugin.get().getPacketLibrary().addListeners(this.holder.packetLogger, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, objectTypes);
+        HoneyPlugin.get().getPacketLibrary().addListener(this.holder.packetLogger, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.HIGHEST, initialByteTypes);
+        HoneyPlugin.get().getPacketLibrary().addListener(this.holder.packetLogger, PacketContainer.PipelineState.FINAL_BYTE, ListenerPriority.HIGHEST, finalByteTypes);
+        HoneyPlugin.get().getPacketLibrary().addListener(this.holder.packetLogger, PacketContainer.PipelineState.OBJECT, ListenerPriority.HIGHEST, objectTypes);
     }
 
     public Logger getLogger() {
