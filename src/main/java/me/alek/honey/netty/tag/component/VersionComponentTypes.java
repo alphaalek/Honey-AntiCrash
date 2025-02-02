@@ -11,6 +11,8 @@ import java.util.List;
 
 public class VersionComponentTypes {
 
+    public static final List<ComponentType<?>> NON_ENCODED_COMPONENTS = Collections.unmodifiableList(Arrays.asList(
+            ComponentTypes.CREATIVE_SLOT_LOCK, ComponentTypes.MAP_POST_PROCESSING));
     public static final List<ComponentType<?>> V1_21COMPONENTS = Collections.singletonList(ComponentTypes.JUKEBOX_PLAYABLE);
     public static final List<ComponentType<?>> V1_21_2COMPONENTS = Collections.unmodifiableList(Arrays.asList(
             ComponentTypes.REPAIRABLE, ComponentTypes.ENCHANTABLE, ComponentTypes.CONSUMABLE, ComponentTypes.USE_COOLDOWN, ComponentTypes.USE_REMAINDER
@@ -18,6 +20,7 @@ public class VersionComponentTypes {
 
     public static List<ComponentType<?>> getBaseComponents() {
         List<ComponentType<?>> types = new ArrayList<>(ComponentTypes.values());
+        types.removeAll(NON_ENCODED_COMPONENTS);
         types.removeAll(V1_21COMPONENTS);
         types.removeAll(V1_21_2COMPONENTS);
         return types;
