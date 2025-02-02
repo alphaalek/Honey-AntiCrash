@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
@@ -78,6 +79,10 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             } else {
                 this.signing = false;
             }
+        }
+
+        if (this.slot < 0 || this.slot > 8) {
+            throw new DecoderException("Invalid slot");
         }
 
         CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, new DecodeContext.BookEditContext<>(this, this.signing));

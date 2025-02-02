@@ -20,6 +20,8 @@ public class ComponentMap implements ItemTag {
 
     public static class ProtocolType implements Type.In<ComponentMap, Type.TypeContext.OneArg<ItemType>> {
 
+        private static final
+
         public static ComponentMap.ProtocolType forProtocol(NetProtocol protocol) {
             return new ComponentMap.ProtocolType(protocol);
         }

@@ -1,5 +1,6 @@
 package me.alek.honey.command.impl;
 
+import io.netty.channel.socket.DatagramChannel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.command.CommandImpl;
@@ -8,6 +9,7 @@ import me.alek.honey.Notifications;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.command.CommandSender;
 
+import java.net.InetSocketAddress;
 import java.util.Optional;
 
 public class PlayerInfoCommand implements CommandImpl {
@@ -28,6 +30,7 @@ public class PlayerInfoCommand implements CommandImpl {
         sender.sendMessage(Notifications.PREFIX + " §7Showing info for player §6" + player.name + " §8(id " + player.registryID + ")");
         sender.sendMessage("§8* §7Using client §8" + player.clientInfo.getBrand());
         sender.sendMessage("§8* §7Using version §8" + player.clientInfo.getProtocol().getName() + ", protocol " + player.clientInfo.getProtocolVersion() + " §7on server version §8" + NetProtocol.getProtocol().getName() + "");
+        sender.sendMessage("§8* §7Connected with IP §8" + ((InetSocketAddress)player.channel.remoteAddress()).getAddress().getHostAddress());
 
         long livedTicks = HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick() - player.tickInitialized;
         sender.sendMessage("§8* §7Existed for " + livedTicks + " execution ticks.");
