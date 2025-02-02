@@ -1,9 +1,10 @@
 package me.alek.honey;
 
-import me.alek.honey.session.NoSessionEncryption;
 import org.bukkit.plugin.java.JavaPlugin;
 
-@NoSessionEncryption
+import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+
 public class HoneyPluginInitializer extends JavaPlugin {
 
     private static HoneyAPI plugin;
@@ -11,6 +12,11 @@ public class HoneyPluginInitializer extends JavaPlugin {
     public HoneyPluginInitializer() {
         if (plugin != null) {
             throw new UnsupportedOperationException("This class in singleton!");
+        }
+
+        if (ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .anyMatch(i -> Arrays.asList("-agentlib", "-javaagent").contains(i))) {
+            throw new UnsupportedOperationException("It is not allowed to use a JavaAgent for Honey!");
         }
 
         plugin = new HoneyPlugin(this, getDescription().getVersion(), null);

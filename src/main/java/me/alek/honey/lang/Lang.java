@@ -2,7 +2,6 @@ package me.alek.honey.lang;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.Notifications;
-import me.alek.honey.session.NoSessionEncryption;
 
 import java.io.*;
 import java.util.HashMap;
@@ -12,7 +11,6 @@ import java.util.Optional;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 
-@NoSessionEncryption
 public class Lang {
 
     private static final Map<String, String> messages = new HashMap<>();
@@ -41,10 +39,8 @@ public class Lang {
         String language = HoneyPlugin.get().getPlugin().getConfig().getString("lang");
         try {
             JarFile jar = new JarFile(new File(Lang.class.getProtectionDomain().getCodeSource().getLocation().toURI()));
-
             jar.stream().filter(entry -> entry.getName().startsWith("lang/")).forEach(entry -> {
                 String[] packages = entry.getName().split("/");
-
                 if (packages[packages.length - 1].split("\\.")[0].equals(language)) {
                     try {
                         loadMessages(entry.getName(), jar.getInputStream(entry), false);
@@ -53,7 +49,6 @@ public class Lang {
                     }
                 }
             });
-
             loadMessages("lang/en.lang", jar.getInputStream(jar.getJarEntry("lang/en.lang")), true);
 
         } catch (Exception ex) {
@@ -65,9 +60,7 @@ public class Lang {
 
     private static void loadMessages(String name, InputStream inputStream, boolean isDefault) {
         try {
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(inputStream));
-
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] split = line.split("=");

@@ -69,8 +69,7 @@ public class ItemAnalysis {
     public static ValidationViolationContext flagIf(HoneyPlayer player, WrappedImmutableItemStack item, ViolationKey keyOuter, Callback callback, ValidationPipelineContext context) {
         if (ItemAnalysis.checkItem(player, item, callback)) {
             return ValidationViolationContext.Builder.validate()
-                    .cancel()
-                    .flag()
+                    .cancel().flag()
                     .onViolation(keyOuter, (keyInner, onViolation) -> {
                         if (onViolation != null) onViolation.run();
 

@@ -26,41 +26,39 @@ public class ChainedCallable<T> implements Callable<T> {
     }
 
     public TaskSupplier<T> getFrom() {
-        return from;
+        return this.from;
     }
 
     public boolean isCalled() {
-        return called;
+        return this.called;
     }
 
-    public synchronized T getValue() {
-        synchronized (wait) {
-            if (!called) {
+    public T getValue() {
+        synchronized (this.wait) {
+            if (!this.called) {
                 try {
-                    wait.wait();
+                    this.wait.wait();
                 } catch (Exception ex) {
                     Thread.currentThread().interrupt();
                 }
             }
         }
 
-        return value;
+        return this.value;
     }
 
     @Override
     public T call() throws Exception {
-        value = callable.call();
-        synchronized (this) {
-            for (Consumer<T> listener : listeners) {
-                listener.accept(value);
+        this.called = true;
+        synchronized (this.wait) {
+            this.value = this.callable.call();
+            for (Consumer<T> listener : this.listeners) {
+                listener.accept(this.value);
             }
-            called = true;
 
-            synchronized (wait) {
-                wait.notifyAll();
-            }
+            this.wait.notifyAll();
         }
 
-        return value;
+        return this.value;
     }
 }

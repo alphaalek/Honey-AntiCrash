@@ -23,8 +23,6 @@ import me.alek.honey.netty.packet.PacketExecutors;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.session.NoSessionEncryption;
-import me.alek.honey.session.Session;
 import me.alek.honey.sql.RepositoryCollection;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.ExecutionQueueProxy;
@@ -101,14 +99,6 @@ public class HoneyPlugin implements HoneyAPI {
 
         plugin.saveDefaultConfig();
         Lang.load();
-
-        Session.setup();
-        try {
-            Session.requestSession();
-        } catch (Exception ex) {
-            registerFailedHoneyLoadEvents();
-            throw new RuntimeException(Lang.get("failed.load"), ex.getCause());
-        }
 
         this.latestVersion = latestVersion != null ? latestVersion : verifyAndGetLatestVersion();
         if (new LibraryVersion(plugin.getDescription().getVersion()).isOlderThan(new LibraryVersion(this.latestVersion))) {
@@ -321,13 +311,6 @@ public class HoneyPlugin implements HoneyAPI {
 
             WorkerPool.ASYNC_PACKET_DECODER_POOL.terminate();
 
-            try {
-                Session.sessionDecrypterClass.getDeclaredMethod("checkShutdown", boolean.class, boolean.class)
-                        .invoke(null, false, true);
-            } catch (Exception ex) {
-                getLogger().getLogger().log(Level.SEVERE, Lang.get("failed.shutdown.session.error"), ex);
-            }
-
             getLogger().getLogger().info(Lang.get("unloaded"));
         }
     }
@@ -392,7 +375,6 @@ public class HoneyPlugin implements HoneyAPI {
         this.monitorManager.reload();
     }
 
-    @NoSessionEncryption
     @Override
     public String getLicense() {
         return this.plugin.getConfig().getString("license", "");

@@ -25,51 +25,51 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
     }
 
     public HoneyPlayer getPlayer() {
-        return player;
+        return this.player;
     }
 
     @Override
     public ChainedCallable<Object> getTask() {
-        return currentTask;
+        return this.currentTask;
     }
 
     @Override
     public void submitTask(ChainedCallable<Object> task) {
-        if (unregistered) {
+        if (this.unregistered) {
             return;
         }
-        currentTask = task;
+        this.currentTask = task;
 
-        if (lastHandledTask.get() == 0) {
-            lastHandledTask.set(System.currentTimeMillis());
+        if (this.lastHandledTask.get() == 0) {
+            this.lastHandledTask.set(System.currentTimeMillis());
         }
-        currentTask.addListener(d -> lastHandledTask.set(System.currentTimeMillis()));
+        this.currentTask.addListener(d -> this.lastHandledTask.set(System.currentTimeMillis()));
 
-        if (worker != null && worker.isActive()) {
-            worker.submit(this);
-        }
-
-        if (worker != null && !worker.isActive()) {
-            worker = workerPool.relocateWorkerTasks(this, worker);
+        if (this.worker != null && this.worker.isActive()) {
+            this.worker.submit(this);
         }
 
-        if (worker == null) {
-            worker = workerPool.submit(this);
+        if (this.worker != null && !this.worker.isActive()) {
+            this.worker = this.workerPool.relocateWorkerTasks(this, this.worker);
         }
 
-        if (worker.isQuarantined()) {
-            if (worker.relocate(this)) {
-                worker = workerPool.relocateWorkerTasks(this, worker);
+        if (this.worker == null) {
+            this.worker = this.workerPool.submit(this);
+        }
+
+        if (this.worker.isQuarantined()) {
+            if (this.worker.relocate(this)) {
+                this.worker = this.workerPool.relocateWorkerTasks(this, worker);
                 return;
             }
 
-            if (player.linkedBukkit()) {
-                long time = System.currentTimeMillis() - lastHandledTask.get();
+            if (this.player.linkedBukkit()) {
+                long time = System.currentTimeMillis() - this.lastHandledTask.get();
                 if (time > 200) {
-                    HoneyPlugin.get().getNotificationService().showQuarantinedAsyncWorker(player, System.currentTimeMillis() - lastHandledTask.get());
+                    HoneyPlugin.get().getNotificationService().showQuarantinedAsyncWorker(this.player, System.currentTimeMillis() - lastHandledTask.get());
                 }
                 if (time > 10_000) {
-                    player.kick(Lang.get("kick.too.long.packet.handle"));
+                    this.player.kick(Lang.get("kick.too.long.packet.handle"));
                 }
             }
         }
@@ -80,28 +80,26 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
     }
 
     public synchronized void prependDecode(Consumer<Object> consumer) {
-        if (currentTask == null) {
+        if (this.currentTask == null) {
             consumer.accept(null);
-        } else if (currentTask.isCalled()) {
-            consumer.accept(currentTask.getValue());
+        } else if (this.currentTask.isCalled()) {
+            consumer.accept(this.currentTask.getValue());
         } else {
-            synchronized (currentTask) {
-                if (currentTask == null || currentTask.isCalled()) {
-                    prependDecode(consumer);
-                    return;
-                }
-
-                currentTask.addListener(consumer);
+            if (this.currentTask == null || this.currentTask.isCalled()) {
+                prependDecode(consumer);
+                return;
             }
+
+            this.currentTask.addListener(consumer);
         }
     }
 
     public synchronized void farewell() {
-        if (worker != null) {
-            unregistered = true;
-            worker.decrementSupplierCount();
+        if (this.worker != null) {
+            this.unregistered = true;
+            this.worker.decrementSupplierCount();
         }
 
-        worker = null;
+        this.worker = null;
     }
 }
