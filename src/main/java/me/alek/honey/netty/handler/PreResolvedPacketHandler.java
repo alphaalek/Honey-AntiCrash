@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.injector.ChannelCloseInspection;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -148,7 +149,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                 this.write = false;
             }
         } catch (MissingHandlerException ex) {
-            this.packetHandler.getChannel().close();
+            ChannelCloseInspection.close(this.getPacketHandler().getChannel());
         }
         this.resolving = false;
     }

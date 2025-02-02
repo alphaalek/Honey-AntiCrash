@@ -6,7 +6,7 @@ import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.async.WorkerPool;
-import me.alek.honey.compat.FloodgateHandlers;
+import me.alek.honey.compat.floodgate.Floodgate;
 import me.alek.honey.compat.protocollib.ProtocolLib;
 import me.alek.honey.compat.via.ViaHandlers;
 import me.alek.honey.netty.structure.IStructureModifier;
@@ -18,7 +18,6 @@ import me.alek.honey.util.Provider;
 import me.alek.honey.util.RemoteProviderBridge;
 import me.alek.honey.util.RemoteProviderUtils;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -325,9 +324,9 @@ public class SpigotPipelineInjector {
         }
 
         if (channel.pipeline().context(handler) == null) {
-            if (channel.pipeline().get(FloodgateHandlers.DATA_HANDLER) != null) {
+            if (channel.pipeline().get(Floodgate.DATA_HANDLER) != null) {
                 // inject before floodgate, because floodgate is dropping some packets for the pipeline that we need to listen to
-                channel.pipeline().addBefore(FloodgateHandlers.DATA_HANDLER, PreResolvedPacketHandler.NAME, handler);
+                channel.pipeline().addBefore(Floodgate.DATA_HANDLER, PreResolvedPacketHandler.NAME, handler);
             } else {
                 channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, PreResolvedPacketHandler.NAME, handler);
             }

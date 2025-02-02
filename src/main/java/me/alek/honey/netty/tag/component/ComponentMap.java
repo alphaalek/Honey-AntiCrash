@@ -5,11 +5,14 @@ import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.netty.buffer.ByteBufInputStream;
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.Type;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Bukkit;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
+import sun.jvm.hotspot.code.DeoptimizationBlob;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,8 +22,6 @@ import java.util.stream.Collectors;
 public class ComponentMap implements ItemTag {
 
     public static class ProtocolType implements Type.In<ComponentMap, Type.TypeContext.OneArg<ItemType>> {
-
-        private static final
 
         public static ComponentMap.ProtocolType forProtocol(NetProtocol protocol) {
             return new ComponentMap.ProtocolType(protocol);
@@ -40,22 +41,44 @@ public class ComponentMap implements ItemTag {
             if (present == 0 && absent == 0) {
                 return null;
             }
+            if (absent < 0 || present < 0) {
+                throw new DecoderException("Invalid component map");
+            }
+
+            List<ComponentType<?>> types = VersionComponentTypes.getComponents(this.protocol);
+
+            ItemType itemType = context.get();
+            List<Val<?>> bases = itemType.getComponents().getDelegate().entrySet().stream()
+                    .map(e -> new ComponentMap.Val<>((ComponentType<Object>) e.getKey(), e.getValue(), ComponentSource.BASE))
+                    .collect(Collectors.toList());
+            if (absent > bases.size()) {
+                throw new DecoderException("Too many absent tags");
+            }
+            if (present > types.size() - bases.size()) {
+                throw new DecoderException("Too many present tags");
+            }
 
             PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(serializer);
             wrapper.setClientVersion(this.protocol.toPECVersion());
             wrapper.setServerVersion(this.protocol.toPESVersion());
 
-            List<Val<?>> bases = context.get().getComponents().getDelegate().entrySet().stream()
-                    .map(e -> new ComponentMap.Val<>((ComponentType<Object>) e.getKey(), e.getValue(), ComponentSource.BASE))
-                    .collect(Collectors.toList());
             ComponentMap map = new ComponentMap(bases);
             for (int i = 0; i < present; i++) {
                 ComponentType<Object> type = readType(serializer);
-                Object val = type.read(wrapper);
-                map.set(type, val);
+                if (types.contains(type)) {
+                    Object val = type.read(wrapper);
+                    map.set(type, val);
+                } else {
+                    throw new DecoderException("Invalid present component type");
+                }
             }
             for (int i = 0; i < absent; i++) {
-                map.remove(readType(serializer));
+                ComponentType<?> type = readType(serializer);
+                if (map.has(type) && types.contains(type)) {
+                    map.remove(readType(serializer));
+                } else {
+                    throw new DecoderException("Invalid absent component type");
+                }
             }
 
             return map;

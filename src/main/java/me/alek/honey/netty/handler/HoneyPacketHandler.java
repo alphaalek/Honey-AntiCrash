@@ -297,7 +297,7 @@ public class HoneyPacketHandler {
 
     public void handleViaClientboundInterceptor() {
         if (ViaProtocol.ViaValidator.VALIDATOR.find().get()
-                && !player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())
+                && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())
                 && this.channel.pipeline().get(ViaHandlers.ENCODER) != null
                 && this.channel.pipeline().get(ViaClientboundInterceptor.NAME) == null) {
             this.dependentOnVia = true;

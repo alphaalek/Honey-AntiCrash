@@ -7,6 +7,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.async.DebugCommand;
 import me.alek.honey.async.WorkerPool;
 import me.alek.honey.command.CommandManager;
+import me.alek.honey.compat.Paper;
 import me.alek.honey.compat.spark.SparkTPSProvider;
 import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
@@ -217,6 +218,8 @@ public class HoneyPlugin implements HoneyAPI {
             conflict = Lang.get("conflict.runtime.load");
         } else if (NetProtocol.getProtocol() == NetProtocol.UNKNOWN) {
             conflict = Lang.get("conflict.unsupported.version");
+        } else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5) && !Paper.IS_PAPER) {
+            conflict = Lang.get("conflict.modern.no-paper");
         }
 
         if (conflict != null) {

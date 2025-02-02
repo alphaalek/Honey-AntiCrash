@@ -9,8 +9,9 @@ import me.alek.honey.netty.processor.TypeProcessor;
 
 public class BrandProcessor<CP extends WrappedPlayInCustomPayload<CP>> extends TypeProcessor<CP> {
 
-    public BrandProcessor() {
-        addListener(PacketTypes.Play.Client.CUSTOM_PAYLOAD, PacketContainer.PipelineState.INITIAL_BYTE, this::handleCustomPayload);
+    public static <CP extends WrappedPlayInCustomPayload<CP>> void load() {
+        BrandProcessor<CP> brandProcessor = new BrandProcessor<>();
+        brandProcessor.addListener(PacketTypes.Play.Client.CUSTOM_PAYLOAD, PacketContainer.PipelineState.INITIAL_BYTE, brandProcessor::handleCustomPayload);
     }
 
     public void handleCustomPayload(HoneyPlayer player, PacketContainer<CP> packet) {

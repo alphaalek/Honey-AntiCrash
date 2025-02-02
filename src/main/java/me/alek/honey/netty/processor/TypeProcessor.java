@@ -2,6 +2,7 @@ package me.alek.honey.netty.processor;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.injector.ChannelCloseInspection;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -20,6 +21,7 @@ public class TypeProcessor<WP extends SourcedWrappedPacket<WP>> extends PacketLi
 
         public static final BiConsumer<HoneyPlayer, Throwable> DEFAULT_THROWABLE_DEBUGGER = (player, thrown) -> {
             HoneyPlugin.get().getPlugin().getLogger().log(Level.SEVERE, "Error occurred in processor for packet sent by " + player, thrown);
+            ChannelCloseInspection.close(player.channel);
         };
 
         private final PacketContainer.PipelineState state;
@@ -41,7 +43,7 @@ public class TypeProcessor<WP extends SourcedWrappedPacket<WP>> extends PacketLi
 
     @SuppressWarnings("unchecked")
     public <T extends SourcedWrappedPacket<T>> void addListener(PacketType type, PacketContainer.PipelineState state, BiConsumer<HoneyPlayer, PacketContainer<T>> listener, BiConsumer<HoneyPlayer, Throwable> onException) {
-        List<ReaderInfo<PacketContainer<WP>>> readerInfos = packetListeners.get(type, LinkedList::new);
+        List<ReaderInfo<PacketContainer<WP>>> readerInfos = this.packetListeners.get(type, LinkedList::new);
 
         ReaderInfo<PacketContainer<WP>> info;
         if (onException != null) {
@@ -65,8 +67,8 @@ public class TypeProcessor<WP extends SourcedWrappedPacket<WP>> extends PacketLi
 
     @Override
     public void onPacketStream(HoneyPlayer player, PacketBound bound, PacketContainer<WP> packet) {
-        if (packetListeners.has(packet.getType())) {
-            for (ReaderInfo<PacketContainer<WP>> info : packetListeners.get(packet.getType().getHoneyID())) {
+        if (this.packetListeners.has(packet.getType())) {
+            for (ReaderInfo<PacketContainer<WP>> info : this.packetListeners.get(packet.getType())) {
                 if (info.state.equals(packet.getPipelineState())) {
                     try {
                         info.listener.accept(player, packet);

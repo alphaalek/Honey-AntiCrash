@@ -9,6 +9,7 @@ conflict.unsupported.version=Honey is currently not supported by the Minecraft V
 conflict.runtime.load=Honey has been reloaded during runtime! You SHOULDN'T do this. Stop that, and restart the server instead.
 conflict.misconfiguration=You have a misconfigured config.yml. The prior config file is renamed to old-config.yml, you just have to restart the server.
 conflict.packet.library.setup=Aborting because the plugin was disabled during packet library setup.
+conflict.modern.no-paper=Honey needs PaperSpigot on versions 1.20.5+.
 
 unknown=Unknown
 

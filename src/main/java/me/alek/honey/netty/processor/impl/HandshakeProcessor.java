@@ -8,8 +8,9 @@ import me.alek.honey.netty.packetwrappers.impl.handshake.WrappedHandshakeInSetPr
 
 public class HandshakeProcessor extends TypeProcessor<WrappedHandshakeInSetProtocol> {
 
-    public HandshakeProcessor() {
-        addListener(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.INITIAL_BYTE, this::handleHandshake, (p, t) -> p.channel.close());
+    public static void load() {
+        HandshakeProcessor processor = new HandshakeProcessor();
+        processor.addListener(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.INITIAL_BYTE, processor::handleHandshake, (p, t) -> p.channel.close());
     }
 
     public void handleHandshake(HoneyPlayer player, PacketContainer<WrappedHandshakeInSetProtocol> packet) {

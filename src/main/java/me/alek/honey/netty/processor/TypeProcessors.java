@@ -8,8 +8,8 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 public class TypeProcessors {
 
     public static void loadImpl() {
-        new HandshakeProcessor();
-        new BrandProcessor<>();
+        HandshakeProcessor.load();
+        BrandProcessor.load();
     }
 
     public static final InventoryProcessor<?> INVENTORY = new InventoryProcessor<>();

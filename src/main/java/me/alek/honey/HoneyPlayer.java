@@ -1,7 +1,9 @@
 package me.alek.honey;
 
 import io.netty.channel.Channel;
+import me.alek.honey.compat.floodgate.Floodgate;
 import me.alek.honey.compat.Paper;
+import me.alek.honey.compat.floodgate.FloodgateValidator;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.injector.ChannelCloseInspection;
@@ -25,8 +27,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.geysermc.floodgate.api.FloodgateApi;
-import org.geysermc.floodgate.api.player.FloodgatePlayer;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -37,7 +37,6 @@ public class HoneyPlayer implements IntIdentifiable {
         UNSET, LOGGING_IN, ONLINE, OFFLINE
     }
 
-    private static final FloodgateApi FLOODGATE = FloodgateApi.getInstance();
     private static final Map<UUID, HoneyPlayer> HONEY_PLAYER_LOOKUP = new HashMap<>();
     private static final Array<HoneyPlayer> PLAYERS = new Array<>();
 
@@ -98,17 +97,17 @@ public class HoneyPlayer implements IntIdentifiable {
 
     public void setupHello(WrappedLoginInLoginStart hello) {
         this.uuid = hello.getUUID();
-        if (FLOODGATE != null) {
-            Optional<FloodgatePlayer> floodgatePlayerOptional = FLOODGATE.getPlayers().stream()
-                    .filter(p -> p.getUsername().equals(hello.getUsername()))
-                    .findFirst();
-            if (floodgatePlayerOptional.isPresent()) {
+
+        if (FloodgateValidator.HAS_FLOODGATE) {
+            String floodgateUserName = Floodgate.getFloodgateUsername(hello);
+            if (floodgateUserName != null) {
+                this.name = floodgateUserName;
                 this.floodgate = true;
-                this.name = floodgatePlayerOptional.get().getCorrectUsername();
-                return;
             }
         }
-        this.name = hello.getUsername();
+        if (this.name.equals("Unknown")) {
+            this.name = hello.getUsername();
+        }
     }
 
     public void onVersionUpdate(int protocol) {
