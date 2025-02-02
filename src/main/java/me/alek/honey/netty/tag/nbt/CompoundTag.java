@@ -120,13 +120,12 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
         getValue().putConverted(key, type.getWrapperInvoker().invoke(type, val));
     }
 
-    @SuppressWarnings("unchecked")
-    public <IN, IN_ARRAY extends AbstractArrayTag<?, IN_ARRAY, IN>> void putArray(String key, TagType of, Iterable<IN> array) {
+    public <IN> void putArray(String key, TagType of, Iterable<IN> array) {
         AbstractArrayTag<?, ?, ?> tag;
         if (of.equals(TagType.getFromCollection(TagType.Collection.ARRAY))) {
-            tag = new GeneticArrayTypes.ArrayOfArrayTag<>((Iterable<IN_ARRAY>) array);
+            tag = new GeneticArrayTypes.ArrayOfArrayTag<>(array);
         } else if (of.equals(TagType.getFromCollection(TagType.Collection.COMPOUND))) {
-            tag = new GeneticArrayTypes.ArrayOfCompoundTag((Iterable<CompoundTag>) array);
+            tag = new GeneticArrayTypes.ArrayOfCompoundTag(array);
         } else {
             tag = new ArrayTag<>(of, array);
         }

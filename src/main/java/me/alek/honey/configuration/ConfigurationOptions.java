@@ -872,7 +872,7 @@ public class ConfigurationOptions {
 
         @Setting
         @Violation(prefixPaths = "custom-payload.c", packetHandler = PacketLimitHandlerType.SIMPLE)
-        public static class PayloadC extends ViolationSetting implements VlSimpleMaxRequiredContentsSetting {
+        public static class PayloadC extends ViolationSetting {
 
         }
 
