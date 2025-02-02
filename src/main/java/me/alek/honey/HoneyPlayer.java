@@ -1,12 +1,12 @@
 package me.alek.honey;
 
 import io.netty.channel.Channel;
+import me.alek.honey.compat.Paper;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.injector.ChannelCloseInspection;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packetwrappers.impl.WrappedPlayOutDisconnect;
+import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 import me.alek.honey.sql.SQLManager;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
 import me.alek.honey.tickloop.postpone.validationimpl.*;
@@ -18,18 +18,26 @@ import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.ViolationManagement;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.geysermc.floodgate.api.FloodgateApi;
+import org.geysermc.floodgate.api.player.FloodgatePlayer;
 
 import java.util.*;
 import java.util.concurrent.Callable;
 
 public class HoneyPlayer implements IntIdentifiable {
 
+    public enum Phase {
+        UNSET, LOGGING_IN, ONLINE, OFFLINE
+    }
+
+    private static final FloodgateApi FLOODGATE = FloodgateApi.getInstance();
     private static final Map<UUID, HoneyPlayer> HONEY_PLAYER_LOOKUP = new HashMap<>();
     private static final Array<HoneyPlayer> PLAYERS = new Array<>();
 
@@ -52,9 +60,9 @@ public class HoneyPlayer implements IntIdentifiable {
 
     public Player bukkit;
     public UUID uuid;
-    public String name;
-
-    public boolean online = false;
+    public String name = "Unknown";
+    public boolean floodgate;
+    public Phase phase = Phase.UNSET;
     public boolean punished;
     public long postponedPackets;
     public long postponedPacketsForTick;
@@ -87,12 +95,31 @@ public class HoneyPlayer implements IntIdentifiable {
         this.packetHandler = handler;
     }
 
+    public void setupHello(WrappedLoginInLoginStart hello) {
+        this.uuid = hello.getUUID();
+        if (FLOODGATE != null) {
+            Optional<FloodgatePlayer> floodgatePlayerOptional = FLOODGATE.getPlayers().stream()
+                    .filter(p -> p.getUsername().equals(hello.getUsername()))
+                    .findFirst();
+            if (floodgatePlayerOptional.isPresent()) {
+                this.floodgate = true;
+                this.name = floodgatePlayerOptional.get().getCorrectUsername();
+                return;
+            }
+        }
+        this.name = hello.getUsername();
+    }
+
     public void onVersionUpdate(int protocol) {
         this.clientInfo = new ClientInfo(protocol);
     }
 
-    public void remove() {
-        this.online = false;
+    public synchronized void remove() {
+        HONEY_PLAYER_LOOKUP.remove(this.uuid);
+        PLAYERS.remove(this.registryID);
+        IDRegistry.PLAYERS.remove(this.registryID);
+
+        this.phase = Phase.OFFLINE;
 
         for (BaseValidationContainer validationContainer : ValidationContainerRegistry.getValidations()) {
             validationContainer.cleanup(this);
@@ -107,23 +134,18 @@ public class HoneyPlayer implements IntIdentifiable {
         HoneyPlugin.get().getMonitorManager().removeFromMonitors(this);
 
         this.leaveCallback.call(this);
-        HONEY_PLAYER_LOOKUP.remove(uuid);
-        PLAYERS.remove(registryID);
-        IDRegistry.PLAYERS.remove(registryID);
     }
 
     public void initBukkitPlayer(Player player) {
         this.bukkit = player;
-        this.uuid = player.getUniqueId();
-        this.name = player.getName();
-        this.online = true;
+        this.phase = Phase.ONLINE;
 
         for (BaseValidationContainer validationContainer : ValidationContainerRegistry.getValidations()) {
             validationContainer.setup(this);
         }
         HoneyPlugin.get().getNotificationService().setup(this);
 
-        if (bukkit.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
+        if (this.bukkit.isOp() && HoneyPlugin.get().isUsingOldVersion()) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -174,7 +196,7 @@ public class HoneyPlayer implements IntIdentifiable {
             packet.releaseIfAutoReleasable();
         }
 
-        this.online = false;
+        this.phase = Phase.OFFLINE;
         if (this.bukkit != null) {
             if (ex.getMessage() != null) {
                 kick(ex.getMessage());
@@ -196,18 +218,22 @@ public class HoneyPlayer implements IntIdentifiable {
 
     @SuppressWarnings("deprecation")
     public static void kick(Player player, String reason) {
-        if (Paper.IS_PAPER && NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
-            player.kick(Component.text(reason));
-        } else {
-            player.kickPlayer(reason);
-        }
+        Bukkit.getScheduler().runTask(HoneyPlugin.get().getPlugin(), () -> {
+            if (Paper.IS_PAPER && NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
+                player.kick(Component.text(reason));
+            } else {
+                player.kickPlayer(reason);
+            }
+        });
     }
 
     public boolean isStreamActive() {
-        return !this.punished && (!isBukkitReady() || this.online) && this.channel.isOpen();
+        return !this.punished
+                && this.phase != Phase.OFFLINE
+                && this.channel.isOpen();
     }
 
-    public boolean isBukkitReady() {
+    public boolean linkedBukkit() {
         return this.bukkit != null;
     }
 
@@ -220,7 +246,7 @@ public class HoneyPlayer implements IntIdentifiable {
     public boolean bypassServerThreadTracking() {
         return this.bypassServerThreadTracking.get(() -> {
             return ConfigurationOptions.General.BYPASS_PERMISSION_SERVER_THREAD_ENABLED
-                    && isBukkitReady()
+                    && linkedBukkit()
                     && this.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
         });
     }
@@ -228,7 +254,7 @@ public class HoneyPlayer implements IntIdentifiable {
     public boolean bypassEverything() {
         return this.bypassEverything.get(() -> {
             return ConfigurationOptions.General.BYPASS_PERMISSION_ENABLED
-                    && isBukkitReady()
+                    && linkedBukkit()
                     && this.bukkit.hasPermission(ConfigurationOptions.General.BYPASS_PERMISSION);
         });
     }
@@ -267,7 +293,7 @@ public class HoneyPlayer implements IntIdentifiable {
 
     @Override
     public String toString() {
-        return this.packetHandler.getPlayerName();
+        return this.name;
     }
 
     @Override

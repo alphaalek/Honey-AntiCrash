@@ -75,11 +75,11 @@ public class ViolationManagement {
 
         player.channel.eventLoop().execute(() -> ChannelCloseInspection.close(player.channel));
 
-        if (player.isBukkitReady() && player.isOnlineBukkit()) {
+        if (player.linkedBukkit() && player.isOnlineBukkit()) {
             player.kick();
         }
 
-        if (validation != null && player.isBukkitReady()) {
+        if (validation != null && player.linkedBukkit()) {
             HoneyPlugin.get().getNotificationService().warn(player, validation.getName(), violationKey);
         }
     }

@@ -1,6 +1,6 @@
 package me.alek.honey.util.reflection;
 
-import me.alek.honey.util.Paper;
+import me.alek.honey.compat.Paper;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 

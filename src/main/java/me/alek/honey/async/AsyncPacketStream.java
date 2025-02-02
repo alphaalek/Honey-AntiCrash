@@ -3,7 +3,6 @@ package me.alek.honey.async;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.lang.Lang;
-import net.kyori.adventure.text.Component;
 
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -64,7 +63,7 @@ public class AsyncPacketStream implements TaskSupplier<Object> {
                 return;
             }
 
-            if (player.isBukkitReady()) {
+            if (player.linkedBukkit()) {
                 long time = System.currentTimeMillis() - lastHandledTask.get();
                 if (time > 200) {
                     HoneyPlugin.get().getNotificationService().showQuarantinedAsyncWorker(player, System.currentTimeMillis() - lastHandledTask.get());

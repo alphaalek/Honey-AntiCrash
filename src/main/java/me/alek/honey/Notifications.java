@@ -253,7 +253,7 @@ public class Notifications {
 
     public void showPacketFilterActionBar(HoneyPlayer player, boolean increment, boolean incrementCancelled) {
         if (!ConfigurationOptions.Messages.PACKET_FILTER_ENABLED
-                || !player.isBukkitReady()
+                || !player.linkedBukkit()
                 || !player.isOnlineBukkit()) {
             return;
         }
@@ -307,7 +307,7 @@ public class Notifications {
 
     public void showQuarantinedAsyncWorker(HoneyPlayer player, long time) {
         if (!ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER_ENABLED
-                || !player.isBukkitReady()
+                || !player.linkedBukkit()
                 || !player.isOnlineBukkit()) {
             return;
         }

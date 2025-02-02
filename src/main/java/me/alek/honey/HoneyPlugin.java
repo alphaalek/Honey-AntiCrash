@@ -12,7 +12,6 @@ import me.alek.honey.configuration.Configuration;
 import me.alek.honey.configuration.DedicatedConfiguration;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.listeners.DispenserListener;
-import me.alek.honey.listeners.PlayerQuitListener;
 import me.alek.honey.listeners.TabCompleteListener;
 import me.alek.honey.listeners.TeleportListener;
 import me.alek.honey.monitor.MonitorManager;
@@ -300,7 +299,6 @@ public class HoneyPlugin implements HoneyAPI {
         new Metrics(this.plugin, 19028);
 
         // setup listeners
-        Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this.plugin);
         Bukkit.getPluginManager().registerEvents(new TeleportListener(), this.plugin);
         Bukkit.getPluginManager().registerEvents(new DispenserListener(), this.plugin);
 

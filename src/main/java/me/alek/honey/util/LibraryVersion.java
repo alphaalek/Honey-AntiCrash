@@ -7,17 +7,17 @@ public class LibraryVersion {
 
     private int[] versionIntArray;
 
-    public LibraryVersion(final int... version) {
+    public LibraryVersion(int... version) {
         this.versionIntArray = version;
     }
 
-    public LibraryVersion(final String version) {
+    public LibraryVersion(String version) {
         String[] versionIntegers = version.split("\\.");
 
         int length = versionIntegers.length;
         this.versionIntArray = new int[length];
         for (int i = 0; i < length; i++) {
-            versionIntArray[i] = Integer.parseInt(versionIntegers[i].split("-")[0]);
+            this.versionIntArray[i] = Integer.parseInt(versionIntegers[i].split("-")[0]);
         }
 
         if (version.contains("-b")) {
@@ -31,12 +31,12 @@ public class LibraryVersion {
     }
 
     public int compareTo(LibraryVersion version) {
-        int localLength = versionIntArray.length;
+        int localLength = this.versionIntArray.length;
         int oppositeLength = version.versionIntArray.length;
         int length = Math.max(localLength, oppositeLength);
 
         for (int i = 0; i < length; i++) {
-            int localInteger = i < localLength ? versionIntArray[i] : 0;
+            int localInteger = i < localLength ? this.versionIntArray[i] : 0;
             int oppositeInteger = i < oppositeLength ? version.versionIntArray[i] : 0;
             if (localInteger > oppositeInteger) {
                 return 1;
@@ -57,7 +57,7 @@ public class LibraryVersion {
     }
 
     public int[] asArray() {
-        return versionIntArray;
+        return this.versionIntArray;
     }
 
     @Override
@@ -66,21 +66,21 @@ public class LibraryVersion {
             return false;
         }
         if (obj instanceof LibraryVersion) {
-            return Arrays.equals(versionIntArray, ((LibraryVersion) obj).versionIntArray);
+            return Arrays.equals(this.versionIntArray, ((LibraryVersion) obj).versionIntArray);
         }
         return false;
     }
 
     @Override
     public LibraryVersion clone() {
-        return new LibraryVersion(versionIntArray);
+        return new LibraryVersion(this.versionIntArray);
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(versionIntArray.length * 2 - 1).append(versionIntArray[0]);
-        for (int i = 1; i < versionIntArray.length; i++) {
-            sb.append(".").append(versionIntArray[i]);
+        StringBuilder sb = new StringBuilder(this.versionIntArray.length * 2 - 1).append(this.versionIntArray[0]);
+        for (int i = 1; i < this.versionIntArray.length; i++) {
+            sb.append(".").append(this.versionIntArray[i]);
         }
         return sb.toString();
     }

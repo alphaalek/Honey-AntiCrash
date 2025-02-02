@@ -1,4 +1,4 @@
-package me.alek.honey.util;
+package me.alek.honey.compat;
 
 import org.bukkit.Bukkit;
 

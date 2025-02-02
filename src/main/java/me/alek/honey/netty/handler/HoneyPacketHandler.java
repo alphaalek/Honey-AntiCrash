@@ -2,8 +2,6 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -20,7 +18,6 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -47,7 +44,6 @@ public class HoneyPacketHandler {
     private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
     private EmulatorCodec<Object, PacketDataSerializer> clientboundProtocol;
     private EmulatorCodec<Object, PacketDataSerializer> serverboundProtocol;
-    private String playerName = UNKNOWN;
 
     private boolean configuringClientbound;
     private boolean configuringServerbound;
@@ -67,17 +63,8 @@ public class HoneyPacketHandler {
         return this.player;
     }
 
-    public void setPlayerName(String playerName) {
-        this.player.name = playerName;
-        this.playerName = playerName;
-    }
-
     public void hasCompression() {
         this.hasCompression = true;
-    }
-
-    public String getPlayerName() {
-        return this.playerName;
     }
 
     public ProtocolSwapHandler getProtocolSwapHandler() {
@@ -148,11 +135,11 @@ public class HoneyPacketHandler {
 
     public void setProtocolState(PacketBound bound, PacketState state) {
         if (bound.equals(PacketBound.SERVER)) {
-            this.channel.config().setAutoRead(true);
             this.serverboundProtocolState = state;
             this.serverboundProtocol = getCodecFor(bound, state);
             updateProtocol(PacketBound.SERVER);
         }
+
         if (bound.equals(PacketBound.CLIENT)) {
             this.clientboundProtocolState = state;
             this.clientboundProtocol = getCodecFor(bound, state);

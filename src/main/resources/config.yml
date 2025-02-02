@@ -257,7 +257,7 @@ item-analysis:
     max-nbt-bases: 512
     # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)
     max-nbt-nesting: 8
-    # May skulls/heads not have invalid textures. Can be exploited to crash servers below Minecraft Version 1.10.2
+    # May player heads not have invalid textures. Can be exploited to crash servers up to 1.10.2
     check-illegal-skull-textures: true
 
 ############################################################

@@ -4,12 +4,10 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
-import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 
 import java.util.*;
@@ -293,7 +291,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                 packet = new InternalPacketContainer<>(objectPacket, player, type, null);
             }
 
-            if (packet.getState().equals(PacketState.PLAY) && !packet.getPlayer().isBukkitReady()) {
+            if (packet.getState().equals(PacketState.PLAY) && !packet.getPlayer().linkedBukkit()) {
                 // shouldn't happen
                 return packet;
             }

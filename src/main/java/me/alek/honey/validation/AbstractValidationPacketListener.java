@@ -7,7 +7,6 @@ import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
@@ -36,7 +35,7 @@ public abstract class AbstractValidationPacketListener<WP extends SourcedWrapped
 
     @Override
     public void onPacketStream(HoneyPlayer player, PacketBound bound, PacketContainer<WP> packet) {
-        if (!player.isStreamActive() || requiresPlayer() && !player.isBukkitReady()) {
+        if (!player.isStreamActive() || requiresPlayer() && !player.linkedBukkit()) {
             return;
         }
 

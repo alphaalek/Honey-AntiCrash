@@ -1,6 +1,9 @@
 package me.alek.honey.util;
 
+import org.bukkit.Bukkit;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class IDRegistry {
@@ -9,6 +12,8 @@ public class IDRegistry {
     public static final IDRegistry CHECKS = new IDRegistry();
     public static final IDRegistry TRACKER_CONTEXT = new IDRegistry();
     public static final IDRegistry PLAYERS = IDRegistry.create(1);
+
+    private static final int EMPTY = -1;
 
     private int[] ids = new int[0];
 
@@ -44,53 +49,48 @@ public class IDRegistry {
     }
 
     public synchronized int acquire() {
-        try {
-            int i = 0;
-            for (int id : ids) {
-                if (id == -1) return ids[i] = i;
-                ++i;
-            }
-            int[] newIds = new int[ids.length + 1];
-            System.arraycopy(ids, 0, newIds, 0, ids.length);
-            ids = newIds;
-            return ids[ids.length - 1] = ids.length - 1;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return 0;
+        int i = 0;
+        for (int id : this.ids) {
+            if (id == EMPTY) return this.ids[i] = i;
+            ++i;
         }
+        int[] newIds = new int[this.ids.length + 1];
+        System.arraycopy(this.ids, 0, newIds, 0, this.ids.length);
+        this.ids = newIds;
+        return this.ids[this.ids.length - 1] = this.ids.length - 1;
     }
 
     public synchronized void add(int id) {
-        if (id >= ids.length) {
+        if (id >= this.ids.length) {
             int[] newIds = new int[id + 1];
-            System.arraycopy(ids, 0, newIds, 0, ids.length);
-            ids = newIds;
+            System.arraycopy(this.ids, 0, newIds, 0, this.ids.length);
+            this.ids = newIds;
         }
-        ids[id] = id;
+        this.ids[id] = id;
     }
 
     public synchronized void remove(int id) {
-        ids[id] = -1;
+        this.ids[id] = EMPTY;
         int maxId = 0;
-        for (int id0 : ids) {
-            if (id0 != -1) maxId = id0 - 1;
+        for (int id0 : this.ids) {
+            if (id0 != EMPTY) maxId = id0;
         }
-        if (maxId < ids.length - 1) {
-            int[] newIds = new int[maxId + 2];
-            System.arraycopy(ids, 0, newIds, 0, newIds.length);
-            ids = newIds;
+        if (maxId < this.ids.length - 1) {
+            int[] newIds = new int[maxId + 1];
+            System.arraycopy(this.ids, 0, newIds, 0, newIds.length);
+            this.ids = newIds;
         }
     }
 
     public boolean hasID(int id) {
-        return ids.length > id && ids[id] != -1;
+        return this.ids.length > id && this.ids[id] != EMPTY;
     }
 
     public int[] getIDs() {
-        return ids;
+        return this.ids;
     }
 
     public int size() {
-        return ids.length;
+        return this.ids.length;
     }
 }

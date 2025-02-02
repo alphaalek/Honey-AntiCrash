@@ -43,8 +43,8 @@ public class SignValidations extends AbstractValidationPacketListener<WrappedPla
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInUpdateSign packet, ValidationPipelineContext context) {
-            List<JsonObject> legacyChatComponentPages = packet.getLegacyJsonPages();
-            for (JsonObject page : legacyChatComponentPages) {
+            List<JsonObject> lines = packet.getLegacyJsonLines();
+            for (JsonObject page : lines) {
                 if (!page.has("text")) {
                     return ValidationViolationContext.FLAG;
                 }

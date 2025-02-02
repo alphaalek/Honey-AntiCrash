@@ -146,7 +146,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         try {
             // initialize packet container
             PacketType type = this.packetHandler.getPacketType(serializer, false, this.packetHandler.getSimulatedServerboundProtocolState(), PacketBound.SERVER, true);
-            Bukkit.getLogger().info("Filter " + type + " " + ctx.channel().config().isAutoRead());
             if (type == null) {
                 // invalid packet
                 serializer.resetReaderIndex();

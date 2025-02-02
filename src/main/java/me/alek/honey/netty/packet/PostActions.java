@@ -1,7 +1,7 @@
 package me.alek.honey.netty.packet;
 
+import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.injector.ChannelCloseInspection;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -31,6 +31,7 @@ public class PostActions {
                 ChannelCloseInspection.close(packet.getChannel());
             }
 
+            packet.getPlayer().phase = HoneyPlayer.Phase.LOGGING_IN;
             packet.getPacketHandler().handleViaClientboundInterceptor();
         }));
 
@@ -40,10 +41,10 @@ public class PostActions {
         }));
 
         packetProcessor.addPostAction(PacketTypes.Login.Client.HELLO, Callback.Action.<PacketContainer<WrappedLoginInLoginStart>>from(packet -> {
-            String name = packet.getAnyWrapped().getUsername();
-            NMS.submitChannelForName(name, packet.getChannel());
+            WrappedLoginInLoginStart helloPacket = packet.getAnyWrapped();
 
-            packet.getPacketHandler().setPlayerName(name);
+            packet.getPlayer().setupHello(helloPacket);
+            NMS.submitChannelForName(packet.getPlayerName(), packet.getChannel());
         }));
 
         packetProcessor.addPostAction(PacketTypes.Login.Server.LOGIN_SUCCESS, Callback.Action.<PacketContainer<?>>from(packet -> {

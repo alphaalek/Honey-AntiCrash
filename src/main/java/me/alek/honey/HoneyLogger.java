@@ -19,7 +19,6 @@ import me.alek.honey.tracker.temp.TempIntervalTracker;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.counter.DecayingWindowCounter;
 import me.alek.honey.util.statics.NumberUtils;
-import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -64,7 +63,7 @@ public class HoneyLogger {
                 packet.log();
 
                 if (monitorManager.hasMonitorers()) {
-                    if (player.isBukkitReady()) {
+                    if (player.linkedBukkit()) {
                         long time = System.currentTimeMillis();
                         // register to packet rate
                         synchronized (packetRate) {
@@ -194,7 +193,7 @@ public class HoneyLogger {
     }
 
     public void logToMonitors(HoneyPlayer player, PacketContainer<?> packet) {
-        if (player.isBukkitReady() && this.monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
+        if (player.linkedBukkit() && this.monitorManager.isMonitored(player) && ConfigurationOptions.Monitor.ENABLE_PACKET_LOGGER
                 && (packet == null || !ConfigurationOptions.Monitor.IGNORED_PACKETS.contains(packet.getType().toString()))) {
             synchronized (this) {
                 Queue<PacketType> recentPackets = HoneyLogger.this.recentPackets.computeIfAbsent(player.uuid, (d) -> new LinkedList<>());

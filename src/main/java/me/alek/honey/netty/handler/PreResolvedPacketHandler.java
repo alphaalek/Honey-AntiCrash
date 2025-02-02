@@ -9,8 +9,10 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
 import java.util.function.Function;
 
@@ -38,6 +40,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             case SERVER:
                 PacketContainer<WP> packet = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
                 if (packet != null && packet.isHandled()) {
+                    InboundPacketFilter.removeMarker();
                     return packet;
                 }
                 PacketContainer<WP> newPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(this.packetHandler.getPlayer(), msg, packet);

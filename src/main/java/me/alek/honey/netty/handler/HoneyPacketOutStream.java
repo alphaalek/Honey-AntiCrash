@@ -68,7 +68,7 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
 
         // TODO fix
         if (true || !ConfigurationOptions.AsyncDecoder.ENABLED
-                || !this.player.isBukkitReady()
+                || !this.player.linkedBukkit()
                 || !PacketInterceptorResolver.hasDecoderHandler(ctx.pipeline())) {
             write0(ctx, msg, promise);
         } else {

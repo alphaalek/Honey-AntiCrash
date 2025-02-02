@@ -21,7 +21,6 @@ public class WrappedPlayInUpdateSign extends ObjectWrappedPacket<WrappedPlayInUp
     static {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
             iChatBaseComponentArrayClass = Reflection.getArrayClass(NMS.getIChatBaseComponentClass());
-
             textComponentGetter = Reflection.getMethod(NMS.getIChatBaseComponentClass(), "getText");
         }
     }
@@ -48,25 +47,25 @@ public class WrappedPlayInUpdateSign extends ObjectWrappedPacket<WrappedPlayInUp
         return (Object[]) getContainer().getStructure().getObjectsOf(iChatBaseComponentArrayClass).readField(0);
     }
 
-    public List<JsonObject> getLegacyJsonPages() {
+    public List<JsonObject> getLegacyJsonLines() {
         if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_8_8)) {
             return new ArrayList<>();
         }
 
-        List<JsonObject> pages = new ArrayList<>();
-        for (Object chatBaseComponent : getChatBaseComponents()) {
-            if (!NMS.getIChatBaseComponentClass().isAssignableFrom(chatBaseComponent.getClass())) {
+        List<JsonObject> lines = new ArrayList<>();
+        for (Object component : getChatBaseComponents()) {
+            if (!NMS.getIChatBaseComponentClass().isAssignableFrom(component.getClass())) {
                 continue;
             }
 
             try {
-                JsonElement json = ItemFactory.chatComponentToJson(chatBaseComponent);
+                JsonElement json = ItemFactory.chatComponentToJson(component);
                 if (json.isJsonObject()) {
-                    pages.add(json.getAsJsonObject());
+                    lines.add(json.getAsJsonObject());
                 } else if (json.isJsonPrimitive()) {
                     JsonObject page = new JsonObject();
                     page.add("text", json);
-                    pages.add(page);
+                    lines.add(page);
                 } else {
                     throw new IllegalStateException("Illegal json type: " + json);
                 }
@@ -75,6 +74,6 @@ public class WrappedPlayInUpdateSign extends ObjectWrappedPacket<WrappedPlayInUp
             }
         }
 
-        return pages;
+        return lines;
     }
 }

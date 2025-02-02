@@ -74,7 +74,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
 
         packet.getEventloopStateTimings().stopTimings();
 
-        if (this.player.isBukkitReady()) {
+        if (this.player.linkedBukkit()) {
             HoneyPlugin.get().getNettyPacketTracker().registerTime(player,
                     packet.getEventloopStateTimings().getTimeFor(LifecycleState.HONEY_HANDLE)
                             + packet.getEventloopStateTimings().getTimeFor(LifecycleState.IN_BETWEEN)
@@ -252,7 +252,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             // TODO:
             // force sync packet stream until fixed
             if (true || !ConfigurationOptions.AsyncDecoder.ENABLED
-                    || !this.player.isBukkitReady()
+                    || !this.player.linkedBukkit()
                     || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
                 invokeRead(packet, ctx, buf);
                 return false;

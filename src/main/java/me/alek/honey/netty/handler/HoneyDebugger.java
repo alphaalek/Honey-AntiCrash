@@ -40,7 +40,6 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
             ex.printStackTrace();
         }
 
-        this.player.online = false;
         ChannelCloseInspection.close(ctx.channel());
     }
 

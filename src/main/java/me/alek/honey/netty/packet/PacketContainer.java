@@ -80,12 +80,14 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
     }
 
     default String getPlayerName() {
-        // if this is called before HELLO post action, the player name is not yet updated
-        if (getType() == PacketTypes.Login.Client.HELLO) {
-            return ((WrappedLoginInLoginStart) getAnyWrapped()).getUsername();
+        String name = getPlayer().name;
+        if (name.equals("Unknown")) {
+            // if this is called before HELLO post action, the player name is not yet updated
+            if (getType() == PacketTypes.Login.Client.HELLO) {
+                return ((WrappedLoginInLoginStart) getAnyWrapped()).getUsername();
+            }
         }
-
-        return getPacketHandler().getPlayerName();
+        return name;
     }
 
     boolean isCancelled();

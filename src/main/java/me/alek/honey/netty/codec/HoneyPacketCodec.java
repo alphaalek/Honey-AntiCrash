@@ -3,7 +3,6 @@ package me.alek.honey.netty.codec;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.CodecException;
 import io.netty.handler.codec.DecoderException;
-import io.netty.handler.codec.EncoderException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -59,7 +58,7 @@ public class HoneyPacketCodec {
                         callback.apply(DisabledNBTCodec.WINDOW_CLICK);
                     } else if (type.equals(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
                             && ConfigurationOptions.Decoder.DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE
-                            && player.isBukkitReady() && !player.bukkit.getGameMode().equals(GameMode.CREATIVE)) {
+                            && player.linkedBukkit() && !player.bukkit.getGameMode().equals(GameMode.CREATIVE)) {
                         // don't apply anything
                     } else {
                         callback.apply(LegacyCodec.createDefault(type, PacketBound.SERVER));

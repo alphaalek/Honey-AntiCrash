@@ -131,7 +131,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                 if (vc.cancelled) {
                     cancellable.cancel();
                 }
-                if (vc.flag != -1 && player.isBukkitReady()) {
+                if (vc.flag != -1 && player.linkedBukkit()) {
                     ViolationKey violationKey = new ViolationKey(validation, Optional.ofNullable(vc.violationKey).orElse(fallbackKey));
                     ValidationPipelineContext.DevelopmentData developmentData = pipelineContext.usesDevelopmentData() ? pipelineContext.getDevelopmentData(violationKey) : null;
 

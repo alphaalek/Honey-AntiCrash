@@ -100,8 +100,6 @@ public class PacketInterceptorResolver {
             }
         });
 
-        pipeline.channel().read();
-
         AtomicReference<String> prev = new AtomicReference<>();
         List<String> handlers = setupInterceptorEnv(pipeline, true, handler -> handler instanceof ChannelInboundHandler,
             handler -> new WrappedChannelInboundHandler((ChannelInboundHandler) handler) {

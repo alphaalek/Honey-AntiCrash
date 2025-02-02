@@ -3,8 +3,6 @@ package me.alek.honey.validation.item;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.mapper.MappedEntity;
-import me.alek.honey.util.MaterialMappings;
-import org.bukkit.Material;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
