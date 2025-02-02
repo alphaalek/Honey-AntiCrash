@@ -33,6 +33,10 @@ public class PlayerInfoCommand implements CommandImpl {
         } else if (player.bypassServerThreadTracking()) {
             sender.sendMessage("§cThis player bypasses server thread tracking!");
         }
+
+        if (player.floodgate) {
+            sender.sendMessage("§7This player is connected with Floodgate.");
+        }
     }
 
     @Override

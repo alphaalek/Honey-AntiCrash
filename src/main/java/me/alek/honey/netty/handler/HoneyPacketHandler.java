@@ -32,6 +32,7 @@ public class HoneyPacketHandler {
 
     public static final ThreadLocal<PacketContainer<?>> MARK = new ThreadLocal<>();
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
+    private final long tickInitialized = HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick();
     private final Channel channel;
     private final HoneyPlayer player;
     private boolean hasCompression;

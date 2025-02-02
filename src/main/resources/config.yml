@@ -242,7 +242,7 @@ item-analysis:
     # How many bytes may a NBT string be.
     max-nbt-string-length: 1250
     # How many bytes may the NBT of a firework have. This is also for firework charges.
-    max-firework-nbt-length: 2500
+    max-firework-nbt-length: 5000
     # How many bytes may the NBT of a book have.
     max-book-nbt-length: 15000
     # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 100 pages. (in 1.8 only 50 pages)

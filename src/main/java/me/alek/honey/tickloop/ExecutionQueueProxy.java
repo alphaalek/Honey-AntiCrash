@@ -49,7 +49,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             return;
         }
 
-        DelegatedWrapper queueWrapper = executionQueue = new DelegatedWrapper((Queue<Object>) queueAccessor.get(minecraftServer));
+        DelegatedWrapper queueWrapper = this.executionQueue = new DelegatedWrapper((Queue<Object>) queueAccessor.get(minecraftServer));
         try {
             Reflection.setFinalField(minecraftServer, queueAccessor, queueWrapper);
         } catch (Exception ex) {
@@ -58,11 +58,11 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
     }
 
     public int getCurrentExecutionTick() {
-        return doneExecutionTicks + (executing ? 1 : 0);
+        return this.doneExecutionTicks + (this.executing ? 1 : 0);
     }
 
     public Queue<Object> getExecutionQueue() {
-        return executionQueue;
+        return this.executionQueue;
     }
 
     public TempIntervalTracker getPropertyTracker(HoneyPlayer player) {
@@ -111,14 +111,14 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             super(new LinkedList<>(delegate));
 
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
-                tickTaskConstructor = Reflection.getConstructor((tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class);
-                EMPTY_TICK_TASK = tickTaskConstructor.invoke(0, Runnables.doNothing());
+                this.tickTaskConstructor = Reflection.getConstructor((this.tickTaskClass = NMS.getTickTaskClass()), int.class, Runnable.class);
+                EMPTY_TICK_TASK = this.tickTaskConstructor.invoke(0, Runnables.doNothing());
             } else {
                 EMPTY_TICK_TASK = null;
             }
 
             if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)) {
-                tickTaskConstructor = null;
+                this.tickTaskConstructor = null;
             }
         }
 
@@ -133,15 +133,15 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
         }
 
         private Object newTickTask(Runnable runnable, int currentTick) {
-            if (tickTaskConstructor == null) {
+            if (this.tickTaskConstructor == null) {
                 return runnable;
             }
 
-            return tickTaskConstructor.invoke(currentTick, runnable);
+            return this.tickTaskConstructor.invoke(currentTick, runnable);
         }
 
         private Object getEmptyTask() {
-            return newTickTask(new FutureTask<>(Callables.returning(null)), tickAccessor.get());
+            return newTickTask(new FutureTask<>(Callables.returning(null)), this.tickAccessor.get());
         }
 
         @Override
@@ -172,22 +172,22 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             executing = true;
             Object poll = super.poll();
             if (poll != null && poll != EMPTY_VALUE) {
-                if (recentPollStart != -1) {
-                    recentDeltaTime = getDeltaTime();
+                if (this.recentPollStart != -1) {
+                    this.recentDeltaTime = getDeltaTime();
                 }
-                recentPollStart = -1;
+                this.recentPollStart = -1;
 
                 return getOtherTask(poll);
             }
 
-            if (recentPollStart != -1 && recentPacket != null) {
+            if (this.recentPollStart != -1 && this.recentPacket != null) {
                 handleTimings();
             }
 
-            WrappedPacketTask task = submitQueue.poll(currentPollIndex++, false);
-            recentPacket = Optional.ofNullable(task).map(WrappedPacketTask::getPacket).orElse(null);
+            WrappedPacketTask task = this.submitQueue.poll(this.currentPollIndex++, false);
+            this.recentPacket = Optional.ofNullable(task).map(WrappedPacketTask::getPacket).orElse(null);
 
-            recentPollStart = -1;
+            this.recentPollStart = -1;
             if (task == null) {
                 tickLoopExecutionDone();
                 return null;
@@ -230,7 +230,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 return getEmptyTask();
             }
 
-            recentPollStart = System.nanoTime();
+            this.recentPollStart = System.nanoTime();
             return newTickTask(task.getPacketTask(), doneTicks);
         }
 
@@ -268,7 +268,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
 
             super.add(EMPTY_VALUE);
 
-            submitQueue.add(task);
+            this.submitQueue.add(task);
             return true;
         }
 
@@ -340,22 +340,22 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
 
         private void handleTimings() {
             // evaluate the difference in time
-            long deltaTime = recentDeltaTime != -1 ? recentDeltaTime : getDeltaTimeExact(recentPacket);
-            if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_13_1)
-                    && isPositionPacket(recentPacket)) {
+            long deltaTime = this.recentDeltaTime != -1 ? this.recentDeltaTime : getDeltaTimeExact(this.recentPacket);
+            if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_13)
+                    && isPositionPacket(this.recentPacket)) {
                 deltaTime = Math.min(deltaTime, ConfigurationOptions.Postpone.MAX_POSITION_TIME_REGISTER * Timespan.MILLIS_TO_NANO_MULTIPLIER);
             }
-            registerTime(recentPacket.getPlayer(), deltaTime);
+            registerTime(this.recentPacket.getPlayer(), deltaTime);
 
-            recentDeltaTime = -1;
-            recentPacket = null;
+            this.recentDeltaTime = -1;
+            this.recentPacket = null;
         }
 
         private void tickLoopExecutionDone() {
-            currentPollIndex = 0;
-            recentPollStart = -1;
-            submitQueue = submitQueue.compact(collector);
-            collector.clear();
+            this.currentPollIndex = 0;
+            this.recentPollStart = -1;
+            this.submitQueue = this.submitQueue.compact(this.collector);
+            this.collector.clear();
 
             HoneyPlugin.get().getLogger().registerQueueExecutionStop();
 
@@ -363,7 +363,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 HoneyPlugin.get().getLogger().getLogger().info("Server thread was interrupted by packet. Clearing interrupted flag.");
             }
 
-            doneTicks = tickAccessor.get();
+            doneTicks = this.tickAccessor.get();
             doneExecutionTicks++;
             executing = false;
         }
