@@ -17,9 +17,9 @@ public class WrappedLoginInLoginStart extends ByteInWrappedPacket<WrappedLoginIn
 
     @Property
     private final String username;
-    @Property
+    @Property(from = @NetProtocol.From(from = NetProtocol.v1_19_1))
     private UUID UUID;
-    @Property
+    @Property(from = @NetProtocol.From(from = NetProtocol.v1_19), to = @NetProtocol.To(to = NetProtocol.v1_19_3))
     private SignatureData signatureData;
 
     public WrappedLoginInLoginStart(PacketDataSerializer serializer, PacketContainer<WrappedLoginInLoginStart> packet) {
