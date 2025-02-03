@@ -1,10 +1,15 @@
-package me.alek.honey.netty.packet;
+package me.alek.honey.netty.processor;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.packet.InternalPacketContainer;
+import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.packet.PacketExecutor;
+import me.alek.honey.netty.packet.PacketListener;
 import me.alek.honey.netty.packet.type.*;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
+import me.alek.honey.netty.processor.PacketHandleException;
 import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
@@ -40,7 +45,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         }
 
         @SuppressWarnings("unchecked")
-        public void callObjectPacketProcess(HoneyPlayer player, PacketContainer<?> packet) {
+        public void callObjectPacketProcess(HoneyPlayer player, PacketContainer<?> packet) throws PacketHandleException {
             callPipeline(PacketContainer.PipelineState.OBJECT, listener -> {
                 try {
                     if (packet.getType().getBound().equals(PacketBound.SERVER)) {
@@ -49,15 +54,13 @@ public class InternalPacketProcessor implements PacketProcessor {
                         listener.onObjectPacketSend(player, (PacketContainer<WP>) packet);
                     }
                 } catch (Exception ex) {
-                    Bukkit.getLogger().log(Level.SEVERE, "Error occurred in packet task: " + packet.getPlayerName() + ", " + packet.getType() + ", " + packet.getState(), ex);
-
-                    packet.cancel();
+                    throw new PacketHandleException("Error occurred in packet task: " + player.name + ", " + packet.getType() + ", bound " + packet.getType().getBound() + ", " + packet.getState(), ex);
                 }
             });
         }
 
         @SuppressWarnings("unchecked")
-        public void callBytePacketProcess(HoneyPlayer player, PacketContainer.PipelineState state, PacketContainer<?> packet) {
+        public void callBytePacketProcess(HoneyPlayer player, PacketContainer.PipelineState state, PacketContainer<?> packet) throws PacketHandleException {
             if (state == PacketContainer.PipelineState.OBJECT) {
                 throw new IllegalArgumentException("Object state");
             }
@@ -66,9 +69,7 @@ public class InternalPacketProcessor implements PacketProcessor {
                 try {
                     listener.onBytePacketReceive(player, (PacketContainer<WP>) packet);
                 } catch (Exception ex) {
-                    Bukkit.getLogger().log(Level.SEVERE, "Error occurred in packet task: " + packet.getPlayerName() + ", " + packet.getType() + ", " + packet.getState(), ex);
-
-                    packet.cancel();
+                    throw new PacketHandleException("Error occurred in packet task: " + player.name + ", " + packet.getType() + ", bound " + packet.getType().getBound() + ", " + packet.getState(), ex);
                 }
             });
         }
@@ -248,7 +249,7 @@ public class InternalPacketProcessor implements PacketProcessor {
         return false;
     }
 
-    private void call(PacketType type, Consumer<EventBus<?>> callToEventBus) {
+    private void call(PacketType type, Consumer<EventBus<?>> callToEventBus) throws PacketHandleException {
         if (PacketTypes.isUnknown(type)
                 || !this.eventBusses.has(type)) {
             return;
@@ -258,17 +259,17 @@ public class InternalPacketProcessor implements PacketProcessor {
     }
 
     @Override
-    public void callObjectPacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) {
+    public void callObjectPacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) throws PacketHandleException {
         call(packet.getType(), bus -> bus.callObjectPacketProcess(player, packet));
     }
 
     @Override
-    public void callInitialBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) {
+    public void callInitialBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) throws PacketHandleException {
         call(packet.getType(), bus -> bus.callBytePacketProcess(player, PacketContainer.PipelineState.INITIAL_BYTE, packet));
     }
 
     @Override
-    public void callFinalBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) {
+    public void callFinalBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) throws PacketHandleException {
         call(packet.getType(), bus -> bus.callBytePacketProcess(player, PacketContainer.PipelineState.FINAL_BYTE, packet));
     }
 

@@ -8,7 +8,7 @@ import me.alek.honey.compat.via.ViaHandlers;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelInboundHandler;
 import me.alek.honey.netty.handler.wrappers.WrappedChannelOutboundHandler;
-import me.alek.honey.netty.injector.ChannelCloseInspection;
+import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.packet.PacketFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class PacketInterceptorResolver {
 
@@ -111,7 +112,7 @@ public class PacketInterceptorResolver {
 
                     String name = ctx.name().substring(0, ctx.name().length() - INTERCEPTOR.length());
                     if (!(o instanceof ByteBuf)) {
-                        position.set(prev.get());
+                        position.set(prev.get() != null ? prev.get() : name);
                         return;
                     }
                     try {
@@ -126,11 +127,6 @@ public class PacketInterceptorResolver {
                     } catch (Exception ignored) {
                         // to do nothing
                     }
-                }
-
-                @Override
-                public void handlerRemoved(ChannelHandlerContext ctx) {
-                    // to do nothing
                 }
             }
         );
@@ -190,6 +186,7 @@ public class PacketInterceptorResolver {
                 }
             }
         );
+
         pipeline.channel().writeAndFlush(raw);
 
         return handlers;
@@ -199,27 +196,37 @@ public class PacketInterceptorResolver {
         List<String> wrappedHandlers = new ArrayList<>();
         String prevName = null;
 
-        List<String> names = pipeline.names();
-        Collections.reverse(names);
+        List<String> names = pipeline.names().stream()
+                .filter(ch -> pipeline.context(ch) != null) // filter head and tail context
+                .collect(Collectors.toList());
+        if (!asc) {
+            Collections.reverse(names);
+        }
 
         for (String name : names) {
             ChannelHandlerContext ctx = pipeline.context(name);
-            if (ctx == null || !accept.test(ctx.handler())) {
+            if (!accept.test(ctx.handler())) {
                 continue;
             }
 
+            String interceptorName = name + INTERCEPTOR;
+
             String prevInterceptor = pipeline.get(prevName + INTERCEPTOR) != null ? prevName + INTERCEPTOR : prevName;
-            wrappedHandlers.add(name + INTERCEPTOR);
+            wrappedHandlers.add(interceptorName);
             ChannelHandler interceptor = handlerSupplier.apply(ctx.handler());
             try {
                 if (prevName == null) {
                     if (asc) {
-                        pipeline.addFirst(name + INTERCEPTOR, interceptor);
+                        pipeline.addFirst(interceptorName, interceptor);
                     } else {
-                        pipeline.addLast(name + INTERCEPTOR, interceptor);
+                        pipeline.addLast(interceptorName, interceptor);
                     }
                 } else {
-                    pipeline.addBefore(prevInterceptor, name + INTERCEPTOR, interceptor);
+                    if (asc) {
+                        pipeline.addAfter(prevInterceptor, interceptorName, interceptor);
+                    } else {
+                        pipeline.addBefore(prevInterceptor, interceptorName, interceptor);
+                    }
                 }
             } catch (Exception ignored) {
                 // to do nothing

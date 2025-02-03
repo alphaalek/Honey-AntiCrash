@@ -1,12 +1,10 @@
 package me.alek.honey.netty.structure.converters;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.codec.LegacyProtocol;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
-import me.alek.honey.netty.modelwrappers.WrappedChunkCoordinates;
 import me.alek.honey.netty.modelwrappers.objects.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
@@ -18,12 +16,8 @@ import me.alek.honey.netty.structure.converters.wrapper.SimpleListConverter;
 import me.alek.honey.netty.structure.converters.wrapper.SimpleMapConverter;
 import me.alek.honey.netty.structure.converters.wrapper.SimpleWrapperConverter;
 import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.ItemFactory;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,11 +53,11 @@ public class Converters {
                     return null;
                 }
 
-                if (!NMS.isBlockPosition(delegate)) {
+                if (!MinecraftReflection.isBlockPosition(delegate)) {
                     return null;
                 }
 
-                ReflectStructure<Object, ?> blockPositionStructure = ReflectStructure.Provider.acquireStructure(NMS.getBaseBlockPositionClass());
+                ReflectStructure<Object, ?> blockPositionStructure = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getBaseBlockPositionClass());
                 IStructureModifier<Integer> intStructure = blockPositionStructure.withInts().withTarget(delegate);
                 if (intStructure.fieldSize() < 3) {
                     throw new RuntimeException("Reflection error");
@@ -79,7 +73,7 @@ public class Converters {
                 }
 
                 ConstructorInvoker<Object> blockPositionConstructor = Reflection.getConstructor(
-                        NMS.getBlockPositionClass(), int.class, int.class, int.class);
+                        MinecraftReflection.getBlockPositionClass(), int.class, int.class, int.class);
                 try {
                     return blockPositionConstructor.invoke(
                             blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
@@ -98,7 +92,7 @@ public class Converters {
         return new JavaConverter<Object, PacketDataSerializer>() {
             @Override
             public PacketDataSerializer convertDelegate(Object delegate, Object... params) {
-                ByteBuf buf = ReflectStructure.Provider.acquireStructure(NMS.getPacketDataSerializerClass())
+                ByteBuf buf = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getPacketDataSerializerClass())
                         .withType(ByteBuf.class).withTarget(delegate)
                         .readField(0);
                 return new PacketDataSerializer(buf);

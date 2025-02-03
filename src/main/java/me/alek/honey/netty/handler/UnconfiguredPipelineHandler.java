@@ -5,28 +5,26 @@ import io.netty.channel.*;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import io.netty.util.ReferenceCountUtil;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.codec.CodecFactory;
+import me.alek.honey.netty.ChannelCloseInspection;
+import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.MethodInvoker;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
 
 import java.util.function.Consumer;
 
 public class UnconfiguredPipelineHandler {
-
-    private static final ConstructorInvoker<Object> PACKET_DECODER_CONST = new ConstructorInvoker<>(NMS.getPacketDecoderClass(), NMS.getProtocolInfoClass());
-    private static final ConstructorInvoker<Object> PACKET_ENCODER_CONST = new ConstructorInvoker<>(NMS.getPacketEncoderClass(), NMS.getProtocolInfoClass());
 
     public static class Inbound extends ChannelDuplexHandler {
 
         private boolean acceptInitial = true;
 
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            if (!this.acceptInitial && ((msg instanceof ByteBuf) || NMS.getPacketClass().isInstance(msg))) {
+            if (!this.acceptInitial && ((msg instanceof ByteBuf) || MinecraftReflection.getPacketClass().isInstance(msg))) {
                 ReferenceCountUtil.release(msg);
                 throw new DecoderException("Pipeline has no inbound protocol configured, can't process packet " + msg);
             }
@@ -39,6 +37,9 @@ public class UnconfiguredPipelineHandler {
             if (task != null) {
                 try {
                     task.accept(ctx);
+                    if (!(msg instanceof InboundConfigurationTask)) {
+                        relocate(ctx.channel());
+                    }
                     ReferenceCountUtil.release(msg);
                     promise.setSuccess();
                     return;
@@ -56,7 +57,7 @@ public class UnconfiguredPipelineHandler {
         private boolean acceptInitial = true;
 
         public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-            if (!this.acceptInitial && NMS.getPacketClass().isInstance(msg)) {
+            if (!this.acceptInitial && MinecraftReflection.getPacketClass().isInstance(msg)) {
                 ReferenceCountUtil.release(msg);
                 throw new EncoderException("Pipeline has no outbound protocol configured, can't process packet " + msg);
             }
@@ -65,6 +66,9 @@ public class UnconfiguredPipelineHandler {
             if (task != null) {
                 try {
                     task.accept(ctx);
+                    if (!(msg instanceof OutboundConfigurationTask)) {
+                        relocate(ctx.channel());
+                    }
                     ReferenceCountUtil.release(msg);
                     promise.setSuccess();
                     return;
@@ -112,21 +116,33 @@ public class UnconfiguredPipelineHandler {
     }
 
     public static InboundConfigurationTask setupInboundProtocolTask(PacketState state) {
-        return setupInboundHandler((ChannelInboundHandler) PACKET_DECODER_CONST.invoke(CodecFactory.getProtocolInfo1_20_5(PacketBound.SERVER, state)));
+        return setupInboundHandler(ModernCodecHandlerFactory.createDecodeHandler(state));
     }
 
     private static InboundConfigurationTask setupInboundHandler(ChannelInboundHandler handler) {
         return ctx -> {
             ctx.pipeline().replace(ctx.name(), MinecraftHandlers.DECODER, handler);
             ctx.channel().config().setAutoRead(true);
+            relocate(ctx.channel());
         };
     }
 
     public static OutboundConfigurationTask setupOutboundProtocolTask(PacketState state) {
-        return setupOutboundHandler((ChannelOutboundHandler) PACKET_ENCODER_CONST.invoke(CodecFactory.getProtocolInfo1_20_5(PacketBound.CLIENT, state)));
+        return setupOutboundHandler(ModernCodecHandlerFactory.createEncodeHandler(state));
     }
 
-    private static OutboundConfigurationTask setupOutboundHandler(ChannelOutboundHandler $$0) {
-        return ctx -> ctx.pipeline().replace(ctx.name(), MinecraftHandlers.ENCODER, $$0);
+    private static OutboundConfigurationTask setupOutboundHandler(ChannelOutboundHandler handler) {
+        return ctx -> {
+            ctx.pipeline().replace(ctx.name(), MinecraftHandlers.ENCODER, handler);
+            relocate(ctx.channel());
+        };
+    }
+
+    private static void relocate(Channel channel) {
+        try {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(channel);
+        } catch (MissingHandlerException ex) {
+            ChannelCloseInspection.close(channel);
+        }
     }
 }

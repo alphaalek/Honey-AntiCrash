@@ -2,6 +2,7 @@ package me.alek.honey.netty.injector;
 
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.ChannelCloseInspection;
 import org.bukkit.Bukkit;
 
 import java.util.logging.Level;

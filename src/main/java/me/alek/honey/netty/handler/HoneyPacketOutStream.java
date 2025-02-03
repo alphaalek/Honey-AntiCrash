@@ -2,8 +2,6 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
-import io.netty.handler.codec.MessageToByteEncoder;
-import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -16,19 +14,16 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.util.Callback;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Level;
 
 @ChannelHandler.Sharable
@@ -58,7 +53,7 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
     private void setupMethodInvoke(ChannelPipeline pipeline) {
         try {
             this.encoder = pipeline.get(PacketInterceptorResolver.getEncoderPosition(pipeline));
-            Method method = Reflection.getMethod(this.encoder.getClass(), 0, ChannelHandlerContext.class, NMS.getPacketClass(), ByteBuf.class).getHandle();
+            Method method = Reflection.getMethod(this.encoder.getClass(), 0, ChannelHandlerContext.class, MinecraftReflection.getPacketClass(), ByteBuf.class).getHandle();
             this.encodeInvoker = MethodHandles.lookup().unreflect(method);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to setup packet encoder environment!", ex);
@@ -112,10 +107,11 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
 
         PacketContainer<WP> packet = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().writeObjectPacket(this.player, msg);
         if (packet == null) {
+            promise.setSuccess();
             return;
         }
         if (packet.isHandled()) {
-            ctx.write(packet.getObjectWrapped().getHandle());
+            ctx.write(packet.getObjectWrapped().getHandle(), promise);
             return;
         }
         packet.handle();
@@ -135,6 +131,7 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = this.encodeInvoker.invokeWithArguments(new Object[]{this.encoder, ctx, buf, list});
                     if (list.isEmpty()) {
+                        promise.setSuccess();
                         return;
                     }
                     buf = new PacketDataSerializer((ByteBuf) list.get(0));
@@ -145,6 +142,8 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
                             "Error occurred while encoding packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
                                     + ") sent by " + this.player.name, ex);
                 }
+                promise.setSuccess();
+                return;
             }
 
             this.packetHandler.getProtocolSwapHandler().swapProtocolOutbound(packet);
@@ -156,6 +155,7 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
                 postAction.call(packet);
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             try {
                 super.exceptionCaught(ctx, ex);
             } catch (Exception ignored) {

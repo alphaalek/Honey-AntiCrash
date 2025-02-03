@@ -43,7 +43,7 @@ public class ComponentMap implements ItemTag {
                 throw new DecoderException("Invalid component map");
             }
 
-            List<ComponentType<?>> types = VersionComponentTypes.getComponents(this.protocol);
+            List<ComponentType<?>> available = VersionComponentTypes.getComponents(this.protocol);
 
             ItemType itemType = context.get();
             List<Val<?>> bases = itemType.getComponents().getDelegate().entrySet().stream()
@@ -52,7 +52,7 @@ public class ComponentMap implements ItemTag {
             if (absent > bases.size()) {
                 throw new DecoderException("Too many absent tags");
             }
-            if (present > types.size() - bases.size()) {
+            if (present > available.size() - bases.size()) {
                 throw new DecoderException("Too many present tags");
             }
 
@@ -63,7 +63,7 @@ public class ComponentMap implements ItemTag {
             ComponentMap map = new ComponentMap(bases);
             for (int i = 0; i < present; i++) {
                 ComponentType<Object> type = readType(serializer);
-                if (types.contains(type) &&
+                if (available.contains(type) &&
                         Optional.ofNullable(map.get(type))
                                 .map(Val::source)
                                 .orElse(ComponentSource.BASE)
@@ -78,7 +78,7 @@ public class ComponentMap implements ItemTag {
             }
             for (int i = 0; i < absent; i++) {
                 ComponentType<?> type = readType(serializer);
-                if (map.has(type) && types.contains(type)) {
+                if (map.has(type) && available.contains(type)) {
                     map.remove(readType(serializer));
                 } else {
                     throw new DecoderException("Invalid absent component type");

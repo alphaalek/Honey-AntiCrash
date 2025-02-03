@@ -17,7 +17,7 @@ import me.alek.honey.util.messages.MessageFormat;
 import me.alek.honey.util.messages.MessageOffer;
 import me.alek.honey.util.messages.Placeholders;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ViolationManagement;
@@ -197,14 +197,14 @@ public class Notifications {
     public int getPing(HoneyPlayer player) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17)) {
             IStructureModifier<Integer> craftPlayerModifier =
-                    ReflectStructure.Provider.acquireStructure(NMS.getCraftPlayerClass())
+                    ReflectStructure.Provider.acquireStructure(MinecraftReflection.getCraftPlayerClass())
                             .withInts().withTarget(player.bukkit);
 
             return craftPlayerModifier.invokeMethod(null, "getPing", 0);
         }
         IStructureModifier<Object> craftPlayerModifier =
-                ReflectStructure.Provider.acquireStructure(NMS.getCraftPlayerClass())
-                        .withType(NMS.getEntityPlayerClass()).withTarget(player.bukkit);
+                ReflectStructure.Provider.acquireStructure(MinecraftReflection.getCraftPlayerClass())
+                        .withType(MinecraftReflection.getEntityPlayerClass()).withTarget(player.bukkit);
 
         Object entityPlayer = craftPlayerModifier.invokeMethod(null, "getHandle", 0);
 
@@ -336,12 +336,12 @@ public class Notifications {
             packetContainer.getStructure().getBytes().writeField(0, (byte) 2);
 
             if (chatSerializer == null) {
-                chatSerializer = ReflectStructure.Provider.acquireStructure(NMS.getChatSerializerClass())
-                        .withType(NMS.getIChatBaseComponentClass())
+                chatSerializer = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getChatSerializerClass())
+                        .withType(MinecraftReflection.getIChatBaseComponentClass())
                         .withTarget(null);
             }
             Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
-            packetContainer.getStructure().getObjectsOf(NMS.getIChatBaseComponentClass()).writeField(0, chatComponent);
+            packetContainer.getStructure().getObjectsOf(MinecraftReflection.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
             HoneyPlugin.get().getPacketLibrary().getChannelManager().writeForcedPacket(player, actionBarPacket);
         } catch (Exception ex) {

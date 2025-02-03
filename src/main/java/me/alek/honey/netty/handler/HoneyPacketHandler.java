@@ -2,6 +2,7 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -16,8 +17,12 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.FieldAccessor;
+import me.alek.honey.util.reflection.MinecraftReflection;
+import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -39,9 +44,9 @@ public class HoneyPacketHandler {
     private boolean relocatedViaInterceptor;
     private ViaProtocol viaProtocol;
     private PacketState clientboundProtocolState = PacketState.HANDSHAKE;
+    private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
     private PacketState simulatedClientboundProtocolState = PacketState.HANDSHAKE;
     private PacketState simulatedServerboundProtocolState = PacketState.HANDSHAKE;
-    private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
     private EmulatorCodec<Object, PacketDataSerializer> clientboundProtocol;
     private EmulatorCodec<Object, PacketDataSerializer> serverboundProtocol;
 
@@ -121,16 +126,16 @@ public class HoneyPacketHandler {
     }
 
     public void updateProtocol(PacketBound bound) {
-        // emulate protocol swap handler if not handled in default codec handlers
-        if (NetProtocol.getProtocol().isBetween(NetProtocol.v1_20_2, NetProtocol.v1_20_4)
-                && !ConfigurationOptions.Decoder.USE_DEFAULT && hasResolvedBound(bound)) {
-            updateProtocolAttributeKey(bound);
+        if (!ConfigurationOptions.Decoder.USE_DEFAULT && hasResolvedBound(bound)) {
+            // emulate protocol swap handler if not handled in default codec handlers
+            if (NetProtocol.getProtocol().isBetween(NetProtocol.v1_20_2, NetProtocol.v1_20_4)) {
+                Attribute<Object> protocolAttribute = this.channel.attr(LegacyProtocol.getProtocolAttributeKey(this.channel, bound));
+                protocolAttribute.set(LegacyProtocol.getEnumProtocolDelegate(bound, getProtocolState(bound)).getHandle());
+            } else if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                ChannelHandler handler = ModernCodecHandlerFactory.createCodecHandler(bound, getProtocolState(bound));
+                this.channel.pipeline().replace(this.channel.pipeline().get(bound.getProtocolHandlerName()), bound.getProtocolHandlerName(), handler);
+            }
         }
-    }
-
-    private void updateProtocolAttributeKey(PacketBound bound) {
-        Attribute<Object> protocolAttribute = this.channel.attr(LegacyProtocol.getProtocolAttributeKey(this.channel, bound));
-        protocolAttribute.set(LegacyProtocol.getEnumProtocolDelegate(bound, getProtocolState(bound)).getHandle());
     }
 
     public void setProtocolState(PacketBound bound, PacketState state) {
@@ -255,7 +260,7 @@ public class HoneyPacketHandler {
     }
 
     public boolean isPacket(Object raw) {
-        return NMS.getPacketClass().isInstance(raw);
+        return MinecraftReflection.getPacketClass().isInstance(raw);
     }
 
     public synchronized boolean read(PacketContainer<?> packet) {

@@ -1,6 +1,5 @@
 package me.alek.honey.validation.item;
 
-import com.google.gson.JsonElement;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
@@ -15,18 +14,13 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.ItemFactory;
-import me.alek.honey.util.reflection.NMS;
 import me.alek.honey.util.statics.NumberUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.bukkit.Bukkit;
-import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.map.MapCursor;
 import org.bukkit.map.MapView;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

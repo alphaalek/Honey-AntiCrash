@@ -98,6 +98,7 @@ command.desc.pastelogs=Paste the violation logs of a player.
 command.desc.reload=Reloads the configuration.
 command.desc.track=Track performance of checks and players.
 command.desc.info=Lookup basic information of players.
+command.desc.pipelinedebug=Dump the channel pipeline of a player (for debug purposes).
 
 command.outdated=§c(Outdated! Latest: %s)
 command.byline=§6Honey %s. Made by Alek05. %s
@@ -144,5 +145,7 @@ track.no.data={prefix} §cNo data!
 track.players={prefix} §7Sending information about the server thread occupation by players...
 track.average=Average
 track.checks={prefix} §7Sending information about the work of checks...
+
+
 
 

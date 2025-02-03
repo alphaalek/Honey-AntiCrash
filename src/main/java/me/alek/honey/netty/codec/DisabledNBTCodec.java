@@ -2,7 +2,7 @@ package me.alek.honey.netty.codec;
 
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 
 public class DisabledNBTCodec {
 
@@ -31,7 +31,7 @@ public class DisabledNBTCodec {
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
                 structure.writeField(5, serializer.readByte());
             } else {
-                structure.writeField(5, NMS.getInventoryClickTypeClass().getEnumConstants()[serializer.readVarInt()]);
+                structure.writeField(5, MinecraftReflection.getInventoryClickTypeClass().getEnumConstants()[serializer.readVarInt()]);
             }
             structure.writeField(4, serializer.readItemStack().toNMSSameVersion());
         }

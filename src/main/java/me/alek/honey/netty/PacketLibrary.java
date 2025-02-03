@@ -8,6 +8,7 @@ import me.alek.honey.netty.packet.*;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
+import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.netty.processor.TypeProcessors;

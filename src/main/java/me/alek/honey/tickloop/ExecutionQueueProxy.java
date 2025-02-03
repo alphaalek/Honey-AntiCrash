@@ -5,12 +5,10 @@ import com.google.common.util.concurrent.Runnables;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.tickloop.packet.PacketTaskProvider;
 import me.alek.honey.tickloop.packet.WrappedPacketTask;
 import me.alek.honey.tickloop.postpone.PostponeValidation;
@@ -22,13 +20,10 @@ import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.*;
-import org.bukkit.Bukkit;
 
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
-import java.util.function.Supplier;
 
 public class ExecutionQueueProxy extends TempIntervalTrackerManager {
 
@@ -38,8 +33,8 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
 
     public void inject() {
         Class<?> queueHolderClass = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_14)
-                ? NMS.getMinecraftServerClass() : NMS.getIAsyncTaskHandlerClass();
-        Object minecraftServer = NMS.getMinecraftServer();
+                ? MinecraftReflection.getMinecraftServerClass() : MinecraftReflection.getIAsyncTaskHandlerClass();
+        Object minecraftServer = MinecraftReflection.getMinecraftServer();
 
         FieldAccessor<Queue<?>> queueAccessor = Reflection.getField(queueHolderClass, 0, Queue.class);
         if (queueAccessor.get(minecraftServer) instanceof DelegatedWrapper) {
@@ -98,7 +93,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             super(new LinkedList<>(delegate));
 
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
-                this.tickTaskConstructor = Reflection.getMethodFromReturnType(NMS.getMinecraftServerClass(), 0, NMS.getTickTaskClass(), Runnable.class);
+                this.tickTaskConstructor = Reflection.getMethodFromReturnType(MinecraftReflection.getMinecraftServerClass(), 0, MinecraftReflection.getTickTaskClass(), Runnable.class);
                 EMPTY_TICK_TASK = newTickTask(Runnables.doNothing());
             } else {
                 this.tickTaskConstructor = null;
@@ -120,7 +115,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             if (this.tickTaskConstructor == null) {
                 return runnable;
             }
-            return this.tickTaskConstructor.invoke(NMS.getMinecraftServer(), runnable);
+            return this.tickTaskConstructor.invoke(MinecraftReflection.getMinecraftServer(), runnable);
         }
 
         private Object getEmptyTask() {
@@ -314,7 +309,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                     });
                 }
             } else if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_14_4)
-                    && !NMS.getTickTaskClass().isInstance(otherTask)) {
+                    && !MinecraftReflection.getTickTaskClass().isInstance(otherTask)) {
                 otherTask = newTickTask((Runnable) otherTask);
             }
 

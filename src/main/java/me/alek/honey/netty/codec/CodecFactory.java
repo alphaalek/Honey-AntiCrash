@@ -12,7 +12,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.MethodInvoker;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
@@ -27,8 +27,8 @@ public class CodecFactory {
     public static final int VIA_VERSION_PASSTHROUGH_ID = 1000;
 
     public static Object getProtocolInfo1_20_5(PacketBound bound, PacketState state) {
-        Class<Object> protocolInfoClass = NMS.getProtocolInfoClass();
-        Class<Object> protocolInfoBinderClass = NMS.getProtocolInfoBinderClass();
+        Class<Object> protocolInfoClass = MinecraftReflection.getProtocolInfoClass();
+        Class<Object> protocolInfoBinderClass = MinecraftReflection.getProtocolInfoBinderClass();
 
         BiFunction<Class<Object>, Class<Object>, IStructureModifier<Object>> get = (c, t) -> ReflectStructure.Provider.acquireStructure(c)
                 .withType(t).withTarget(null);
@@ -56,28 +56,28 @@ public class CodecFactory {
     }
 
     public static Object bindProtocolInfo1_20_5(Object protocolInfoBinder) {
-        return ReflectStructure.Provider.acquireStructure(NMS.getProtocolInfoBinderClass())
-                .withType(NMS.getProtocolInfoClass()).withTarget(protocolInfoBinder)
+        return ReflectStructure.Provider.acquireStructure(MinecraftReflection.getProtocolInfoBinderClass())
+                .withType(MinecraftReflection.getProtocolInfoClass()).withTarget(protocolInfoBinder)
                 .invokeMethod(null, "bind", 0, getRegistryCustomFunction1_20_5());
     }
 
     public static Function<ByteBuf, Object> getRegistryCustomFunction1_20_5() {
-        Object layeredRegistryAccess = ReflectStructure.Provider.acquireStructure(NMS.getMinecraftServerClass())
-                .withType(NMS.getLayeredRegistryAccessClass()).withTarget(NMS.getMinecraftServer())
+        Object layeredRegistryAccess = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getMinecraftServerClass())
+                .withType(MinecraftReflection.getLayeredRegistryAccessClass()).withTarget(MinecraftReflection.getMinecraftServer())
                 .readField(0);
 
-        Object registryCustomDimension = ReflectStructure.Provider.acquireStructure(NMS.getLayeredRegistryAccessClass())
-                .withType(NMS.getRegistryCustomDimensionClass()).withTarget(layeredRegistryAccess)
+        Object registryCustomDimension = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getLayeredRegistryAccessClass())
+                .withType(MinecraftReflection.getRegistryCustomDimensionClass()).withTarget(layeredRegistryAccess)
                 .readField(0);
 
-        return ReflectStructure.Provider.acquireStructure(NMS.getRegistryFriendlyByteBufClass())
+        return ReflectStructure.Provider.acquireStructure(MinecraftReflection.getRegistryFriendlyByteBufClass())
                 .<Function<ByteBuf, Object>>withWeakType(Function.class).withTarget(null)
                 .invokeMethod(null, 0, registryCustomDimension);
     }
 
     public static Collection<FieldAccessor<Object>> getPacketTypes1_20_5(PacketState state) {
         Function<Class<Object>, Collection<FieldAccessor<Object>>> get = c -> ReflectStructure.Provider.acquireStructure(c)
-                .withType(NMS.getPacketTypeClass()).withTarget(null).getAccessors();
+                .withType(MinecraftReflection.getPacketTypeClass()).withTarget(null).getAccessors();
 
         switch (state) {
             case HANDSHAKE:
@@ -98,18 +98,18 @@ public class CodecFactory {
     public static Object getStreamCodec1_20_5(PacketBound bound, PacketState state) {
         Object protocolInfo = getProtocolInfo1_20_5(bound, state);
 
-        return ReflectStructure.Provider.acquireStructure(NMS.getProtocolInfoClass())
-                .withType(NMS.getStreamCodecClass()).withTarget(protocolInfo)
+        return ReflectStructure.Provider.acquireStructure(MinecraftReflection.getProtocolInfoClass())
+                .withType(MinecraftReflection.getStreamCodecClass()).withTarget(protocolInfo)
                 .invokeMethod(null, 0);
     }
 
     public static EmulatorCodec<Object, ByteBuf> createFromStreamCodec1_20_5(Object codec) {
         return new EmulatorCodec<Object, ByteBuf>() {
 
-            private final MethodInvoker<Object> decoderInvoker = ReflectStructure.Provider.acquireStructure(NMS.getStreamDecoderClass())
+            private final MethodInvoker<Object> decoderInvoker = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getStreamDecoderClass())
                     .withTarget(codec).getMethod(null, "decode", 0, Object.class);
 
-            private final MethodInvoker<Object> encoderInvoker = ReflectStructure.Provider.acquireStructure(NMS.getStreamEncoderClass())
+            private final MethodInvoker<Object> encoderInvoker = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getStreamEncoderClass())
                     .withTarget(codec).getMethod(null, "encode", 0, Object.class, Object.class);
 
             @Override
@@ -240,6 +240,9 @@ public class CodecFactory {
             @Override
             public PacketDataSerializer encodeModern(PacketDataSerializer serializer, Object val, PacketState state) throws CodecException {
                 PacketType type = getType(val);
+                if (!type.getState().equals(state)) {
+                    throw new IllegalStateException("Illegal packet " + type + ", for protocol state " + state);
+                }
                 if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                     return new PacketDataSerializer(this.wrappedStreamCodec.encodeModern(serializer, val, state));
                 } else {
@@ -253,6 +256,9 @@ public class CodecFactory {
             @Override
             public PacketDataSerializer encodeLegacy(Object val, PacketState state, PacketCodecInitializer<PacketType, LegacyCodec.Callback> codec) throws CodecException {
                 PacketType type = getType(val);
+                if (!type.getState().equals(state)) {
+                    throw new IllegalStateException("Illegal packet " + type + ", for protocol state " + state);
+                }
                 PacketDataSerializer serializer = new PacketDataSerializer();
                 serializer.writeVarInt(type.getMinecraftID().get());
 

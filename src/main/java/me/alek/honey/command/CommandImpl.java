@@ -18,7 +18,9 @@ public interface CommandImpl {
 
     String getName();
 
-    String getUsage();
+    default String getUsage() {
+        return "/honey " + getName();
+    }
 
     String getDescription();
 
@@ -26,7 +28,9 @@ public interface CommandImpl {
 
     boolean isExecutableByConsole();
 
-    int getCooldown();
+    default int getCooldown() {
+        return 0;
+    }
 
     void perform(CommandSender sender, String[] args);
 }

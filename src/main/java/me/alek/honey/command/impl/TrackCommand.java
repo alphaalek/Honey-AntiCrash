@@ -80,7 +80,7 @@ public class TrackCommand implements CommandImpl {
 
     @Override
     public String getUsage() {
-        return "/honey track";
+        return "/honey track <players/checks>";
     }
 
     @Override

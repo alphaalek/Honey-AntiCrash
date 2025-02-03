@@ -14,9 +14,8 @@ import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +33,7 @@ import java.util.function.Function;
 
 public class PacketDataSerializer extends ByteBuf {
 
-    private static final ConstructorInvoker<?> packetDataSerializerConstructor = Reflection.getConstructor(NMS.getPacketDataSerializerClass(), ByteBuf.class);
+    private static final ConstructorInvoker<?> packetDataSerializerConstructor = Reflection.getConstructor(MinecraftReflection.getPacketDataSerializerClass(), ByteBuf.class);
 
     public static Object toNMSSerializer(ByteBuf bytebuf) {
         return packetDataSerializerConstructor.invoke(bytebuf);

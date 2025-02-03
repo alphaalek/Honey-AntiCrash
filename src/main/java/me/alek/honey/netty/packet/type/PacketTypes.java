@@ -9,7 +9,7 @@ import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.protocol.NetProtocolRange;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
 
@@ -232,9 +232,9 @@ public class PacketTypes {
             for (Object codec : codecs) {
                 Object packetType = ReflectStructure.Provider.acquireStructure(codec.getClass())
                         .withTarget(codec)
-                        .readField(null, (__, f) -> !NMS.getStreamCodecClass().isAssignableFrom(f.getHandle().getType()));
-                Object minecraftKey = ReflectStructure.Provider.acquireStructure(NMS.getPacketTypeClass())
-                        .withType(NMS.getMinecraftKeyClass()).withTarget(packetType)
+                        .readField(null, (__, f) -> !MinecraftReflection.getStreamCodecClass().isAssignableFrom(f.getHandle().getType()));
+                Object minecraftKey = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getPacketTypeClass())
+                        .withType(MinecraftReflection.getMinecraftKeyClass()).withTarget(packetType)
                         .readField(0);
 
                 PacketType typeFromCodec = getTypeFromKey(NetProtocol.getProtocol(), type.getState(), type.getBound(), minecraftKey.toString().split(":")[1]);

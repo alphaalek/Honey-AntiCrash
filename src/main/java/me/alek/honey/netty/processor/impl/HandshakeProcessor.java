@@ -10,10 +10,10 @@ public class HandshakeProcessor extends TypeProcessor<WrappedHandshakeInSetProto
 
     public static void load() {
         HandshakeProcessor processor = new HandshakeProcessor();
-        processor.addListener(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.INITIAL_BYTE, processor::handleHandshake, (p, t) -> p.channel.close());
+        processor.addListener(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.INITIAL_BYTE, processor::handleHandshake);
     }
 
     public void handleHandshake(HoneyPlayer player, PacketContainer<WrappedHandshakeInSetProtocol> packet) {
-        player.onVersionUpdate(packet.getAnyWrapped().getProtocolVersion());
+        player.onVersionUpdate(packet.getCurrentWrapped().getProtocolVersion());
     }
 }

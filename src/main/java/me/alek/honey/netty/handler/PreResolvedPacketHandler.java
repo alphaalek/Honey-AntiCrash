@@ -6,20 +6,24 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.injector.ChannelCloseInspection;
+import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.Callback;
+import me.alek.honey.util.LazyInit;
 import org.bukkit.Bukkit;
 
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.logging.Level;
 
 public class PreResolvedPacketHandler extends ChannelDuplexHandler {
 
-    public static final String NAME = "pre-resolved-packet-handler";
+    public static final String NAME = "honey-pre-resolved-packet-handler";
 
     private final HoneyPacketHandler packetHandler;
 
@@ -61,9 +65,9 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                 return newPacket;
             case CLIENT:
                 return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().writeObjectPacket(this.packetHandler.getPlayer(), msg);
+            default:
+                throw new IllegalArgumentException("Illegal bound");
         }
-
-        throw new IllegalStateException();
     }
 
     private <WP extends SourcedWrappedPacket<WP>> void streamToPipeline(Object msg, PacketContainer<WP> packetContainer, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
@@ -97,16 +101,27 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             return;
         }
 
-        PacketContainer<?> packet = initPacketContainer(msg, PacketBound.SERVER);
-        if (packet == null) {
-            return;
-        }
-        if (packet.isHandled()) {
-            ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
-            return;
-        }
+        PacketContainer<?> packet = null;
+        try {
+            packet = initPacketContainer(msg, PacketBound.SERVER);
+            if (packet == null) {
+                return;
+            }
+            if (packet.isHandled()) {
+                ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
+                return;
+            }
 
-        streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
+            streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
+        } catch (Exception ex) {
+            if (packet != null && HoneyPlugin.get().getLogger().isDebug()) {
+                Bukkit.getLogger().log(Level.WARNING,
+                        "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
+                                + ") sent by " + this.packetHandler.getPlayer().name + ", " + packet.getInitialByteWrapped().getByteSize() + " bytes", ex);
+            }
+
+            this.packetHandler.getPlayer().failPacket(ex, packet);
+        }
     }
 
     @Override
@@ -124,19 +139,35 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             return;
         }
 
-        PacketContainer<?> packet = initPacketContainer(msg, PacketBound.CLIENT);
-        if (packet == null) {
-            return;
-        }
-        if (packet.isHandled()) {
-            ctx.write(ReferenceCountUtil.retain(msg));
-            return;
-        }
-        packet.handle();
+        PacketContainer<?> packet = null;
+        try {
+            packet = initPacketContainer(msg, PacketBound.CLIENT);
+            if (packet == null) {
+                promise.setSuccess();
+                return;
+            }
+            if (packet.isHandled()) {
+                ctx.write(ReferenceCountUtil.retain(msg), promise);
+                return;
+            }
+            packet.handle();
 
-        this.packetHandler.getProtocolSwapHandler().swapProtocolOutbound(packet);
-        streamToPipeline(msg, packet, this.packetHandler::write, () -> ctx.write(ReferenceCountUtil.retain(msg), promise));
-        this.packetHandler.getProtocolSwapHandler().swapProtocolOutboundPostPipeline(packet);
+            this.packetHandler.getProtocolSwapHandler().swapProtocolOutbound(packet);
+            streamToPipeline(msg, packet, this.packetHandler::write, () -> ctx.write(ReferenceCountUtil.retain(msg), promise));
+            this.packetHandler.getProtocolSwapHandler().swapProtocolOutboundPostPipeline(packet);
+        } catch (Exception ex) {
+            if (HoneyPlugin.get().getLogger().isDebug()) {
+                PacketType type = Optional.ofNullable(packet)
+                        .map(PacketContainer::getType)
+                        .orElse(PacketTypes.getPacketType(msg.getClass(), this.packetHandler.getProtocolState(PacketBound.CLIENT)).orElse(null));
+                int id = Optional.ofNullable(type)
+                        .map(PacketType::getMinecraftID)
+                        .map(LazyInit<Integer>::get)
+                        .orElse(-1);
+                Bukkit.getLogger().log(Level.WARNING, "Error occurred while handling packet " + type + " (id " + id + ") sent by " + this.packetHandler.getPlayer().name, ex);
+            }
+            promise.setSuccess();
+        }
     }
 
     public void checkRelocation(PacketBound bound) {

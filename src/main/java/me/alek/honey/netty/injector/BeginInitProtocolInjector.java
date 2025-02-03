@@ -7,8 +7,7 @@ import io.netty.util.Version;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.NMS;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.reflection.MinecraftReflection;
 
 import java.util.Map;
 
@@ -36,7 +35,7 @@ public class BeginInitProtocolInjector extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (!(msg instanceof Channel) || NMS.isFakeChannel((Channel) msg)) {
+        if (!(msg instanceof Channel) || MinecraftReflection.isFakeChannel((Channel) msg)) {
             return;
         }
         Channel channel = (Channel) msg;

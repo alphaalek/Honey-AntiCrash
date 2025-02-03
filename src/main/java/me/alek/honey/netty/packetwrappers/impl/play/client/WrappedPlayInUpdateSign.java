@@ -7,7 +7,7 @@ import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ItemFactory;
 import me.alek.honey.util.reflection.MethodInvoker;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
 
 import java.util.ArrayList;
@@ -20,8 +20,8 @@ public class WrappedPlayInUpdateSign extends ObjectWrappedPacket<WrappedPlayInUp
 
     static {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-            iChatBaseComponentArrayClass = Reflection.getArrayClass(NMS.getIChatBaseComponentClass());
-            textComponentGetter = Reflection.getMethod(NMS.getIChatBaseComponentClass(), "getText");
+            iChatBaseComponentArrayClass = Reflection.getArrayClass(MinecraftReflection.getIChatBaseComponentClass());
+            textComponentGetter = Reflection.getMethod(MinecraftReflection.getIChatBaseComponentClass(), "getText");
         }
     }
 
@@ -54,7 +54,7 @@ public class WrappedPlayInUpdateSign extends ObjectWrappedPacket<WrappedPlayInUp
 
         List<JsonObject> lines = new ArrayList<>();
         for (Object component : getChatBaseComponents()) {
-            if (!NMS.getIChatBaseComponentClass().isAssignableFrom(component.getClass())) {
+            if (!MinecraftReflection.getIChatBaseComponentClass().isAssignableFrom(component.getClass())) {
                 continue;
             }
 

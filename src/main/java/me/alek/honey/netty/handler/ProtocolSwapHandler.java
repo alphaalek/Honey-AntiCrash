@@ -3,7 +3,7 @@ package me.alek.honey.netty.handler;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.LegacyProtocol;
-import me.alek.honey.netty.injector.ChannelCloseInspection;
+import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -11,7 +11,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 
 public class ProtocolSwapHandler {
 
@@ -101,16 +101,16 @@ public class ProtocolSwapHandler {
                 handler.setProtocolState(PacketBound.SERVER, PacketState.CONFIGURATION);
             }
         // handshake -> status/login (client -> server)
-        } else if (packet.getType() == PacketTypes.Handshake.Client.SET_PROTOCOL) {
+        } else if (packet.getType() == PacketTypes.Handshake.Client.SET_PROTOCOL && packet.getObjectWrapped() != null) {
             setConfigurationBridgePhase(handler, PacketBound.SERVER);
 
             int packetStateOrdinal;
             if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_20_1)) {
-                LegacyProtocol protocol = packet.getStructure().getModifier(NMS.getEnumProtocolClass(), Converters.getLegacyProtocolConverter(), packet.getType().getBound())
+                LegacyProtocol protocol = packet.getStructure().getModifier(MinecraftReflection.getEnumProtocolClass(), Converters.getLegacyProtocolConverter(), packet.getType().getBound())
                         .readField(0);
                 packetStateOrdinal = ((Enum<?>) protocol.getHandle()).ordinal();
             } else {
-                Object clientIntent = packet.getStructure().getModifier(NMS.getClientIntentClass()).readField(0);
+                Object clientIntent = packet.getStructure().getModifier(MinecraftReflection.getClientIntentClass()).readField(0);
                 packetStateOrdinal = ((Enum<?>) clientIntent).ordinal() == 0 ? PacketState.STATUS.ordinal() : PacketState.LOGIN.ordinal();
             }
 

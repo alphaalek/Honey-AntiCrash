@@ -7,13 +7,12 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.WrappedPacketFactory;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 
 import java.util.logging.Level;
 
@@ -50,7 +49,7 @@ public class PacketFactory {
                 }
                 return raw;
             } else {
-                return new ConstructorInvoker<>(type.getNmsClass(), NMS.getPacketDataSerializerClass())
+                return new ConstructorInvoker<>(type.getNmsClass(), MinecraftReflection.getPacketDataSerializerClass())
                         .invoke(packetSerializer);
             }
         } catch (Exception ex) {

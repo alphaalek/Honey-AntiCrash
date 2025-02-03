@@ -1,8 +1,8 @@
 package me.alek.honey.netty.processor;
 
+import io.netty.handler.codec.CodecException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.injector.ChannelCloseInspection;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -13,15 +13,13 @@ import me.alek.honey.util.Array;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 
 public class TypeProcessor<WP extends SourcedWrappedPacket<WP>> extends PacketListenerAdapter.Common<WP> {
 
     public static class ReaderInfo<T> {
 
         public static final BiConsumer<HoneyPlayer, Throwable> DEFAULT_THROWABLE_DEBUGGER = (player, thrown) -> {
-            HoneyPlugin.get().getPlugin().getLogger().log(Level.SEVERE, "Error occurred in processor for packet sent by " + player, thrown);
-            ChannelCloseInspection.close(player.channel);
+            throw new CodecException("Error occurred in processor for packet sent by " + player, thrown);
         };
 
         private final PacketContainer.PipelineState state;

@@ -14,11 +14,10 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInSetCreativeSlot;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.types.KeyedVlValidation;
 import me.alek.honey.validation.types.PacketValidation;
@@ -147,7 +146,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         static {
             for (PacketType type : PacketTypes.getTypesAvailable()) {
                 if (!ReflectStructure.Provider.acquireStructure(type.getNmsClass())
-                        .withType(NMS.getItemStackClass())
+                        .withType(MinecraftReflection.getItemStackClass())
                         .getAccessors()
                         .isEmpty()) {
                     packetTypes.add(type.getHoneyID());

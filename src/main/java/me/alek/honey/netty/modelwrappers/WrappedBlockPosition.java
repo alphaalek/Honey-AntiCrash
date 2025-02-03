@@ -3,7 +3,7 @@ package me.alek.honey.netty.modelwrappers;
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.FieldAccessor;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.util.statics.MathHelper;
 import me.alek.honey.util.statics.NumberUtils;
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> implements Cloneable, Serializable {
 
-    private static final ConstructorInvoker<?> nmsConstructorInvoker = Reflection.getConstructor(NMS.getBlockPositionClass(), int.class, int.class, int.class);
+    private static final ConstructorInvoker<?> nmsConstructorInvoker = Reflection.getConstructor(MinecraftReflection.getBlockPositionClass(), int.class, int.class, int.class);
     public static final WrappedBlockPosition ORIGIN = new WrappedBlockPosition(0, 0, 0);
     public static final WrappedBlockPosition DEFAULT = new WrappedBlockPosition(-1, -1, -1);
 

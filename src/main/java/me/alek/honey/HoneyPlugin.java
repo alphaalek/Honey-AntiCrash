@@ -35,7 +35,7 @@ import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.util.metrics.Metrics;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.FieldAccessor;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.BaseValidationContainer;
 import me.alek.honey.validation.ValidationContainerRegistry;
@@ -67,7 +67,7 @@ import java.util.logging.Level;
 public class HoneyPlugin implements HoneyAPI {
 
     public static final String HONEY_CONNECTION_CHANNEL_NAME = "honey-connection";
-    public static final String HONEY_CHANNEL_INITIALIZER_CHANNEL_NAME = "honey-channel-init";
+    public static final String HONEY_CHANNEL_INITIALIZER_CHANNEL_NAME = "honey-channel-initializer";
     public static final String HONEY_DEBUGGER_CHANNEL_NAME = "honey-debugger";
     public static final String HONEY_DECODER_CHANNEL_NAME = "honey-decoder";
     public static final String HONEY_ENCODER_CHANNEL_NAME = "honey-encoder";
@@ -132,7 +132,7 @@ public class HoneyPlugin implements HoneyAPI {
                 player.sendMessage(Lang.get("failed.load.session.error"));
             }
 
-            Channel channel = NMS.getChannelFromPlayer(player);
+            Channel channel = MinecraftReflection.getChannelFromPlayer(player);
             if (channel == null) {
                 return;
             }

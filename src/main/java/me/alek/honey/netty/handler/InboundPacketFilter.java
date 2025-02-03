@@ -2,16 +2,14 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.*;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.injector.ChannelCloseInspection;
-import me.alek.honey.netty.injector.MissingHandlerException;
+import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketContainer;
@@ -24,11 +22,16 @@ import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
 import org.bukkit.Bukkit;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.logging.Level;
 
 @ChannelHandler.Sharable
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
+
+    private static final String PIPELINE_FIX_HANDLER = "honey-pipeline-fix";
+    private static final Object PIPELINE_FIX_MARK = new Object();
 
     private static final String CONNECTION_EVENT_CLASS_NAME = "io.papermc.paper.network.ConnectionEvent";
     private static final String COMPRESSION_THRESHOLD_SET_FIELD_NAME = "COMPRESSION_THRESHOLD_SET";
@@ -64,25 +67,43 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        ctx.fireChannelActive();
+        if (ctx.pipeline().get(PIPELINE_FIX_HANDLER) == null) {
+            ctx.pipeline().addFirst(PIPELINE_FIX_HANDLER, new ChannelDuplexHandler() {
 
-        if (ctx.channel().remoteAddress() == null) {
-            // null ping (1.8.8 bug)
-            ChannelCloseInspection.close(ctx.channel());
-            return;
-        }
+                private final Queue<Object> queuedDataFromForcedStream = new LinkedList<>();
 
-        try {
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().injectChannelProxy(ctx.channel());
-        } catch (MissingHandlerException ex) {
-            ctx.close();
-        }
-        HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
+                @Override
+                public void channelRead(ChannelHandlerContext ctx, Object msg) {
+                    this.queuedDataFromForcedStream.add(msg);
+                }
 
-        try {
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().getPacketHandler(ctx.channel()).setProtocolState(PacketBound.SERVER, PacketState.HANDSHAKE);
-        } catch (MissingHandlerException ex) {
-            ctx.close();
+                @Override
+                public void write(ChannelHandlerContext fixCtx, Object msg, ChannelPromise promise) {
+                    if (msg != PIPELINE_FIX_MARK && msg instanceof ByteBuf) {
+                        throw new IllegalStateException("Fixing pipeline, can't process packet " + msg);
+                    }
+                    InboundPacketFilter.this.channelActive(ctx);
+                    ctx.pipeline().remove(PIPELINE_FIX_HANDLER);
+
+                    this.queuedDataFromForcedStream.forEach(fixCtx::fireChannelRead);
+                    ctx.channel().config().setAutoRead(true);
+
+                    promise.setSuccess();
+                }
+            });
+            ctx.channel().config().setAutoRead(false);
+            ctx.fireChannelActive();
+
+            ctx.channel().eventLoop().submit(() -> ctx.write(PIPELINE_FIX_MARK));
+        } else {
+            if (ctx.channel().remoteAddress() == null) {
+                // null ping (1.8.8 bug)
+                ChannelCloseInspection.close(ctx.channel());
+                return;
+            }
+
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(ctx.channel());
+            this.packetHandler.setProtocolState(PacketBound.SERVER, PacketState.HANDSHAKE);
         }
     }
 
@@ -130,19 +151,21 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         // the filter and decode preparation dropped this packet
         // and did not clear the marker properly
         if (prev != null && !PacketTypes.isUnknown(prev.getType()) && !prev.isHandled()) {
-            HoneyPlayer player = prev.getPlayer();
-            // ignore TICK_END and PLAYER_MOVEMENT because the client sends a lot of these packets,
+            // ignore PONG (used by AntiCheats), TICK_END and PLAYER_MOVEMENT because the client sends a lot of these packets,
             // and they will all be dropped in the pipeline if the backend server does not support these packet types
-            if (prev.getType() != PacketTypes.Play.Client.TICK_END && prev.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT) {
+            if (prev.getType() != PacketTypes.Play.Client.PONG
+                    && prev.getType() != PacketTypes.Play.Client.TICK_END
+                    && prev.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT) {
+                HoneyPlayer player = prev.getPlayer();
                 FloodValidations.PACKET_DROP_PIPELINE.doStreamOtherPipeline(
                         player,
                         (validation, context) -> validation.validate(player, context),
                         prev);
             }
 
+            InboundPacketFilter.removeMarker();
             prev.releaseIfAutoReleasable();
             this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(prev);
-            InboundPacketFilter.removeMarker();
         }
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
@@ -190,6 +213,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (Exception ex) {
+            InboundPacketFilter.removeMarker();
             if (this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet
                 // most likely something pinging this server without following the Minecraft protocol

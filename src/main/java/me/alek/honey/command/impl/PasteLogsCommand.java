@@ -22,10 +22,10 @@ public class PasteLogsCommand implements CommandImpl {
     private final SQLManager sqlHandler = HoneyPlugin.get().getSQLManager();
 
     public boolean handlePreconditions(CommandSender sender, String[] args) {
-        if (!sqlHandler.isEnabled()) {
+        if (!this.sqlHandler.isEnabled()) {
             sender.sendMessage(Lang.getFormatted("pastelogs.mysql.disabled"));
             return false;
-        } else if (sqlHandler.isConnectionClosed()) {
+        } else if (this.sqlHandler.isConnectionClosed()) {
             sender.sendMessage(Lang.getFormatted("pastelogs.mysql.connection.error"));
             return false;
         } else if (ConfigurationOptions.General.PASTEBIN_DEVELOPER_KEY.isEmpty()) {
@@ -37,7 +37,7 @@ public class PasteLogsCommand implements CommandImpl {
         }
 
         String playerName = args[0];
-        if (!sqlHandler.getComponentBridge().existsPlayer(playerName)) {
+        if (!this.sqlHandler.getComponentBridge().existsPlayer(playerName)) {
             sender.sendMessage(Lang.getFormatted("pastelogs.unknown.player"));
             return false;
         }
@@ -52,7 +52,7 @@ public class PasteLogsCommand implements CommandImpl {
         }
 
         try {
-            String playerName = sqlHandler.getComponentBridge().getPlayerData(args[0]).getPlayerName();
+            String playerName = this.sqlHandler.getComponentBridge().getPlayerData(args[0]).getPlayerName();
 
             StringBuilder rawMessageBuilder = new StringBuilder();
             rawMessageBuilder
@@ -62,7 +62,7 @@ public class PasteLogsCommand implements CommandImpl {
                     .append(HoneyPlugin.get().getPlugin().getDescription().getVersion())
                     .append("\n");
             int size = 0;
-            for (ViolationEntry violationEntry : sqlHandler.getComponentBridge().getViolations(playerName)) {
+            for (ViolationEntry violationEntry : this.sqlHandler.getComponentBridge().getViolations(playerName)) {
                 rawMessageBuilder
                         .append("[")
                         .append(new Date(violationEntry.getUnixTime()))
@@ -102,11 +102,6 @@ public class PasteLogsCommand implements CommandImpl {
     @Override
     public String getName() {
         return "pastelogs";
-    }
-
-    @Override
-    public String getUsage() {
-        return "/honey pastelogs";
     }
 
     @Override

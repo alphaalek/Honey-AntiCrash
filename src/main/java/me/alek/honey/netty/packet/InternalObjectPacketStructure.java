@@ -7,7 +7,7 @@ import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.JavaConverter;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
@@ -129,12 +129,12 @@ public class InternalObjectPacketStructure implements ObjectPacketStructure {
 
     @Override
     public IStructureModifier<PacketDataSerializer> getDataSerializers() {
-        return getModifier(NMS.getPacketDataSerializerClass(), Converters.getPacketDataSerializerConverter());
+        return getModifier(MinecraftReflection.getPacketDataSerializerClass(), Converters.getPacketDataSerializerConverter());
     }
 
     @Override
     public IStructureModifier<WrappedBlockPosition> getBlockPositions() {
-        return getModifier(NMS.getBlockPositionClass(), Converters.getBlockPositionConverter());
+        return getModifier(MinecraftReflection.getBlockPositionClass(), Converters.getBlockPositionConverter());
     }
 
     @Override

@@ -2,21 +2,18 @@ package me.alek.honey.netty.codec;
 
 import io.netty.handler.codec.CodecException;
 import me.alek.honey.netty.packet.type.PacketBound;
-import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
 import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.util.EnumMap;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 
 public interface LegacyCodec {
@@ -53,7 +50,7 @@ public interface LegacyCodec {
             // otherwise apply the default implementation for the serializer
             MethodHandle method = PROVIDER.getLookup().get(type, () -> {
                 int methodIdx = NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_17) || bound.equals(PacketBound.SERVER) ? 0 : 1;
-                MethodInvoker<?> invoker = Reflection.getMethodFromReturnType(type.getNmsClass(), methodIdx, void.class, NMS.getPacketDataSerializerClass());
+                MethodInvoker<?> invoker = Reflection.getMethodFromReturnType(type.getNmsClass(), methodIdx, void.class, MinecraftReflection.getPacketDataSerializerClass());
                 try {
                     return MethodHandles.lookup().unreflect(invoker.getHandle());
                 } catch (IllegalAccessException ex) {

@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashMap;
 
-public class NMS {
+public class MinecraftReflection {
 
     private static final MethodInvoker<Object> getHandle = Reflection.getMethodFromReturnType(
             getCraftPlayerClass(), "getHandle", getEntityPlayerClass());
@@ -24,17 +24,8 @@ public class NMS {
             getNetworkManagerClass(), 0, SocketAddress.class
     );
 
-    private static final HashMap<String, Channel> lookupChannels = new HashMap<>();
-    private static final LazyInit<Object> minecraftServer = new LazyInit<>(NMS::acquireMinecraftServer);
-    private static final LazyInit<Object> serverConnection = new LazyInit<>(NMS::acquireServerConnection);
-
-    public static synchronized Channel getChannel(String name) {
-        return lookupChannels.get(name);
-    }
-
-    public static synchronized void submitChannelForName(String name, Channel channel) {
-        lookupChannels.put(name, channel);
-    }
+    private static final LazyInit<Object> minecraftServer = new LazyInit<>(MinecraftReflection::acquireMinecraftServer);
+    private static final LazyInit<Object> serverConnection = new LazyInit<>(MinecraftReflection::acquireServerConnection);
 
     public static Channel getChannelFromPlayer(Player player) {
         return getChannelFromNetworkManager(getNetworkManager(player));
@@ -42,10 +33,6 @@ public class NMS {
 
     public static Channel getChannelFromNetworkManager(Object networkManager) {
         return channel.get(networkManager);
-    }
-
-    public static void removeChannelLookup(String name) {
-        lookupChannels.remove(name);
     }
 
     public static Object getEntityPlayer(Player player) {
@@ -61,7 +48,7 @@ public class NMS {
     }
 
     private static Object acquireMinecraftServer() {
-        return Reflection.getFieldAssignableFrom(NMS.getCraftServerClass(), 0, NMS.getMinecraftServerClass())
+        return Reflection.getFieldAssignableFrom(MinecraftReflection.getCraftServerClass(), 0, MinecraftReflection.getMinecraftServerClass())
                 .get(Bukkit.getServer());
     }
 
@@ -73,7 +60,7 @@ public class NMS {
     }
 
     private static Object acquireOrCreateServerConnection(int fieldIndex) {
-        return Reflection.getMethodFromReturnType(NMS.getMinecraftServerClass(), fieldIndex, NMS.getServerConnectionClass())
+        return Reflection.getMethodFromReturnType(MinecraftReflection.getMinecraftServerClass(), fieldIndex, MinecraftReflection.getServerConnectionClass())
                 .invoke(getMinecraftServer());
     }
 

@@ -8,7 +8,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,12 +22,12 @@ public class WrappedPlayOutTabComplete extends ObjectWrappedPacket<WrappedPlayOu
     }
 
     private ReflectStructure<Object, ?> getSuggestionsStructure() {
-        return ReflectStructure.Provider.acquireStructure(NMS.getSuggestionsClass());
+        return ReflectStructure.Provider.acquireStructure(MinecraftReflection.getSuggestionsClass());
     }
 
     private WrappedSuggestions getWrappedSuggestionsObject() {
         return getSuggestionsStructure()
-                .withType(NMS.getSuggestionsClass(), Converters.getSuggestionsConverter())
+                .withType(MinecraftReflection.getSuggestionsClass(), Converters.getSuggestionsConverter())
                 .withTarget(getHandle())
                 .readField(0);
     }

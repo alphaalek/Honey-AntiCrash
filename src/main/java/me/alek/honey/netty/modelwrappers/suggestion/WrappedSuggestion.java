@@ -2,7 +2,7 @@ package me.alek.honey.netty.modelwrappers.suggestion;
 
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
 
 public class WrappedSuggestion extends WrappedObject<WrappedSuggestion> {
@@ -11,8 +11,8 @@ public class WrappedSuggestion extends WrappedObject<WrappedSuggestion> {
     private static final ConstructorInvoker<Object> suggestionInvoker;
 
     static {
-        stringRangeInvoker = Reflection.getConstructor(NMS.getStringRangeClass(), int.class, int.class);
-        suggestionInvoker = Reflection.getConstructor(NMS.getSuggestionClass(), NMS.getStringRangeClass(), String.class);
+        stringRangeInvoker = Reflection.getConstructor(MinecraftReflection.getStringRangeClass(), int.class, int.class);
+        suggestionInvoker = Reflection.getConstructor(MinecraftReflection.getSuggestionClass(), MinecraftReflection.getStringRangeClass(), String.class);
     }
 
     private static Object createNewSuggestion(String text) {
@@ -49,7 +49,7 @@ public class WrappedSuggestion extends WrappedObject<WrappedSuggestion> {
             return getText().equals(((WrappedSuggestion)o).getText());
         }
 
-        if (NMS.getSuggestionClass().isInstance(o)) {
+        if (MinecraftReflection.getSuggestionClass().isInstance(o)) {
             return getText().equals(new WrappedSuggestion(o).getText());
         }
 

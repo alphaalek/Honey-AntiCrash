@@ -11,7 +11,7 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemFactory;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -140,9 +140,9 @@ public class NBTFactory {
         }
     }
 
-    private static final ReflectStructure<Object, ?> ITEM_STACK_STRUCTURE = new ReflectStructure<>(NMS.getItemStackClass());
+    private static final ReflectStructure<Object, ?> ITEM_STACK_STRUCTURE = new ReflectStructure<>(MinecraftReflection.getItemStackClass());
     private static final ReflectStructure<Object, AbstractTag<?, ?, ?>> TAG_STRUCTURE = ITEM_STACK_STRUCTURE
-            .withType(NMS.getNBTTagCompoundClass(), TagConverter.CONVERTER);
+            .withType(MinecraftReflection.getNBTTagCompoundClass(), TagConverter.CONVERTER);
 
     public static CompoundTag fromItem(ItemStack item, boolean createIfNone) {
         if (item.getType() == Material.AIR) {
@@ -202,7 +202,7 @@ public class NBTFactory {
     }
 
     public static TagType getArrayType(Object handle) {
-        IStructureModifier<Byte> byteModifier = ReflectStructure.Provider.acquireStructure(NMS.getNBTTagListClass())
+        IStructureModifier<Byte> byteModifier = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getNBTTagListClass())
                 .withBytes()
                 .withTarget(handle);
         byte typeId = byteModifier.readField(0);
@@ -228,7 +228,7 @@ public class NBTFactory {
     }
 
     public static TagType getType(Object handle, boolean ignoreNestedArrays) {
-        IStructureModifier<Byte> structureModifier = ReflectStructure.Provider.acquireStructure(NMS.getNBTBaseClass())
+        IStructureModifier<Byte> structureModifier = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getNBTBaseClass())
                 .withBytes()
                 .withTarget(handle);
         byte typeId;
@@ -236,7 +236,7 @@ public class NBTFactory {
             typeId = structureModifier.invokeMethod(null, "getTypeId", 0);
         } else {
             typeId = structureModifier.invokeMethod(null,
-                    (index, invoker) -> invoker.getHandle().getDeclaringClass().equals(NMS.getNBTBaseClass()));
+                    (index, invoker) -> invoker.getHandle().getDeclaringClass().equals(MinecraftReflection.getNBTBaseClass()));
         }
 
         TagType type = TagType.getFromTypeId(typeId);

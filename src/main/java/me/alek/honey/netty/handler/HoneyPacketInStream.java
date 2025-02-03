@@ -18,6 +18,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 
@@ -114,8 +115,8 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             }
             earlyPacket.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
-            // ignore all transaction packets, as well as players with permission to bypass all validations
-            if (earlyPacket.getType() == PacketTypes.Play.Client.TRANSACTION
+            // ignore all transaction/pong packets, as well as players with permission to bypass all validations
+            if (earlyPacket.getType() == PacketTypes.Play.Client.TRANSACTION || earlyPacket.getType() == PacketTypes.Play.Client.PONG
                     || this.player.bypassEverything()) {
                 stopTimings(earlyPacket);
                 ctx.fireChannelRead(packetObject);

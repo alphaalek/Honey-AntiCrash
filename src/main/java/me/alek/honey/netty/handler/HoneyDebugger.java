@@ -6,7 +6,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.injector.ChannelCloseInspection;
+import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.packet.PacketContainer;
 
 import java.io.IOException;

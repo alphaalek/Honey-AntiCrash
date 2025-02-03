@@ -61,7 +61,7 @@ public class ReflectStructure<T, C> {
 
     public static Object copyStructure(Object from, Object to) {
         ReflectStructure<Object, Object> structure = ReflectStructure.Provider.acquireStructure(from.getClass())
-                .withStatic(false).without(NMS.getCraftMetaItemClass());
+                .withStatic(false).without(MinecraftReflection.getCraftMetaItemClass());
 
         Iterator<FieldAccessor<Object>> fromIterator = structure.withTarget(from)
                 .getAccessors().iterator();

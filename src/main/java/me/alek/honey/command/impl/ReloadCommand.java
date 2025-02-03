@@ -33,11 +33,6 @@ public class ReloadCommand implements CommandImpl {
     }
 
     @Override
-    public String getUsage() {
-        return "/honey reload";
-    }
-
-    @Override
     public String getDescription() {
         return Lang.get("command.desc.reload");
     }

@@ -33,10 +33,10 @@ public interface PacketProcessor {
 
     <WP extends SourcedWrappedPacket<WP>> boolean isRegistered(PacketListener<WP> listener, PacketContainer.PipelineState state);
 
-    void callObjectPacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet);
+    void callObjectPacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) throws PacketHandleException;
 
-    void callInitialBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet);
+    void callInitialBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) throws PacketHandleException;
 
-    void callFinalBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet);
+    void callFinalBytePacketProcessListeners(HoneyPlayer player, PacketContainer<?> packet) throws PacketHandleException;
 }
 

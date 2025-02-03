@@ -64,7 +64,7 @@ public class WrappedImmutableItemStack implements Cloneable {
                 id = buf.readShort();
             }
             if (id < 0) {
-                return null;
+                throw new DecoderException("Invalid item id");
             }
 
             if (amount == -1) { // before 1.20.5

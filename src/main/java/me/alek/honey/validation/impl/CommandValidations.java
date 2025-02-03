@@ -13,7 +13,7 @@ import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInChat;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.types.PacketValidation;
 import me.alek.honey.validation.types.ViolationValidation;
@@ -55,7 +55,7 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
     }
 
     public static String[] getRegisteredCommands(List<String> commands) {
-        IStructureModifier<CommandMap> craftServerModifier = ReflectStructure.Provider.acquireStructure(NMS.getCraftServerClass())
+        IStructureModifier<CommandMap> craftServerModifier = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getCraftServerClass())
                 .withType(CommandMap.class)
                 .withTarget(Bukkit.getServer());
         CommandMap commandMap = craftServerModifier.readField(0);

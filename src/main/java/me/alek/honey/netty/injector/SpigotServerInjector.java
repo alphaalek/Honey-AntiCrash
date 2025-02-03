@@ -7,8 +7,9 @@ import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.handler.MinecraftHandlers;
 import me.alek.honey.util.reflection.FieldAccessor;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,18 +17,23 @@ import java.util.Map;
 
 public class SpigotServerInjector {
 
+    public static final String PROTOCOL_SUPPORT_INIT = "SpigotNettyServerChannelHandler#0";
+    public static final String PROTOCOL_LIB_INIT = "InjectionChannelInitializer#0";
+    public static final String FLOODGATE_INIT = "floodgate-init";
+    public static final String UNKNOWN_FORKS_INIT = "MinecraftPipeline#0";
+    public static final String PACKET_EVENTS_INIT = "pe-connection-handler";
+
     private static final FieldAccessor<List<ChannelFuture>> listeningChannelsAccessor;
     private static final FieldAccessor<List<Object>> connectedChannelsAccessor;
 
     static {
-        listeningChannelsAccessor = Reflection.getParameterizedField(NMS.getServerConnectionClass(), List.class, ChannelFuture.class);
-        connectedChannelsAccessor = Reflection.getParameterizedField(NMS.getServerConnectionClass(), List.class, NMS.getNetworkManagerClass());
+        listeningChannelsAccessor = Reflection.getParameterizedField(MinecraftReflection.getServerConnectionClass(), List.class, ChannelFuture.class);
+        connectedChannelsAccessor = Reflection.getParameterizedField(MinecraftReflection.getServerConnectionClass(), List.class, MinecraftReflection.getNetworkManagerClass());
     }
-
 
     private List<ChannelFuture> delegatedConnectedChannelsList;
     private boolean injected;
-    private final Object serverConnection = NMS.getServerConnection();
+    private final Object serverConnection = MinecraftReflection.getServerConnection();
 
     public boolean hasAnyListeningChannel() {
         return !listeningChannelsAccessor.get(this.serverConnection).isEmpty();
@@ -57,7 +63,7 @@ public class SpigotServerInjector {
 
         List<Object> connectedChannels = connectedChannelsAccessor.get(this.serverConnection);
         for (Object connectedChannel : connectedChannels) {
-            Channel channel = NMS.getChannelFromNetworkManager(connectedChannel);
+            Channel channel = MinecraftReflection.getChannelFromNetworkManager(connectedChannel);
             if (channel == null) {
                 continue;
             }
@@ -72,19 +78,20 @@ public class SpigotServerInjector {
 
         String connectorName = HoneyPlugin.get().getPacketLibrary().getConnectorName();
         if (pipeline.get(connectorName) != null) {
-            pipeline.remove(connectorName);
+            return;
         }
 
+        ChannelHandler initInjector = new BeginInitProtocolInjector();
         String prioritizedHandler = getPrioritizedHandler(pipeline);
         if (prioritizedHandler != null) {
-            pipeline.addAfter(prioritizedHandler, connectorName, new BeginInitProtocolInjector());
+            pipeline.addAfter(prioritizedHandler, connectorName, initInjector);
         } else {
-            pipeline.addFirst(connectorName, new BeginInitProtocolInjector());
+            pipeline.addFirst(connectorName, initInjector);
         }
 
         List<Object> connectedChannels = connectedChannelsAccessor.get(this.serverConnection);
         for (Object connectedChannel : connectedChannels) {
-            Channel client = NMS.getChannelFromNetworkManager(connectedChannel);
+            Channel client = MinecraftReflection.getChannelFromNetworkManager(connectedChannel);
             if (client != null && client.isOpen() && client.localAddress().equals(serverChannel.localAddress())) {
                 client.close();
             }
@@ -96,32 +103,40 @@ public class SpigotServerInjector {
         String lastPrioritizedHandler = null;
         int lastPrioritizedHandlerIndex = -1;
 
-        // ProtocolSupport
-        if (pipeline.get("SpigotNettyServerChannelHandler#0") != null) {
-            int index = handlersOrdered.indexOf("SpigotNettyServerChannelHandler#0");
+        // Floodgate
+        if (pipeline.get(FLOODGATE_INIT) != null) {
+            int index = handlersOrdered.indexOf(FLOODGATE_INIT);
             if (index > lastPrioritizedHandlerIndex) {
                 lastPrioritizedHandlerIndex = index;
-                lastPrioritizedHandler = "SpigotNettyServerChannelHandler0";
+                lastPrioritizedHandler = FLOODGATE_INIT;
             }
         }
-        // Floodgate
-        if (pipeline.get("floodgate-init") != null) {
-            int index = handlersOrdered.indexOf("floodgate-init");
+        // ProtocolSupport
+        if (pipeline.get(PROTOCOL_SUPPORT_INIT) != null) {
+            int index = handlersOrdered.indexOf(PROTOCOL_SUPPORT_INIT);
             if (index > lastPrioritizedHandlerIndex) {
                 lastPrioritizedHandlerIndex = index;
-                lastPrioritizedHandler = "floodgate-init";
+                lastPrioritizedHandler = PROTOCOL_SUPPORT_INIT;
+            }
+        }
+        // ProtocolLib
+        if (pipeline.get(PROTOCOL_LIB_INIT) != null) {
+            int index = handlersOrdered.indexOf(PROTOCOL_LIB_INIT);
+            if (index > lastPrioritizedHandlerIndex) {
+                lastPrioritizedHandlerIndex = index;
+                lastPrioritizedHandler = PROTOCOL_LIB_INIT;
             }
         }
         // Some forks
-        if (pipeline.get("MinecraftPipeline#0") != null) {
-            int index = handlersOrdered.indexOf("MinecraftPipeline#0");
+        if (pipeline.get(UNKNOWN_FORKS_INIT) != null) {
+            int index = handlersOrdered.indexOf(UNKNOWN_FORKS_INIT);
             if (index > lastPrioritizedHandlerIndex) {
-                lastPrioritizedHandler = "MinecraftPipeline#0";
+                lastPrioritizedHandler = UNKNOWN_FORKS_INIT;
             }
         }
         // PacketEvents
         for (String handler : handlersOrdered) {
-            if (handler.startsWith("pe-connection-handler")) {
+            if (handler.startsWith(PACKET_EVENTS_INIT)) {
                 int index = handlersOrdered.indexOf(handler);
                 if (index > lastPrioritizedHandlerIndex) {
                     lastPrioritizedHandler = handler;
@@ -148,7 +163,7 @@ public class SpigotServerInjector {
 
         List<Object> connectedChannels = connectedChannelsAccessor.get(this.serverConnection);
         for (Object connectedChannel : connectedChannels) {
-            Channel channel = NMS.getChannelFromNetworkManager(connectedChannel);
+            Channel channel = MinecraftReflection.getChannelFromNetworkManager(connectedChannel);
             if (channel == null) {
                 continue;
             }

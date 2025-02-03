@@ -9,44 +9,42 @@ import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class ItemFactory {
 
     private static final ConstructorInvoker<?> itemStackConstructor;
 
-    private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(NMS.getCraftItemStackClass(), "asNMSCopy", ItemStack.class);
-    private static final MethodInvoker<ItemStack> craftMirrorInvoker = Reflection.getMethod(NMS.getCraftItemStackClass(), "asCraftMirror", NMS.getItemStackClass());
-    private static final MethodInvoker<ItemStack> bukkitCopyInvoker = Reflection.getMethod(NMS.getCraftItemStackClass(), "asBukkitCopy", NMS.getItemStackClass());
-    private static final MethodInvoker<ItemMeta> createItemMetaInvoker = Reflection.getMethod(NMS.getCraftItemStackClass(), "getItemMeta", NMS.getItemStackClass());
-    private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(NMS.getItemClass(), method -> {
+    private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "asNMSCopy", ItemStack.class);
+    private static final MethodInvoker<ItemStack> craftMirrorInvoker = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "asCraftMirror", MinecraftReflection.getItemStackClass());
+    private static final MethodInvoker<ItemStack> bukkitCopyInvoker = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "asBukkitCopy", MinecraftReflection.getItemStackClass());
+    private static final MethodInvoker<ItemMeta> createItemMetaInvoker = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "getItemMeta", MinecraftReflection.getItemStackClass());
+    private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(MinecraftReflection.getItemClass(), method -> {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
             return method.getName().equals("getById");
         } else {
-            return method.getReturnType().equals(NMS.getItemClass()) && Arrays.equals(method.getParameterTypes(), new Class[]{int.class});
+            return method.getReturnType().equals(MinecraftReflection.getItemClass()) && Arrays.equals(method.getParameterTypes(), new Class[]{int.class});
         }
     });
-    private static final MethodInvoker<Material> materialGetByItemInvoker = Reflection.getMethod(NMS.getMagicNumbersUtilClass(), method -> {
-        return method.getReturnType().equals(Material.class) && Arrays.equals(method.getParameterTypes(), new Class[]{NMS.getItemClass()});
+    private static final MethodInvoker<Material> materialGetByItemInvoker = Reflection.getMethod(MinecraftReflection.getMagicNumbersUtilClass(), method -> {
+        return method.getReturnType().equals(Material.class) && Arrays.equals(method.getParameterTypes(), new Class[]{MinecraftReflection.getItemClass()});
     });
-    private static final MethodInvoker<Void> craftItemSetMeta = Reflection.getMethod(NMS.getCraftItemStackClass(), "setItemMeta", NMS.getItemStackClass(), ItemMeta.class);
+    private static final MethodInvoker<Void> craftItemSetMeta = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "setItemMeta", MinecraftReflection.getItemStackClass(), ItemMeta.class);
 
     private static final Gson CHAT_SERIALIZER_GSON;
 
     static {
         ConstructorInvoker<?> invoker;
         try {
-            invoker = Reflection.getConstructor(NMS.getItemStackClass(), NMS.getItemClass(), int.class, int.class);
+            invoker = Reflection.getConstructor(MinecraftReflection.getItemStackClass(), MinecraftReflection.getItemClass(), int.class, int.class);
         } catch (Exception ex) {
-            invoker = Reflection.getConstructor(NMS.getItemStackClass(), NMS.getIMaterialClass(), int.class);
+            invoker = Reflection.getConstructor(MinecraftReflection.getItemStackClass(), MinecraftReflection.getIMaterialClass(), int.class);
         }
         itemStackConstructor = invoker;
 
-        CHAT_SERIALIZER_GSON = ReflectStructure.Provider.acquireStructure(NMS.getChatSerializerClass())
+        CHAT_SERIALIZER_GSON = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getChatSerializerClass())
                 .withType(Gson.class)
                 .withTarget(null)
                 .readField(0);
@@ -73,9 +71,9 @@ public class ItemFactory {
     }
 
     public static Object getHandleItem(ItemStack item) {
-        if (NMS.getCraftItemStackClass().isInstance(item)) {
-            IStructureModifier<?> structure = ReflectStructure.Provider.acquireStructure(NMS.getCraftItemStackClass())
-                    .withType(NMS.getItemStackClass())
+        if (MinecraftReflection.getCraftItemStackClass().isInstance(item)) {
+            IStructureModifier<?> structure = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getCraftItemStackClass())
+                    .withType(MinecraftReflection.getItemStackClass())
                     .withTarget(item);
 
             Object handle = structure.readField(0);
@@ -124,11 +122,11 @@ public class ItemFactory {
     }
 
     public static boolean isNMSItem(Object item) {
-        return NMS.getItemStackClass().isInstance(item);
+        return MinecraftReflection.getItemStackClass().isInstance(item);
     }
 
     public static boolean isCraftItem(Object item) {
-        return NMS.getCraftItemStackClass().isInstance(item);
+        return MinecraftReflection.getCraftItemStackClass().isInstance(item);
     }
 
     public static void setItemTag(ItemStack item, ItemTag tag) {
@@ -139,8 +137,8 @@ public class ItemFactory {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
             // TODO: fix
         } else {
-            ReflectStructure.Provider.acquireStructure(NMS.getItemStackClass())
-                    .withType(NMS.getNBTTagCompoundClass()).withTarget(item)
+            ReflectStructure.Provider.acquireStructure(MinecraftReflection.getItemStackClass())
+                    .withType(MinecraftReflection.getNBTTagCompoundClass()).withTarget(item)
                     .writeField(0, tag.asNBT().get().getHandle());
         }
     }

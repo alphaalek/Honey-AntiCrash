@@ -12,9 +12,8 @@ import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MethodInvoker;
-import me.alek.honey.util.reflection.NMS;
+import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -27,7 +26,7 @@ public class LegacyProtocol extends WrappedObject<LegacyProtocol> {
     public static AttributeKey<Object> getProtocolAttributeKey(Channel channel, PacketBound bound) {
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
             ChannelHandler connection = channel.pipeline().get(MinecraftHandlers.CONNECTION);
-            return ReflectStructure.Provider.acquireStructure(NMS.getNetworkManagerClass())
+            return ReflectStructure.Provider.acquireStructure(MinecraftReflection.getNetworkManagerClass())
                     .<AttributeKey<Object>>withWeakType(AttributeKey.class)
                     .withTarget(connection).readField(0);
         } else if (NetProtocol.getProtocol().isBetween(NetProtocol.v1_20_2, NetProtocol.v1_20_4)) {
@@ -42,7 +41,7 @@ public class LegacyProtocol extends WrappedObject<LegacyProtocol> {
 
     public static Object getEnumProtocol(PacketState state) {
         if (PacketState.isValid(state)) {
-            return NMS.getEnumProtocolClass().getEnumConstants()[state.ordinal()];
+            return MinecraftReflection.getEnumProtocolClass().getEnumConstants()[state.ordinal()];
         } else {
             throw new IllegalArgumentException("Invalid packet state");
         }
@@ -60,13 +59,13 @@ public class LegacyProtocol extends WrappedObject<LegacyProtocol> {
     }
 
     public static Object getProtocolInfo(Object enumProtocol, PacketBound bound) {
-        Map<Object, Object> enumProtocolDelegateFlowMap = ReflectStructure.Provider.acquireStructure(NMS.getEnumProtocolClass())
+        Map<Object, Object> enumProtocolDelegateFlowMap = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getEnumProtocolClass())
                 .<Map<Object, Object>>withWeakType(Map.class).withStatic(false).withTarget(enumProtocol).readField(0);
         return enumProtocolDelegateFlowMap.get(bound.getNMSType());
     }
 
     private final PacketBound bound;
-    private final IStructureModifier<Object> packetModifier = getModifier(NMS.getPacketClass());
+    private final IStructureModifier<Object> packetModifier = getModifier(MinecraftReflection.getPacketClass());
     private final MethodInvoker<Integer> getPacketIdModifier;
     private final Object classToIdMap;
 
@@ -89,10 +88,10 @@ public class LegacyProtocol extends WrappedObject<LegacyProtocol> {
             }
 
             this.classToIdMap = ReflectStructure.Provider.acquireStructure(protocolRegistry.getClass())
-                    .withType(NMS.getObject2IntMapClass()).withTarget(protocolRegistry)
+                    .withType(MinecraftReflection.getObject2IntMapClass()).withTarget(protocolRegistry)
                     .readField(0);
 
-            this.getPacketIdModifier = ReflectStructure.Provider.acquireStructure(NMS.getObject2IntMapClass())
+            this.getPacketIdModifier = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getObject2IntMapClass())
                     .withInts().withTarget(this.classToIdMap).getMethod(GET_PACKET_ID_INVOKER_CACHE, "getInt", 0, Object.class);
         } else {
             Object protocolMap = getProtocolInfo(handle, bound);
