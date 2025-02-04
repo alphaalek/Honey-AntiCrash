@@ -2,7 +2,7 @@ package me.alek.honey.netty.codec.types;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
 
-public class VarInt implements Type.NoContext<Integer> {
+public class VarInt implements TypeSerializer.NoContext<Integer> {
 
     private static final int SEGMENT_BITS = 0x7F;
     private static final int CONTINUE_BIT = 0x80;

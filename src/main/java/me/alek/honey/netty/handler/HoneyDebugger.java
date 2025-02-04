@@ -36,8 +36,8 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
         onExceptionCaught(ctx.channel(), cause);
         try {
             ctx.fireExceptionCaught(cause);
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception ignored) {
+            // to do nothing
         }
 
         ChannelCloseInspection.close(ctx.channel());

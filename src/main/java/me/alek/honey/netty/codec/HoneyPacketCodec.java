@@ -49,20 +49,13 @@ public class HoneyPacketCodec {
         try {
             if (EmulatorCodec.LEGACY) {
                 packet = protocol.decodeLegacy(buf, state, (type, callback) -> {
-                    if (type.equals(PacketTypes.Play.Client.BLOCK_PLACE)
-                            && ConfigurationOptions.Decoder.DISABLE_NBT
-                            && NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-                        callback.apply(DisabledNBTCodec.BLOCK_PLACE);
-                    } else if (type.equals(PacketTypes.Play.Client.CLICK_WINDOW)
-                            && ConfigurationOptions.Decoder.DISABLE_NBT) {
-                        callback.apply(DisabledNBTCodec.WINDOW_CLICK);
-                    } else if (type.equals(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
+                    if (type.equals(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION)
                             && ConfigurationOptions.Decoder.DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE
                             && player.linkedBukkit() && !player.bukkit.getGameMode().equals(GameMode.CREATIVE)) {
                         // don't apply anything
-                    } else {
-                        callback.apply(LegacyCodec.createDefault(type, PacketBound.SERVER));
+                        return;
                     }
+                    callback.apply(LegacyCodec.createDefault(type, PacketBound.SERVER));
                 });
             } else {
                 packet = protocol.decodeModern(buf, state);

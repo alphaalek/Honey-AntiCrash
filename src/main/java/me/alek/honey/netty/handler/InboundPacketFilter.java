@@ -204,8 +204,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             if (!this.packetHandler.isCancelled(packet)) {
                 list.add(serializer.readerIndex(0).retain());
             } else {
-                list.add(Unpooled.buffer());
                 packet.releaseIfAutoReleasable();
+                list.add(Unpooled.buffer());
             }
 
             this.packetHandler.getProtocolSwapHandler().swapProtocolInboundFilter(packet);
@@ -214,7 +214,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (Exception ex) {
             InboundPacketFilter.removeMarker();
-            if (this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
+            if (this.player.pinging || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet
                 // most likely something pinging this server without following the Minecraft protocol
                 ChannelCloseInspection.close(ctx.channel());

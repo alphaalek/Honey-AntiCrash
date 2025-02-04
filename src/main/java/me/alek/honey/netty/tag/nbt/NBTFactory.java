@@ -1,9 +1,12 @@
 package me.alek.honey.netty.tag.nbt;
 
 import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.Type;
+import me.alek.honey.netty.codec.types.TypeSerializer;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -17,6 +20,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
@@ -24,29 +28,34 @@ import java.util.stream.Collectors;
 
 public class NBTFactory {
 
+    private static final String NAMED_COMPOUND_TAG_NAME = "";
+
     private static final int SIXTY_FOUR_KILOBYTES = 1024 * 64;
     private static final int MAX_DEPTH = 8;
     private static final int MAX_COMPLEXITY = 256;
 
-    public static class ProtocolType implements Type.NoContext.In<AbstractTag<?, ?, ?>> {
+    public static class Serializer implements TypeSerializer<AbstractTag<?, ?, ?>, TypeSerializer.TypeContext.Protocol> {
 
-        @SuppressWarnings("unchecked")
-        public static <TYPE extends Type.NoContext.In<AbstractTag<?, ?, ?>>> TYPE forProtocol(NetProtocol protocol) {
-            return (TYPE) new NBTFactory.ProtocolType(protocol);
-        }
-
-        private final NetProtocol protocol;
-
-        public ProtocolType(NetProtocol protocol) {
-            this.protocol = protocol;
+        @Override
+        public AbstractTag<?, ?, ?> read(PacketDataSerializer buf, TypeContext.Protocol context) throws DecoderException {
+            try (ByteBufInputStream stream = new ByteBufInputStream(buf)) {
+                return NBTFactory.read(stream, context.get());
+            } catch (IOException ex) {
+                throw new DecoderException("Failed to read nbt tag", ex);
+            }
         }
 
         @Override
-        public AbstractTag<?, ?, ?> read(PacketDataSerializer buf) {
-            try (ByteBufInputStream stream = new ByteBufInputStream(buf)) {
-                return NBTFactory.read(stream, protocol);
+        public PacketDataSerializer write(PacketDataSerializer buf, AbstractTag<?, ?, ?> val, TypeContext.Protocol context) throws EncoderException {
+            return write0(buf, val, context);
+        }
+
+        @SuppressWarnings("unchecked")
+        public <TAG extends AbstractTag<?, ?, TAG>> PacketDataSerializer write0(PacketDataSerializer buf, AbstractTag<?, ?, ?> tag, TypeContext.Protocol context) throws EncoderException {
+            try (ByteBufOutputStream stream = new ByteBufOutputStream(buf)) {
+                return (PacketDataSerializer) NBTFactory.write(stream, (TAG) tag, context.get()).buffer();
             } catch (IOException ex) {
-                return null;
+                throw new EncoderException("Failed to write item tag", ex);
             }
         }
     }
@@ -54,12 +63,10 @@ public class NBTFactory {
     private static AbstractTag<?, ?, ?> read(ByteBufInputStream stream, NetProtocol protocol) throws IOException {
         byte id = stream.readByte();
         TagType type = TagType.getFromTypeId(id);
-        if (type == TagType.END || type == null) {
-            return null;
-        }
         if (type != TagType.getFromCollection(TagType.Collection.COMPOUND)) {
             throw new IOException("Expected compound as root tag");
         }
+        assert type != null;
 
         // named compound tag, skip these bytes
         if (protocol.isOlderThan(NetProtocol.v1_20_2)) {
@@ -69,6 +76,23 @@ public class NBTFactory {
         // deserialize tag
         return type.getCodec().read(new DataInputStream(stream),
                 new TagLimiter(SIXTY_FOUR_KILOBYTES, MAX_DEPTH, MAX_COMPLEXITY));
+    }
+
+    private static <TAG extends AbstractTag<?, ?, TAG>> ByteBufOutputStream write(ByteBufOutputStream stream, TAG tag, NetProtocol protocol) throws IOException {
+        TagType type = tag.getType();
+        if (type != TagType.getFromCollection(TagType.Collection.COMPOUND)) {
+            throw new IOException("Expected compound as root tag");
+        }
+        stream.writeByte(type.getTypeId());
+
+        // named compound tag
+        if (protocol.isOlderThan(NetProtocol.v1_20_2)) {
+            stream.writeUTF(NAMED_COMPOUND_TAG_NAME);
+        }
+
+        // serialize tag
+        type.<TAG>getCodec().write(new DataOutputStream(stream), tag);
+        return stream;
     }
 
     public static int getAmountOfTags(AbstractTag<?, ?, ?> tag) {

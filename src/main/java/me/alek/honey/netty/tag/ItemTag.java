@@ -2,6 +2,7 @@ package me.alek.honey.netty.tag;
 
 import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
+import org.checkerframework.checker.units.qual.K;
 
 public interface ItemTag {
 
@@ -47,11 +48,18 @@ public interface ItemTag {
             public Object get() {
                 throw new UnsupportedOperationException();
             }
+
+            @Override
+            public Object orElse(Object val) {
+                return val;
+            }
         };
 
         boolean isPresent();
 
         T get();
+
+        T orElse(T val);
 
         static <T> Representation<T> as(T val) {
             return new Representation<T>() {
@@ -63,6 +71,15 @@ public interface ItemTag {
                 @Override
                 public T get() {
                     return val;
+                }
+
+                @Override
+                public T orElse(T or) {
+                    if (isPresent()) {
+                        return val;
+                    } else {
+                        return or;
+                    }
                 }
             };
         }

@@ -5,13 +5,15 @@ import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.NBTFactory;
+import me.alek.honey.util.protocol.NetProtocol;
 
 public class Types {
 
-    public static Type.NoContext<Integer> VAR_INT = new VarInt();
-    public static Type<String, Type.TypeContext.OneArg<Integer>> UTF8 = new Utf8String();
+    public static TypeSerializer.NoContext<Integer> VAR_INT = new VarInt();
+    public static TypeSerializer<String, TypeSerializer.TypeContext.OneArg<Integer>> UTF8 = new Utf8String();
 
-    public static Type.ProtocolType<ComponentMap, Type.TypeContext.OneArg<ItemType>, ComponentMap.ProtocolType> COMPONENT_MAP = ComponentMap.ProtocolType::forProtocol;
-    public static Type.ProtocolType<WrappedImmutableItemStack, Type.TypeContext.Empty, WrappedImmutableItemStack.ProtocolType> ITEM_STACK = WrappedImmutableItemStack.ProtocolType::forProtocol;
-    public static Type.ProtocolType<AbstractTag<?, ?, ?>, Type.TypeContext.Empty, NBTFactory.ProtocolType> NBT = NBTFactory.ProtocolType::forProtocol;
+    public static TypeSerializer.In<ComponentMap, TypeSerializer.TypeContext.TwoArgs<ItemType, NetProtocol>> IN_COMPONENT_MAP = new ComponentMap.InSerializer();
+    public static TypeSerializer.Out<ComponentMap, TypeSerializer.TypeContext.TwoArgs<ItemType, NetProtocol>> OUT_COMPONENT_MAP = new ComponentMap.OutSerializer();
+    public static TypeSerializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.Protocol> ITEM_STACK = new WrappedImmutableItemStack.Serializer();
+    public static TypeSerializer<AbstractTag<?, ?, ?>, TypeSerializer.TypeContext.Protocol> NBT = new NBTFactory.Serializer();
 }

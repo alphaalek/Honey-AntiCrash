@@ -62,6 +62,7 @@ public class HoneyPlayer implements IntIdentifiable {
     public UUID uuid;
     public String name = "Unknown";
     public boolean floodgate;
+    public boolean pinging;
     public Phase phase = Phase.UNSET;
     public boolean punished;
     public long postponedPackets;
@@ -111,7 +112,12 @@ public class HoneyPlayer implements IntIdentifiable {
     }
 
     public void onVersionUpdate(int protocol) {
-        this.clientInfo = new ClientInfo(protocol);
+        if (protocol == ClientInfo.PINGING_PROTOCOL_VERSION) {
+            this.clientInfo = ClientInfo.NON_EXISTENT;
+            this.pinging = true;
+        } else {
+            this.clientInfo = new ClientInfo.Default(protocol);
+        }
     }
 
     public synchronized void remove() {

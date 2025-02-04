@@ -28,13 +28,13 @@ public class WrappedLoginInLoginStart extends ByteInWrappedPacket<WrappedLoginIn
         this.username = serializer.readString(USERNAME_MAX_LENGTH);
         NetProtocol protocol = packet.getProtocol();
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_19)) {
-            if (protocol.isOlderThan(NetProtocol.v1_19_4) && serializer.readBoolean()) {
+            if (protocol.isOlderThanOrEqual(NetProtocol.v1_19_3) && serializer.readBoolean()) {
                 this.signatureData = new SignatureData(
                         Instant.ofEpochMilli(serializer.readLong()), MinecraftEncryptionUtil.publicKey(serializer.readByteArray(512)), serializer.readByteArray(4096));
             }
 
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_19_1)) {
-                if (protocol.isOlderThan(NetProtocol.v1_20_2) && !serializer.readBoolean()) {
+                if (protocol.isOlderThanOrEqual(NetProtocol.v1_20_1) && !serializer.readBoolean()) {
                     return;
                 }
                 this.UUID = serializer.readUUID();

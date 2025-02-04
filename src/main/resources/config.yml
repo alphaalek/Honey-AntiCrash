@@ -64,8 +64,13 @@ webhook:
 decoder:
   # Should the default decoder be enabled.
   use-default: false
-  # Should nbt decode for PacketPlayInBlockPlace (pre 1.9) & PacketPlayInWindowClick (1.17+) be disabled
-  disable-nbt: true
+  # Disable item tag decoding
+  disable-tag:
+    # PacketPlayInBlockPlace (pre 1.9)
+    block-place: true
+    # PacketPlayInWindowClick
+    window-click: true
+
   # Should PacketPlayInSetCreativeSlot packets not be decoded if the player is not in creative mode.
   disable-creative-slot-for-non-creative: true
 

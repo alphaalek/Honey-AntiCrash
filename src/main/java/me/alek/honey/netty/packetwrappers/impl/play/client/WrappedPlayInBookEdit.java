@@ -43,15 +43,15 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
         super(buf, packet);
         NetProtocol protocol = packet.getProtocol();
 
-        CompoundTag tag;
         if (protocol.isOlderThanOrEqual(NetProtocol.v1_17)) {
             WrappedImmutableItemStack stack = buf.readItemStackSafely(protocol, this);
-            tag = stack.getTag().asNBT().get();
+            CompoundTag tag = stack.getTag().asNBT().get();
+            this.signing = buf.readBoolean();
+            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, new DecodeContext.BookEditContext<>(this, this.signing));
 
             for (String page : tag.<String>getArrayOf("pages", TagType.STRING)) {
                 this.pages.add(page);
             }
-            this.signing = buf.readBoolean();
             if (this.signing) {
                 this.author = tag.getString("author");
                 this.title = tag.getString("title");
@@ -69,23 +69,33 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             for (int i = 0; i < pageCount; i++) {
                 this.pages.add(buf.readString(PAGE_CHAR_LIMIT));
             }
-            tag = new CompoundTag();
-            tag.putArray("pages", TagType.STRING, this.pages);
 
-            if (buf.readBoolean()) {
-                tag.putPrimitive("title", TagType.STRING, this.title = buf.readString(TITLE_CHAR_LIMIT));
-                tag.putPrimitive("author", TagType.STRING, this.author = packet.getPlayer().name);
-                this.signing = true;
-            } else {
-                this.signing = false;
+            this.signing = buf.readBoolean();
+            if (this.signing) {
+                this.title = buf.readString(TITLE_CHAR_LIMIT);
+                this.author = packet.getPlayer().name;
             }
+
+            validateModernBookEdit(protocol);
         }
 
         if (this.slot < 0 || this.slot > 8) {
             throw new DecoderException("Invalid slot");
         }
+    }
 
-        CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, new DecodeContext.BookEditContext<>(this, this.signing));
+    private void validateModernBookEdit(NetProtocol protocol) {
+        if (protocol.isOlderThan(NetProtocol.v1_20_5)) {
+            CompoundTag tag = new CompoundTag();
+            tag.putArray("pages", TagType.STRING, this.pages);
+
+            if (this.signing) {
+                tag.putPrimitive("title", TagType.STRING, this.title);
+                tag.putPrimitive("author", TagType.STRING, this.author);
+            }
+
+            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, new DecodeContext.BookEditContext<>(this, this.signing));
+        }
     }
 
     public int getSlot() {

@@ -4,7 +4,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
 import io.netty.buffer.Unpooled;
-import me.alek.honey.netty.codec.types.Type;
+import io.netty.handler.codec.DecoderException;
+import io.netty.handler.codec.EncoderException;
+import me.alek.honey.netty.codec.types.TypeSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
@@ -29,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.function.*;
 
 public class PacketDataSerializer extends ByteBuf {
 
@@ -71,16 +73,16 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.VAR_INT.write(this, val);
     }
 
-    public WrappedImmutableItemStack readItemStack() {
-        return readItemStack(NetProtocol.getProtocol());
+    public ByteBuf writeItemStack(NetProtocol protocol, WrappedImmutableItemStack stack) throws EncoderException {
+        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.Protocol.of(protocol));
     }
 
-    public WrappedImmutableItemStack readItemStack(NetProtocol protocol) {
-        return Optional.ofNullable(Types.ITEM_STACK.forProtocol(protocol).read(this))
+    public WrappedImmutableItemStack readItemStack(NetProtocol protocol) throws DecoderException {
+        return Optional.ofNullable(Types.ITEM_STACK.read(this, TypeSerializer.TypeContext.Protocol.of(protocol)))
                 .orElse(WrappedImmutableItemStack.AIR);
     }
 
-    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) {
+    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) throws DecoderException {
         WrappedImmutableItemStack stack = readItemStack(protocol);
         if (stack != WrappedImmutableItemStack.AIR) {
             CodecTypeValidation.ITEM_STACK.validate(stack, DecodeContext.from(packet));
@@ -89,15 +91,25 @@ public class PacketDataSerializer extends ByteBuf {
         return stack;
     }
 
-    public <K, V> Map<K, V> readMap(Function<PacketDataSerializer, K> keyFunction, Function<PacketDataSerializer, V> valueFunction) {
+    public <K, V> Map<K, V> readMap(Supplier<K> keyFunction, Supplier<V> valueFunction) {
         int size = readVarInt();
         Map<K, V> map = new HashMap<>(size);
         for (int i = 0; i < size; i++) {
-            K key = keyFunction.apply(this);
-            V value = valueFunction.apply(this);
+            K key = keyFunction.get();
+            V value = valueFunction.get();
             map.put(key, value);
         }
         return map;
+    }
+
+    public <K, V> void writeMap(Map<K, V> map, Consumer<K> keyConsumer, Consumer<V> valueConsumer) {
+        writeVarInt(map.size());
+        for (Map.Entry<K, V> entry : map.entrySet()) {
+            K key = entry.getKey();
+            V value = entry.getValue();
+            keyConsumer.accept(key);
+            valueConsumer.accept(value);
+        }
     }
 
     public UUID readUUID() {
@@ -109,7 +121,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public String readString(int i) {
-        return Types.UTF8.read(this, Type.TypeContext.OneArg.of(i));
+        return Types.UTF8.read(this, TypeSerializer.TypeContext.OneArg.of(i));
     }
 
     public ByteBuf writeString(String val) {
@@ -117,7 +129,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public ByteBuf writeString(String val, int max) {
-        return Types.UTF8.write(this, val, Type.TypeContext.OneArg.of(max));
+        return Types.UTF8.write(this, val, TypeSerializer.TypeContext.OneArg.of(max));
     }
 
     public byte[] readByteArray(int maxLength) {

@@ -252,15 +252,15 @@ public class CodecTypes {
         private static final int ARRAY_ELEMENT_BYTES = 4;
 
         @Override
-        public void write(DataOutputStream output, R tag) throws IOException {
-            if (tag.getValue().isEmpty()) {
-                output.writeByte(0);
+        public void write(DataOutputStream output, R array) throws IOException {
+            if (array.getValue().isEmpty()) {
+                output.writeByte(TagType.END.getTypeId());
             } else {
-                output.writeByte(Optional.ofNullable(tag.getTypeOf()).map(TagType::getTypeId).orElse((byte) 0));
+                output.writeByte(Optional.ofNullable(array.getTypeOf()).map(TagType::getTypeId).orElseThrow(IllegalStateException::new));
             }
-            output.writeInt(tag.getValue().size());
-            for (AbstractTag<?, ?, ?> tagInList : tag.getValue()) {
-                tagInList.write(output);
+            output.writeInt(array.getValue().size());
+            for (AbstractTag<?, ?, ?> tag : array.getValue()) {
+                tag.write(output);
             }
         }
 
@@ -314,19 +314,19 @@ public class CodecTypes {
         private static final int COMPOUND_ELEMENT_BYTES = 36;
 
         @Override
-        public void write(DataOutputStream output, CompoundTag tag) throws IOException {
-            for (String key : tag.getValue().keySet()) {
-                AbstractTag<?, ?, ?> tagInCompound = tag.getValue().getConverted(key);
-                output.writeByte(tagInCompound.getType().getTypeId());
-                if (tagInCompound.getType() == TagType.END) {
+        public void write(DataOutputStream output, CompoundTag compound) throws IOException {
+            for (String key : compound.getValue().keySet()) {
+                AbstractTag<?, ?, ?> tag = compound.getValue().getConverted(key);
+                if (tag.getType() == TagType.END) {
                     continue;
                 }
+                output.writeByte(tag.getType().getTypeId());
 
                 output.writeUTF(key);
-                tagInCompound.write(output);
+                tag.write(output);
             }
 
-            output.writeByte(0);
+            output.writeByte(TagType.END.getTypeId());
         }
 
         @Override
@@ -339,6 +339,9 @@ public class CodecTypes {
                 TagType type = TagType.getFromTypeId(b);
                 if (type == null) {
                     throw new IOException("Invalid type");
+                }
+                if (type == TagType.END) {
+                    continue;
                 }
 
                 String key = input.readUTF();

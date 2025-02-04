@@ -7,7 +7,8 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.Type;
+import me.alek.honey.netty.codec.types.TypeSerializer;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.util.protocol.NetProtocol;
 
@@ -19,21 +20,11 @@ import java.util.stream.Collectors;
 
 public class ComponentMap implements ItemTag {
 
-    public static class ProtocolType implements Type.In<ComponentMap, Type.TypeContext.OneArg<ItemType>> {
-
-        public static ComponentMap.ProtocolType forProtocol(NetProtocol protocol) {
-            return new ComponentMap.ProtocolType(protocol);
-        }
-
-        private final NetProtocol protocol;
-
-        public ProtocolType(NetProtocol protocol) {
-            this.protocol = protocol;
-        }
+    public static class InSerializer implements TypeSerializer.In<ComponentMap, TypeSerializer.TypeContext.TwoArgs<ItemType, NetProtocol>> {
 
         @SuppressWarnings("unchecked")
         @Override
-        public ComponentMap read(PacketDataSerializer serializer, TypeContext.OneArg<ItemType> context) {
+        public ComponentMap read(PacketDataSerializer serializer, TypeSerializer.TypeContext.TwoArgs<ItemType, NetProtocol> context) {
             int present = serializer.readVarInt();
             int absent = serializer.readVarInt();
             if (present == 0 && absent == 0) {
@@ -43,9 +34,10 @@ public class ComponentMap implements ItemTag {
                 throw new DecoderException("Invalid component map");
             }
 
-            List<ComponentType<?>> available = VersionComponentTypes.getComponents(this.protocol);
+            NetProtocol protocol = context.getSecond();
+            List<ComponentType<?>> available = VersionComponentTypes.getComponents(protocol);
 
-            ItemType itemType = context.get();
+            ItemType itemType = context.getFirst();
             List<Val<?>> bases = itemType.getComponents().getDelegate().entrySet().stream()
                     .map(e -> new ComponentMap.Val<>((ComponentType<Object>) e.getKey(), e.getValue(), ComponentSource.BASE))
                     .collect(Collectors.toList());
@@ -57,12 +49,12 @@ public class ComponentMap implements ItemTag {
             }
 
             PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(serializer);
-            wrapper.setClientVersion(this.protocol.toPECVersion());
-            wrapper.setServerVersion(this.protocol.toPESVersion());
+            wrapper.setClientVersion(protocol.toPECVersion());
+            wrapper.setServerVersion(protocol.toPESVersion());
 
             ComponentMap map = new ComponentMap(bases);
             for (int i = 0; i < present; i++) {
-                ComponentType<Object> type = readType(serializer);
+                ComponentType<Object> type = readType(protocol, serializer);
                 if (available.contains(type) &&
                         Optional.ofNullable(map.get(type))
                                 .map(Val::source)
@@ -77,9 +69,9 @@ public class ComponentMap implements ItemTag {
                 }
             }
             for (int i = 0; i < absent; i++) {
-                ComponentType<?> type = readType(serializer);
+                ComponentType<?> type = readType(protocol, serializer);
                 if (map.has(type) && available.contains(type)) {
-                    map.remove(readType(serializer));
+                    map.remove(type);
                 } else {
                     throw new DecoderException("Invalid absent component type");
                 }
@@ -91,14 +83,66 @@ public class ComponentMap implements ItemTag {
         }
 
         @SuppressWarnings("unchecked")
-        private ComponentType<Object> readType(PacketDataSerializer serializer) {
+        private ComponentType<Object> readType(NetProtocol protocol, PacketDataSerializer serializer) {
             int id = serializer.readVarInt();
             return (ComponentType<Object>)
-                    ComponentTypes.getRegistry().getById(this.protocol.toPECVersion(), id);
+                    ComponentTypes.getRegistry().getById(protocol.toPECVersion(), id);
         }
     }
 
-    private static final ComponentMap EMPTY = new ComponentMap();
+    public static class OutSerializer implements TypeSerializer.Out<ComponentMap, TypeSerializer.TypeContext.TwoArgs<ItemType, NetProtocol>> {
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public PacketDataSerializer write(PacketDataSerializer buf, ComponentMap map, TypeContext.TwoArgs<ItemType, NetProtocol> context) {
+            ItemType itemType = context.getFirst();
+            List<Val<?>> defaultBases = itemType.getComponents().getDelegate().entrySet().stream()
+                    .map(e -> new ComponentMap.Val<>((ComponentType<Object>) e.getKey(), e.getValue(), ComponentSource.BASE))
+                    .collect(Collectors.toList());
+            if (map.delegate.values().containsAll(defaultBases) && map.delegate.size() == defaultBases.size()) {
+                buf.writeShort(0);
+                return buf;
+            }
+            NetProtocol protocol = context.getSecond();
+
+            PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(buf);
+            wrapper.setClientVersion(protocol.toPECVersion());
+            wrapper.setServerVersion(protocol.toPESVersion());
+
+            List<ComponentType<?>> bases = map.getAllBases().stream()
+                    .map(Val::type)
+                    .collect(Collectors.toList());
+
+            // find patched types
+            List<Val<?>> patches = map.getAllPatches();
+            buf.writeVarInt(patches.size());
+
+            // find absent types
+            List<Val<?>> absents = defaultBases.stream()
+                    .filter(b -> !bases.contains(b.type()))
+                    .collect(Collectors.toList());
+            buf.writeVarInt(absents.size());
+
+            // write present patches
+            for (Val<?> patch : patches) {
+                writeType(wrapper, protocol, buf, (Val<Object>) patch);
+            }
+
+            // write absent types
+            for (Val<?> absent : absents) {
+                buf.writeVarInt(absent.type().getId(protocol.toPECVersion()));
+            }
+
+            return buf;
+        }
+
+        private void writeType(PacketWrapper<?> wrapper, NetProtocol protocol, PacketDataSerializer buf, Val<Object> val) {
+            buf.writeVarInt(val.type().getId(protocol.toPECVersion()));
+            val.type().write(wrapper, val.get());
+        }
+    }
+
+    public static final ComponentMap EMPTY = new ComponentMap();
 
     private final Map<ComponentType<?>, Val<?>> delegate = new HashMap<>();
 

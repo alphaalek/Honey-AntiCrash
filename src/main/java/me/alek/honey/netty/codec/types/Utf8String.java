@@ -7,7 +7,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 
 import java.nio.charset.StandardCharsets;
 
-public class Utf8String implements Type<String, Type.TypeContext.OneArg<Integer>> {
+public class Utf8String implements TypeSerializer<String, TypeSerializer.TypeContext.OneArg<Integer>> {
 
     private static final int MAX_BYTES_PER_CHAR_UTF8;
 
@@ -16,7 +16,7 @@ public class Utf8String implements Type<String, Type.TypeContext.OneArg<Integer>
     }
 
     @Override
-    public String read(PacketDataSerializer buf, Type.TypeContext.OneArg<Integer> context) {
+    public String read(PacketDataSerializer buf, TypeSerializer.TypeContext.OneArg<Integer> context) {
         int stringByteLength = buf.readVarInt();
         int maxByteLength = context.get() * MAX_BYTES_PER_CHAR_UTF8;
         if (stringByteLength > maxByteLength) {

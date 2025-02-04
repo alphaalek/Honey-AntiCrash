@@ -4,61 +4,42 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.Type;
+import me.alek.honey.netty.codec.types.TypeSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
-import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBookEdit;
 import me.alek.honey.netty.tag.ItemTag;
+import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.TagType;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
-import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.ItemFactory;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Level;
 
 public class WrappedImmutableItemStack implements Cloneable {
 
-    public static final WrappedImmutableItemStack AIR = new WrappedImmutableItemStack();
-
-    public static class ProtocolType implements Type.NoContext.In<WrappedImmutableItemStack> {
-
-        public static WrappedImmutableItemStack.ProtocolType forProtocol(NetProtocol protocol) {
-            return new WrappedImmutableItemStack.ProtocolType(protocol);
-        }
-
-        private final NetProtocol protocol;
-
-        public ProtocolType(NetProtocol protocol) {
-            this.protocol = protocol;
-        }
+    public static class Serializer implements TypeSerializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.Protocol> {
 
         @Override
-        public WrappedImmutableItemStack read(PacketDataSerializer buf) {
+        public WrappedImmutableItemStack read(PacketDataSerializer buf, TypeContext.Protocol context) {
+            NetProtocol protocol = context.get();
             int amount = -1;
             short durability = -1;
-            if (this.protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 amount = buf.readVarInt();
                 if (amount < 1) {
                     return null;
                 }
-            } else if (this.protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)
+            } else if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)
                     && !buf.readBoolean()) {
                 return null;
             }
 
             int id;
-            if (this.protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
                 id = buf.readVarInt();
             } else {
                 id = buf.readShort();
@@ -67,19 +48,58 @@ public class WrappedImmutableItemStack implements Cloneable {
                 throw new DecoderException("Invalid item id");
             }
 
-            if (amount == -1) { // before 1.20.5
+            if (protocol.isOlderThan(NetProtocol.v1_20_5)) {
                 amount = buf.readByte();
-            }
 
-            if (this.protocol.isOlderThan(NetProtocol.v1_13_2)) {
-                durability = buf.readShort();
+                if (protocol.isOlderThan(NetProtocol.v1_13_2)) {
+                    durability = buf.readShort();
+                }
             }
 
             try {
-                return WrappedImmutableItemStack.read(this.protocol, buf, id, amount, durability);
+                return WrappedImmutableItemStack.read(protocol, buf, id, amount, durability);
             } catch (Exception ex) {
                 throw new DecoderException("Failed to decode item stack", ex);
             }
+        }
+
+        @Override
+        public PacketDataSerializer write(PacketDataSerializer buf, WrappedImmutableItemStack stack, TypeContext.Protocol context) {
+            NetProtocol protocol = context.get();
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                buf.writeVarInt(stack.getAmount());
+                if (stack.getAmount() < 1) {
+                    return buf;
+                }
+            } else if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
+                if (stack.getAmount() < 1) {
+                    buf.writeBoolean(false);
+                    return buf;
+                }
+            }
+
+            int id = stack.getType().getId(protocol.toPECVersion());
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
+                buf.writeVarInt(id);
+            } else {
+                buf.writeShort(id);
+            }
+
+            if (protocol.isOlderThan(NetProtocol.v1_20_5)) {
+                buf.writeByte(stack.getAmount());
+
+                if (protocol.isOlderThan(NetProtocol.v1_13_2)) {
+                    buf.writeShort(stack.getDurability());
+                }
+            }
+
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+                Types.OUT_COMPONENT_MAP.write(buf, stack.getTag().asComponentMap().orElse(ComponentMap.EMPTY), TypeContext.TwoArgs.of(stack.getType(), protocol));
+            } else {
+                Types.NBT.write(buf, stack.getTag().asNBT().orElse(CompoundTag.EMPTY), TypeContext.Protocol.of(protocol));
+            }
+
+            return buf;
         }
     }
 
@@ -102,12 +122,11 @@ public class WrappedImmutableItemStack implements Cloneable {
         ItemTag tag;
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
             // wrap component map
-            tag = Types.COMPONENT_MAP.forProtocol(protocol)
-                    .read(serializer, Type.TypeContext.OneArg.of(type));
+            tag = Types.IN_COMPONENT_MAP.read(serializer, TypeSerializer.TypeContext.TwoArgs.of(type, protocol));
         } else {
             // wrap nbt
             tag = Optional.ofNullable(
-                            Types.NBT.forProtocol(protocol).read(serializer, null))
+                            Types.NBT.read(serializer, TypeSerializer.TypeContext.Protocol.of(protocol)))
                     .map(AbstractTag::asCompound)
                     .orElse(null);
         }
@@ -126,26 +145,7 @@ public class WrappedImmutableItemStack implements Cloneable {
         }
     }
 
-    public Object toNMSSameVersion() {
-        Material type = ItemFactory.getMaterialFromId(this.type.getId(this.protocol.toPECVersion()));
-        ItemStack bukkitStack;
-        if (this.protocol.isNewerThanOrEqual(NetProtocol.v1_13)) {
-            bukkitStack = new ItemStack(type, this.amount);
-        } else {
-            bukkitStack = new ItemStack(type, this.amount, this.durability);
-        }
-
-        try {
-            Object nmsStack = ItemFactory.asNMSCopy(bukkitStack);
-            if (hasTag()) {
-                ItemFactory.setItemTag(nmsStack, this.tag);
-            }
-            return nmsStack;
-        } catch (Exception ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to apply item tag", ex);
-            return null;
-        }
-    }
+    public static final WrappedImmutableItemStack AIR = new WrappedImmutableItemStack();
 
     private final NetProtocol protocol;
     private final ItemType type;
@@ -180,6 +180,10 @@ public class WrappedImmutableItemStack implements Cloneable {
         this.protocol = NetProtocol.UNKNOWN;
     }
 
+    public NetProtocol getProtocol() {
+        return this.protocol;
+    }
+
     public boolean hasTag() {
         return !this.tag.isEmpty();
     }
@@ -204,7 +208,7 @@ public class WrappedImmutableItemStack implements Cloneable {
     }
 
     public short getDurability() {
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_13)) {
+        if (this.protocol.isNewerThanOrEqual(NetProtocol.v1_13)) {
             throw new UnsupportedOperationException();
         }
         return durability;

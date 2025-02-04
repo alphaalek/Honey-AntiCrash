@@ -1,25 +1,25 @@
 package me.alek.honey.netty.tag.nbt;
 
-import io.netty.handler.codec.DecoderException;
-import me.alek.honey.netty.codec.validation.CodecTypeValidation;
-import me.alek.honey.netty.codec.validation.DecodeContext;
-import me.alek.honey.netty.tag.ItemTag;
-import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
-import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.tag.ItemTag;
+import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<String, Object, AbstractTag<?, ?, ?>>, CompoundTag> implements ItemTag {
 
+    public static final CompoundTag EMPTY = new CompoundTag();
     private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.COMPOUND);
 
     private MapConverter<String, Object, AbstractTag<?, ?, ?>> delegate;

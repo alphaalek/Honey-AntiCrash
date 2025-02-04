@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
+import io.netty.buffer.ByteBuf;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
@@ -55,12 +56,41 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacket<WrappedPlayInW
         this.windowClickType = WindowClickType.values()[clickTypeIndex];
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
             this.slots = serializer.readMap(
-                    serializerInput -> Math.toIntExact(serializerInput.readShort()),
-                    serializerInput -> serializerInput.readItemStackSafely(protocol, this)
+                    () -> Math.toIntExact(serializer.readShort()),
+                    () -> serializer.readItemStackSafely(protocol, this)
             );
         }
 
         this.carriedItemStack = serializer.readItemStackSafely(protocol, this);
+    }
+
+    public ByteBuf constructModifiedBuf(NetProtocol protocol) {
+        PacketDataSerializer serializer = new PacketDataSerializer();
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_21_2)) {
+            serializer.writeVarInt(this.windowId);
+        } else {
+            serializer.writeByte(this.windowId);
+        }
+
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_17_1)) {
+            serializer.writeVarInt(this.stateId);
+        }
+        serializer.writeShort(this.slot);
+        serializer.writeByte(this.button);
+        if (protocol.isOlderThanOrEqual(NetProtocol.v1_17)) {
+            serializer.writeShort(this.actionNumber);
+        }
+
+        serializer.writeVarInt(this.windowClickType.ordinal());
+        if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
+            serializer.writeMap(this.slots,
+                    serializer::writeShort,
+                    stack -> serializer.writeItemStack(protocol, WrappedImmutableItemStack.AIR)
+            );
+        }
+
+        serializer.writeItemStack(protocol, WrappedImmutableItemStack.AIR);
+        return serializer;
     }
 
     public int getWindowId() {

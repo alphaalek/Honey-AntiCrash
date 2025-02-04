@@ -14,7 +14,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -480,12 +479,14 @@ public class ConfigurationOptions {
     public static class Decoder {
 
         public static boolean USE_DEFAULT;
-        public static boolean DISABLE_NBT;
+        public static boolean DISABLE_ITEM_TAG_BLOCK_PLACE;
+        public static boolean DISABLE_ITEM_TAG_WINDOW_CLICK;
         public static boolean DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE;
 
         public static void load() {
             USE_DEFAULT = file.getBoolean("decoder.use-default", false);
-            DISABLE_NBT = file.getBoolean("decoder.disable-nbt", true);
+            DISABLE_ITEM_TAG_BLOCK_PLACE = file.getBoolean("decoder.disable-tag.block-place", true);
+            DISABLE_ITEM_TAG_WINDOW_CLICK = file.getBoolean("decoder.disable-tag.window-click", true);
             DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE = file.getBoolean("decoder.disable-creative-slot-for-non-creative", true);
         }
     }
