@@ -28,6 +28,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -94,6 +95,10 @@ public class HoneyPlayer implements IntIdentifiable {
         PLAYERS.set(this.registryID, this);
         this.channel = channel;
         this.packetHandler = handler;
+
+        if (this.channel.localAddress() != null) {
+            this.name = ((InetSocketAddress)this.channel.remoteAddress()).getAddress().getHostAddress();
+        }
     }
 
     public void setupHello(WrappedLoginInLoginStart hello) {
@@ -104,11 +109,10 @@ public class HoneyPlayer implements IntIdentifiable {
             if (floodgateUserName != null) {
                 this.name = floodgateUserName;
                 this.floodgate = true;
+                return;
             }
         }
-        if (this.name.equals("Unknown")) {
-            this.name = hello.getUsername();
-        }
+        this.name = hello.getUsername();
     }
 
     public void onVersionUpdate(int protocol) {

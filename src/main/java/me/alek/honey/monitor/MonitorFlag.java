@@ -207,7 +207,7 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
 
         @Override
         public String getSpecified() {
-            return "<packet type> " + type;
+            return "<packet type> " + (this.type != PacketType.UNKNOWN ? this.type : "ANY");
         }
 
         @Override
