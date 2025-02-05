@@ -14,6 +14,10 @@ public interface DecodeContext<WP extends SourcedWrappedPacket<WP>> {
 
     class BookEditContext<WP extends SourcedWrappedPacket<WP>> implements DecodeContext<WP> {
 
+        public static <WP extends SourcedWrappedPacket<WP>> BookEditContext<WP> of(WP packet, boolean signing) {
+            return new BookEditContext<>(packet, signing);
+        }
+
         private final boolean signing;
         private final WP packet;
 

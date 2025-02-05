@@ -9,6 +9,7 @@ import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBookEdit
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 public class BookTag {
 
@@ -18,7 +19,7 @@ public class BookTag {
     public static final String FILTERED_TITLE = "filtered_title";
     public static final String AUTHOR = "author";
 
-    static {
+    public static void loadValidations() {
         CodecTypeValidation.BOOK_EDIT_TAG.addValidation(BookTag::validateBookEdit);
         CodecTypeValidation.BOOK_EDIT_ITEM_STACK.addValidation(BookTag::validateBookEdit);
     }
@@ -27,7 +28,7 @@ public class BookTag {
         ItemTag tag = item.getTag();
         if (tag.asNBT().isPresent()) {
             CompoundTag nbt = tag.asNBT().get();
-            if (nbt.hasKeyOfType(PAGES, TagType.getFromCollection(TagType.Collection.ARRAY))) {
+            if (nbt.hasKeyOfType(PAGES, TagTypeCollection.getCollection(TagTypeCollection.ARRAY))) {
                 ArrayTag<String> pages = nbt.getArrayOf(PAGES, TagType.STRING);
                 NetProtocol protocol = context.packet().getProtocol();
                 if (protocol.isNewerThanOrEqual(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES
@@ -58,15 +59,10 @@ public class BookTag {
         if (tag.isEmpty()) {
             throw new DecoderException("Invalid book data: no tag");
         }
-
-        if (tag.asNBT().isPresent()) {
-            CompoundTag nbt = tag.asNBT().get();
-            validateBookEdit(nbt, context);
-        }
     }
 
     public static void validateBookEdit(CompoundTag nbt, DecodeContext.BookEditContext<?> context) {
-        if (!nbt.hasKeyOfType(PAGES, TagType.getFromCollection(TagType.Collection.ARRAY))) {
+        if (!nbt.hasKeyOfType(PAGES, TagTypeCollection.getCollection(TagTypeCollection.ARRAY))) {
             throw new DecoderException("Invalid book data: no pages tag");
         }
 
@@ -76,20 +72,19 @@ public class BookTag {
             }
 
             if (!nbt.hasKeyOfType(AUTHOR, TagType.STRING) || !nbt.getString(AUTHOR).equals(context.packet().getContainer().getPlayerName())) {
-                throw new DecoderException("Invalid book data: no author tag in sign context");
+                throw new DecoderException("Invalid book data: no valid author tag in sign context");
             }
 
             if (nbt.getKeys().stream().anyMatch(k ->
                     !k.equals(PAGES)
-                            && !k.equals(FILTERED_PAGES)
-                            && !k.equals(TITLE)
-                            && !k.equals(FILTERED_TITLE)
-                            && !k.equals(AUTHOR))) {
+                 && !k.equals(FILTERED_PAGES)
+                 && !k.equals(TITLE)
+                 && !k.equals(FILTERED_TITLE)
+                 && !k.equals(AUTHOR))) {
                 throw new DecoderException("Invalid book data: extra tags");
             }
         } else if (nbt.getKeys().stream().anyMatch(k ->
-                !k.equals(PAGES)
-                        && !k.equals(FILTERED_PAGES))) {
+                !k.equals(PAGES) && !k.equals(FILTERED_PAGES))) {
             throw new DecoderException("Invalid book data: extra tags");
         }
     }

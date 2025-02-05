@@ -5,6 +5,7 @@ import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 public class WrappedPlayInSetCreativeSlot extends ByteInWrappedPacket<WrappedPlayInSetCreativeSlot> {
 
@@ -18,12 +19,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteInWrappedPacket<WrappedPla
 
         NetProtocol protocol = packet.getProtocol();
 
-        if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-            this.slot = serializer.readUnsignedShort();
-        } else {
-            this.slot = serializer.readShort();
-        }
-
+        this.slot = serializer.readShort();
         this.item = serializer.readItemStackSafely(protocol, this);
     }
 

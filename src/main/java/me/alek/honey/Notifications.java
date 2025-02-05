@@ -244,8 +244,8 @@ public class Notifications {
         String serverThreadPoint = serverThreadHandleTracker.has(player) ? formatPercentages(serverThreadHandleTracker.getStatistics(player)) : "No data!";
         String nettyThreadPoint = nettyThreadHandleTracker.has(player) ? formatPercentages(nettyThreadHandleTracker.getStatistics(player)) : "No data!";
 
-        developmentData.setPoint(7, "STQ", serverThreadPoint);
-        developmentData.setPoint(8, "NTQ", nettyThreadPoint);
+        developmentData.setPoint(8, "STQ", serverThreadPoint);
+        developmentData.setPoint(9, "NTQ", nettyThreadPoint);
 
         developmentData.addInternalData("TPS=" + ChatColor.stripColor(TPSProvider.getTPS(Timespan.FIVE_SECOND)));
         developmentData.addInternalData("Ping=" + HoneyPlugin.get().getNotificationService().getPing(player));

@@ -88,7 +88,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             }
 
             boolean signing = this.channel.equals(SIGN_BOOK_CHANNEL);
-            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(item, new DecodeContext.BookEditContext<>(this.packet, signing));
+            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(item, DecodeContext.BookEditContext.of(this.packet, signing));
 
             applyTagLegacy(protocol, item, signing);
             return item;

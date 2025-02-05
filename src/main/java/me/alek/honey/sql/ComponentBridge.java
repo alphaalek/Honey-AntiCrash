@@ -17,8 +17,6 @@ public interface ComponentBridge {
 
     PlayerEntry getPlayerData(String playerName) throws SQLPlayerNotFoundException, SQLFactoryException;
 
-    ;
-
     void preparePlayer(HoneyPlayer player) throws SQLPlayerNotFoundException, SQLFactoryException;
 
     void updatePlayer(HoneyPlayer player) throws SQLPlayerNotFoundException, SQLFactoryException;

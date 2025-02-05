@@ -1,15 +1,14 @@
 package me.alek.honey.netty.tag.nbt;
 
-import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
+import org.bukkit.Bukkit;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 
 public class CodecTypes {
 
@@ -18,14 +17,13 @@ public class CodecTypes {
         private static final int END_BYTES = 8;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Void> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            visitor.visitAtEnd(output);
+        public void write(DataOutputStream output, PrimitiveTag<Void> tag, TagVisitor.Out visitor) throws IOException {
             visitor.visitEnd();
         }
 
         @Override
-        public PrimitiveTag<Void> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
-            visitor.visitAtEnd(input);
+        public PrimitiveTag<Void> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
+            visitor.visitAtEnd(input, limiter);
             visitor.visitEnd();
             return PrimitiveTag.END
                     .incrementBytes(limiter, END_BYTES);
@@ -37,22 +35,17 @@ public class CodecTypes {
         private static final int BYTE_BYTES = 10;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Byte> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            byte val;
-            try {
-                val = visitor.visitAtByte(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                val = tag.getValue();
-                output.writeByte(val);
-            }
+        public void write(DataOutputStream output, PrimitiveTag<Byte> tag, TagVisitor.Out visitor) throws IOException {
+            byte val = tag.getValue();
+            output.writeByte(val);
             visitor.visitByte(val);
         }
 
         @Override
-        public PrimitiveTag<Byte> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<Byte> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             byte val;
             try {
-                val = visitor.visitAtByte(input);
+                val = visitor.visitAtByte(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 val = input.readByte();
             }
@@ -67,22 +60,17 @@ public class CodecTypes {
         private static final int SHORT_BYTES = 10;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Short> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            short val;
-            try {
-                val = visitor.visitAtShort(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                val = tag.getValue();
-                output.writeShort(val);
-            }
+        public void write(DataOutputStream output, PrimitiveTag<Short> tag, TagVisitor.Out visitor) throws IOException {
+            short val = tag.getValue();
+            output.writeShort(val);
             visitor.visitShort(val);
         }
 
         @Override
-        public PrimitiveTag<Short> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<Short> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             short val;
             try {
-                val = visitor.visitAtShort(input);
+                val = visitor.visitAtShort(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 val = input.readShort();
             }
@@ -97,22 +85,17 @@ public class CodecTypes {
         private static final int INT_BYTES = 12;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Integer> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            int val;
-            try {
-                val = visitor.visitAtInt(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                val = tag.getValue();
-                output.writeInt(val);
-            }
+        public void write(DataOutputStream output, PrimitiveTag<Integer> tag, TagVisitor.Out visitor) throws IOException {
+            int val = tag.getValue();
+            output.writeInt(val);
             visitor.visitInt(val);
         }
 
         @Override
-        public PrimitiveTag<Integer> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<Integer> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             int val;
             try {
-                val = visitor.visitAtInt(input);
+                val = visitor.visitAtInt(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 val = input.readInt();
             }
@@ -127,22 +110,17 @@ public class CodecTypes {
         private static final int LONG_BYTES = 16;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Long> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            long val;
-            try {
-                val = visitor.visitAtLong(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                val = tag.getValue();
-                output.writeLong(val);
-            }
+        public void write(DataOutputStream output, PrimitiveTag<Long> tag, TagVisitor.Out visitor) throws IOException {
+            long val = tag.getValue();
+            output.writeLong(val);
             visitor.visitLong(val);
         }
 
         @Override
-        public PrimitiveTag<Long> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<Long> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             long val;
             try {
-                val = visitor.visitAtLong(input);
+                val = visitor.visitAtLong(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 val = input.readLong();
             }
@@ -157,22 +135,17 @@ public class CodecTypes {
         private static final int FLOAT_BYTES = 12;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Float> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            float val;
-            try {
-                val = visitor.visitAtFloat(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                val = tag.getValue();
-                output.writeFloat(val);
-            }
+        public void write(DataOutputStream output, PrimitiveTag<Float> tag, TagVisitor.Out visitor) throws IOException {
+            float val = tag.getValue();
+            output.writeFloat(val);
             visitor.visitFloat(val);
         }
 
         @Override
-        public PrimitiveTag<Float> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<Float> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             float val;
             try {
-                val = visitor.visitAtFloat(input);
+                val = visitor.visitAtFloat(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 val = input.readFloat();
             }
@@ -187,23 +160,18 @@ public class CodecTypes {
         private static final int DOUBLE_BYTES = 16;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Double> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            double val;
-            try {
-                val = visitor.visitAtDouble(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                val = tag.getValue();
-                output.writeDouble(tag.getValue());
-            }
+        public void write(DataOutputStream output, PrimitiveTag<Double> tag, TagVisitor.Out visitor) throws IOException {
+            double val = tag.getValue();
+            output.writeDouble(tag.getValue());
             visitor.visitDouble(val);
         }
 
         @Override
-        public PrimitiveTag<Double> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<Double> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             double val;
             try {
-                val = visitor.visitAtDouble(input);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
+                val = visitor.visitAtDouble(input, limiter);
+            } catch (TagVisitor.FallbackDefaultCodecException ex) {
                 val = input.readDouble();
             }
             visitor.visitDouble(val);
@@ -217,23 +185,18 @@ public class CodecTypes {
         private static final int BYTE_ARRAY_BYTES = 24;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<byte[]> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            byte[] array;
-            try {
-                array = visitor.visitAtByteArray(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                array = tag.getValue();
-                output.writeInt(array.length);
-                output.write(array);
-            }
+        public void write(DataOutputStream output, PrimitiveTag<byte[]> tag, TagVisitor.Out visitor) throws IOException {
+            byte[] array = tag.getValue();
+            output.writeInt(array.length);
+            output.write(array);
             visitor.visitByteArray(array);
         }
 
         @Override
-        public PrimitiveTag<byte[]> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<byte[]> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             byte[] array;
             try {
-                array = visitor.visitAtByteArray(input);
+                array = visitor.visitAtByteArray(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 int length = input.readInt();
                 array = new byte[length];
@@ -254,22 +217,17 @@ public class CodecTypes {
         private static final int CHAR_BYTES = 2;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<String> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            String str;
-            try {
-                str = visitor.visitAtString(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                str = tag.getValue();
-                output.writeUTF(str);
-            }
+        public void write(DataOutputStream output, PrimitiveTag<String> tag, TagVisitor.Out visitor) throws IOException {
+            String str = tag.getValue();
+            output.writeUTF(str);
             visitor.visitString(str);
         }
 
         @Override
-        public PrimitiveTag<String> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<String> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             String str;
             try {
-                str = visitor.visitAtString(input);
+                str = visitor.visitAtString(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 str = input.readUTF();
             }
@@ -298,25 +256,20 @@ public class CodecTypes {
         private static final int LONG_ARRAY_ELEMENT_BYTES = 8;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<long[]> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            long[] array;
-            try {
-                array = visitor.visitAtLongArray(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                array = tag.getValue();
-                output.writeInt(array.length);
-                for (long value : array) {
-                    output.writeLong(value);
-                }
+        public void write(DataOutputStream output, PrimitiveTag<long[]> tag, TagVisitor.Out visitor) throws IOException {
+            long[] array = tag.getValue();
+            output.writeInt(array.length);
+            for (long value : array) {
+                output.writeLong(value);
             }
             visitor.visitLongArray(array);
         }
 
         @Override
-        public PrimitiveTag<long[]> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<long[]> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             long[] array;
             try {
-                array = visitor.visitAtLongArray(input);
+                array = visitor.visitAtLongArray(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 int length = input.readInt();
                 array = new long[length];
@@ -337,25 +290,20 @@ public class CodecTypes {
         private static final int INT_ARRAY_ELEMENT_BYTES = 4;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<int[]> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            int[] array;
-            try {
-                array = visitor.visitAtIntArray(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                array = tag.getValue();
-                output.writeInt(array.length);
-                for (int value : array) {
-                    output.writeInt(value);
-                }
+        public void write(DataOutputStream output, PrimitiveTag<int[]> tag, TagVisitor.Out visitor) throws IOException {
+            int[] array = tag.getValue();
+            output.writeInt(array.length);
+            for (int value : array) {
+                output.writeInt(value);
             }
             visitor.visitIntArray(array);
         }
 
         @Override
-        public PrimitiveTag<int[]> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public PrimitiveTag<int[]> read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             int[] array;
             try {
-                array = visitor.visitAtIntArray(input);
+                array = visitor.visitAtIntArray(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 int length = input.readInt();
                 array = new int[length];
@@ -376,41 +324,46 @@ public class CodecTypes {
         private static final int ARRAY_ELEMENT_BYTES = 4;
 
         @Override
-        public void write(DataOutputStream output, R array, TagVisitor<DataOutputStream> visitor) throws IOException {
-            List<T> list;
-            try {
-                list = visitor.visitAtArray(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                list = array.getValues();
-                if (list.isEmpty()) {
-                    output.writeByte(TagType.END.getTypeId());
-                } else {
-                    output.writeByte(Optional.ofNullable(array.getTypeOf()).map(TagType::getTypeId).orElseThrow(IllegalStateException::new));
+        public void write(DataOutputStream output, R arrayTag, TagVisitor.Out visitor) throws IOException {
+            List<T> array = arrayTag.getValues();
+            TagType type = arrayTag.getTypeOf();
+
+            output.writeByte(type.getId());
+            output.writeInt(array.size());
+            for (T tag : array) {
+                try {
+                    tag = visitor.visitAtArrayFlush(output, tag);
+                    if (!tag.getType().equals(type)) {
+                        throw new IOException("Illegal type");
+                    }
+                } catch (TagVisitor.FallbackDefaultCodecException ignored) {
+                    // to do nothing
                 }
-                output.writeInt(array.getValue().size());
-                for (AbstractTag<?, ?, ?> tag : array.getValue()) {
-                    tag.write(output, visitor);
-                }
+                visitor.visitArrayElement(tag);
+                tag.write(output, visitor);
             }
-            visitor.visitArray(list);
+            visitor.visitArray(array, type);
         }
 
         @SuppressWarnings({"unchecked", "DataFlowIssue"})
         @Override
-        public R read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public R read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
+            TagType type = TagType.getFromTypeId(input.readByte());
+            if (type == null) {
+                throw new IOException("Invalid type");
+            }
             List<T> array;
-            TagType type;
             int depth = limiter.incrementNestingDepth();
             try {
-                array = visitor.visitAtArray(input);
-                if (array.isEmpty()) {
-                    type = TagType.END;
-                } else {
-                    type = TagType.getFromClass(array.get(0).getClass());
+                array = visitor.visitAtArray(input, limiter, type);
+                for (T val : array) {
+                    if (!val.getType().equals(type)) {
+                        throw new IOException("Illegal type");
+                    }
+                    visitor.visitArrayElement(val);
                 }
             } catch (TagVisitor.FallbackDefaultCodecException e) {
-                array = new ArrayList<>();
-                type = readArray(array, input, limiter, visitor);
+                array = readArray(type, input, limiter, visitor);
             }
             limiter.setNestingDepthLevel(depth);
 
@@ -424,29 +377,33 @@ public class CodecTypes {
                         wrappedArray = (R) new GeneticArrayTypes.ArrayOfCompoundTag(array);
                         break;
                     default:
-                        throw new DecoderException("Wrong array type");
+                        throw new IOException("Wrong array type");
                 }
             } else {
                 wrappedArray = (R) new ArrayTag<>(type, array);
             }
 
-            visitor.visitArray(array);
+            visitor.visitArray(array, type);
             return wrappedArray
                     .incrementComplexity(limiter)
                     .incrementBytes(limiter, ARRAY_BYTES)
                     .incrementBytes(limiter, ARRAY_ELEMENT_BYTES * wrappedArray.size());
         }
 
-        private TagType readArray(List<T> array, DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
-            TagType type = TagType.getFromTypeId(input.readByte());
-            if (type == null) {
-                throw new IOException("Invalid type");
-            }
+        private List<T> readArray(TagType type, DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
+            List<T> array = new ArrayList<>();
             int length = input.readInt();
             for (int i = 0; i < length; i++) {
-                array.add(type.<T>getCodec().read(input, limiter, visitor));
+                T val;
+                try {
+                    val = visitor.visitAtArrayInsert(input, limiter, type);
+                } catch (TagVisitor.FallbackDefaultCodecException ex) {
+                    val = type.<T>getCodec().read(input, limiter, visitor);
+                }
+                array.add(val);
+                visitor.visitArrayElement(val);
             }
-            return type;
+            return array;
         }
 
         private <ARRAY extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN, C>, IN extends AbstractArrayTag<C, IN, ?>, C extends AbstractTag<?, ?, C>> GeneticArrayTypes.ArrayOfArrayTag<?, IN, C> createArrayOfArray(Iterable<T> array) {
@@ -460,34 +417,46 @@ public class CodecTypes {
         private static final int COMPOUND_ELEMENT_BYTES = 36;
 
         @Override
-        public void write(DataOutputStream output, CompoundTag compoundTag, TagVisitor<DataOutputStream> visitor) throws IOException {
-            Map<String, AbstractTag<?, ?, ?>> compound;
-            try {
-                compound = visitor.visitAtCompound(output);
-            } catch (TagVisitor.FallbackDefaultCodecException e) {
-                compound = compoundTag.getValue().getDelegatedMap();
-                for (String key : compound.keySet()) {
-                    AbstractTag<?, ?, ?> tag = compoundTag.get(key);
-                    if (tag.getType() == TagType.END) {
-                        continue;
-                    }
-                    output.writeByte(tag.getType().getTypeId());
-
-                    output.writeUTF(key);
-                    tag.write(output, visitor);
+        public void write(DataOutputStream output, CompoundTag compoundTag, TagVisitor.Out visitor) throws IOException {
+            Map<String, AbstractTag<?, ?, ?>> compound = compoundTag.getValue().getDelegatedMap();
+            for (Map.Entry<String, AbstractTag<?, ?, ?>> entry : compound.entrySet()) {
+                if (entry.getValue().getType() == TagType.END) {
+                    continue;
                 }
+                try {
+                    entry = visitor.visitAtCompoundFlush(output, entry.getKey(), entry.getValue());
+                    if (entry.getValue().getType() == TagType.END) {
+                        throw new IOException("Illegal type");
+                    }
+                } catch (TagVisitor.FallbackDefaultCodecException ignored) {
+                    // to do nothing
+                }
+
+                String key = entry.getKey();
+                AbstractTag<?, ?, ?> tag = entry.getValue();
+                visitor.visitCompoundElement(key, tag);
+
+                output.writeByte(tag.getType().getId());
+                output.writeUTF(key);
+                tag.write(output, visitor);
             }
             visitor.visitCompound(compound);
-
-            output.writeByte(TagType.END.getTypeId());
+            output.writeByte(TagType.END.getId());
         }
 
         @Override
-        public CompoundTag read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        public CompoundTag read(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             Map<String, AbstractTag<?, ?, ?>> compound;
             int depth = limiter.incrementNestingDepth();
             try {
-                compound = visitor.visitAtCompound(input);
+                compound = visitor.visitAtCompound(input, limiter);
+                for (Map.Entry<String, AbstractTag<?, ?, ?>> entry : compound.entrySet()) {
+                    AbstractTag<?, ?, ?> tag = entry.getValue();
+                    if (tag.getType().equals(TagType.END)) {
+                        throw new IOException("Illegal type");
+                    }
+                    visitor.visitCompoundElement(entry.getKey(), entry.getValue());
+                }
             } catch (TagVisitor.FallbackDefaultCodecException e) {
                 compound = readComponent(input, limiter, visitor);
             }
@@ -501,23 +470,37 @@ public class CodecTypes {
                     .incrementBytes(limiter, COMPOUND_ELEMENT_BYTES * compound.size());
         }
 
-        private Map<String, AbstractTag<?, ?, ?>> readComponent(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+        private Map<String, AbstractTag<?, ?, ?>> readComponent(DataInputStream input, TagLimiter limiter, TagVisitor.In visitor) throws IOException {
             Map<String, AbstractTag<?, ?, ?>> compound = new HashMap<>();
             byte b;
-            while ((b = input.readByte()) != 0) {
+            while ((b = input.readByte()) != TagType.END.getId()) {
                 TagType type = TagType.getFromTypeId(b);
                 if (type == null) {
                     throw new IOException("Invalid type");
                 }
-                if (type == TagType.END) {
-                    continue;
+
+                String key;
+                AbstractTag<?, ?, ?> tag;
+                try {
+                    Map.Entry<String, AbstractTag<?, ?, ?>> entry = visitor.visitAtCompoundInsert(input, type);
+                    key = entry.getKey();
+                    tag = entry.getValue();
+                } catch (TagVisitor.FallbackDefaultCodecException ex) {
+                    try {
+                        key = visitor.visitAtCompoundInsertKey(input, type);
+                    } catch (TagVisitor.FallbackDefaultCodecException ex2) {
+                        key = input.readUTF();
+                    }
+                    try {
+                        tag = visitor.visitAtCompoundInsertTag(input, limiter, type, key);
+                    } catch (TagVisitor.FallbackDefaultCodecException ex2) {
+                        tag = type.getCodec().read(input, limiter, visitor);
+                    }
                 }
 
-                String key = input.readUTF();
-                AbstractTag<?, ?, ?> value = type.getCodec().read(input, limiter, visitor);
-                if (value != null) {
-                    compound.put(key, value);
-                }
+                key = visitor.visitCompoundKey(key);
+                compound.put(key, tag);
+                visitor.visitCompoundElement(key, tag);
             }
             return compound;
         }

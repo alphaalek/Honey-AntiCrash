@@ -70,12 +70,12 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.VAR_INT.read(this);
     }
 
-    public ByteBuf writeVarInt(int val) {
+    public PacketDataSerializer writeVarInt(int val) {
         return Types.VAR_INT.write(this, val);
     }
 
-    public ByteBuf writeItemStack(NetProtocol protocol, WrappedImmutableItemStack stack) throws EncoderException {
-        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.OneArg.of(TagVisitor.createDefault(protocol)));
+    public PacketDataSerializer writeItemStack(NetProtocol protocol, WrappedImmutableItemStack stack) throws EncoderException {
+        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.OneArg.of(TagVisitor.Out.createDefault(protocol)));
     }
 
     public WrappedImmutableItemStack readItemStack(CodecVisitor visitor) throws DecoderException {
@@ -84,16 +84,20 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public WrappedImmutableItemStack readItemStack(NetProtocol protocol) throws DecoderException {
-        return readItemStack(TagVisitor.createDefault(protocol));
+        return readItemStack(TagVisitor.In.createDefault(protocol));
     }
 
-    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) throws DecoderException {
-        WrappedImmutableItemStack stack = readItemStack(protocol);
+    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(CodecVisitor visitor, WP packet) throws DecoderException {
+        WrappedImmutableItemStack stack = readItemStack(visitor);
         if (stack != WrappedImmutableItemStack.AIR) {
             CodecTypeValidation.ITEM_STACK.validate(stack, DecodeContext.from(packet));
         }
 
         return stack;
+    }
+
+    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) throws DecoderException {
+        return readItemStackSafely(TagVisitor.In.createDefault(protocol), packet);
     }
 
     public <K, V> Map<K, V> readMap(Supplier<K> keyFunction, Supplier<V> valueFunction) {
@@ -129,12 +133,25 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.UTF8.read(this, TypeSerializer.TypeContext.OneArg.of(i));
     }
 
-    public ByteBuf writeString(String val) {
+    public PacketDataSerializer writeString(String val) {
         return writeString(val, Short.MAX_VALUE);
     }
 
-    public ByteBuf writeString(String val, int max) {
+    public PacketDataSerializer writeString(String val, int max) {
         return Types.UTF8.write(this, val, TypeSerializer.TypeContext.OneArg.of(max));
+    }
+
+    public PacketDataSerializer reverse() {
+        int readerIndex = readerIndex();
+        int writerIndex = writerIndex();
+
+        int length = writerIndex - readerIndex;
+        for (int i = 0; i < length / 2; i++) {
+            byte temp = getByte(readerIndex + i);
+            setByte(readerIndex + i, getByte(writerIndex - 1 - i));
+            setByte(writerIndex - 1 - i, temp);
+        }
+        return this;
     }
 
     public byte[] readByteArray(int maxLength) {

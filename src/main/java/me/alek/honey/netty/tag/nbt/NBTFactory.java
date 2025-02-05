@@ -43,7 +43,7 @@ public class NBTFactory {
         @Override
         public AbstractTag<?, ?, ?> read(PacketDataSerializer buf, TypeContext.OneArg<CodecVisitor> context) throws DecoderException {
             try (ByteBufInputStream stream = new ByteBufInputStream(buf)) {
-                return NBTFactory.read(stream, (TagVisitor) context.get());
+                return NBTFactory.read(stream, (TagVisitor.In) context.get());
             } catch (IOException ex) {
                 throw new DecoderException("Failed to read nbt tag", ex);
             }
@@ -57,17 +57,20 @@ public class NBTFactory {
         @SuppressWarnings("unchecked")
         public <TAG extends AbstractTag<?, ?, TAG>> PacketDataSerializer write0(PacketDataSerializer buf, AbstractTag<?, ?, ?> tag, TypeContext.OneArg<CodecVisitor> context) throws EncoderException {
             try (ByteBufOutputStream stream = new ByteBufOutputStream(buf)) {
-                return (PacketDataSerializer) NBTFactory.write(stream, (TAG) tag, (TagVisitor) context.get()).buffer();
+                return (PacketDataSerializer) NBTFactory.write(stream, (TAG) tag, (TagVisitor.Out) context.get()).buffer();
             } catch (IOException ex) {
                 throw new EncoderException("Failed to write item tag", ex);
             }
         }
     }
 
-    private static AbstractTag<?, ?, ?> read(ByteBufInputStream stream, TagVisitor visitor) throws IOException {
+    private static AbstractTag<?, ?, ?> read(ByteBufInputStream stream, TagVisitor.In visitor) throws IOException {
         byte id = stream.readByte();
         TagType type = TagType.getFromTypeId(id);
-        if (type != TagType.getFromCollection(TagType.Collection.COMPOUND)) {
+        if (type == TagType.END) {
+            return null;
+        }
+        if (type != TagTypeCollection.getCollection(TagTypeCollection.COMPOUND)) {
             throw new IOException("Expected compound as root tag");
         }
         assert type != null;
@@ -82,12 +85,12 @@ public class NBTFactory {
                 new TagLimiter(SIXTY_FOUR_KILOBYTES, MAX_DEPTH, MAX_COMPLEXITY), visitor);
     }
 
-    private static <TAG extends AbstractTag<?, ?, TAG>> ByteBufOutputStream write(ByteBufOutputStream stream, TAG tag, TagVisitor visitor) throws IOException {
+    private static <TAG extends AbstractTag<?, ?, TAG>> ByteBufOutputStream write(ByteBufOutputStream stream, TAG tag, TagVisitor.Out visitor) throws IOException {
         TagType type = tag.getType();
-        if (type != TagType.getFromCollection(TagType.Collection.COMPOUND)) {
+        if (type != TagTypeCollection.getCollection(TagTypeCollection.COMPOUND)) {
             throw new IOException("Expected compound as root tag");
         }
-        stream.writeByte(type.getTypeId());
+        stream.writeByte(type.getId());
 
         // named compound tag
         if (visitor.protocol().isOlderThan(NetProtocol.v1_20_2)) {
@@ -200,7 +203,7 @@ public class NBTFactory {
             }
         }
 
-        if (base != null && !base.getType().getCollection().equals(TagType.Collection.COMPOUND)) {
+        if (base != null && !base.getType().getCollection().equals(TagTypeCollection.COMPOUND)) {
             throw new IllegalStateException("Item with invalid compound tag");
         }
 
@@ -218,11 +221,7 @@ public class NBTFactory {
     @SuppressWarnings("unchecked")
     public static <T extends AbstractTag<K, V, T>, K, V> T copyFromType(TagType type, Object handle) {
         ConstructorInvoker<? extends AbstractTag<?, ?, ?>> constructorInvoker = type.getBridgeWrapperInvoker();
-        if (constructorInvoker == null) {
-            return null;
-        }
-
-        if (type.getCollection() == TagType.Collection.ARRAY) {
+        if (type.getCollection() == TagTypeCollection.ARRAY) {
             return (T) constructorInvoker.invoke(handle, getArrayType(handle));
         } else {
             return (T) constructorInvoker.invoke(handle);
@@ -261,21 +260,21 @@ public class NBTFactory {
                 .withTarget(handle);
         byte typeId;
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
-            typeId = structureModifier.invokeMethod(null, "getTypeId", 0);
+            typeId = structureModifier.invokeMethod(null, "getId", 0);
         } else {
             typeId = structureModifier.invokeMethod(null,
                     (index, invoker) -> invoker.getHandle().getDeclaringClass().equals(MinecraftReflection.getNBTBaseClass()));
         }
 
         TagType type = TagType.getFromTypeId(typeId);
-        if (type != null && type.getCollection() == TagType.Collection.ARRAY && !ignoreNestedArrays) {
+        if (type != null && type.getCollection() == TagTypeCollection.ARRAY && !ignoreNestedArrays) {
             TagType arrayType = getArrayType(handle);
             if (arrayType.hasCollection()) {
                 switch (arrayType.getCollection()) {
                     case COMPOUND:
-                        return TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND);
+                        return TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND);
                     case ARRAY:
-                        return TagType.getFromCollection(TagType.Collection.ARRAY_OF_ARRAY);
+                        return TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_ARRAY);
                 }
             }
         }
@@ -296,21 +295,21 @@ public class NBTFactory {
     }
 
     public static AbstractTag<?, ?, ?> createTag(TagType type, Object value) {
-        if (type.getCollection() == TagType.Collection.ARRAY) {
+        if (type.getCollection() == TagTypeCollection.ARRAY) {
             List<?> array = (List<?>) value;
             TagType of = null;
             if (!array.isEmpty()) {
                 Object first = array.get(0);
                 if (List.class.isAssignableFrom(first.getClass())) {
-                    type = TagType.getFromCollection(TagType.Collection.ARRAY_OF_ARRAY);
+                    type = TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_ARRAY);
                 } else if (Map.class.isAssignableFrom(first.getClass())) {
-                    type = TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND);
+                    type = TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND);
                 } else {
                     of = TagType.getFromClass(first.getClass());
                 }
             }
 
-            if (type.getCollection() == TagType.Collection.ARRAY) {
+            if (type.getCollection() == TagTypeCollection.ARRAY) {
                 return type.getWrapperInvoker().invoke(of, array);
             } else {
                 List<?> converted = array.stream()
@@ -319,7 +318,7 @@ public class NBTFactory {
                         .collect(Collectors.toList());
                 return type.getWrapperInvoker().invoke(converted);
             }
-        } else if (type.getCollection() == TagType.Collection.COMPOUND) {
+        } else if (type.getCollection() == TagTypeCollection.COMPOUND) {
             return type.getWrapperInvoker().invoke(value);
         } else {
             return type.getWrapperInvoker().invoke(type, value);

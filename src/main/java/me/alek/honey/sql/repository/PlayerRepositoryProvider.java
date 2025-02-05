@@ -48,7 +48,7 @@ public class PlayerRepositoryProvider implements Repository {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-            if (ex instanceof SQLFactoryException) throw new SQLFactoryException();
+            if (ex instanceof SQLFactoryException) throw (SQLFactoryException) ex;
         }
         return false;
     }
@@ -67,7 +67,7 @@ public class PlayerRepositoryProvider implements Repository {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-            if (ex instanceof SQLFactoryException) throw new SQLFactoryException();
+            if (ex instanceof SQLFactoryException) throw (SQLFactoryException) ex;
         }
         throw new SQLPlayerNotFoundException();
     }
@@ -89,7 +89,7 @@ public class PlayerRepositoryProvider implements Repository {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            if (ex instanceof SQLFactoryException) throw new SQLFactoryException();
+            if (ex instanceof SQLFactoryException) throw (SQLFactoryException) ex;
         }
         throw new SQLFactoryException();
     }
@@ -106,7 +106,7 @@ public class PlayerRepositoryProvider implements Repository {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            if (ex instanceof SQLFactoryException) throw new SQLFactoryException();
+            if (ex instanceof SQLFactoryException) throw (SQLFactoryException) ex;
         }
     }
 
@@ -124,7 +124,7 @@ public class PlayerRepositoryProvider implements Repository {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            if (ex instanceof SQLFactoryException) throw new SQLFactoryException();
+            if (ex instanceof SQLFactoryException) throw (SQLFactoryException) ex;
         }
     }
 
@@ -140,7 +140,7 @@ public class PlayerRepositoryProvider implements Repository {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            if (ex instanceof SQLFactoryException) throw new SQLFactoryException();
+            if (ex instanceof SQLFactoryException) throw (SQLFactoryException) ex;
         }
     }
 
@@ -156,7 +156,7 @@ public class PlayerRepositoryProvider implements Repository {
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            if (ex instanceof SQLFactoryException) throw new SQLFactoryException();
+            if (ex instanceof SQLFactoryException) throw (SQLFactoryException) ex;
         }
     }
 

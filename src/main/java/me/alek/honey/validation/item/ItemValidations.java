@@ -4,10 +4,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.modelwrappers.objects.WrappedRenderData;
-import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.NBTFactory;
-import me.alek.honey.netty.tag.nbt.PrimitiveTag;
-import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.*;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.structure.ReflectStructure;
@@ -51,7 +48,7 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (nbt.hasKeyOfType("Enchantments", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))) {
+            if (nbt.hasKeyOfType("Enchantments", TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND))) {
                 GeneticArrayTypes.ArrayOfCompoundTag enchantments = nbt.getArrayOfCompound("Enchantments");
                 for (CompoundTag enchantment : enchantments.getValues()) {
                     short level = enchantment.getShort("lvl");
@@ -77,7 +74,7 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (nbt.hasKeyOfType("display", TagType.getFromCollection(TagType.Collection.COMPOUND))) {
+            if (nbt.hasKeyOfType("display", TagTypeCollection.getCollection(TagTypeCollection.COMPOUND))) {
                 CompoundTag display = nbt.getCompound("display");
                 if (display.hasKeyOfType("Name", TagType.STRING)) {
                     String name = display.getString("Name");
@@ -94,9 +91,9 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (nbt.hasKeyOfType("display", TagType.getFromCollection(TagType.Collection.COMPOUND))) {
+            if (nbt.hasKeyOfType("display", TagTypeCollection.getCollection(TagTypeCollection.COMPOUND))) {
                 CompoundTag display = nbt.getCompound("display");
-                if (display.hasKeyOfType("Lore", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+                if (display.hasKeyOfType("Lore", TagTypeCollection.getCollection(TagTypeCollection.ARRAY))) {
                     ArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
                     int counter = 0;
 
@@ -129,7 +126,7 @@ public class ItemValidations {
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_ATTRIBUTE_MODIFIERS
-                    && nbt.hasKeyOfType("AttributeModifiers", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND));
+                    && nbt.hasKeyOfType("AttributeModifiers", TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND));
         }
     }
 
@@ -138,7 +135,7 @@ public class ItemValidations {
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_CUSTOM_POTION_EFFECTS
-                    && nbt.hasKeyOfType("CustomPotionEffects", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND));
+                    && nbt.hasKeyOfType("CustomPotionEffects", TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND));
         }
     }
 
@@ -182,7 +179,7 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (nbt.hasKeyOfType("display", TagType.getFromCollection(TagType.Collection.COMPOUND))) {
+            if (nbt.hasKeyOfType("display", TagTypeCollection.getCollection(TagTypeCollection.COMPOUND))) {
                 CompoundTag display = nbt.getCompound("display");
                 if (display.hasKeyOfType("Name", TagType.STRING)) {
                     String name = display.getString("Name");
@@ -190,7 +187,7 @@ public class ItemValidations {
                         return true;
                     }
                 }
-                if (display.hasKeyOfType("Lore", TagType.getFromCollection(TagType.Collection.ARRAY))) {
+                if (display.hasKeyOfType("Lore", TagTypeCollection.getCollection(TagTypeCollection.ARRAY))) {
                     ArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
                     for (String line : lore) {
                         if (checkBadCharacter(line)) {
@@ -275,7 +272,7 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            return nbt.hasKeyOfType("pages", TagType.getFromCollection(TagType.Collection.ARRAY))
+            return nbt.hasKeyOfType("pages", TagTypeCollection.getCollection(TagTypeCollection.ARRAY))
                     && nbt.getArrayOf("pages", String.class).size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES;
         }
     }
@@ -325,7 +322,7 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             CompoundTag skullOwnerCompound = null;
             for (String key : skullOwnerKeys) {
-                if (nbt.hasKeyOfType(key, TagType.getFromCollection(TagType.Collection.COMPOUND))) {
+                if (nbt.hasKeyOfType(key, TagTypeCollection.getCollection(TagTypeCollection.COMPOUND))) {
                     skullOwnerCompound = nbt.getCompound(key);
                     break;
                 }
@@ -335,7 +332,7 @@ public class ItemValidations {
             }
 
             CompoundTag propertiesCompound = skullOwnerCompound.getCompound("Properties");
-            if (!propertiesCompound.hasKeyOfType("textures", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))) {
+            if (!propertiesCompound.hasKeyOfType("textures", TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND))) {
                 return false;
             }
 
@@ -383,12 +380,12 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (!nbt.hasKeyOfType("Fireworks", TagType.getFromCollection(TagType.Collection.COMPOUND))) {
+            if (!nbt.hasKeyOfType("Fireworks", TagTypeCollection.getCollection(TagTypeCollection.COMPOUND))) {
                 return false;
             }
 
             CompoundTag fireworksCompound = nbt.getCompound("Fireworks");
-            if (!fireworksCompound.hasKeyOfType("Explosions", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))) {
+            if (!fireworksCompound.hasKeyOfType("Explosions", TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND))) {
                 return false;
             }
 
@@ -400,7 +397,7 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            return nbt.hasKeyOfType("Patterns", TagType.getFromCollection(TagType.Collection.ARRAY_OF_COMPOUND))
+            return nbt.hasKeyOfType("Patterns", TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND))
                     && nbt.getArrayOfCompound("Patterns").size() > ConfigurationOptions.ItemAnalysis.MAX_BANNER_PATTERNS;
         }
     }

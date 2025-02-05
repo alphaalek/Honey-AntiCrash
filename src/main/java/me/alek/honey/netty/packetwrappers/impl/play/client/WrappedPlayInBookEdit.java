@@ -1,22 +1,24 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.types.VarInt;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
+import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.PrimitiveTag;
+import me.alek.honey.netty.tag.nbt.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.TagType;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBookEdit> {
 
@@ -44,20 +46,44 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
         NetProtocol protocol = packet.getProtocol();
 
         if (protocol.isOlderThanOrEqual(NetProtocol.v1_17)) {
-            WrappedImmutableItemStack stack = buf.readItemStackSafely(protocol, this);
-            CompoundTag tag = stack.getTag().asNBT().get();
-            this.signing = buf.readBoolean();
-            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, new DecodeContext.BookEditContext<>(this, this.signing));
+            // we want to swap the field reading order of the packet, so we can find out if this book edit packet wants
+            // to sign a book or not before trying to decode the item stack, so we can apply the correct tag visitor
+            // however, reversing the byte buffer gives some problems NORMALLY, but luckily not for this packet:
+            //
+            // the protocol notes the slot field is a VarInt, however it can just be treated as a byte
+            // this is very important, because this makes it possible to reverse the byte buf correctly
+            // if the packet had properties that could potentially require more space than one byte, it means the
+            // correct start/end position of that section can not be identified without reading from the start
+            // of the initial buffer, which we do not want, as written above.
+            // Note, a boolean only requires a byte, therefore the slot and signing property only requires 1 byte each and
+            // their end/start position is therefore known as they are the same
+            this.slot = buf.getUnsignedByte(buf.readableBytes()); // encoded as last field, so read the last byte of this buffer
+            // check if we can continue with our assumption
+            if ((this.slot & VarInt.CONTINUE_BIT) != 0) {
+                // Well, this client was just broken...
+                throw new DecoderException("Invalid slot");
+            }
+            this.signing = buf.getByte(buf.readableBytes() - 1) != 0;
+            PacketDataSerializer itemBuf = new PacketDataSerializer(buf.readBytes(buf.readableBytes() - 2));
 
-            for (String page : tag.<String>getArrayOf("pages", TagType.STRING)) {
+            EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol);
+            WrappedImmutableItemStack stack = itemBuf.readItemStackSafely(visitor, this);
+            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(this, this.signing));
+
+            HoneyPacketCodec.checkReadable(protocol, PacketTypes.Play.Client.BOOK_EDIT, null, itemBuf);
+
+            // will always represent nbt as we are before or equal 1.17
+            CompoundTag tag = stack.getTag().asNBT().get();
+            for (String page : tag.<String>getArrayOf(BookTag.PAGES, TagType.STRING)) {
                 this.pages.add(page);
             }
             if (this.signing) {
-                this.author = tag.getString("author");
-                this.title = tag.getString("title");
+                this.author = tag.getString(BookTag.AUTHOR);
+                this.title = tag.getString(BookTag.TITLE);
             }
 
-            this.slot = buf.readVarInt();
+            // rinse
+            buf.readBytes(2);
         } else {
             this.slot = buf.readVarInt();
 
@@ -94,7 +120,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
                 tag.putPrimitive("author", TagType.STRING, this.author);
             }
 
-            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, new DecodeContext.BookEditContext<>(this, this.signing));
+            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, DecodeContext.BookEditContext.of(this, this.signing));
         }
     }
 

@@ -77,6 +77,8 @@ public class WrappedImmutableItemStack implements Cloneable {
                 if (stack.getAmount() < 1) {
                     buf.writeBoolean(false);
                     return buf;
+                } else {
+                    buf.writeBoolean(true);
                 }
             }
 
@@ -98,7 +100,7 @@ public class WrappedImmutableItemStack implements Cloneable {
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 Types.OUT_COMPONENT_MAP.write(buf, stack.getTag().asComponentMap().orElse(ComponentMap.EMPTY), TypeContext.TwoArgs.of(stack.getType(), protocol));
             } else {
-                Types.NBT.write(buf, stack.getTag().asNBT().orElse(CompoundTag.EMPTY), TypeContext.OneArg.of(TagVisitor.createDefault(protocol)));
+                Types.NBT.write(buf, stack.getTag().asNBT().orElse(CompoundTag.EMPTY), TypeContext.OneArg.of(TagVisitor.Out.createDefault(protocol)));
             }
 
             return buf;

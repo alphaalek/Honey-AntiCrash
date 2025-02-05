@@ -14,11 +14,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
+import java.util.*;
 
 public enum TagType {
     @NMSInvoker() END((byte) 0, CodecTypes.EndCodec.class, getNBTClass("NBTTagEnd"), void.class),
@@ -30,45 +26,45 @@ public enum TagType {
     @NMSInvoker(params = {double.class}) DOUBLE((byte) 6, CodecTypes.DoubleCodec.class, getNBTClass("NBTTagDouble"), double.class),
     @NMSInvoker(params = {byte[].class}) ARRAY_OF_BYTE((byte) 7, CodecTypes.ByteArrayCodec.class, getNBTClass("NBTTagByteArray"), byte[].class),
     @NMSInvoker(params = {String.class}) STRING((byte) 8, CodecTypes.StringCodec.class, getNBTClass("NBTTagString"), String.class),
-    @IdPrioritized @Collection.OfCollection(collection = Collection.ARRAY) @NetProtocol.To(to = NetProtocol.v1_16_5) @NMSInvoker()
+    @IdPrioritized @TagTypeCollection.OfCollection(collection = TagTypeCollection.ARRAY) @NetProtocol.To(to = NetProtocol.v1_16_5) @NMSInvoker()
     ARRAY_LEGACY((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(ArrayTag.class), Object.class, TagType.class),
-            Reflection.getConstructor(getNBTBaseClass(ArrayTag.class), TagType.class, Iterable.class),
+            Reflection.getConstructor(getTagClass(ArrayTag.class), Object.class, TagType.class),
+            Reflection.getConstructor(getTagClass(ArrayTag.class), TagType.class, Iterable.class),
             List.class),
-    @IdPrioritized @Collection.OfCollection(collection = Collection.ARRAY) @NetProtocol.From(from = NetProtocol.v1_17) @NMSInvoker(params = {List.class, byte.class})
+    @IdPrioritized @TagTypeCollection.OfCollection(collection = TagTypeCollection.ARRAY) @NetProtocol.From(from = NetProtocol.v1_17) @NMSInvoker(params = {List.class, byte.class})
     ARRAY_MODERN((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(ArrayTag.class), Object.class, TagType.class),
-            Reflection.getConstructor(getNBTBaseClass(ArrayTag.class), TagType.class, Iterable.class),
+            Reflection.getConstructor(getTagClass(ArrayTag.class), Object.class, TagType.class),
+            Reflection.getConstructor(getTagClass(ArrayTag.class), TagType.class, Iterable.class),
             List.class),
-    @Collection.OfCollection(collection = Collection.ARRAY_OF_COMPOUND) @NetProtocol.To(to = NetProtocol.v1_16_5) @NMSInvoker()
+    @TagTypeCollection.OfCollection(collection = TagTypeCollection.ARRAY_OF_COMPOUND) @NetProtocol.To(to = NetProtocol.v1_16_5) @NMSInvoker()
     ARRAY_OF_COMPOUND_LEGACY((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Object.class),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Iterable.class),
+            Reflection.getConstructor(getTagClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Object.class),
+            Reflection.getConstructor(getTagClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Iterable.class),
             List.class),
-    @Collection.OfCollection(collection = Collection.ARRAY_OF_COMPOUND) @NetProtocol.From(from = NetProtocol.v1_17) @NMSInvoker(params = {List.class, byte.class})
+    @TagTypeCollection.OfCollection(collection = TagTypeCollection.ARRAY_OF_COMPOUND) @NetProtocol.From(from = NetProtocol.v1_17) @NMSInvoker(params = {List.class, byte.class})
     ARRAY_OF_COMPOUND_MODERN((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Object.class),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Iterable.class),
+            Reflection.getConstructor(getTagClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Object.class),
+            Reflection.getConstructor(getTagClass(GeneticArrayTypes.ArrayOfCompoundTag.class), Iterable.class),
             List.class),
-    @Collection.OfCollection(collection = Collection.ARRAY_OF_ARRAY) @NetProtocol.To(to = NetProtocol.v1_16_5) @NMSInvoker()
+    @TagTypeCollection.OfCollection(collection = TagTypeCollection.ARRAY_OF_ARRAY) @NetProtocol.To(to = NetProtocol.v1_16_5) @NMSInvoker()
     ARRAY_OF_ARRAY_LEGACY((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfArrayTag.class), Object.class),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfArrayTag.class), Iterable.class),
+            Reflection.getConstructor(getTagClass(GeneticArrayTypes.ArrayOfArrayTag.class), Object.class),
+            Reflection.getConstructor(getTagClass(GeneticArrayTypes.ArrayOfArrayTag.class), Iterable.class),
             List.class),
-    @Collection.OfCollection(collection = Collection.ARRAY_OF_ARRAY) @NetProtocol.From(from = NetProtocol.v1_17) @NMSInvoker(params = {List.class, byte.class})
+    @TagTypeCollection.OfCollection(collection = TagTypeCollection.ARRAY_OF_ARRAY) @NetProtocol.From(from = NetProtocol.v1_17) @NMSInvoker(params = {List.class, byte.class})
     ARRAY_OF_ARRAY_MODERN((byte) 9, CodecTypes.ArrayCodec.class, getNBTClass("NBTTagList"),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfArrayTag.class), Object.class),
-            Reflection.getConstructor(getNBTBaseClass(GeneticArrayTypes.ArrayOfArrayTag.class), Iterable.class),
+            Reflection.getConstructor(getTagClass(GeneticArrayTypes.ArrayOfArrayTag.class), Object.class),
+            Reflection.getConstructor(getTagClass(GeneticArrayTypes.ArrayOfArrayTag.class), Iterable.class),
             List.class),
-    @Collection.OfCollection(collection = Collection.COMPOUND) @NetProtocol.To(to = NetProtocol.v1_16_5) @NMSInvoker()
+    @TagTypeCollection.OfCollection(collection = TagTypeCollection.COMPOUND) @NetProtocol.To(to = NetProtocol.v1_16_5) @NMSInvoker()
     COMPOUND_LEGACY((byte) 10, CodecTypes.CompoundCodec.class, getNBTClass("NBTTagCompound"),
-            Reflection.getConstructor(getNBTBaseClass(CompoundTag.class), Object.class),
-            Reflection.getConstructor(getNBTBaseClass(CompoundTag.class), Map.class),
+            Reflection.getConstructor(getTagClass(CompoundTag.class), Object.class),
+            Reflection.getConstructor(getTagClass(CompoundTag.class), Map.class),
             Map.class),
-    @Collection.OfCollection(collection = Collection.COMPOUND) @NetProtocol.From(from = NetProtocol.v1_17) @NMSInvoker(params = {Map.class})
+    @TagTypeCollection.OfCollection(collection = TagTypeCollection.COMPOUND) @NetProtocol.From(from = NetProtocol.v1_17) @NMSInvoker(params = {Map.class})
     COMPOUND_MODERN((byte) 10, CodecTypes.CompoundCodec.class, getNBTClass("NBTTagCompound"),
-            Reflection.getConstructor(getNBTBaseClass(CompoundTag.class), Object.class),
-            Reflection.getConstructor(getNBTBaseClass(CompoundTag.class), Map.class),
+            Reflection.getConstructor(getTagClass(CompoundTag.class), Object.class),
+            Reflection.getConstructor(getTagClass(CompoundTag.class), Map.class),
             Map.class),
     @NMSInvoker(params = {int[].class})
     ARRAY_OF_INT((byte) 11, CodecTypes.IntArrayCodec.class, getNBTClass("NBTTagIntArray"), int[].class),
@@ -90,31 +86,11 @@ public enum TagType {
 
     }
 
-    public enum Collection {
-        COMPOUND,
-        ARRAY,
-        ARRAY_OF_COMPOUND,
-        ARRAY_OF_ARRAY;
-
-        @Retention(RetentionPolicy.RUNTIME)
-        @Target(ElementType.FIELD)
-        private @interface OfCollection {
-
-            Collection collection();
-        }
-    }
-
-    private interface TagFactory {
-
-        Object create() throws Exception;
-    }
-
     private final byte typeId;
     private final Class<?> dataTypeClass;
     private final Class<?> deleteClass;
     private final ConstructorInvoker<? extends AbstractTag<?, ?, ?>> bridgeWrapperInvoker;
     private final ConstructorInvoker<? extends AbstractTag<?, ?, ?>> wrapperInvoker;
-    private final TagFactory factory;
     private final NBTCodec<?> codec;
     private final ConstructorInvoker<?> nmsInvoker;
 
@@ -142,12 +118,7 @@ public enum TagType {
         return null;
     }
 
-    public static TagType getFromCollection(Collection collection) {
-        return TYPE_COLLECTION_LOOKUP.get(collection);
-    }
-
     private static final Map<Class<?>, TagType> TYPE_LOOKUP = new HashMap<>();
-    private static final EnumMap<Collection, TagType> TYPE_COLLECTION_LOOKUP = new EnumMap<>(Collection.class);
     private static final Array<TagType> TYPE_ID_LOOKUP = new Array<>();
 
     private static Class<?> getNBTClass(String name) {
@@ -160,22 +131,18 @@ public enum TagType {
                 continue;
             }
 
-            if (TYPE_ID_LOOKUP.has(type.getTypeId())) {
-                TagType at = TYPE_ID_LOOKUP.get(type.getTypeId());
+            if (TYPE_ID_LOOKUP.has(type.getId())) {
+                TagType at = TYPE_ID_LOOKUP.get(type.getId());
                 try {
                     Field fieldAt = TagType.class.getField(at.name());
                     if (!fieldAt.isAnnotationPresent(IdPrioritized.class)) {
-                        TYPE_ID_LOOKUP.set(type.getTypeId(), type);
+                        TYPE_ID_LOOKUP.set(type.getId(), type);
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             } else {
-                TYPE_ID_LOOKUP.set(type.getTypeId(), type);
-            }
-
-            if (type.hasCollection()) {
-                TYPE_COLLECTION_LOOKUP.put(type.getCollection(), type);
+                TYPE_ID_LOOKUP.set(type.getId(), type);
             }
 
             TYPE_LOOKUP.put(type.getDataTypeClass(), type);
@@ -184,10 +151,12 @@ public enum TagType {
         if (TYPE_ID_LOOKUP.compact().size() != TYPE_ID_LOOKUP.size()) {
             throw new RuntimeException("Missing nbt type indices. " + TYPE_ID_LOOKUP);
         }
+
+        TagTypeCollection.load();
     }
 
     @SuppressWarnings("unchecked")
-    public static Class<? extends AbstractTag<?, ?, ?>> getNBTBaseClass(Class<?> clazz) {
+    public static Class<? extends AbstractTag<?, ?, ?>> getTagClass(Class<?> clazz) {
         try {
             if (AbstractTag.class.isAssignableFrom(clazz)) {
                 return (Class<? extends AbstractTag<?, ?, ?>>) clazz.asSubclass(AbstractTag.class);
@@ -214,16 +183,16 @@ public enum TagType {
     public boolean hasCollection() {
         try {
             Field field = TagType.class.getField(this.name());
-            return field.isAnnotationPresent(Collection.OfCollection.class);
+            return field.isAnnotationPresent(TagTypeCollection.OfCollection.class);
         } catch (Exception ignored) {
             return false;
         }
     }
 
-    public Collection getCollection() {
+    public TagTypeCollection getCollection() {
         try {
             Field field = TagType.class.getField(this.name());
-            Collection.OfCollection ofCollection = field.getAnnotation(Collection.OfCollection.class);
+            TagTypeCollection.OfCollection ofCollection = field.getAnnotation(TagTypeCollection.OfCollection.class);
             if (ofCollection != null) {
                 return ofCollection.collection();
             } else {
@@ -239,8 +208,8 @@ public enum TagType {
                 typeId,
                 codec,
                 delegateClass,
-                Reflection.getConstructor(getNBTBaseClass(PrimitiveTag.class), Object.class),
-                Reflection.getConstructor(getNBTBaseClass(PrimitiveTag.class), TagType.class, Object.class),
+                Reflection.getConstructor(getTagClass(PrimitiveTag.class), Object.class),
+                Reflection.getConstructor(getTagClass(PrimitiveTag.class), TagType.class, Object.class),
                 dataTypeClass);
     }
 
@@ -259,7 +228,6 @@ public enum TagType {
             this.bridgeWrapperInvoker = null;
             this.wrapperInvoker = null;
             this.nmsInvoker = null;
-            this.factory = null;
             return;
         }
 
@@ -275,33 +243,8 @@ public enum TagType {
             } else {
                 this.nmsInvoker = null;
             }
-
-            TagFactory factory;
-            try {
-                factory = new TagFactory() {
-                    final ConstructorInvoker<?> constructor = Reflection.getConstructor(delegateClass);
-
-                    @Override
-                    public Object create() throws Exception {
-                        return constructor.invokeWithException();
-                    }
-                };
-            } catch (Exception ignored) {
-                factory = null;
-            }
-            this.factory = factory;
-
         } catch (Exception ex) {
             throw new RuntimeException("Failed to create nbt", ex);
-        }
-    }
-
-    public Object createRawDelegate() {
-        try {
-            return this.factory.create();
-        } catch (Exception ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to create raw delegate for type " + this, ex);
-            return null;
         }
     }
 
@@ -313,7 +256,7 @@ public enum TagType {
         return this.deleteClass;
     }
 
-    public byte getTypeId() {
+    public byte getId() {
         return this.typeId;
     }
 

@@ -7,10 +7,9 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.NBTFactory;
 import me.alek.honey.netty.tag.nbt.TagType;
-import me.alek.honey.netty.tag.nbt.TagVisitor;
+import me.alek.honey.netty.tag.nbt.TagTypeCollection;
+import me.alek.honey.util.protocol.NetProtocol;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +19,7 @@ import java.util.stream.StreamSupport;
 
 public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY extends AbstractArrayTag<IN, ARRAY, C>, C> extends AbstractTag<List<Object>, ListConverter<Object, IN>, ARRAY> implements Iterable<C> {
 
-    private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.ARRAY);
+    private static final TagType TYPE = TagTypeCollection.getCollection(TagTypeCollection.ARRAY);
 
     private ListConverter<Object, IN> delegate;
     protected TagType typeOf;
@@ -41,19 +40,17 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
         for (C val : array) {
             getValue().addConverted(to(val));
         }
-        if (this.typeOf != null) {
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
             ReflectStructure.Provider.acquireStructure(TYPE.getDelegateClass())
-                    .withBytes().withTarget(getHandle()).writeField(0, this.typeOf.getTypeId());
+                    .withBytes().withTarget(getHandle()).writeField(0, this.typeOf.getId());
         }
     }
 
     private static Object createBaseFromArray(TagType typeOf) {
-        if (TYPE.equals(TagType.ARRAY_LEGACY)) {
-            return TYPE.createRawDelegate();
-        } else if (TYPE.equals(TagType.ARRAY_MODERN)) {
-            return TYPE.getNMSInvoker().invoke(new ArrayList<>(), Optional.ofNullable(typeOf).map(TagType::getTypeId).orElse((byte) 0));
+        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
+            return TYPE.getNMSInvoker().invoke();
         } else {
-            throw new IllegalStateException();
+            return TYPE.getNMSInvoker().invoke(new ArrayList<>(), Optional.ofNullable(typeOf).map(TagType::getId).orElse((byte) 0));
         }
     }
 
@@ -67,12 +64,6 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
     public IN to(C context) {
         // to be overridden
         return (IN) context;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public void write(DataOutputStream output, TagVisitor<DataOutputStream> visitor) throws IOException {
-        getType().<ARRAY>getCodec().write(output, (ARRAY) this, visitor);
     }
 
     public Stream<C> stream() {
@@ -95,8 +86,8 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
     @SuppressWarnings("unchecked")
     @Override
     public ArrayTag<IN> asArray() {
-        if (getTypeOf().getCollection() == TagType.Collection.ARRAY
-                || getTypeOf().getCollection() == TagType.Collection.COMPOUND) {
+        if (getTypeOf().getCollection() == TagTypeCollection.ARRAY
+                || getTypeOf().getCollection() == TagTypeCollection.COMPOUND) {
             return null;
         }
 
@@ -105,8 +96,8 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
 
     @SuppressWarnings("unchecked")
     public <R> ArrayTag<R> asArrayOf(Class<R> clazz) {
-        if (getTypeOf().getCollection() == TagType.Collection.ARRAY
-                || getTypeOf().getCollection() == TagType.Collection.COMPOUND) {
+        if (getTypeOf().getCollection() == TagTypeCollection.ARRAY
+                || getTypeOf().getCollection() == TagTypeCollection.COMPOUND) {
             return null;
         }
 
@@ -116,14 +107,14 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
 
     @SuppressWarnings("unchecked")
     public <ARRAY2 extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2, C>, IN2 extends AbstractArrayTag<C, IN2, ?>, C extends AbstractTag<?, ?, C>> GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2, C> asArrayOfArray() {
-        if (getTypeOf().getCollection() != TagType.Collection.ARRAY) {
+        if (getTypeOf().getCollection() != TagTypeCollection.ARRAY) {
             return null;
         }
         return (GeneticArrayTypes.ArrayOfArrayTag<ARRAY2, IN2, C>) this;
     }
 
     public GeneticArrayTypes.ArrayOfCompoundTag asArrayOfCompound() {
-        if (getTypeOf().getCollection() != TagType.Collection.COMPOUND) {
+        if (getTypeOf().getCollection() != TagTypeCollection.COMPOUND) {
             return null;
         }
         return (GeneticArrayTypes.ArrayOfCompoundTag) this;

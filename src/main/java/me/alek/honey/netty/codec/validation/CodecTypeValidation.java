@@ -3,6 +3,7 @@ package me.alek.honey.netty.codec.validation;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;

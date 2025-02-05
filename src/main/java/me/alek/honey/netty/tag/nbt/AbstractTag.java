@@ -5,6 +5,7 @@ import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
+import org.bukkit.Bukkit;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -48,7 +49,10 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
 
     public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter);
 
-    public abstract void write(DataOutputStream output, TagVisitor<DataOutputStream> visitor) throws IOException;
+    @SuppressWarnings("unchecked")
+    public void write(DataOutputStream output, TagVisitor.Out visitor) throws IOException {
+        getType().<TAG>getCodec().write(output, (TAG) this, visitor);
+    }
 
     public V getValue() {
         if (this.value == null) {
@@ -74,7 +78,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     }
 
     public CompoundTag asCompound() {
-        if (getType().getCollection() != TagType.Collection.COMPOUND) {
+        if (getType().getCollection() != TagTypeCollection.COMPOUND) {
             return null;
         }
         return (CompoundTag) this;
@@ -136,11 +140,11 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     }
 
     public boolean isArray() {
-        return getType().getCollection() == TagType.Collection.ARRAY;
+        return getType().getCollection() == TagTypeCollection.ARRAY;
     }
 
     public boolean isCompound() {
-        return getType().getCollection() == TagType.Collection.COMPOUND;
+        return getType().getCollection() == TagTypeCollection.COMPOUND;
     }
 
     public boolean isIntArray() {

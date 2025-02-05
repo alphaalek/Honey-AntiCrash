@@ -31,6 +31,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                 data.addValue(" Buffer", Optional.ofNullable(packet.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes");
                 data.addValue(" Version", Bukkit.getServer().getVersion());
                 data.removeLastInternalData();
+                data.addValue(" Player Version", packet.getPlayer().clientInfo.getProtocol().getName());
                 data.addEmpty();
                 data.addHeader("Description", null);
 
@@ -141,7 +142,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                             if (onViolation != null) onViolation.run();
 
                             developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + validation.getName() + " §8*");
-                            developmentData.setLine(6, validation.getDescription());
+                            developmentData.setLine(7, validation.getDescription());
                         });
                     }
 

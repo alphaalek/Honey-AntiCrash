@@ -3,10 +3,8 @@ package me.alek.honey.netty.tag.nbt.array;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import me.alek.honey.netty.tag.nbt.AbstractTag;
-import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.NBTFactory;
-import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.*;
+import me.alek.honey.util.LazyInit;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -17,19 +15,19 @@ public class GeneticArrayTypes {
 
     public static class ArrayOfCompoundTag extends AbstractArrayTag<CompoundTag, ArrayOfCompoundTag, MapConverter<String, Object, AbstractTag<?, ?, ?>>> {
 
-        private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.COMPOUND);
+        private static final LazyInit<TagType> TYPE = new LazyInit<>(() -> TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND));
 
         public ArrayOfCompoundTag(Object base) {
-            super(base, TYPE);
+            super(base, TYPE.get());
         }
 
         public ArrayOfCompoundTag() {
-            super(TYPE);
+            super(TYPE.get());
         }
 
         @SuppressWarnings("unchecked")
         public ArrayOfCompoundTag(Iterable<?> array) {
-            super(TYPE, Converters.getNBTListConverter());
+            super(TYPE.get(), Converters.getNBTListConverter());
             for (Object entry : array) {
                 if (entry instanceof CompoundTag) {
                     getValue().addConverted((CompoundTag) entry);
@@ -62,19 +60,19 @@ public class GeneticArrayTypes {
 
     public static class ArrayOfArrayTag<ARRAY extends ArrayOfArrayTag<ARRAY, IN, IN_IN>, IN extends AbstractArrayTag<IN_IN, IN, ?>, IN_IN extends AbstractTag<?, ?, IN_IN>> extends AbstractArrayTag<IN, ARRAY, ListConverter<Object, IN_IN>> {
 
-        private static final TagType TYPE = TagType.getFromCollection(TagType.Collection.ARRAY);
+        private static final LazyInit<TagType> TYPE = new LazyInit<>(() -> TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_ARRAY));
 
         public ArrayOfArrayTag(Object base) {
-            super(base, TYPE);
+            super(base, TYPE.get());
         }
 
         public ArrayOfArrayTag() {
-            super(TYPE);
+            super(TYPE.get());
         }
 
         @SuppressWarnings("unchecked")
         public ArrayOfArrayTag(Iterable<?> array) {
-            super(TYPE, Converters.getNBTListConverter());
+            super(TYPE.get(), Converters.getNBTListConverter());
             for (Object entry : array) {
                 getValue().addConverted((IN) NBTFactory.createTag(entry));
             }
