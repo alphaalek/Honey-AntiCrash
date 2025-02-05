@@ -3,10 +3,14 @@ package me.alek.honey.netty.tag.nbt;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
 
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public interface TagVisitor<STREAM> extends CodecVisitor {
+
+    class FallbackDefaultCodecException extends Exception {
+
+    }
 
     static <STREAM> TagVisitor<STREAM> createDefault(NetProtocol protocol) {
         return new Adapter<STREAM>() {
@@ -35,8 +39,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtByte(STREAM stream) {
-
+        public byte visitAtByte(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -45,8 +49,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtShort(STREAM stream) {
-
+        public short visitAtShort(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -55,8 +59,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtInt(STREAM stream) {
-
+        public int visitAtInt(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -65,8 +69,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtLong(STREAM stream) {
-
+        public long visitAtLong(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -75,8 +79,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtFloat(STREAM stream) {
-
+        public float visitAtFloat(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -85,8 +89,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtDouble(STREAM stream) {
-
+        public double visitAtDouble(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -95,8 +99,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtByteArray(STREAM stream) {
-
+        public byte[] visitAtByteArray(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -105,8 +109,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtIntArray(STREAM stream) {
-
+        public int[] visitAtIntArray(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -115,8 +119,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtLongArray(STREAM stream) {
-
+        public long[] visitAtLongArray(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -125,18 +129,18 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtString(STREAM stream) {
+        public String visitAtString(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
+        }
+
+        @Override
+        public <TAG extends AbstractTag<?, ?, TAG>> void visitArray(List<TAG> array) {
 
         }
 
         @Override
-        public <TAG extends AbstractTag<?, ?, TAG>> void visitArray(Iterable<TAG> array) {
-
-        }
-
-        @Override
-        public void visitAtArray(STREAM stream) {
-
+        public <TAG extends AbstractTag<?, ?, TAG>> List<TAG> visitAtArray(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
 
         @Override
@@ -145,8 +149,8 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
         }
 
         @Override
-        public void visitAtCompound(STREAM stream) {
-
+        public Map<String, AbstractTag<?, ?, ?>> visitAtCompound(STREAM stream) throws FallbackDefaultCodecException {
+            throw new FallbackDefaultCodecException();
         }
     }
 
@@ -156,49 +160,49 @@ public interface TagVisitor<STREAM> extends CodecVisitor {
 
     void visitByte(byte val);
 
-    void visitAtByte(STREAM stream);
+    byte visitAtByte(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitShort(short val);
 
-    void visitAtShort(STREAM stream);
+    short visitAtShort(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitInt(int val);
 
-    void visitAtInt(STREAM stream);
+    int visitAtInt(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitLong(long val);
 
-    void visitAtLong(STREAM stream);
+    long visitAtLong(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitFloat(float val);
 
-    void visitAtFloat(STREAM stream);
+    float visitAtFloat(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitDouble(double val);
 
-    void visitAtDouble(STREAM stream);
+    double visitAtDouble(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitByteArray(byte[] val);
 
-    void visitAtByteArray(STREAM stream);
+    byte[] visitAtByteArray(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitIntArray(int[] val);
 
-    void visitAtIntArray(STREAM stream);
+    int[] visitAtIntArray(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitLongArray(long[] val);
 
-    void visitAtLongArray(STREAM stream);
+    long[] visitAtLongArray(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitString(String val);
 
-    void visitAtString(STREAM stream);
+    String visitAtString(STREAM stream) throws FallbackDefaultCodecException;
 
-    <TAG extends AbstractTag<?, ?, TAG>> void visitArray(Iterable<TAG> array);
+    <TAG extends AbstractTag<?, ?, TAG>> void visitArray(List<TAG> array);
 
-    void visitAtArray(STREAM stream);
+    <TAG extends AbstractTag<?, ?, TAG>> List<TAG> visitAtArray(STREAM stream) throws FallbackDefaultCodecException;
 
     void visitCompound(Map<String, AbstractTag<?, ?, ?>> compound);
 
-    void visitAtCompound(STREAM stream);
+    Map<String, AbstractTag<?, ?, ?>> visitAtCompound(STREAM stream) throws FallbackDefaultCodecException;
 }
