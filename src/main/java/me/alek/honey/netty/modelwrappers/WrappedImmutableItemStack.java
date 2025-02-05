@@ -3,6 +3,7 @@ package me.alek.honey.netty.modelwrappers;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.TypeSerializer;
 import me.alek.honey.netty.codec.types.Types;
@@ -13,6 +14,7 @@ import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.TagVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.inventory.ItemStack;
 
@@ -21,11 +23,11 @@ import java.util.Optional;
 
 public class WrappedImmutableItemStack implements Cloneable {
 
-    public static class Serializer implements TypeSerializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.Protocol> {
+    public static class Serializer implements TypeSerializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.OneArg<CodecVisitor>> {
 
         @Override
-        public WrappedImmutableItemStack read(PacketDataSerializer buf, TypeContext.Protocol context) {
-            NetProtocol protocol = context.get();
+        public WrappedImmutableItemStack read(PacketDataSerializer buf, TypeContext.OneArg<CodecVisitor> context) {
+            NetProtocol protocol = context.get().protocol();
             int amount = -1;
             short durability = -1;
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
@@ -57,15 +59,15 @@ public class WrappedImmutableItemStack implements Cloneable {
             }
 
             try {
-                return WrappedImmutableItemStack.read(protocol, buf, id, amount, durability);
+                return WrappedImmutableItemStack.read(protocol, buf, id, amount, durability, context.get());
             } catch (Exception ex) {
                 throw new DecoderException("Failed to decode item stack", ex);
             }
         }
 
         @Override
-        public PacketDataSerializer write(PacketDataSerializer buf, WrappedImmutableItemStack stack, TypeContext.Protocol context) {
-            NetProtocol protocol = context.get();
+        public PacketDataSerializer write(PacketDataSerializer buf, WrappedImmutableItemStack stack, TypeContext.OneArg<CodecVisitor> context) {
+            NetProtocol protocol = context.get().protocol();
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 buf.writeVarInt(stack.getAmount());
                 if (stack.getAmount() < 1) {
@@ -96,7 +98,7 @@ public class WrappedImmutableItemStack implements Cloneable {
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 Types.OUT_COMPONENT_MAP.write(buf, stack.getTag().asComponentMap().orElse(ComponentMap.EMPTY), TypeContext.TwoArgs.of(stack.getType(), protocol));
             } else {
-                Types.NBT.write(buf, stack.getTag().asNBT().orElse(CompoundTag.EMPTY), TypeContext.Protocol.of(protocol));
+                Types.NBT.write(buf, stack.getTag().asNBT().orElse(CompoundTag.EMPTY), TypeContext.OneArg.of(TagVisitor.createDefault(protocol)));
             }
 
             return buf;
@@ -113,7 +115,7 @@ public class WrappedImmutableItemStack implements Cloneable {
         }
     }
 
-    public static WrappedImmutableItemStack read(NetProtocol protocol, PacketDataSerializer serializer, int itemId, int amount, short durability) throws IOException {
+    public static WrappedImmutableItemStack read(NetProtocol protocol, PacketDataSerializer serializer, int itemId, int amount, short durability, CodecVisitor visitor) throws IOException {
         ItemType type = ItemTypes.getById(protocol.toPECVersion(), itemId);
         if (type == null) {
             return null; // no type found
@@ -126,7 +128,7 @@ public class WrappedImmutableItemStack implements Cloneable {
         } else {
             // wrap nbt
             tag = Optional.ofNullable(
-                            Types.NBT.read(serializer, TypeSerializer.TypeContext.Protocol.of(protocol)))
+                            Types.NBT.read(serializer, TypeSerializer.TypeContext.OneArg.of(visitor)))
                     .map(AbstractTag::asCompound)
                     .orElse(null);
         }

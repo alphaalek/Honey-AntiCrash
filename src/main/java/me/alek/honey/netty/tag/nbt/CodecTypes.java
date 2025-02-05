@@ -4,9 +4,10 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
-import org.bukkit.Bukkit;
+import sun.nio.cs.KOI8_U;
 
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -18,12 +19,15 @@ public class CodecTypes {
         private static final int END_BYTES = 8;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Void> tag) throws IOException {
-
+        public void write(DataOutputStream output, PrimitiveTag<Void> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            visitor.visitEnd();
+            visitor.visitAtEnd(output);
         }
 
         @Override
-        public PrimitiveTag<Void> read(DataInputStream input, TagLimiter limiter) throws IOException {
+        public PrimitiveTag<Void> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtEnd(input);
+            visitor.visitEnd();
             return PrimitiveTag.END
                     .incrementBytes(limiter, END_BYTES);
         }
@@ -34,13 +38,19 @@ public class CodecTypes {
         private static final int BYTE_BYTES = 10;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Byte> tag) throws IOException {
-            output.writeByte(tag.getValue());
+        public void write(DataOutputStream output, PrimitiveTag<Byte> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            byte val = tag.getValue();
+            visitor.visitByte(val);
+            output.writeByte(val);
+            visitor.visitAtByte(output);
         }
 
         @Override
-        public PrimitiveTag<Byte> read(DataInputStream input, TagLimiter limiter) throws IOException {
-            return new PrimitiveTag<>(TagType.BYTE, input.readByte())
+        public PrimitiveTag<Byte> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtByte(input);
+            byte val = input.readByte();
+            visitor.visitByte(val);
+            return new PrimitiveTag<>(TagType.BYTE, val)
                     .incrementBytes(limiter, BYTE_BYTES);
         }
     }
@@ -50,13 +60,19 @@ public class CodecTypes {
         private static final int SHORT_BYTES = 10;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Short> tag) throws IOException {
-            output.writeShort(tag.getValue());
+        public void write(DataOutputStream output, PrimitiveTag<Short> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            short val = tag.getValue();
+            visitor.visitShort(val);
+            output.writeShort(val);
+            visitor.visitAtShort(output);
         }
 
         @Override
-        public PrimitiveTag<Short> read(DataInputStream input, TagLimiter limiter) throws IOException {
-            return new PrimitiveTag<>(TagType.SHORT, input.readShort())
+        public PrimitiveTag<Short> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtShort(input);
+            short val = input.readShort();
+            visitor.visitShort(val);
+            return new PrimitiveTag<>(TagType.SHORT, val)
                     .incrementBytes(limiter, SHORT_BYTES);
         }
     }
@@ -66,13 +82,19 @@ public class CodecTypes {
         private static final int INT_BYTES = 12;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Integer> tag) throws IOException {
-            output.writeInt(tag.getValue());
+        public void write(DataOutputStream output, PrimitiveTag<Integer> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            int val = tag.getValue();
+            visitor.visitInt(val);
+            output.writeInt(val);
+            visitor.visitAtInt(output);
         }
 
         @Override
-        public PrimitiveTag<Integer> read(DataInputStream input, TagLimiter limiter) throws IOException {
-            return new PrimitiveTag<>(TagType.INT, input.readInt())
+        public PrimitiveTag<Integer> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtInt(input);
+            int val = input.readInt();
+            visitor.visitInt(val);
+            return new PrimitiveTag<>(TagType.INT, val)
                     .incrementBytes(limiter, INT_BYTES);
         }
     }
@@ -82,13 +104,19 @@ public class CodecTypes {
         private static final int LONG_BYTES = 16;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Long> tag) throws IOException {
-            output.writeLong(tag.getValue());
+        public void write(DataOutputStream output, PrimitiveTag<Long> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            long val = tag.getValue();
+            visitor.visitLong(val);
+            output.writeLong(val);
+            visitor.visitAtLong(output);
         }
 
         @Override
-        public PrimitiveTag<Long> read(DataInputStream input, TagLimiter limiter) throws IOException {
-            return new PrimitiveTag<>(TagType.LONG, input.readLong())
+        public PrimitiveTag<Long> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtLong(input);
+            long val = input.readLong();
+            visitor.visitLong(val);
+            return new PrimitiveTag<>(TagType.LONG, val)
                     .incrementBytes(limiter, LONG_BYTES);
         }
     }
@@ -98,13 +126,19 @@ public class CodecTypes {
         private static final int FLOAT_BYTES = 12;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Float> tag) throws IOException {
-            output.writeFloat(tag.getValue());
+        public void write(DataOutputStream output, PrimitiveTag<Float> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            float val = tag.getValue();
+            visitor.visitFloat(val);
+            output.writeFloat(val);
+            visitor.visitAtFloat(output);
         }
 
         @Override
-        public PrimitiveTag<Float> read(DataInputStream input, TagLimiter limiter) throws IOException {
-            return new PrimitiveTag<>(TagType.FLOAT, input.readFloat())
+        public PrimitiveTag<Float> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtFloat(input);
+            float val = input.readFloat();
+            visitor.visitFloat(val);
+            return new PrimitiveTag<>(TagType.FLOAT, val)
                     .incrementBytes(limiter, FLOAT_BYTES);
         }
     }
@@ -114,13 +148,19 @@ public class CodecTypes {
         private static final int DOUBLE_BYTES = 16;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<Double> tag) throws IOException {
+        public void write(DataOutputStream output, PrimitiveTag<Double> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            double val = tag.getValue();
+            visitor.visitDouble(val);
             output.writeDouble(tag.getValue());
+            visitor.visitAtDouble(output);
         }
 
         @Override
-        public PrimitiveTag<Double> read(DataInputStream input, TagLimiter limiter) throws IOException {
-            return new PrimitiveTag<>(TagType.DOUBLE, input.readDouble())
+        public PrimitiveTag<Double> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtDouble(input);
+            double val = input.readDouble();
+            visitor.visitDouble(val);
+            return new PrimitiveTag<>(TagType.DOUBLE, val)
                     .incrementBytes(limiter, DOUBLE_BYTES);
         }
     }
@@ -130,22 +170,23 @@ public class CodecTypes {
         private static final int BYTE_ARRAY_BYTES = 24;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<byte[]> tag) throws IOException {
-            if (tag.getValue() == null) {
-                output.writeInt(0);
-            } else {
-                output.writeInt(tag.getValue().length);
-                output.write(tag.getValue());
-            }
+        public void write(DataOutputStream output, PrimitiveTag<byte[]> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            byte[] array = tag.getValue();
+            visitor.visitByteArray(array);
+            output.writeInt(array.length);
+            output.write(array);
+            visitor.visitAtByteArray(output);
         }
 
         @Override
-        public PrimitiveTag<byte[]> read(DataInputStream input, TagLimiter limiter) throws IOException {
+        public PrimitiveTag<byte[]> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtByteArray(input);
             int length = input.readInt();
             byte[] array = new byte[length];
             for (int i = 0; i < length; i++) {
                 array[i] = input.readByte();
             }
+            visitor.visitByteArray(array);
 
             return new PrimitiveTag<>(TagType.ARRAY_OF_BYTE, array)
                     .incrementBytes(limiter, BYTE_ARRAY_BYTES)
@@ -159,13 +200,18 @@ public class CodecTypes {
         private static final int CHAR_BYTES = 2;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<String> tag) throws IOException {
-            output.writeUTF(tag.getValue());
+        public void write(DataOutputStream output, PrimitiveTag<String> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            String str = tag.getValue();
+            visitor.visitString(str);
+            output.writeUTF(str);
+            visitor.visitAtString(output);
         }
 
         @Override
-        public PrimitiveTag<String> read(DataInputStream input, TagLimiter limiter) throws IOException {
+        public PrimitiveTag<String> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtString(input);
             String str = input.readUTF();
+            visitor.visitString(str);
             return new PrimitiveTag<>(TagType.STRING, str)
                     .incrementBytes(limiter, STRING_BYTES)
                     .incrementBytes(limiter, getBytesForLimiter(str));
@@ -190,25 +236,26 @@ public class CodecTypes {
         private static final int LONG_ARRAY_ELEMENT_BYTES = 8;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<long[]> tag) throws IOException {
-            if (tag.getValue() == null) {
-                output.writeInt(0);
-            } else {
-                output.writeInt(tag.getValue().length);
-                for (long value : tag.getValue()) {
-                    output.writeLong(value);
-                }
+        public void write(DataOutputStream output, PrimitiveTag<long[]> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            long[] array = tag.getValue();
+            visitor.visitLongArray(array);
+            output.writeInt(array.length);
+            for (long value : array) {
+                output.writeLong(value);
             }
+            visitor.visitAtLongArray(output);
         }
 
         @Override
-        public PrimitiveTag<long[]> read(DataInputStream input, TagLimiter limiter) throws IOException {
+        public PrimitiveTag<long[]> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtLongArray(input);
             int length = input.readInt();
             long[] array = new long[length];
             for (int i = 0; i < length; i++) {
                 array[i] = input.readLong();
             }
 
+            visitor.visitLongArray(array);
             return new PrimitiveTag<>(TagType.ARRAY_OF_LONG, array)
                     .incrementBytes(limiter, LONG_ARRAY_BYTES)
                     .incrementBytes(limiter, length * LONG_ARRAY_ELEMENT_BYTES);
@@ -221,25 +268,26 @@ public class CodecTypes {
         private static final int INT_ARRAY_ELEMENT_BYTES = 4;
 
         @Override
-        public void write(DataOutputStream output, PrimitiveTag<int[]> tag) throws IOException {
-            if (tag.getValue() == null) {
-                output.writeInt(0);
-            } else {
-                output.writeInt(tag.getValue().length);
-                for (int value : tag.getValue()) {
-                    output.writeInt(value);
-                }
+        public void write(DataOutputStream output, PrimitiveTag<int[]> tag, TagVisitor<DataOutputStream> visitor) throws IOException {
+            int[] array = tag.getValue();
+            visitor.visitIntArray(array);
+            output.writeInt(array.length);
+            for (int value : array) {
+                output.writeInt(value);
             }
+            visitor.visitAtIntArray(output);
         }
 
         @Override
-        public PrimitiveTag<int[]> read(DataInputStream input, TagLimiter limiter) throws IOException {
+        public PrimitiveTag<int[]> read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtIntArray(input);
             int length = input.readInt();
             int[] array = new int[length];
             for (int i = 0; i < length; i++) {
                 array[i] = input.readInt();
             }
 
+            visitor.visitIntArray(array);
             return new PrimitiveTag<>(TagType.ARRAY_OF_INT, array)
                     .incrementBytes(limiter, INT_ARRAY_BYTES)
                     .incrementBytes(limiter, length * INT_ARRAY_ELEMENT_BYTES);
@@ -252,7 +300,8 @@ public class CodecTypes {
         private static final int ARRAY_ELEMENT_BYTES = 4;
 
         @Override
-        public void write(DataOutputStream output, R array) throws IOException {
+        public void write(DataOutputStream output, R array, TagVisitor<DataOutputStream> visitor) throws IOException {
+            visitor.visitArray(array.getValues());
             if (array.getValue().isEmpty()) {
                 output.writeByte(TagType.END.getTypeId());
             } else {
@@ -260,13 +309,15 @@ public class CodecTypes {
             }
             output.writeInt(array.getValue().size());
             for (AbstractTag<?, ?, ?> tag : array.getValue()) {
-                tag.write(output);
+                tag.write(output, visitor);
             }
+            visitor.visitAtArray(output);
         }
 
         @SuppressWarnings({"unchecked", "DataFlowIssue"})
         @Override
-        public R read(DataInputStream input, TagLimiter limiter) throws IOException {
+        public R read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtArray(input);
             TagType type = TagType.getFromTypeId(input.readByte());
             if (type == null) {
                 throw new IOException("Invalid type");
@@ -276,7 +327,7 @@ public class CodecTypes {
             int length = input.readInt();
             List<T> array = new ArrayList<>();
             for (int i = 0; i < length; i++) {
-                array.add(type.<T>getCodec().read(input, limiter));
+                array.add(type.<T>getCodec().read(input, limiter, visitor));
             }
 
             limiter.setNestingDepthLevel(depth);
@@ -297,6 +348,7 @@ public class CodecTypes {
                 wrappedArray = (R) new ArrayTag<>(type, array);
             }
 
+            visitor.visitArray(array);
             return wrappedArray
                     .incrementComplexity(limiter)
                     .incrementBytes(limiter, ARRAY_BYTES)
@@ -314,7 +366,8 @@ public class CodecTypes {
         private static final int COMPOUND_ELEMENT_BYTES = 36;
 
         @Override
-        public void write(DataOutputStream output, CompoundTag compound) throws IOException {
+        public void write(DataOutputStream output, CompoundTag compound, TagVisitor<DataOutputStream> visitor) throws IOException {
+            visitor.visitCompound(compound.getValue().getDelegatedMap());
             for (String key : compound.getValue().keySet()) {
                 AbstractTag<?, ?, ?> tag = compound.getValue().getConverted(key);
                 if (tag.getType() == TagType.END) {
@@ -323,15 +376,17 @@ public class CodecTypes {
                 output.writeByte(tag.getType().getTypeId());
 
                 output.writeUTF(key);
-                tag.write(output);
+                tag.write(output, visitor);
             }
 
             output.writeByte(TagType.END.getTypeId());
+            visitor.visitAtCompound(output);
         }
 
         @Override
-        public CompoundTag read(DataInputStream input, TagLimiter limiter) throws IOException {
-            Map<String, Object> map = new HashMap<>();
+        public CompoundTag read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException {
+            visitor.visitAtCompound(input);
+            Map<String, AbstractTag<?, ?, ?>> compound = new HashMap<>();
 
             int depth = limiter.incrementNestingDepth();
             byte b;
@@ -345,19 +400,19 @@ public class CodecTypes {
                 }
 
                 String key = input.readUTF();
-                Object value = type.getCodec().read(input, limiter);
+                AbstractTag<?, ?, ?> value = type.getCodec().read(input, limiter, visitor);
                 if (value != null) {
-                    map.put(key, value);
+                    compound.put(key, value);
                 }
             }
-
             limiter.setNestingDepthLevel(depth);
 
-            return new CompoundTag(map)
+            visitor.visitCompound(compound);
+            return new CompoundTag(compound)
                     .incrementComplexity(limiter)
-                    .incrementBytes(limiter, map.keySet().stream().mapToInt(StringCodec::getBytesForLimiter).sum())
+                    .incrementBytes(limiter, compound.keySet().stream().mapToInt(StringCodec::getBytesForLimiter).sum())
                     .incrementBytes(limiter, COMPOUND_BYTES)
-                    .incrementBytes(limiter, COMPOUND_ELEMENT_BYTES * map.size());
+                    .incrementBytes(limiter, COMPOUND_ELEMENT_BYTES * compound.size());
         }
     }
 }

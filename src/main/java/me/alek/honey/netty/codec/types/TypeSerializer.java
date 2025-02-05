@@ -67,13 +67,6 @@ public interface TypeSerializer<T, C extends TypeSerializer.TypeContext> {
 
         }
 
-        interface Protocol extends OneArg<NetProtocol> {
-
-            static Protocol of(NetProtocol protocol) {
-                return () -> protocol;
-            }
-        }
-
         interface OneArg<T> extends TypeContext {
 
             static <T> OneArg<T> of(T arg) {

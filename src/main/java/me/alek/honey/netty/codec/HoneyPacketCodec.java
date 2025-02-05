@@ -86,9 +86,9 @@ public class HoneyPacketCodec {
             throw new DecoderException(
                     "Found " + remaining
                             + " (" + (end + buf.readableBytes()) + "/" + end + ") extra bytes while decoding packet "
-                            + HoneyPlugin.get().getLogger().formatPacketType(type) + ", "
-                            + " (" + protocol.getName() + ")"
-                            + (packetObject == null ? "" : ": " +
+                            + HoneyPlugin.get().getLogger().formatPacketType(type) + ","
+                            + " protocol " + protocol.getName()
+                            + (packetObject == null ? "" : ", properties " +
                             HoneyPlugin.get().getLogger().filterTooMuchData(
                                     HoneyPlugin.get().getLogger().formatPacketEntries(
                                             ReflectStructure.Provider.acquireStructure(packetObject.getClass())

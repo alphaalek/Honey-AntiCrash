@@ -2,7 +2,6 @@ package me.alek.honey.netty.tag.nbt;
 
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
-import org.bukkit.Bukkit;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -36,7 +35,7 @@ public class PrimitiveTag<T> extends AbstractTag<T, T, PrimitiveTag<T>> {
     }
 
     @Override
-    public void write(DataOutputStream output) throws IOException {
-        getType().<PrimitiveTag<T>>getCodec().write(output, this);
+    public void write(DataOutputStream output, TagVisitor visitor) throws IOException {
+        getType().<PrimitiveTag<T>>getCodec().write(output, this, visitor);
     }
 }

@@ -9,6 +9,7 @@ import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Collection;
@@ -144,8 +145,8 @@ public class CompoundTag extends AbstractTag<Map<String, Object>, MapConverter<S
     }
 
     @Override
-    public void write(DataOutputStream output) throws IOException {
-        getType().<CompoundTag>getCodec().write(output, this);
+    public void write(DataOutputStream output, TagVisitor<DataOutputStream> visitor) throws IOException {
+        getType().<CompoundTag>getCodec().write(output, this, visitor);
     }
 
     @SuppressWarnings("unchecked")

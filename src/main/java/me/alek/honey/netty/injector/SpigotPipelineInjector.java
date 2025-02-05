@@ -1,25 +1,17 @@
 package me.alek.honey.netty.injector;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.CorruptedFrameException;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.async.WorkerPool;
 import me.alek.honey.compat.floodgate.Floodgate;
 import me.alek.honey.compat.via.ViaHandlers;
 import me.alek.honey.netty.ChannelCloseInspection;
-import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.VarInt;
 import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;

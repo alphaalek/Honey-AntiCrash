@@ -116,7 +116,7 @@ public class ProtocolSwapHandler {
 
             PacketState intentState = PacketState.values()[packetStateOrdinal];
             if (packet.getPlayer().pinging && !intentState.equals(PacketState.STATUS)) {
-                throw new IllegalStateException("Can only set status to status while pinging");
+                throw new IllegalStateException("Can only set state to status while pinging");
             }
 
             handler.setGlobalServerboundProtocolState(intentState);

@@ -209,7 +209,13 @@ public class HoneyPlayer implements IntIdentifiable {
         this.phase = Phase.OFFLINE;
         if (this.bukkit != null) {
             if (ex.getMessage() != null) {
-                kick(ex.getMessage());
+                StringBuilder msg = new StringBuilder();
+                Throwable exc = ex;
+                while (exc != null && exc.getMessage() != null) {
+                    msg.append(": ").append(exc.getMessage());
+                    exc = exc.getCause();
+                }
+                kick(msg.substring(2));
             } else {
                 kick(DISCONNECTED);
             }

@@ -13,6 +13,7 @@ import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
+import me.alek.honey.netty.tag.nbt.TagVisitor;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -41,24 +42,24 @@ public class PacketDataSerializer extends ByteBuf {
         return packetDataSerializerConstructor.invoke(bytebuf);
     }
 
-    private final ByteBuf handle;
-    private final LazyInit<Object> serializer;
+    private final ByteBuf delegate;
+    private final LazyInit<Object> minecraftSerializer;
 
     public PacketDataSerializer() {
         this(Unpooled.buffer());
     }
 
-    public PacketDataSerializer(ByteBuf byteBufHandle) {
-        this.handle = byteBufHandle;
-        this.serializer = new LazyInit<>(() -> toNMSSerializer(byteBufHandle));
+    public PacketDataSerializer(ByteBuf buf) {
+        this.delegate = buf;
+        this.minecraftSerializer = new LazyInit<>(() -> toNMSSerializer(buf));
     }
 
     public ByteBuf getBuf() {
-        return handle;
+        return this.delegate;
     }
 
     public Object getSerializer() {
-        return serializer.get();
+        return this.minecraftSerializer.get();
     }
 
     public WrappedBlockPosition readBlockPosition() {
@@ -74,12 +75,16 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public ByteBuf writeItemStack(NetProtocol protocol, WrappedImmutableItemStack stack) throws EncoderException {
-        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.Protocol.of(protocol));
+        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.OneArg.of(TagVisitor.createDefault(protocol)));
+    }
+
+    public WrappedImmutableItemStack readItemStack(CodecVisitor visitor) throws DecoderException {
+        return Optional.ofNullable(Types.ITEM_STACK.read(this, TypeSerializer.TypeContext.OneArg.of(visitor)))
+                .orElse(WrappedImmutableItemStack.AIR);
     }
 
     public WrappedImmutableItemStack readItemStack(NetProtocol protocol) throws DecoderException {
-        return Optional.ofNullable(Types.ITEM_STACK.read(this, TypeSerializer.TypeContext.Protocol.of(protocol)))
-                .orElse(WrappedImmutableItemStack.AIR);
+        return readItemStack(TagVisitor.createDefault(protocol));
     }
 
     public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) throws DecoderException {
@@ -142,586 +147,586 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public int capacity() {
-        return this.handle.capacity();
+        return this.delegate.capacity();
     }
 
     public ByteBuf capacity(int i) {
-        return this.handle.capacity(i);
+        return this.delegate.capacity(i);
     }
 
     public int maxCapacity() {
-        return this.handle.maxCapacity();
+        return this.delegate.maxCapacity();
     }
 
     public ByteBufAllocator alloc() {
-        return this.handle.alloc();
+        return this.delegate.alloc();
     }
 
     public ByteOrder order() {
-        return this.handle.order();
+        return this.delegate.order();
     }
 
     public ByteBuf order(ByteOrder byteorder) {
-        return this.handle.order(byteorder);
+        return this.delegate.order(byteorder);
     }
 
     public ByteBuf unwrap() {
-        return this.handle.unwrap();
+        return this.delegate.unwrap();
     }
 
     public boolean isDirect() {
-        return this.handle.isDirect();
+        return this.delegate.isDirect();
     }
 
     public int readerIndex() {
-        return this.handle.readerIndex();
+        return this.delegate.readerIndex();
     }
 
     public ByteBuf readerIndex(int i) {
-        return this.handle.readerIndex(i);
+        return this.delegate.readerIndex(i);
     }
 
     public int writerIndex() {
-        return this.handle.writerIndex();
+        return this.delegate.writerIndex();
     }
 
     public ByteBuf writerIndex(int i) {
-        return this.handle.writerIndex(i);
+        return this.delegate.writerIndex(i);
     }
 
     public ByteBuf setIndex(int i, int j) {
-        return this.handle.setIndex(i, j);
+        return this.delegate.setIndex(i, j);
     }
 
     public int readableBytes() {
-        return this.handle.readableBytes();
+        return this.delegate.readableBytes();
     }
 
     public int writableBytes() {
-        return this.handle.writableBytes();
+        return this.delegate.writableBytes();
     }
 
     public int maxWritableBytes() {
-        return this.handle.maxWritableBytes();
+        return this.delegate.maxWritableBytes();
     }
 
     public boolean isReadable() {
-        return this.handle.isReadable();
+        return this.delegate.isReadable();
     }
 
     public boolean isReadable(int i) {
-        return this.handle.isReadable(i);
+        return this.delegate.isReadable(i);
     }
 
     public boolean isWritable() {
-        return this.handle.isWritable();
+        return this.delegate.isWritable();
     }
 
     public boolean isWritable(int i) {
-        return this.handle.isWritable(i);
+        return this.delegate.isWritable(i);
     }
 
     public ByteBuf clear() {
-        return this.handle.clear();
+        return this.delegate.clear();
     }
 
     public ByteBuf markReaderIndex() {
-        return this.handle.markReaderIndex();
+        return this.delegate.markReaderIndex();
     }
 
     public ByteBuf resetReaderIndex() {
-        return this.handle.resetReaderIndex();
+        return this.delegate.resetReaderIndex();
     }
 
     public ByteBuf markWriterIndex() {
-        return this.handle.markWriterIndex();
+        return this.delegate.markWriterIndex();
     }
 
     public ByteBuf resetWriterIndex() {
-        return this.handle.resetWriterIndex();
+        return this.delegate.resetWriterIndex();
     }
 
     public ByteBuf discardReadBytes() {
-        return this.handle.discardReadBytes();
+        return this.delegate.discardReadBytes();
     }
 
     public ByteBuf discardSomeReadBytes() {
-        return this.handle.discardSomeReadBytes();
+        return this.delegate.discardSomeReadBytes();
     }
 
     public ByteBuf ensureWritable(int i) {
-        return this.handle.ensureWritable(i);
+        return this.delegate.ensureWritable(i);
     }
 
     public int ensureWritable(int i, boolean flag) {
-        return this.handle.ensureWritable(i, flag);
+        return this.delegate.ensureWritable(i, flag);
     }
 
     public boolean getBoolean(int i) {
-        return this.handle.getBoolean(i);
+        return this.delegate.getBoolean(i);
     }
 
     public byte getByte(int i) {
-        return this.handle.getByte(i);
+        return this.delegate.getByte(i);
     }
 
     public short getUnsignedByte(int i) {
-        return this.handle.getUnsignedByte(i);
+        return this.delegate.getUnsignedByte(i);
     }
 
     public short getShort(int i) {
-        return this.handle.getShort(i);
+        return this.delegate.getShort(i);
     }
 
     public int getUnsignedShort(int i) {
-        return this.handle.getUnsignedShort(i);
+        return this.delegate.getUnsignedShort(i);
     }
 
     public int getMedium(int i) {
-        return this.handle.getMedium(i);
+        return this.delegate.getMedium(i);
     }
 
     public int getUnsignedMedium(int i) {
-        return this.handle.getUnsignedMedium(i);
+        return this.delegate.getUnsignedMedium(i);
     }
 
     public int getInt(int i) {
-        return this.handle.getInt(i);
+        return this.delegate.getInt(i);
     }
 
     public long getUnsignedInt(int i) {
-        return this.handle.getUnsignedInt(i);
+        return this.delegate.getUnsignedInt(i);
     }
 
     public long getLong(int i) {
-        return this.handle.getLong(i);
+        return this.delegate.getLong(i);
     }
 
     public char getChar(int i) {
-        return this.handle.getChar(i);
+        return this.delegate.getChar(i);
     }
 
     public float getFloat(int i) {
-        return this.handle.getFloat(i);
+        return this.delegate.getFloat(i);
     }
 
     public double getDouble(int i) {
-        return this.handle.getDouble(i);
+        return this.delegate.getDouble(i);
     }
 
     public ByteBuf getBytes(int i, ByteBuf bytebuf) {
-        return this.handle.getBytes(i, bytebuf);
+        return this.delegate.getBytes(i, bytebuf);
     }
 
     public ByteBuf getBytes(int i, ByteBuf bytebuf, int j) {
-        return this.handle.getBytes(i, bytebuf, j);
+        return this.delegate.getBytes(i, bytebuf, j);
     }
 
     public ByteBuf getBytes(int i, ByteBuf bytebuf, int j, int k) {
-        return this.handle.getBytes(i, bytebuf, j, k);
+        return this.delegate.getBytes(i, bytebuf, j, k);
     }
 
     public ByteBuf getBytes(int i, byte[] abyte) {
-        return this.handle.getBytes(i, abyte);
+        return this.delegate.getBytes(i, abyte);
     }
 
     public ByteBuf getBytes(int i, byte[] abyte, int j, int k) {
-        return this.handle.getBytes(i, abyte, j, k);
+        return this.delegate.getBytes(i, abyte, j, k);
     }
 
     public ByteBuf getBytes(int i, ByteBuffer bytebuffer) {
-        return this.handle.getBytes(i, bytebuffer);
+        return this.delegate.getBytes(i, bytebuffer);
     }
 
     public ByteBuf getBytes(int i, OutputStream outputstream, int j) throws IOException {
-        return this.handle.getBytes(i, outputstream, j);
+        return this.delegate.getBytes(i, outputstream, j);
     }
 
     public int getBytes(int i, GatheringByteChannel gatheringbytechannel, int j) throws IOException {
-        return this.handle.getBytes(i, gatheringbytechannel, j);
+        return this.delegate.getBytes(i, gatheringbytechannel, j);
     }
 
     public ByteBuf setBoolean(int i, boolean flag) {
-        return this.handle.setBoolean(i, flag);
+        return this.delegate.setBoolean(i, flag);
     }
 
     public ByteBuf setByte(int i, int j) {
-        return this.handle.setByte(i, j);
+        return this.delegate.setByte(i, j);
     }
 
     public ByteBuf setShort(int i, int j) {
-        return this.handle.setShort(i, j);
+        return this.delegate.setShort(i, j);
     }
 
     public ByteBuf setMedium(int i, int j) {
-        return this.handle.setMedium(i, j);
+        return this.delegate.setMedium(i, j);
     }
 
     public ByteBuf setInt(int i, int j) {
-        return this.handle.setInt(i, j);
+        return this.delegate.setInt(i, j);
     }
 
     public ByteBuf setLong(int i, long j) {
-        return this.handle.setLong(i, j);
+        return this.delegate.setLong(i, j);
     }
 
     public ByteBuf setChar(int i, int j) {
-        return this.handle.setChar(i, j);
+        return this.delegate.setChar(i, j);
     }
 
     public ByteBuf setFloat(int i, float f) {
-        return this.handle.setFloat(i, f);
+        return this.delegate.setFloat(i, f);
     }
 
     public ByteBuf setDouble(int i, double d0) {
-        return this.handle.setDouble(i, d0);
+        return this.delegate.setDouble(i, d0);
     }
 
     public ByteBuf setBytes(int i, ByteBuf bytebuf) {
-        return this.handle.setBytes(i, bytebuf);
+        return this.delegate.setBytes(i, bytebuf);
     }
 
     public ByteBuf setBytes(int i, ByteBuf bytebuf, int j) {
-        return this.handle.setBytes(i, bytebuf, j);
+        return this.delegate.setBytes(i, bytebuf, j);
     }
 
     public ByteBuf setBytes(int i, ByteBuf bytebuf, int j, int k) {
-        return this.handle.setBytes(i, bytebuf, j, k);
+        return this.delegate.setBytes(i, bytebuf, j, k);
     }
 
     public ByteBuf setBytes(int i, byte[] abyte) {
-        return this.handle.setBytes(i, abyte);
+        return this.delegate.setBytes(i, abyte);
     }
 
     public ByteBuf setBytes(int i, byte[] abyte, int j, int k) {
-        return this.handle.setBytes(i, abyte, j, k);
+        return this.delegate.setBytes(i, abyte, j, k);
     }
 
     public ByteBuf setBytes(int i, ByteBuffer bytebuffer) {
-        return this.handle.setBytes(i, bytebuffer);
+        return this.delegate.setBytes(i, bytebuffer);
     }
 
     public int setBytes(int i, InputStream inputstream, int j) throws IOException {
-        return this.handle.setBytes(i, inputstream, j);
+        return this.delegate.setBytes(i, inputstream, j);
     }
 
     public int setBytes(int i, ScatteringByteChannel scatteringbytechannel, int j) throws IOException {
-        return this.handle.setBytes(i, scatteringbytechannel, j);
+        return this.delegate.setBytes(i, scatteringbytechannel, j);
     }
 
     public ByteBuf setZero(int i, int j) {
-        return this.handle.setZero(i, j);
+        return this.delegate.setZero(i, j);
     }
 
     public boolean readBoolean() {
-        return this.handle.readBoolean();
+        return this.delegate.readBoolean();
     }
 
     public byte readByte() {
-        return this.handle.readByte();
+        return this.delegate.readByte();
     }
 
     public short readUnsignedByte() {
-        return this.handle.readUnsignedByte();
+        return this.delegate.readUnsignedByte();
     }
 
     public short readShort() {
-        return this.handle.readShort();
+        return this.delegate.readShort();
     }
 
     public int readUnsignedShort() {
-        return this.handle.readUnsignedShort();
+        return this.delegate.readUnsignedShort();
     }
 
     public int readMedium() {
-        return this.handle.readMedium();
+        return this.delegate.readMedium();
     }
 
     public int readUnsignedMedium() {
-        return this.handle.readUnsignedMedium();
+        return this.delegate.readUnsignedMedium();
     }
 
     public int readInt() {
-        return this.handle.readInt();
+        return this.delegate.readInt();
     }
 
     public long readUnsignedInt() {
-        return this.handle.readUnsignedInt();
+        return this.delegate.readUnsignedInt();
     }
 
     public long readLong() {
-        return this.handle.readLong();
+        return this.delegate.readLong();
     }
 
     public char readChar() {
-        return this.handle.readChar();
+        return this.delegate.readChar();
     }
 
     public float readFloat() {
-        return this.handle.readFloat();
+        return this.delegate.readFloat();
     }
 
     public double readDouble() {
-        return this.handle.readDouble();
+        return this.delegate.readDouble();
     }
 
     public ByteBuf readBytes(int i) {
-        return this.handle.readBytes(i);
+        return this.delegate.readBytes(i);
     }
 
     public ByteBuf readSlice(int i) {
-        return this.handle.readSlice(i);
+        return this.delegate.readSlice(i);
     }
 
     public ByteBuf readBytes(ByteBuf bytebuf) {
-        return this.handle.readBytes(bytebuf);
+        return this.delegate.readBytes(bytebuf);
     }
 
     public ByteBuf readBytes(ByteBuf bytebuf, int i) {
-        return this.handle.readBytes(bytebuf, i);
+        return this.delegate.readBytes(bytebuf, i);
     }
 
     public ByteBuf readBytes(ByteBuf bytebuf, int i, int j) {
-        return this.handle.readBytes(bytebuf, i, j);
+        return this.delegate.readBytes(bytebuf, i, j);
     }
 
     public ByteBuf readBytes(byte[] abyte) {
-        return this.handle.readBytes(abyte);
+        return this.delegate.readBytes(abyte);
     }
 
     public ByteBuf readBytes(byte[] abyte, int i, int j) {
-        return this.handle.readBytes(abyte, i, j);
+        return this.delegate.readBytes(abyte, i, j);
     }
 
     public ByteBuf readBytes(ByteBuffer bytebuffer) {
-        return this.handle.readBytes(bytebuffer);
+        return this.delegate.readBytes(bytebuffer);
     }
 
     public ByteBuf readBytes(OutputStream outputstream, int i) throws IOException {
-        return this.handle.readBytes(outputstream, i);
+        return this.delegate.readBytes(outputstream, i);
     }
 
     public int readBytes(GatheringByteChannel gatheringbytechannel, int i) throws IOException {
-        return this.handle.readBytes(gatheringbytechannel, i);
+        return this.delegate.readBytes(gatheringbytechannel, i);
     }
 
     public ByteBuf skipBytes(int i) {
-        return this.handle.skipBytes(i);
+        return this.delegate.skipBytes(i);
     }
 
     public ByteBuf writeBoolean(boolean flag) {
-        return this.handle.writeBoolean(flag);
+        return this.delegate.writeBoolean(flag);
     }
 
     public ByteBuf writeByte(int i) {
-        return this.handle.writeByte(i);
+        return this.delegate.writeByte(i);
     }
 
     public ByteBuf writeShort(int i) {
-        return this.handle.writeShort(i);
+        return this.delegate.writeShort(i);
     }
 
     public ByteBuf writeMedium(int i) {
-        return this.handle.writeMedium(i);
+        return this.delegate.writeMedium(i);
     }
 
     public ByteBuf writeInt(int i) {
-        return this.handle.writeInt(i);
+        return this.delegate.writeInt(i);
     }
 
     public ByteBuf writeLong(long i) {
-        return this.handle.writeLong(i);
+        return this.delegate.writeLong(i);
     }
 
     public ByteBuf writeChar(int i) {
-        return this.handle.writeChar(i);
+        return this.delegate.writeChar(i);
     }
 
     public ByteBuf writeFloat(float f) {
-        return this.handle.writeFloat(f);
+        return this.delegate.writeFloat(f);
     }
 
     public ByteBuf writeDouble(double d0) {
-        return this.handle.writeDouble(d0);
+        return this.delegate.writeDouble(d0);
     }
 
     public ByteBuf writeBytes(ByteBuf bytebuf) {
-        return this.handle.writeBytes(bytebuf);
+        return this.delegate.writeBytes(bytebuf);
     }
 
     public ByteBuf writeBytes(ByteBuf bytebuf, int i) {
-        return this.handle.writeBytes(bytebuf, i);
+        return this.delegate.writeBytes(bytebuf, i);
     }
 
     public ByteBuf writeBytes(ByteBuf bytebuf, int i, int j) {
-        return this.handle.writeBytes(bytebuf, i, j);
+        return this.delegate.writeBytes(bytebuf, i, j);
     }
 
     public ByteBuf writeBytes(byte[] abyte) {
-        return this.handle.writeBytes(abyte);
+        return this.delegate.writeBytes(abyte);
     }
 
     public ByteBuf writeBytes(byte[] abyte, int i, int j) {
-        return this.handle.writeBytes(abyte, i, j);
+        return this.delegate.writeBytes(abyte, i, j);
     }
 
     public ByteBuf writeBytes(ByteBuffer bytebuffer) {
-        return this.handle.writeBytes(bytebuffer);
+        return this.delegate.writeBytes(bytebuffer);
     }
 
     public int writeBytes(InputStream inputstream, int i) throws IOException {
-        return this.handle.writeBytes(inputstream, i);
+        return this.delegate.writeBytes(inputstream, i);
     }
 
     public int writeBytes(ScatteringByteChannel scatteringbytechannel, int i) throws IOException {
-        return this.handle.writeBytes(scatteringbytechannel, i);
+        return this.delegate.writeBytes(scatteringbytechannel, i);
     }
 
     public ByteBuf writeZero(int i) {
-        return this.handle.writeZero(i);
+        return this.delegate.writeZero(i);
     }
 
     public int indexOf(int i, int j, byte b0) {
-        return this.handle.indexOf(i, j, b0);
+        return this.delegate.indexOf(i, j, b0);
     }
 
     public int bytesBefore(byte b0) {
-        return this.handle.bytesBefore(b0);
+        return this.delegate.bytesBefore(b0);
     }
 
     public int bytesBefore(int i, byte b0) {
-        return this.handle.bytesBefore(i, b0);
+        return this.delegate.bytesBefore(i, b0);
     }
 
     public int bytesBefore(int i, int j, byte b0) {
-        return this.handle.bytesBefore(i, j, b0);
+        return this.delegate.bytesBefore(i, j, b0);
     }
 
     @Override
     public int forEachByte(ByteBufProcessor byteBufProcessor) {
-        return this.handle.forEachByte(byteBufProcessor);
+        return this.delegate.forEachByte(byteBufProcessor);
     }
 
     @Override
     public int forEachByte(int i, int i1, ByteBufProcessor byteBufProcessor) {
-        return this.handle.forEachByte(i, i1, byteBufProcessor);
+        return this.delegate.forEachByte(i, i1, byteBufProcessor);
     }
 
     @Override
     public int forEachByteDesc(ByteBufProcessor byteBufProcessor) {
-        return this.handle.forEachByteDesc(byteBufProcessor);
+        return this.delegate.forEachByteDesc(byteBufProcessor);
     }
 
     @Override
     public int forEachByteDesc(int i, int i1, ByteBufProcessor byteBufProcessor) {
-        return this.handle.forEachByteDesc(i, i1, byteBufProcessor);
+        return this.delegate.forEachByteDesc(i, i1, byteBufProcessor);
     }
 
     public ByteBuf copy() {
-        return this.handle.copy();
+        return this.delegate.copy();
     }
 
     public ByteBuf copy(int i, int j) {
-        return this.handle.copy(i, j);
+        return this.delegate.copy(i, j);
     }
 
     public ByteBuf slice() {
-        return this.handle.slice();
+        return this.delegate.slice();
     }
 
     public ByteBuf slice(int i, int j) {
-        return this.handle.slice(i, j);
+        return this.delegate.slice(i, j);
     }
 
     public ByteBuf duplicate() {
-        return this.handle.duplicate();
+        return this.delegate.duplicate();
     }
 
     public int nioBufferCount() {
-        return this.handle.nioBufferCount();
+        return this.delegate.nioBufferCount();
     }
 
     public ByteBuffer nioBuffer() {
-        return this.handle.nioBuffer();
+        return this.delegate.nioBuffer();
     }
 
     public ByteBuffer nioBuffer(int i, int j) {
-        return this.handle.nioBuffer(i, j);
+        return this.delegate.nioBuffer(i, j);
     }
 
     public ByteBuffer internalNioBuffer(int i, int j) {
-        return this.handle.internalNioBuffer(i, j);
+        return this.delegate.internalNioBuffer(i, j);
     }
 
     public ByteBuffer[] nioBuffers() {
-        return this.handle.nioBuffers();
+        return this.delegate.nioBuffers();
     }
 
     public ByteBuffer[] nioBuffers(int i, int j) {
-        return this.handle.nioBuffers(i, j);
+        return this.delegate.nioBuffers(i, j);
     }
 
     public boolean hasArray() {
-        return this.handle.hasArray();
+        return this.delegate.hasArray();
     }
 
     public byte[] array() {
-        return this.handle.array();
+        return this.delegate.array();
     }
 
     public int arrayOffset() {
-        return this.handle.arrayOffset();
+        return this.delegate.arrayOffset();
     }
 
     public boolean hasMemoryAddress() {
-        return this.handle.hasMemoryAddress();
+        return this.delegate.hasMemoryAddress();
     }
 
     public long memoryAddress() {
-        return this.handle.memoryAddress();
+        return this.delegate.memoryAddress();
     }
 
     public String toString(Charset charset) {
-        return this.handle.toString(charset);
+        return this.delegate.toString(charset);
     }
 
     public String toString(int i, int j, Charset charset) {
-        return this.handle.toString(i, j, charset);
+        return this.delegate.toString(i, j, charset);
     }
 
     public int hashCode() {
-        return this.handle.hashCode();
+        return this.delegate.hashCode();
     }
 
     public boolean equals(Object object) {
-        return this.handle.equals(object);
+        return this.delegate.equals(object);
     }
 
     public int compareTo(ByteBuf bytebuf) {
-        return this.handle.compareTo(bytebuf);
+        return this.delegate.compareTo(bytebuf);
     }
 
     public String toString() {
-        return this.handle.toString();
+        return this.delegate.toString();
     }
 
     public ByteBuf retain(int i) {
-        return this.handle.retain(i);
+        return this.delegate.retain(i);
     }
 
     public ByteBuf retain() {
-        return this.handle.retain();
+        return this.delegate.retain();
     }
 
     public int refCnt() {
-        return this.handle.refCnt();
+        return this.delegate.refCnt();
     }
 
     public boolean release() {
-        return this.handle.release();
+        return this.delegate.release();
     }
 
     public boolean release(int i) {
-        return this.handle.release(i);
+        return this.delegate.release(i);
     }
 }

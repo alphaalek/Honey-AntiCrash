@@ -3,12 +3,13 @@ package me.alek.honey.netty.tag.nbt.array;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.structure.converters.MapConverter;
-import me.alek.honey.netty.structure.converters.wrapper.SimpleListConverter;
-import me.alek.honey.netty.tag.nbt.*;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.NBTFactory;
+import me.alek.honey.netty.tag.nbt.TagType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 

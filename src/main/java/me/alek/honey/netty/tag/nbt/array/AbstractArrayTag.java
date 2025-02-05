@@ -7,7 +7,7 @@ import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.NBTFactory;
 import me.alek.honey.netty.tag.nbt.TagType;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.tag.nbt.TagVisitor;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -71,8 +71,8 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
 
     @SuppressWarnings("unchecked")
     @Override
-    public void write(DataOutputStream output) throws IOException {
-        getType().<ARRAY>getCodec().write(output, (ARRAY) this);
+    public void write(DataOutputStream output, TagVisitor<DataOutputStream> visitor) throws IOException {
+        getType().<ARRAY>getCodec().write(output, (ARRAY) this, visitor);
     }
 
     public Stream<C> stream() {

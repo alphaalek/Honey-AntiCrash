@@ -5,7 +5,6 @@ import me.alek.honey.netty.tag.nbt.TagType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
-import java.util.List;
 
 public class ArrayTag<T> extends AbstractArrayTag<PrimitiveTag<T>, ArrayTag<T>, T> {
 

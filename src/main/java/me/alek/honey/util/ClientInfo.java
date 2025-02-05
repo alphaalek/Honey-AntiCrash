@@ -42,7 +42,7 @@ public interface ClientInfo {
         public Default(int protocolVersion) {
             this.protocolVersion = protocolVersion;
             this.majorProtocol = NetProtocol.getMajorProtocolFrom(protocolVersion);
-            if (majorProtocol == null) {
+            if (this.majorProtocol == null) {
                 throw new IllegalArgumentException("Could not get major protocol from protocol version " + protocolVersion);
             }
         }
@@ -52,15 +52,15 @@ public interface ClientInfo {
         }
 
         public int getProtocolVersion() {
-            return protocolVersion;
+            return this.protocolVersion;
         }
 
         public NetProtocol getProtocol() {
-            return majorProtocol;
+            return this.majorProtocol;
         }
 
         public String getBrand() {
-            return Optional.ofNullable(brand).orElse(VANILLA);
+            return Optional.ofNullable(this.brand).orElse(VANILLA);
         }
     }
 

@@ -6,9 +6,9 @@ import java.io.IOException;
 
 public interface NBTCodec<T extends AbstractTag<?, ?, T>> {
 
-    void write(DataOutputStream output, T tag) throws IOException;
+    void write(DataOutputStream output, T tag, TagVisitor<DataOutputStream> visitor) throws IOException;
 
-    T read(DataInputStream input, TagLimiter limiter) throws IOException;
+    T read(DataInputStream input, TagLimiter limiter, TagVisitor<DataInputStream> visitor) throws IOException;
 
     interface Primitive<T> extends NBTCodec<PrimitiveTag<T>> {
 

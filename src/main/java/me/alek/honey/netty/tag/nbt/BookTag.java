@@ -81,15 +81,15 @@ public class BookTag {
 
             if (nbt.getKeys().stream().anyMatch(k ->
                     !k.equals(PAGES)
-                 && !k.equals(FILTERED_PAGES)
-                 && !k.equals(TITLE)
-                 && !k.equals(FILTERED_TITLE)
-                 && !k.equals(AUTHOR))) {
+                            && !k.equals(FILTERED_PAGES)
+                            && !k.equals(TITLE)
+                            && !k.equals(FILTERED_TITLE)
+                            && !k.equals(AUTHOR))) {
                 throw new DecoderException("Invalid book data: extra tags");
             }
         } else if (nbt.getKeys().stream().anyMatch(k ->
                 !k.equals(PAGES)
-             && !k.equals(FILTERED_PAGES))) {
+                        && !k.equals(FILTERED_PAGES))) {
             throw new DecoderException("Invalid book data: extra tags");
         }
     }

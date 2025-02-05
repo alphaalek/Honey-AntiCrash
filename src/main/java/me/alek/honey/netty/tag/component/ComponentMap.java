@@ -242,7 +242,7 @@ public class ComponentMap implements ItemTag {
             throw new IllegalStateException("Illegal food component");
         }
 
-        if (map.has(ComponentTypes.MAX_DAMAGE) && map.has(ComponentTypes.MAX_STACK_SIZE)) {
+        if (map.has(ComponentTypes.MAX_DAMAGE) && map.has(ComponentTypes.MAX_STACK_SIZE) && map.get(ComponentTypes.MAX_STACK_SIZE).get() != 1) {
             throw new IllegalStateException("Illegal combination of max_damage and max_stack_size components");
         }
     }
