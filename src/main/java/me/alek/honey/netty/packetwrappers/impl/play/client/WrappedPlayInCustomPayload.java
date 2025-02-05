@@ -5,12 +5,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.PrimitiveTag;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.packet.PacketContainer;
@@ -36,7 +39,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             super(buf, packet);
             String channel = buf.readString(MAX_CHANNEL_LENGTH);
             PacketDataSerializer serializer = new PacketDataSerializer(buf.readBytes(buf.readableBytes()));
-            this.data = new PayloadData<>(this, channel, serializer, packet.getProtocol());
+            this.data = new PayloadData<>(packet, channel, serializer);
         }
 
         @Override
@@ -65,36 +68,38 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         private final String channel;
         private final PacketDataSerializer serializer;
-        private final WP packet;
+        private final PacketContainer<WP> packet;
+        private final NetProtocol protocol;
+        private final boolean signing;
         private LazyInit<WrappedImmutableItemStack> bookChannelItemStack;
         private Runnable release;
 
-        public PayloadData(WP packet, String channel, PacketDataSerializer serializer, NetProtocol protocol) {
+        public PayloadData(PacketContainer<WP> packet, String channel, PacketDataSerializer serializer) {
             this.channel = channel;
             this.serializer = serializer;
             this.packet = packet;
+            this.protocol = packet.getProtocol();
+            this.signing = this.channel.equals(SIGN_BOOK_CHANNEL);
 
-            if (protocol.isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
-                this.bookChannelItemStack = new LazyInit<>(() -> packet.decodeExternally(() -> this.readItemStack(protocol, serializer)));
+            WP pck = packet.getCurrentWrapped();
+            if (this.protocol.isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
+                this.bookChannelItemStack = new LazyInit<>(() -> pck.decodeExternally(() -> this.readItemStack(serializer)));
                 this.release = () -> AutoReleasable.doRelease(serializer);
             }
         }
 
-        private WrappedImmutableItemStack readItemStack(NetProtocol protocol, PacketDataSerializer serializer) {
-            WrappedImmutableItemStack item = serializer.readItemStackSafely(protocol, this.packet);
-
-            if (item == null) {
-                throw new DecoderException("Invalid book!");
-            }
-
-            boolean signing = this.channel.equals(SIGN_BOOK_CHANNEL);
+        private WrappedImmutableItemStack readItemStack(PacketDataSerializer serializer) {
+            EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol);
+            WrappedImmutableItemStack item = serializer.readItemStackSafely(visitor, this.packet);
             CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(item, DecodeContext.BookEditContext.of(this.packet, signing));
 
-            applyTagLegacy(protocol, item, signing);
+            HoneyPacketCodec.checkReadable(this.protocol, this.packet.getType(), Optional.ofNullable(this.packet.getObjectWrapped()).map(WrappedObject::getHandle).orElse(null), serializer);
+
+            applyTagLegacy(item, signing);
             return item;
         }
 
-        private void applyTagLegacy(NetProtocol protocol, WrappedImmutableItemStack item, boolean signing) {
+        private void applyTagLegacy(WrappedImmutableItemStack item, boolean signing) {
             CompoundTag tag = new CompoundTag();
             CompoundTag serialized = item.getTag().asNBT().get();
             tag.put("pages", serialized.getArrayOf("pages", TagType.STRING));
@@ -102,7 +107,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
                 tag.put("author", serialized.get("author"));
                 tag.put("title", serialized.get("title"));
 
-                if (protocol.isEqual(NetProtocol.v1_8_8)) {
+                if (this.protocol.isEqual(NetProtocol.v1_8_8)) {
                     List<String> newPages = new ArrayList<>();
                     for (String page : tag.<String>getArrayOf("pages", TagType.STRING)) {
                         JsonElement element = JSON_PARSER.parse(page);

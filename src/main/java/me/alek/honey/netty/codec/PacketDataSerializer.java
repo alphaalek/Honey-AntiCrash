@@ -12,6 +12,7 @@ import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.tag.nbt.TagVisitor;
 import me.alek.honey.util.LazyInit;
@@ -87,7 +88,7 @@ public class PacketDataSerializer extends ByteBuf {
         return readItemStack(TagVisitor.In.createDefault(protocol));
     }
 
-    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(CodecVisitor visitor, WP packet) throws DecoderException {
+    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(CodecVisitor visitor, PacketContainer<WP> packet) throws DecoderException {
         WrappedImmutableItemStack stack = readItemStack(visitor);
         if (stack != WrappedImmutableItemStack.AIR) {
             CodecTypeValidation.ITEM_STACK.validate(stack, DecodeContext.from(packet));
@@ -96,7 +97,7 @@ public class PacketDataSerializer extends ByteBuf {
         return stack;
     }
 
-    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, WP packet) throws DecoderException {
+    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, PacketContainer<WP> packet) throws DecoderException {
         return readItemStackSafely(TagVisitor.In.createDefault(protocol), packet);
     }
 

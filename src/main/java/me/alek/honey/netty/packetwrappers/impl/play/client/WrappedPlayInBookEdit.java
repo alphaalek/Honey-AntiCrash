@@ -67,8 +67,8 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             PacketDataSerializer itemBuf = new PacketDataSerializer(buf.readBytes(buf.readableBytes() - 2));
 
             EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol);
-            WrappedImmutableItemStack stack = itemBuf.readItemStackSafely(visitor, this);
-            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(this, this.signing));
+            WrappedImmutableItemStack stack = itemBuf.readItemStackSafely(visitor, packet);
+            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(packet, this.signing));
 
             HoneyPacketCodec.checkReadable(protocol, PacketTypes.Play.Client.BOOK_EDIT, null, itemBuf);
 
@@ -102,7 +102,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
                 this.author = packet.getPlayer().name;
             }
 
-            validateModernBookEdit(protocol);
+            validateModernBookEdit(protocol, packet);
         }
 
         if (this.slot < 0 || this.slot > 8) {
@@ -110,7 +110,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
         }
     }
 
-    private void validateModernBookEdit(NetProtocol protocol) {
+    private void validateModernBookEdit(NetProtocol protocol, PacketContainer<WrappedPlayInBookEdit> packet) {
         if (protocol.isOlderThan(NetProtocol.v1_20_5)) {
             CompoundTag tag = new CompoundTag();
             tag.putArray("pages", TagType.STRING, this.pages);
@@ -120,7 +120,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
                 tag.putPrimitive("author", TagType.STRING, this.author);
             }
 
-            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, DecodeContext.BookEditContext.of(this, this.signing));
+            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, DecodeContext.BookEditContext.of(packet, this.signing));
         }
     }
 

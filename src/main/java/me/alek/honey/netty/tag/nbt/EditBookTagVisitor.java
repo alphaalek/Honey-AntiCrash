@@ -2,7 +2,6 @@ package me.alek.honey.netty.tag.nbt;
 
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.io.DataInputStream;
 import java.io.IOException;

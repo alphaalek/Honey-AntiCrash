@@ -3,10 +3,8 @@ package me.alek.honey.netty.bukkit;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.ChannelLookup;
+import me.alek.honey.netty.ChannelLookupSynchronizer;
 import me.alek.honey.netty.injector.MissingHandlerException;
-import me.alek.honey.util.reflection.MinecraftReflection;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,7 +21,7 @@ public class BukkitEventInternal implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        Channel channel = ChannelLookup.getChannel(player.getName());
+        Channel channel = ChannelLookupSynchronizer.getChannel(player.getName());
         if (channel == null) {
             HoneyPlayer.kick(player, BROKEN_PIPE_KICK_MESSAGE);
             return;
@@ -61,6 +59,6 @@ public class BukkitEventInternal implements Listener {
         if (honeyPlayer != null) {
             honeyPlayer.remove();
         }
-        ChannelLookup.removeChannelLookup(player.getName());
+        ChannelLookupSynchronizer.removeChannelLookup(player.getName());
     }
 }

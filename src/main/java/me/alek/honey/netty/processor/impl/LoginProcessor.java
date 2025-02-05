@@ -1,12 +1,11 @@
 package me.alek.honey.netty.processor.impl;
 
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.ChannelLookup;
+import me.alek.honey.netty.ChannelLookupSynchronizer;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 import me.alek.honey.netty.processor.TypeProcessor;
-import me.alek.honey.util.reflection.MinecraftReflection;
 
 public class LoginProcessor extends TypeProcessor<WrappedLoginInLoginStart> {
 
@@ -17,6 +16,6 @@ public class LoginProcessor extends TypeProcessor<WrappedLoginInLoginStart> {
 
     public void handleLogin(HoneyPlayer player, PacketContainer<WrappedLoginInLoginStart> packet) {
         packet.getPlayer().setupHello(packet.getCurrentWrapped());
-        ChannelLookup.submitChannelForName(packet.getPlayerName(), packet.getChannel());
+        ChannelLookupSynchronizer.submitChannelForName(packet.getPlayerName(), packet.getChannel());
     }
 }

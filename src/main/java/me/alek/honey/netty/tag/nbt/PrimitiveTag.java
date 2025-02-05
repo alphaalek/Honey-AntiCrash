@@ -16,7 +16,6 @@ public class PrimitiveTag<T> extends AbstractTag<T, T, PrimitiveTag<T>> {
         super(base);
     }
 
-    @Deprecated
     public PrimitiveTag(TagType type) {
         super(createRaw(type));
     }

@@ -51,6 +51,10 @@ public class BookTag {
     }
 
     public static void validateBookEdit(WrappedImmutableItemStack item, DecodeContext.BookEditContext<?> context) {
+        if (item == null) {
+            throw new DecoderException("Invalid book edit: invalid item");
+        }
+
         if (item.getType() != ItemTypes.WRITTEN_BOOK && item.getType() != ItemTypes.WRITABLE_BOOK) {
             throw new DecoderException("Invalid book edit item-stack! Item-stack type: " + item.getType());
         }
@@ -71,7 +75,7 @@ public class BookTag {
                 throw new DecoderException("Invalid book data: no title tag in sign context");
             }
 
-            if (!nbt.hasKeyOfType(AUTHOR, TagType.STRING) || !nbt.getString(AUTHOR).equals(context.packet().getContainer().getPlayerName())) {
+            if (!nbt.hasKeyOfType(AUTHOR, TagType.STRING) || !nbt.getString(AUTHOR).equals(context.packet().getPlayerName())) {
                 throw new DecoderException("Invalid book data: no valid author tag in sign context");
             }
 

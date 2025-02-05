@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 
 import java.util.HashMap;
 
-public class ChannelLookup {
+public class ChannelLookupSynchronizer {
 
     private static final HashMap<String, Channel> lookupChannels = new HashMap<>();
 

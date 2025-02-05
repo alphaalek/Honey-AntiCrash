@@ -54,7 +54,7 @@ public class WrappedPlayInBlockPlace extends ByteInWrappedPacket<WrappedPlayInBl
                 if (this.faceId == 255) {
                     this.face = BlockFace.SELF;
                 }
-                this.itemStack = serializer.readItemStackSafely(protocol, this);
+                this.itemStack = serializer.readItemStackSafely(protocol, packet);
                 this.interactionHand = InteractionHand.MAIN_HAND;
             }
         }
