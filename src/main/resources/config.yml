@@ -245,23 +245,27 @@ item-analysis:
     max-nbt-length: 17500
     # How many bytes may a NBT string be.
     max-nbt-string-length: 1250
+    # How many bytes may a NBT Compound Key be.
+    max-nbt-key-length: 64
     # How many bytes may the NBT of a firework have. This is also for firework charges.
     max-firework-nbt-length: 5000
     # How many bytes may the NBT of a book have.
     max-book-nbt-length: 15000
-    # How many pages may a book have. In Vanilla Minecraft it is not possible to get more than 100 pages. (in 1.8 only 50 pages)
+    # How many pages may a book have (1.14+)
     max-book-pages: 100
-    # How long may the page of a book be. In Vanilla Minecraft it is not possible to get more than 256 characters.
-    max-book-page-length: 256
-    # How long title may a book have. In Vanilla Minecraft it is not possible to get more than 32 characters.
+    # How many pages may a book have (pre 1.14)
+    max-book-pages-legacy: 50
+    # How long may the page of a book be.
+    max-book-page-length: 1024
+    # How long title may a book have.
     max-book-title-length: 32
-    # How long name may the author of a book be. In Vanilla Minecraft it is not possible to get more than 16 characters.
+    # How long name may the author of a book be.
     max-book-author-length: 16
     # How many NBT bases may an item have. (the general representation of NBT data, covers lists, strings, doubles etc...)
     max-nbt-bases: 512
     # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)
     max-nbt-nesting: 8
-    # May player heads not have invalid textures. Can be exploited to crash servers up to 1.10.2
+    # May player heads not have invalid textures.
     check-illegal-skull-textures: true
 
 ############################################################

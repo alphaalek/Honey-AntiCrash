@@ -2,6 +2,7 @@ package me.alek.honey.netty.tag.nbt;
 
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
@@ -30,22 +31,20 @@ public class BookTag {
             CompoundTag nbt = tag.asNBT().get();
             if (nbt.hasKeyOfType(PAGES, TagTypeCollection.getCollection(TagTypeCollection.ARRAY))) {
                 ArrayTag<String> pages = nbt.getArrayOf(PAGES, TagType.STRING);
-                NetProtocol protocol = context.packet().getProtocol();
-                if (protocol.isNewerThanOrEqual(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES
-                        || protocol.isOlderThan(NetProtocol.v1_14) && pages.size() > WrappedPlayInBookEdit.MAX_PAGES_1_13_2) {
-                    throw new IllegalStateException("Too many pages: " + pages.size() + ", limit: "
-                            + (protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? WrappedPlayInBookEdit.MAX_PAGES : WrappedPlayInBookEdit.MAX_PAGES_1_13_2));
+                int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(context.packet().getProtocol());
+                if (pages.size() > max) {
+                    throw new IllegalStateException("Too many pages: " + pages.size() + ", limit: " + max);
                 }
             }
 
             if (nbt.hasKeyOfType(TITLE, TagType.STRING)
-                    && (nbt.getString(TITLE).isEmpty() || nbt.getString(TITLE).length() > WrappedPlayInBookEdit.TITLE_CHAR_LIMIT)) {
-                throw new DecoderException("Invalid book data! Too long title: " + nbt.getString(TITLE).length() + ", limit: " + WrappedPlayInBookEdit.TITLE_CHAR_LIMIT);
+                    && (nbt.getString(TITLE).isEmpty() || nbt.getString(TITLE).length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH)) {
+                throw new DecoderException("Invalid book data! Too long title: " + nbt.getString(TITLE).length() + ", limit: " + ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH);
             }
 
             if (nbt.hasKeyOfType(AUTHOR, TagType.STRING)
-                    && (nbt.getString(AUTHOR).isEmpty() || nbt.getString(AUTHOR).length() > WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT)) {
-                throw new DecoderException("Invalid book data! Too long author: " + nbt.getString(AUTHOR).length() + ", limit: " + WrappedPlayInBookEdit.AUTHOR_CHAR_LIMIT);
+                    && (nbt.getString(AUTHOR).isEmpty() || nbt.getString(AUTHOR).length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH)) {
+                throw new DecoderException("Invalid book data! Too long author: " + nbt.getString(AUTHOR).length() + ", limit: " + ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH);
             }
         }
     }

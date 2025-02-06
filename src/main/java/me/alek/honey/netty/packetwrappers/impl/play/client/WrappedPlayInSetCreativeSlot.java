@@ -20,6 +20,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteInWrappedPacket<WrappedPla
         NetProtocol protocol = packet.getProtocol();
 
         this.slot = serializer.readShort();
+        serializer.prepareReadItemStack(0);
         this.item = serializer.readItemStackSafely(protocol, packet);
     }
 

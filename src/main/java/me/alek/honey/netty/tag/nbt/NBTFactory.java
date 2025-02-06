@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.TypeSerializer;
@@ -35,7 +36,6 @@ public class NBTFactory {
     private static final String NAMED_COMPOUND_TAG_NAME = "";
 
     private static final int SIXTY_FOUR_KILOBYTES = 1024 * 64;
-    private static final int MAX_DEPTH = 8;
     private static final int MAX_COMPLEXITY = 256;
 
     public static class Serializer implements TypeSerializer<AbstractTag<?, ?, ?>, TypeSerializer.TypeContext.OneArg<CodecVisitor>> {
@@ -82,7 +82,7 @@ public class NBTFactory {
 
         // deserialize tag
         return type.getCodec().read(new DataInputStream(stream),
-                new TagLimiter(SIXTY_FOUR_KILOBYTES, MAX_DEPTH, MAX_COMPLEXITY), visitor);
+                new TagLimiter.Default(SIXTY_FOUR_KILOBYTES, ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING, MAX_COMPLEXITY, ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES), visitor);
     }
 
     private static <TAG extends AbstractTag<?, ?, TAG>> ByteBufOutputStream write(ByteBufOutputStream stream, TAG tag, TagVisitor.Out visitor) throws IOException {
@@ -260,7 +260,7 @@ public class NBTFactory {
                 .withTarget(handle);
         byte typeId;
         if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
-            typeId = structureModifier.invokeMethod(null, "getId", 0);
+            typeId = structureModifier.invokeMethod(null, "getTypeId", 0);
         } else {
             typeId = structureModifier.invokeMethod(null,
                     (index, invoker) -> invoker.getHandle().getDeclaringClass().equals(MinecraftReflection.getNBTBaseClass()));

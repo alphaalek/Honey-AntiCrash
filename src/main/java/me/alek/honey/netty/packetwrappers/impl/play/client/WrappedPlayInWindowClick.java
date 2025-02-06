@@ -61,6 +61,7 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacket<WrappedPlayInW
             );
         }
 
+        serializer.prepareReadItemStack(0);
         this.carriedItemStack = serializer.readItemStackSafely(protocol, packet);
     }
 

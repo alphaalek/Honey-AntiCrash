@@ -39,7 +39,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             super(buf, packet);
             String channel = buf.readString(MAX_CHANNEL_LENGTH);
             PacketDataSerializer serializer = new PacketDataSerializer(buf.readBytes(buf.readableBytes()));
-            this.data = new PayloadData<>(packet, channel, serializer);
+            this.data = new PayloadData<>(this, packet, channel, serializer);
         }
 
         @Override
@@ -74,29 +74,30 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         private LazyInit<WrappedImmutableItemStack> bookChannelItemStack;
         private Runnable release;
 
-        public PayloadData(PacketContainer<WP> packet, String channel, PacketDataSerializer serializer) {
+        public PayloadData(WP source, PacketContainer<WP> packet, String channel, PacketDataSerializer serializer) {
             this.channel = channel;
             this.serializer = serializer;
             this.packet = packet;
             this.protocol = packet.getProtocol();
             this.signing = this.channel.equals(SIGN_BOOK_CHANNEL);
 
-            WP pck = packet.getCurrentWrapped();
             if (this.protocol.isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
-                this.bookChannelItemStack = new LazyInit<>(() -> pck.decodeExternally(() -> this.readItemStack(serializer)));
+                this.bookChannelItemStack = new LazyInit<>(() -> source.decodeExternally(() -> this.readItemStack(serializer)));
                 this.release = () -> AutoReleasable.doRelease(serializer);
             }
         }
 
         private WrappedImmutableItemStack readItemStack(PacketDataSerializer serializer) {
+            serializer.prepareReadItemStack(0);
+
             EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol);
-            WrappedImmutableItemStack item = serializer.readItemStackSafely(visitor, this.packet);
-            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(item, DecodeContext.BookEditContext.of(this.packet, signing));
+            WrappedImmutableItemStack stack = serializer.readItemStack(visitor); // no need to read safely, because we applied the edit book tag visitor
+            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(this.packet, signing));
 
             HoneyPacketCodec.checkReadable(this.protocol, this.packet.getType(), Optional.ofNullable(this.packet.getObjectWrapped()).map(WrappedObject::getHandle).orElse(null), serializer);
 
-            applyTagLegacy(item, signing);
-            return item;
+            applyTagLegacy(stack, this.signing);
+            return stack;
         }
 
         private void applyTagLegacy(WrappedImmutableItemStack item, boolean signing) {

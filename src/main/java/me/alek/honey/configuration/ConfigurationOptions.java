@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -705,9 +706,11 @@ public class ConfigurationOptions {
 
             public static int MAX_NBT_LENGTH;
             public static int MAX_NBT_STRING_LENGTH;
+            public static int MAX_NBT_KEY_LENGTH;
             public static int MAX_FIREWORK_NBT_LENGTH;
             public static int MAX_BOOK_NBT_LENGTH;
             public static int MAX_BOOK_PAGES;
+            public static int MAX_BOOK_PAGES_LEGACY;
             public static int MAX_BOOK_PAGE_LENGTH;
             public static int MAX_BOOK_AUTHOR_LENGTH;
             public static int MAX_BOOK_TITLE_LENGTH;
@@ -716,21 +719,27 @@ public class ConfigurationOptions {
             public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
 
             public static void load() {
-                MAX_NBT_LENGTH = file.getInt("item-analysis.nbt.max-nbt-length", 15000);
-                MAX_NBT_STRING_LENGTH = file.getInt("item-analysis.nbt.max-nbt-string-length", 800);
+                MAX_NBT_LENGTH = file.getInt("item-analysis.nbt.max-nbt-length");
+                MAX_NBT_STRING_LENGTH = file.getInt("item-analysis.nbt.max-nbt-string-length");
+                MAX_NBT_KEY_LENGTH = file.getInt("item-analysis.nbt.max-nbt-key-length");
 
-                MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length", 2500);
+                MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length");
 
-                MAX_BOOK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-book-nbt-length", 13500);
-                MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length", 256);
-                MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages", 50);
-                MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length", 16);
-                MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length", 32);
+                MAX_BOOK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-book-nbt-length");
+                MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length");
+                MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages");
+                MAX_BOOK_PAGES_LEGACY = file.getInt("item-analysis.nbt.max-book-pages-legacy");
+                MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length");
+                MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length");
 
-                MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases", 80);
-                MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting", 4);
+                MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases");
+                MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting");
 
-                CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("item-analysis.nbt.check-illegal-skull-textures", true);
+                CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("item-analysis.nbt.check-illegal-skull-textures");
+            }
+
+            public static int getMaxBookPages(NetProtocol protocol) {
+                return protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_BOOK_PAGES : MAX_BOOK_PAGES_LEGACY;
             }
         }
     }

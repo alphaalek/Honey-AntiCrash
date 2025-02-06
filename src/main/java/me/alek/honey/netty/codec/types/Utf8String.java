@@ -2,25 +2,19 @@ package me.alek.honey.netty.codec.types;
 
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
-import io.netty.util.CharsetUtil;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class Utf8String implements TypeSerializer<String, TypeSerializer.TypeContext.OneArg<Integer>> {
 
-    private static final int MAX_BYTES_PER_CHAR_UTF8;
-
-    static {
-        MAX_BYTES_PER_CHAR_UTF8 = (int) CharsetUtil.getEncoder(CharsetUtil.UTF_8).maxBytesPerChar();
-    }
-
     @Override
     public String read(PacketDataSerializer buf, TypeSerializer.TypeContext.OneArg<Integer> context) {
         int stringByteLength = buf.readVarInt();
-        int maxByteLength = context.get() * MAX_BYTES_PER_CHAR_UTF8;
-        if (stringByteLength > maxByteLength) {
-            throw new DecoderException("The received encoded string buffer length is longer than maximum allowed (" + stringByteLength + " > " + maxByteLength + ")");
+        if (stringByteLength > context.get()) {
+            throw new DecoderException("The received encoded string buffer length is longer than maximum allowed (" + stringByteLength + " > " + context.get() + ")");
         }
 
         if (stringByteLength < 0) {
@@ -53,5 +47,16 @@ public class Utf8String implements TypeSerializer<String, TypeSerializer.TypeCon
         buf.writeBytes(encodedByteArray);
 
         return buf;
+    }
+
+    public static String readUTFInputStream(DataInputStream stream, int maxByteLength) throws IOException {
+        int length = stream.readUnsignedShort();
+        if (length > maxByteLength) {
+            throw new DecoderException("The received encoded string buffer length is longer than maximum allowed (" + length + " > " + maxByteLength + ")");
+        }
+
+        byte[] buf = new byte[length];
+        stream.readFully(buf);
+        return new String(buf, StandardCharsets.UTF_8);
     }
 }

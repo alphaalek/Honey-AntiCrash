@@ -29,14 +29,11 @@ public enum ItemValidationRegistry {
 
     // nbt
     MAX_NBT_LENGTH(ItemValidations.MaxNBTLengthItemValidation::new),
-    MAX_NBT_STRING_LENGTH(ItemValidations.MaxNBTStringLengthItemValidation::new),
     MAX_BOOK_PAGE_LENGTH(ItemValidations.MaxPageLengthItemValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
     MAX_BOOK_NBT_LENGTH(ItemValidations.MaxBookNBTLengthItemValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
     MAX_BOOK_PAGES(ItemValidations.MaxBookPagesItemValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
     MAX_BOOK_AUTHOR_LENGTH(ItemValidations.MaxBookAuthorLengthItemValidation::new, ItemTypes.WRITTEN_BOOK),
     MAX_BOOK_TITLE_LENGTH(ItemValidations.MaxBookTitleLengthItemValidation::new, ItemTypes.WRITTEN_BOOK),
-    MAX_NBT_BASES(ItemValidations.MaxNBTBasesItemValidation::new),
-    MAX_NBT_NESTING(ItemValidations.MaxNBTNestingItemValidation::new),
     MAX_FIREWORK_NBT_LENGTH(ItemValidations.MaxFireworkLengthItemValidation::new, ItemTypes.FIREWORK_ROCKET, ItemTypes.FIREWORK_STAR),
     ILLEGAL_SKULL_TEXTURES(ItemValidations.IllegalSkullTexturesItemValidation::new, ItemTypes.PLAYER_HEAD),
     ILLEGAL_COMPONENT_STRINGS(ItemValidations.IllegalComponentStrings::new),

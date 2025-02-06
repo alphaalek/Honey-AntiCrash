@@ -30,6 +30,7 @@ public class ComponentMap implements ItemTag {
             if (present == 0 && absent == 0) {
                 return null;
             }
+
             if (absent < 0 || present < 0) {
                 throw new DecoderException("Invalid component map");
             }

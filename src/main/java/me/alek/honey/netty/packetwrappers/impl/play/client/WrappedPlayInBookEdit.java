@@ -1,6 +1,7 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.VarInt;
@@ -15,18 +16,11 @@ import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBookEdit> {
-
-    public static final int PAGE_CHAR_LIMIT = 1024;
-    public static final int TITLE_CHAR_LIMIT = 16;
-    public static final int AUTHOR_CHAR_LIMIT = 16;
-    public static final int MAX_PAGES = 100;
-    public static final int MAX_PAGES_1_13_2 = 50;
 
     @Property
     private final int slot;
@@ -60,14 +54,15 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             this.slot = buf.getUnsignedByte(buf.readableBytes()); // encoded as last field, so read the last byte of this buffer
             // check if we can continue with our assumption
             if ((this.slot & VarInt.CONTINUE_BIT) != 0) {
-                // Well, this client was just broken...
+                // Well, this client was just broken (I guess?) ...
                 throw new DecoderException("Invalid slot");
             }
             this.signing = buf.getByte(buf.readableBytes() - 1) != 0;
             PacketDataSerializer itemBuf = new PacketDataSerializer(buf.readBytes(buf.readableBytes() - 2));
+            itemBuf.prepareReadItemStack(0);
 
             EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol);
-            WrappedImmutableItemStack stack = itemBuf.readItemStackSafely(visitor, packet);
+            WrappedImmutableItemStack stack = itemBuf.readItemStack(visitor); // no need to read safely, because we applied the edit book tag visitor
             CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(packet, this.signing));
 
             HoneyPacketCodec.checkReadable(protocol, PacketTypes.Play.Client.BOOK_EDIT, null, itemBuf);
@@ -88,17 +83,17 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             this.slot = buf.readVarInt();
 
             int pageCount = buf.readVarInt();
-            if (protocol.isNewerThanOrEqual(NetProtocol.v1_14) && pageCount > MAX_PAGES
-                    || protocol.isOlderThan(NetProtocol.v1_14) && pageCount > MAX_PAGES_1_13_2) {
-                throw new IllegalStateException("Too many pages: " + pageCount + ", limit: " + (protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_PAGES : MAX_PAGES_1_13_2));
+            int maxPageCount = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(getProtocol());
+            if (pageCount > maxPageCount) {
+                throw new IllegalStateException("Too many pages: " + pageCount + ", limit: " + maxPageCount);
             }
             for (int i = 0; i < pageCount; i++) {
-                this.pages.add(buf.readString(PAGE_CHAR_LIMIT));
+                this.pages.add(buf.readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH));
             }
 
             this.signing = buf.readBoolean();
             if (this.signing) {
-                this.title = buf.readString(TITLE_CHAR_LIMIT);
+                this.title = buf.readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH);
                 this.author = packet.getPlayer().name;
             }
 

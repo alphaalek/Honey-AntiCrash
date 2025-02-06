@@ -19,7 +19,7 @@ public class WrappedHandshakeInSetProtocol extends ByteInWrappedPacket<WrappedHa
     public WrappedHandshakeInSetProtocol(PacketDataSerializer serializer, PacketContainer<WrappedHandshakeInSetProtocol> packetContainer) {
         super(serializer, packetContainer);
         this.protocolVersion = serializer.readVarInt();
-        this.host = serializer.readString(Short.MAX_VALUE);
+        this.host = serializer.readString();
         this.port = serializer.readUnsignedShort();
         this.intent = serializer.readVarInt();
     }

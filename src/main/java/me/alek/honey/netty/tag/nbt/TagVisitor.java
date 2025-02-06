@@ -18,6 +18,11 @@ public interface TagVisitor extends CodecVisitor {
     abstract class Adapter implements TagVisitor {
 
         @Override
+        public <T> void visitType(TagType type, T val) {
+
+        }
+
+        @Override
         public void visitEnd() {
 
         }
@@ -260,6 +265,8 @@ public interface TagVisitor extends CodecVisitor {
 
         Map.Entry<String, AbstractTag<?, ?, ?>> visitAtCompoundFlush(DataOutputStream stream, String key, AbstractTag<?, ?, ?> tag) throws FallbackDefaultCodecException, IOException;
     }
+
+    <T> void visitType(TagType type, T val);
 
     void visitEnd();
 

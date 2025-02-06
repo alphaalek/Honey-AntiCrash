@@ -1,5 +1,7 @@
 package me.alek.honey.netty.tag.nbt;
 
+import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.codec.types.Utf8String;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
@@ -26,6 +28,7 @@ public class CodecTypes {
             visitor.visitAtEnd(input, limiter);
             visitor.visitEnd();
             return PrimitiveTag.END
+                    .increment(limiter)
                     .incrementBytes(limiter, END_BYTES);
         }
     }
@@ -51,6 +54,7 @@ public class CodecTypes {
             }
             visitor.visitByte(val);
             return new PrimitiveTag<>(TagType.BYTE, val)
+                    .increment(limiter)
                     .incrementBytes(limiter, BYTE_BYTES);
         }
     }
@@ -76,6 +80,7 @@ public class CodecTypes {
             }
             visitor.visitShort(val);
             return new PrimitiveTag<>(TagType.SHORT, val)
+                    .increment(limiter)
                     .incrementBytes(limiter, SHORT_BYTES);
         }
     }
@@ -101,6 +106,7 @@ public class CodecTypes {
             }
             visitor.visitInt(val);
             return new PrimitiveTag<>(TagType.INT, val)
+                    .increment(limiter)
                     .incrementBytes(limiter, INT_BYTES);
         }
     }
@@ -126,6 +132,7 @@ public class CodecTypes {
             }
             visitor.visitLong(val);
             return new PrimitiveTag<>(TagType.LONG, val)
+                    .increment(limiter)
                     .incrementBytes(limiter, LONG_BYTES);
         }
     }
@@ -151,6 +158,7 @@ public class CodecTypes {
             }
             visitor.visitFloat(val);
             return new PrimitiveTag<>(TagType.FLOAT, val)
+                    .increment(limiter)
                     .incrementBytes(limiter, FLOAT_BYTES);
         }
     }
@@ -176,6 +184,7 @@ public class CodecTypes {
             }
             visitor.visitDouble(val);
             return new PrimitiveTag<>(TagType.DOUBLE, val)
+                    .increment(limiter)
                     .incrementBytes(limiter, DOUBLE_BYTES);
         }
     }
@@ -206,6 +215,7 @@ public class CodecTypes {
             }
             visitor.visitByteArray(array);
             return new PrimitiveTag<>(TagType.ARRAY_OF_BYTE, array)
+                    .increment(limiter)
                     .incrementBytes(limiter, BYTE_ARRAY_BYTES)
                     .incrementBytes(limiter, array.length);
         }
@@ -229,10 +239,15 @@ public class CodecTypes {
             try {
                 str = visitor.visitAtString(input, limiter);
             } catch (TagVisitor.FallbackDefaultCodecException e) {
-                str = input.readUTF();
+                if (limiter instanceof TagLimiter.UTF8Limiter) {
+                    str = ((TagLimiter.UTF8Limiter)limiter).readString(input);
+                } else {
+                    str = Utf8String.readUTFInputStream(input, ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_STRING_LENGTH);
+                }
             }
             visitor.visitString(str);
             return new PrimitiveTag<>(TagType.STRING, str)
+                    .increment(limiter)
                     .incrementBytes(limiter, STRING_BYTES)
                     .incrementBytes(limiter, getBytesForLimiter(str));
         }
@@ -279,6 +294,7 @@ public class CodecTypes {
             }
             visitor.visitLongArray(array);
             return new PrimitiveTag<>(TagType.ARRAY_OF_LONG, array)
+                    .increment(limiter)
                     .incrementBytes(limiter, LONG_ARRAY_BYTES)
                     .incrementBytes(limiter, array.length * LONG_ARRAY_ELEMENT_BYTES);
         }
@@ -313,6 +329,7 @@ public class CodecTypes {
             }
             visitor.visitIntArray(array);
             return new PrimitiveTag<>(TagType.ARRAY_OF_INT, array)
+                    .increment(limiter)
                     .incrementBytes(limiter, INT_ARRAY_BYTES)
                     .incrementBytes(limiter, array.length * INT_ARRAY_ELEMENT_BYTES);
         }
@@ -385,6 +402,7 @@ public class CodecTypes {
 
             visitor.visitArray(array, type);
             return wrappedArray
+                    .increment(limiter)
                     .incrementComplexity(limiter)
                     .incrementBytes(limiter, ARRAY_BYTES)
                     .incrementBytes(limiter, ARRAY_ELEMENT_BYTES * wrappedArray.size());
@@ -464,6 +482,7 @@ public class CodecTypes {
 
             visitor.visitCompound(compound);
             return new CompoundTag(compound)
+                    .increment(limiter)
                     .incrementComplexity(limiter)
                     .incrementBytes(limiter, compound.keySet().stream().mapToInt(StringCodec::getBytesForLimiter).sum())
                     .incrementBytes(limiter, COMPOUND_BYTES)
@@ -489,7 +508,7 @@ public class CodecTypes {
                     try {
                         key = visitor.visitAtCompoundInsertKey(input, type);
                     } catch (TagVisitor.FallbackDefaultCodecException ex2) {
-                        key = input.readUTF();
+                        key = Utf8String.readUTFInputStream(input, ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_KEY_LENGTH);
                     }
                     try {
                         tag = visitor.visitAtCompoundInsertTag(input, limiter, type, key);

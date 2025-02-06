@@ -18,12 +18,14 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
+import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.impl.FloodValidations;
 import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.logging.Level;
 
@@ -170,9 +172,10 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketContainer<?> packet = null;
+        PacketType type = null;
         try {
             // initialize packet container
-            PacketType type = this.packetHandler.getPacketType(serializer, false, this.packetHandler.getSimulatedServerboundProtocolState(), PacketBound.SERVER, true);
+            type = this.packetHandler.getPacketType(serializer, false, this.packetHandler.getSimulatedServerboundProtocolState(), PacketBound.SERVER, true);
             if (type == null) {
                 // invalid packet
                 serializer.resetReaderIndex();
@@ -213,7 +216,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (Exception ex) {
-            ex.printStackTrace();
             InboundPacketFilter.removeMarker();
             if (this.player.pinging || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet
@@ -222,9 +224,15 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                 return;
             }
 
-            if (packet != null && HoneyPlugin.get().getLogger().isDebug()) {
+            if (HoneyPlugin.get().getLogger().isDebug()) {
+                PacketType type0 = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);
+
+                int id = Optional.ofNullable(type)
+                        .map(PacketType::getMinecraftID)
+                        .map(LazyInit::get)
+                        .orElse(-1);
                 Bukkit.getLogger().log(Level.WARNING,
-                        "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
+                        "Error occurred while handling packet " + type0 + " (id " + id
                                 + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
             }
 

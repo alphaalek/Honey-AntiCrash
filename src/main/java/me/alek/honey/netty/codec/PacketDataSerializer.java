@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBufProcessor;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.types.TypeSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
@@ -79,6 +80,10 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.OneArg.of(TagVisitor.Out.createDefault(protocol)));
     }
 
+    public void prepareReadItemStack(int maxMissingBytes) {
+
+    }
+
     public WrappedImmutableItemStack readItemStack(CodecVisitor visitor) throws DecoderException {
         return Optional.ofNullable(Types.ITEM_STACK.read(this, TypeSerializer.TypeContext.OneArg.of(visitor)))
                 .orElse(WrappedImmutableItemStack.AIR);
@@ -127,7 +132,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public String readString() {
-        return readString(Short.MAX_VALUE);
+        return readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_STRING_LENGTH);
     }
 
     public String readString(int i) {
@@ -140,19 +145,6 @@ public class PacketDataSerializer extends ByteBuf {
 
     public PacketDataSerializer writeString(String val, int max) {
         return Types.UTF8.write(this, val, TypeSerializer.TypeContext.OneArg.of(max));
-    }
-
-    public PacketDataSerializer reverse() {
-        int readerIndex = readerIndex();
-        int writerIndex = writerIndex();
-
-        int length = writerIndex - readerIndex;
-        for (int i = 0; i < length / 2; i++) {
-            byte temp = getByte(readerIndex + i);
-            setByte(readerIndex + i, getByte(writerIndex - 1 - i));
-            setByte(writerIndex - 1 - i, temp);
-        }
-        return this;
     }
 
     public byte[] readByteArray(int maxLength) {

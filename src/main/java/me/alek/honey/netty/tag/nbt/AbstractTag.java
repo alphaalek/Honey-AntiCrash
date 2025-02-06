@@ -45,6 +45,12 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
         return (TAG) this;
     }
 
+    @SuppressWarnings("unchecked")
+    public TAG increment(TagLimiter limiter) {
+        limiter.incrementBase();
+        return (TAG) this;
+    }
+
     public abstract ApplicableConverter<T, V> getNBTConverter();
 
     public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter);

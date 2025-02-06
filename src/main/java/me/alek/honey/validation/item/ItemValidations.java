@@ -223,19 +223,6 @@ public class ItemValidations {
         }
     }
 
-    public static class MaxNBTStringLengthItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            for (PrimitiveTag<String> stringValue : NBTFactory.<PrimitiveTag<String>>getAllTagsAs(nbt, TagType.STRING)) {
-                if (stringValue.getValue().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_STRING_LENGTH) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
     public static class MaxPageLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
@@ -294,22 +281,6 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.hasKeyOfType("title", TagType.STRING)
                     && nbt.getString("title").length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH;
-        }
-    }
-
-    public static class MaxNBTBasesItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            return NBTFactory.getAmountOfTags(nbt) > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES;
-        }
-    }
-
-    public static class MaxNBTNestingItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            return NBTFactory.getComplexityOfTag(nbt) > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING;
         }
     }
 
