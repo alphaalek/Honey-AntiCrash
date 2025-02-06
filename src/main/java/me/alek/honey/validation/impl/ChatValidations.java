@@ -6,8 +6,8 @@ import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.ValidationViolationContext;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -36,7 +36,7 @@ public class ChatValidations extends AbstractValidationPacketListener<WrappedPla
 
     public static class ChatA implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationPipelineContext context) {
@@ -80,7 +80,7 @@ public class ChatValidations extends AbstractValidationPacketListener<WrappedPla
     public static class ChatB implements PacketValidation<WrappedPlayInChat>, ViolationValidation<WrappedPlayInChat> {
 
         private static final int MAX = NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_11) ? 100 : 256;
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInChat packet, ValidationPipelineContext context) {

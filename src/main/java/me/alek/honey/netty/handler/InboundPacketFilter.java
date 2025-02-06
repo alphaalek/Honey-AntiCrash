@@ -7,9 +7,12 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.ChannelCloseInspection;
+import me.alek.honey.netty.codec.StackDecodingException;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketContainer;
@@ -18,9 +21,14 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
+import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.reflection.Reflection;
+import me.alek.honey.validation.ValidationPipeline;
+import me.alek.honey.validation.ValidationPipelineContext;
+import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.validation.impl.FloodValidations;
+import me.alek.honey.validation.HoneyValidation;
 import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
@@ -40,6 +48,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
     private static final Object PAPER_COMPRESSION_ENABLED_EVENT = getPaperCompressionEnabledEvent();
 
     public static final ThreadLocal<PacketContainer<?>> MARK = new ThreadLocal<>();
+
+    private static final HoneyValidation<Integer> STACK_PROCESS_VALIDATION = HoneyValidation.of("Item Processing", "Could not process item stack", IDRegistry.VALIDATION.acquire());
+    private static final ConfigurationOptions.ViolationSetting STACK_PROCESS_SETTING = new ConfigurationOptions.ViolationSetting(PacketLimitHandlerType.SIMPLE);
 
     private static Object getPaperCompressionEnabledEvent() {
         try {
@@ -215,7 +226,19 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
+        } catch (StackDecodingException ex) {
+            list.clear();
+            list.add(Unpooled.buffer());
+
+            ViolationManagement management = HoneyPlugin.get().getViolationManagement();
+
+            ValidationPipelineContext.DevelopmentData data = new ValidationPipelineContext.DevelopmentData();
+            ValidationPipeline.applyDevelopmentDataDirectly(data, this.player, STACK_PROCESS_VALIDATION, Optional.ofNullable(type).orElse(PacketType.UNKNOWN), buf.capacity());
+            data.addValue(" Error", this.player.getFailedPacketCause(ex));
+
+            management.flag(this.player, STACK_PROCESS_VALIDATION, STACK_PROCESS_SETTING, data);
         } catch (Exception ex) {
+            ex.printStackTrace();
             InboundPacketFilter.removeMarker();
             if (this.player.pinging || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet

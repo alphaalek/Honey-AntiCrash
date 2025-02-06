@@ -6,7 +6,7 @@ import java.util.List;
 public class IDRegistry {
 
     /* pre-made ID registries */
-    public static final IDRegistry CHECKS = new IDRegistry();
+    public static final IDRegistry VALIDATION = new IDRegistry();
     public static final IDRegistry TRACKER_CONTEXT = new IDRegistry();
     public static final IDRegistry PLAYERS = new IDRegistry();
 

@@ -15,8 +15,8 @@ import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 
@@ -100,7 +100,7 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
         return Pattern.compile(regexCheck).matcher(commandSent).matches();
     }
 
-    private static final int id = IDRegistry.CHECKS.acquire();
+    private static final int id = IDRegistry.VALIDATION.acquire();
     private static String[] prohibitedCommandsLiteral;
     private static String[] prohibitedCommandsRegex;
 

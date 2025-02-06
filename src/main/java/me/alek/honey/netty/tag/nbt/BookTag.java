@@ -6,11 +6,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBookEdit;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
-import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 
 public class BookTag {
 
@@ -25,13 +22,13 @@ public class BookTag {
         CodecTypeValidation.BOOK_EDIT_ITEM_STACK.addValidation(BookTag::validateBookEdit);
     }
 
-    public static void validateBook(WrappedImmutableItemStack item, DecodeContext<?> context) {
+    public static void validateBook(WrappedImmutableItemStack item, DecodeContext context) {
         ItemTag tag = item.getTag();
         if (tag.asNBT().isPresent()) {
             CompoundTag nbt = tag.asNBT().get();
             if (nbt.hasKeyOfType(PAGES, TagTypeCollection.getCollection(TagTypeCollection.ARRAY))) {
                 ArrayTag<String> pages = nbt.getArrayOf(PAGES, TagType.STRING);
-                int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(context.packet().getProtocol());
+                int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(context.protocol());
                 if (pages.size() > max) {
                     throw new IllegalStateException("Too many pages: " + pages.size() + ", limit: " + max);
                 }
@@ -69,7 +66,7 @@ public class BookTag {
             throw new DecoderException("Invalid book data: no pages tag");
         }
 
-        if (context.isSigning()) {
+        if (context.signing()) {
             if (!nbt.hasKeyOfType(TITLE, TagType.STRING)) {
                 throw new DecoderException("Invalid book data: no title tag in sign context");
             }

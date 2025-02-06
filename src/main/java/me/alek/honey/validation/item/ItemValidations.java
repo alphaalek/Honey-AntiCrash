@@ -215,14 +215,6 @@ public class ItemValidations {
         }
     }
 
-    public static class MaxNBTLengthItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH;
-        }
-    }
-
     public static class MaxPageLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override

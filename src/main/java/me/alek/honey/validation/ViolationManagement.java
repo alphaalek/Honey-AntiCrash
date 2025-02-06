@@ -10,7 +10,6 @@ import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.discord.DiscordWebhook;
 import me.alek.honey.util.statics.NumberUtils;
-import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -38,6 +37,14 @@ public class ViolationManagement {
     }
 
     public boolean flag(HoneyPlayer player,
+                        HoneyValidation<?> validation,
+                        ConfigurationOptions.ViolationSetting setting,
+                        ValidationPipelineContext.DevelopmentData developmentData
+    ) {
+        return flag(player, Cancellable.Trigger.create(), validation.generateKey(), null, 1, null, null, validation, setting, developmentData);
+    }
+
+    public boolean flag(HoneyPlayer player,
                         Cancellable cancellable,
                         HoneyKey distributionKey,
                         HoneyKey violationKey,
@@ -50,18 +57,6 @@ public class ViolationManagement {
     ) {
         return getDistributor(player, distributionKey, setting)
                 .flag(violationKey, cancellable, validation, amount, onPunish, onViolation, developmentData);
-    }
-
-    public boolean flag(HoneyPlayer player,
-                        Cancellable cancellable,
-                        HoneyKey distributionKey,
-                        HoneyKey violationKey,
-                        double amount,
-                        HoneyValidation<?> validation,
-                        ConfigurationOptions.ViolationSetting setting,
-                        ValidationPipelineContext.DevelopmentData developmentData
-    ) {
-        return flag(player, cancellable, distributionKey, violationKey, amount, null, null, validation, setting, developmentData);
     }
 
     public synchronized void punish(Runnable onPunish, HoneyPlayer player, HoneyValidation<?> validation, HoneyKey violationKey) {
@@ -130,6 +125,8 @@ public class ViolationManagement {
 
     private static AbstractPacketLimitHandler generatePacketLimitHandler(PacketLimitHandlerType type, HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
         switch (type) {
+            case MIN:
+            case MAX:
             case SIMPLE:
                 return new PacketSimpleHandler(player, setting);
             case INTERVAL:

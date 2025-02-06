@@ -148,7 +148,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
-    public NetProtocol getProtocol() {
+    public NetProtocol getProtocol() { // TODO: make a getProtocolCreated() ?
         if (!this.callingLateInitialByteWrapped && this.pipelineState == PipelineState.INITIAL_BYTE && this.player.clientInfo != null) {
             return this.player.clientInfo.getProtocol(); // use the client version to check for different protocols
         } else {

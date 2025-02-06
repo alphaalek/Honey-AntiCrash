@@ -7,13 +7,13 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.PacketValidation;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInUpdateSign;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.ViolationValidation;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +35,7 @@ public class SignValidations extends AbstractValidationPacketListener<WrappedPla
 
     public static class SignA implements PacketValidation<WrappedPlayInUpdateSign>, ViolationValidation<WrappedPlayInUpdateSign> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private static final String[] ILLEGAL_COMPONENT_STRINGS = new String[]{
                 "{translate:\\\"translation.test.invalid\\\"}",
                 "{translate:\\\"translation.test.invalid2\\\"}"

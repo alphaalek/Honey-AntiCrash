@@ -88,11 +88,9 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         }
 
         private WrappedImmutableItemStack readItemStack(PacketDataSerializer serializer) {
-            serializer.prepareReadItemStack(0);
-
-            EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol);
+            EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(this.protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(this.protocol);
             WrappedImmutableItemStack stack = serializer.readItemStack(visitor); // no need to read safely, because we applied the edit book tag visitor
-            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(this.packet, signing));
+            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(serializer, this.packet, this.signing));
 
             HoneyPacketCodec.checkReadable(this.protocol, this.packet.getType(), Optional.ofNullable(this.packet.getObjectWrapped()).map(WrappedObject::getHandle).orElse(null), serializer);
 

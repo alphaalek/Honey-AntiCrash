@@ -11,8 +11,8 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInPickItem;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +34,7 @@ public class PickItemValidations extends AbstractValidationPacketListener<Wrappe
 
     private static class PickItemA implements PacketValidation<WrappedPlayInPickItem>, ViolationValidation<WrappedPlayInPickItem> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInPickItem packet, ValidationPipelineContext context) {

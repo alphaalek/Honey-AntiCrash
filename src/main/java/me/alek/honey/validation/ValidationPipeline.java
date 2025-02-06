@@ -6,9 +6,9 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.Callback;
-import me.alek.honey.validation.types.HoneyValidation;
 import org.bukkit.Bukkit;
 
 import java.util.Arrays;
@@ -21,24 +21,38 @@ import java.util.function.Function;
 
 public class ValidationPipeline<C extends HoneyValidation<?>> {
 
+    public static void applyValidationDevelopmentData(ValidationPipelineContext.DevelopmentData data, HoneyPlayer player, HoneyValidation<?> validation) {
+        data.setText(0, "§8* §7Player " + player.name + " flagged " + validation.getName() + " §8*");
+        data.setLine(7, validation.getDescription());
+    }
+
+    public static void applyPacketDevelopmentData(ValidationPipelineContext.DevelopmentData data, HoneyPlayer player, PacketType type, int bytes) {
+        data.addEmpty();
+        data.addValue(" Packet", type + " (id " + type.getMinecraftID().get() + ")");
+        data.addValue(" Buffer", bytes + " bytes");
+        data.addValue(" Version", Bukkit.getServer().getVersion());
+        data.removeLastInternalData();
+        data.addValue(" Player Version", player.clientInfo.getProtocol().getName());
+        data.addEmpty();
+        data.addHeader("Description", null);
+
+        // temporary placeholders
+        data.addEmpty(); // description
+        data.addEmpty(); // STQ
+        data.addEmpty(); // NTQ
+    }
+
+    public static void applyDevelopmentDataDirectly(ValidationPipelineContext.DevelopmentData data, HoneyPlayer player, HoneyValidation<?> validation, PacketType type, int bytes) {
+        applyPacketDevelopmentData(data, player, type, bytes);
+        applyValidationDevelopmentData(data, player, validation);
+    }
+
     public static void applyCallbackDevelopmentData(PacketContainer<?> packet, ValidationPipelineContext context) {
         context.getCallback().addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, contextInner) -> {
             contextInner.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 ValidationPipelineContext.DevelopmentData data = context.getDevelopmentData(keyInner);
 
-                data.addEmpty();
-                data.addValue(" Packet", packet.getType() + " (id " + packet.getType().getMinecraftID().get() + ")");
-                data.addValue(" Buffer", Optional.ofNullable(packet.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes");
-                data.addValue(" Version", Bukkit.getServer().getVersion());
-                data.removeLastInternalData();
-                data.addValue(" Player Version", packet.getPlayer().clientInfo.getProtocol().getName());
-                data.addEmpty();
-                data.addHeader("Description", null);
-
-                // temporary placeholders
-                data.addEmpty(); // description
-                data.addEmpty(); // STQ
-                data.addEmpty(); // NTQ
+                applyPacketDevelopmentData(data, packet.getPlayer(), packet.getType(), Optional.ofNullable(packet.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1));
 
                 if (onViolation != null) onViolation.run();
             });
@@ -134,23 +148,22 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
                 }
                 if (vc.flag != -1 && player.linkedBukkit()) {
                     ViolationKey violationKey = new ViolationKey(validation, Optional.ofNullable(vc.violationKey).orElse(fallbackKey));
-                    ValidationPipelineContext.DevelopmentData developmentData = pipelineContext.usesDevelopmentData() ? pipelineContext.getDevelopmentData(violationKey) : null;
+                    ValidationPipelineContext.DevelopmentData data = pipelineContext.usesDevelopmentData() ? pipelineContext.getDevelopmentData(violationKey) : null;
 
-                    if (developmentData != null) {
+                    if (data != null) {
                         pipelineContext.getCallback().call(violationKey, vc);
                         vc.builder().onViolation(violationKey, (key, onViolation) -> {
                             if (onViolation != null) onViolation.run();
 
-                            developmentData.setText(0, "§8* §7Player " + player.name + " flagged " + validation.getName() + " §8*");
-                            developmentData.setLine(7, validation.getDescription());
+                            applyValidationDevelopmentData(data, player, validation);
                         });
                     }
 
                     Consumer<ViolationKey> onViolation = vc.onViolation;
-                    HoneyPlugin.get().getViolationService().flag(
+                    HoneyPlugin.get().getViolationManagement().flag(
                             player, cancellable, distributionKey, vc.violationKey, vc.flag, vc.onPunish,
                             Optional.ofNullable(onViolation).map(o -> (Runnable) () -> o.accept(violationKey)).orElse(null),
-                            validation, setting, developmentData);
+                            validation, setting, data);
                 }
                 clearPosts(vc);
 

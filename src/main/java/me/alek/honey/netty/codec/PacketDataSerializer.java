@@ -14,7 +14,6 @@ import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.tag.nbt.TagVisitor;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -77,33 +76,41 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public PacketDataSerializer writeItemStack(NetProtocol protocol, WrappedImmutableItemStack stack) throws EncoderException {
-        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.OneArg.of(TagVisitor.Out.createDefault(protocol)));
+        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(TagVisitor.Out.createDefault(protocol), null));
     }
 
-    public void prepareReadItemStack(int maxMissingBytes) {
-
+    public WrappedImmutableItemStack readItemStack(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
+        try {
+            return Optional.ofNullable(Types.ITEM_STACK.read(this, TypeSerializer.TypeContext.TwoArgs.of(visitor, DecodeContext.StackContext.of(this, visitor.protocol(), maxMissingBytes))))
+                    .orElse(WrappedImmutableItemStack.AIR);
+        } catch (DecoderException ex) {
+            throw new StackDecodingException(ex);
+        }
     }
 
-    public WrappedImmutableItemStack readItemStack(CodecVisitor visitor) throws DecoderException {
-        return Optional.ofNullable(Types.ITEM_STACK.read(this, TypeSerializer.TypeContext.OneArg.of(visitor)))
-                .orElse(WrappedImmutableItemStack.AIR);
+    public WrappedImmutableItemStack readItemStack(CodecVisitor visitor) throws StackDecodingException {
+        return readItemStack(visitor, 0);
     }
 
-    public WrappedImmutableItemStack readItemStack(NetProtocol protocol) throws DecoderException {
-        return readItemStack(TagVisitor.In.createDefault(protocol));
-    }
-
-    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(CodecVisitor visitor, PacketContainer<WP> packet) throws DecoderException {
-        WrappedImmutableItemStack stack = readItemStack(visitor);
+    public WrappedImmutableItemStack readItemStackSafely(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
+        WrappedImmutableItemStack stack = readItemStack(visitor, maxMissingBytes);
         if (stack != WrappedImmutableItemStack.AIR) {
-            CodecTypeValidation.ITEM_STACK.validate(stack, DecodeContext.from(packet));
+            try {
+                CodecTypeValidation.ITEM_STACK.validate(stack, DecodeContext.from(this, visitor.protocol()));
+            } catch (DecoderException ex) {
+                throw new StackDecodingException(ex);
+            }
         }
 
         return stack;
     }
 
-    public <WP extends SourcedWrappedPacket<WP>> WrappedImmutableItemStack readItemStackSafely(NetProtocol protocol, PacketContainer<WP> packet) throws DecoderException {
-        return readItemStackSafely(TagVisitor.In.createDefault(protocol), packet);
+    public WrappedImmutableItemStack readItemStackSafely(PacketContainer<?> packet, int maxMissingBytes) throws StackDecodingException {
+        return readItemStackSafely(TagVisitor.In.createDefault(packet.getProtocol()), maxMissingBytes);
+    }
+
+    public WrappedImmutableItemStack readItemStackSafely(PacketContainer<?> packet) throws StackDecodingException {
+        return readItemStackSafely(packet, 0);
     }
 
     public <K, V> Map<K, V> readMap(Supplier<K> keyFunction, Supplier<V> valueFunction) {

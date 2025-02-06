@@ -59,11 +59,10 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             }
             this.signing = buf.getByte(buf.readableBytes() - 1) != 0;
             PacketDataSerializer itemBuf = new PacketDataSerializer(buf.readBytes(buf.readableBytes() - 2));
-            itemBuf.prepareReadItemStack(0);
 
             EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol);
             WrappedImmutableItemStack stack = itemBuf.readItemStack(visitor); // no need to read safely, because we applied the edit book tag visitor
-            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(packet, this.signing));
+            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(buf, packet, this.signing));
 
             HoneyPacketCodec.checkReadable(protocol, PacketTypes.Play.Client.BOOK_EDIT, null, itemBuf);
 
@@ -97,7 +96,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
                 this.author = packet.getPlayer().name;
             }
 
-            validateModernBookEdit(protocol, packet);
+            validateModernBookEdit(protocol, buf, packet);
         }
 
         if (this.slot < 0 || this.slot > 8) {
@@ -105,7 +104,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
         }
     }
 
-    private void validateModernBookEdit(NetProtocol protocol, PacketContainer<WrappedPlayInBookEdit> packet) {
+    private void validateModernBookEdit(NetProtocol protocol, PacketDataSerializer serializer, PacketContainer<WrappedPlayInBookEdit> packet) {
         if (protocol.isOlderThan(NetProtocol.v1_20_5)) {
             CompoundTag tag = new CompoundTag();
             tag.putArray("pages", TagType.STRING, this.pages);
@@ -115,7 +114,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
                 tag.putPrimitive("author", TagType.STRING, this.author);
             }
 
-            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, DecodeContext.BookEditContext.of(packet, this.signing));
+            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, DecodeContext.BookEditContext.of(serializer, packet, this.signing));
         }
     }
 

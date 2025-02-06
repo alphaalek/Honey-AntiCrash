@@ -11,11 +11,10 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInTabComplete;
 import me.alek.honey.netty.packetwrappers.impl.play.server.WrappedPlayOutTabComplete;
-import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 
 import java.util.*;
 
@@ -49,7 +48,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
 
     public static class TabA implements PacketValidation<WrappedPlayInTabComplete>, ViolationValidation<WrappedPlayInTabComplete> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private static String[] prohibitedCommands;
 
         @Override
@@ -96,7 +95,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
 
     public static class ClientboundTabValidations extends AbstractValidationPacketListener<WrappedPlayOutTabComplete> implements PacketValidation<WrappedPlayOutTabComplete>, ViolationValidation<WrappedPlayOutTabComplete> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         public ClientboundTabValidations(PacketLibrary library) {
             super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
@@ -143,7 +142,7 @@ public class TabValidations extends AbstractValidationPacketListener<WrappedPlay
 
     public static class TabC implements PacketValidation<WrappedPlayInTabComplete>, ViolationValidation<WrappedPlayInTabComplete> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private static ConfigurationOptions.ViolationSetting labelSetting;
         private static final HoneyKey labelKey = HoneyKey.of(0, "total");
         private static final HoneyKey totalKey = HoneyKey.of(1, "label");

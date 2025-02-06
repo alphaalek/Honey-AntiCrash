@@ -8,7 +8,7 @@ import me.alek.honey.validation.AbstractValidationPacketListener;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationViolationContext;
-import me.alek.honey.validation.types.PacketValidation;
+import me.alek.honey.validation.PacketValidation;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -42,7 +42,7 @@ public class LoginValidations extends AbstractValidationPacketListener<WrappedLo
 
     public static class LoginA implements PacketValidation<WrappedLoginInLoginStart> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedLoginInLoginStart packet, ValidationPipelineContext context) {

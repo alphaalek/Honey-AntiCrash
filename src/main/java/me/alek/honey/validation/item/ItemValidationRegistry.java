@@ -28,7 +28,6 @@ public enum ItemValidationRegistry {
     MAP_RANGE(ItemValidations.MapRangeItemValidation::new, ItemTypes.MAP, ItemTypes.FILLED_MAP),
 
     // nbt
-    MAX_NBT_LENGTH(ItemValidations.MaxNBTLengthItemValidation::new),
     MAX_BOOK_PAGE_LENGTH(ItemValidations.MaxPageLengthItemValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
     MAX_BOOK_NBT_LENGTH(ItemValidations.MaxBookNBTLengthItemValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
     MAX_BOOK_PAGES(ItemValidations.MaxBookPagesItemValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),

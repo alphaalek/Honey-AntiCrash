@@ -42,7 +42,7 @@ import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.print.PrintValidationBridge;
-import me.alek.honey.validation.types.HoneyValidation;
+import me.alek.honey.validation.HoneyValidation;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -75,7 +75,7 @@ public class HoneyPlugin implements HoneyAPI {
 
     private static HoneyPlugin INSTANCE;
 
-    private ViolationManagement violationService;
+    private ViolationManagement violationManagement;
     private Notifications notificationService;
     private HoneyLogger logger;
     private CommandManager commandManager;
@@ -263,7 +263,7 @@ public class HoneyPlugin implements HoneyAPI {
         // setup services
         this.notificationService = new Notifications();
         this.logger = new HoneyLogger();
-        this.violationService = new ViolationManagement();
+        this.violationManagement = new ViolationManagement();
 
         // setup sql handler
         this.sqlManager = new SQLManager(new RepositoryCollection());
@@ -358,7 +358,7 @@ public class HoneyPlugin implements HoneyAPI {
         }
         ItemAnalysis.reload();
 
-        this.violationService.reload();
+        this.violationManagement.reload();
         this.logger.reload();
         this.notificationService.reload();
 
@@ -409,8 +409,8 @@ public class HoneyPlugin implements HoneyAPI {
         return this.packetLibrary;
     }
 
-    public ViolationManagement getViolationService() {
-        return this.violationService;
+    public ViolationManagement getViolationManagement() {
+        return this.violationManagement;
     }
 
     public Notifications getNotificationService() {

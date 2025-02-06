@@ -10,7 +10,7 @@ import me.alek.honey.tickloop.ExecutionQueueProxy;
 import me.alek.honey.tracker.CraftScheduledTPSTracker;
 import me.alek.honey.tracker.KeyedHandleTracker;
 import me.alek.honey.tracker.temp.TempIntervalTrackerManager;
-import me.alek.honey.validation.types.HoneyValidation;
+import me.alek.honey.validation.HoneyValidation;
 import org.bukkit.plugin.Plugin;
 
 public interface HoneyAPI {
@@ -29,7 +29,7 @@ public interface HoneyAPI {
 
     PacketLibrary getPacketLibrary();
 
-    ViolationManagement getViolationService();
+    ViolationManagement getViolationManagement();
 
     Notifications getNotificationService();
 

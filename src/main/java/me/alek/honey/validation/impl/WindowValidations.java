@@ -13,10 +13,8 @@ import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +42,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
 
     public static class WindowA implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
@@ -101,7 +99,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
 
     public static class WindowB implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
@@ -135,7 +133,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
 
     public static class WindowC implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
@@ -172,7 +170,7 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
 
     public static class WindowD implements PacketValidation<WrappedPlayInWindowClick>, ViolationValidation<WrappedPlayInWindowClick> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {

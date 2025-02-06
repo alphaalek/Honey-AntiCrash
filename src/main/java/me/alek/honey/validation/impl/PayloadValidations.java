@@ -14,8 +14,8 @@ import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +52,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
     public static class PayloadA<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
@@ -82,7 +82,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
     public static class PayloadB<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
@@ -116,7 +116,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
     public static class PayloadC<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
@@ -153,7 +153,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
     public static class PayloadD<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {

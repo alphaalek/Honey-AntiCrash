@@ -4,6 +4,8 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 
 public class VarInt implements TypeSerializer.NoContext<Integer> {
 
+    public static final int MAX_BYTES = 5;
+
     public static final int SEGMENT_BITS = 0x7F;
     public static final int CONTINUE_BIT = 0x80;
     public static final int SHIFT = 7;
@@ -15,7 +17,7 @@ public class VarInt implements TypeSerializer.NoContext<Integer> {
         do {
             current = buf.readByte();
             value |= (current & SEGMENT_BITS) << pos++ * SHIFT;
-            if (pos > 5) {
+            if (pos > MAX_BYTES) {
                 throw new RuntimeException("VarInt too big");
             }
         } while ((current & CONTINUE_BIT) != 0);

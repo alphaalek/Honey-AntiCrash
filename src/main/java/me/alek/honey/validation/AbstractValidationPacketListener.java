@@ -10,7 +10,6 @@ import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
-import me.alek.honey.validation.types.PacketValidation;
 
 import java.util.List;
 

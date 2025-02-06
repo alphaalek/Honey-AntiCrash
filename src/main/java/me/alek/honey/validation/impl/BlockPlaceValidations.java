@@ -14,8 +14,8 @@ import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -89,7 +89,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
     public static class BlockInteractA implements ViolationValidation<WrappedPlayInBlockPlace>, PacketValidation<WrappedPlayInBlockPlace> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {
@@ -127,7 +127,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
     public static class BlockInteractB implements PacketValidation<WrappedPlayInBlockPlace>, ViolationValidation<WrappedPlayInBlockPlace> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInBlockPlace packet, ValidationPipelineContext context) {

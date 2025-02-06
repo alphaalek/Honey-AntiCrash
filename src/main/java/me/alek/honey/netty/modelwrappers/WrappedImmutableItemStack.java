@@ -3,10 +3,12 @@ package me.alek.honey.netty.modelwrappers;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.TypeSerializer;
 import me.alek.honey.netty.codec.types.Types;
+import me.alek.honey.netty.codec.types.VarInt;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.tag.ItemTag;
@@ -16,6 +18,7 @@ import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.TagVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -23,11 +26,13 @@ import java.util.Optional;
 
 public class WrappedImmutableItemStack implements Cloneable {
 
-    public static class Serializer implements TypeSerializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.OneArg<CodecVisitor>> {
+    public static class Serializer implements TypeSerializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.TwoArgs<CodecVisitor, DecodeContext.StackContext>> {
+
+        private static final int EMPTY_ID_LEGACY = -1;
 
         @Override
-        public WrappedImmutableItemStack read(PacketDataSerializer buf, TypeContext.OneArg<CodecVisitor> context) {
-            NetProtocol protocol = context.get().protocol();
+        public WrappedImmutableItemStack read(PacketDataSerializer buf, TypeContext.TwoArgs<CodecVisitor, DecodeContext.StackContext> context) {
+            NetProtocol protocol = context.getFirst().protocol();
             int amount = -1;
             short durability = -1;
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
@@ -46,8 +51,11 @@ public class WrappedImmutableItemStack implements Cloneable {
             } else {
                 id = buf.readShort();
             }
+            if (id == EMPTY_ID_LEGACY && protocol.isOlderThan(NetProtocol.v1_13_2)) {
+                return null;
+            }
             if (id < 0) {
-                throw new DecoderException("Invalid item id");
+                throw new DecoderException("Invalid item id: " + id);
             }
 
             if (protocol.isOlderThan(NetProtocol.v1_20_5)) {
@@ -59,15 +67,16 @@ public class WrappedImmutableItemStack implements Cloneable {
             }
 
             try {
-                return WrappedImmutableItemStack.read(protocol, buf, id, amount, durability, context.get());
+                return WrappedImmutableItemStack.read(context.getSecond(), buf, id, amount, durability, context.getFirst());
             } catch (Exception ex) {
+                Bukkit.getLogger().info("Failed to decode! " + ex.getMessage());
                 throw new DecoderException("Failed to decode item stack", ex);
             }
         }
 
         @Override
-        public PacketDataSerializer write(PacketDataSerializer buf, WrappedImmutableItemStack stack, TypeContext.OneArg<CodecVisitor> context) {
-            NetProtocol protocol = context.get().protocol();
+        public PacketDataSerializer write(PacketDataSerializer buf, WrappedImmutableItemStack stack, TypeContext.TwoArgs<CodecVisitor, DecodeContext.StackContext> context) {
+            NetProtocol protocol = context.getFirst().protocol();
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 buf.writeVarInt(stack.getAmount());
                 if (stack.getAmount() < 1) {
@@ -79,6 +88,11 @@ public class WrappedImmutableItemStack implements Cloneable {
                     return buf;
                 } else {
                     buf.writeBoolean(true);
+                }
+            } else {
+                if (stack.getAmount() < 1) {
+                    buf.writeShort(EMPTY_ID_LEGACY);
+                    return buf;
                 }
             }
 
@@ -109,19 +123,36 @@ public class WrappedImmutableItemStack implements Cloneable {
 
     static {
         CodecTypeValidation.ITEM_STACK.addValidation(WrappedImmutableItemStack::validate);
+        CodecTypeValidation.ITEM_STACK_PRE_TAG.addValidation(WrappedImmutableItemStack::validatePreTag);
     }
 
-    public static void validate(WrappedImmutableItemStack item, DecodeContext<?> context) {
+    public static void validate(WrappedImmutableItemStack item, DecodeContext context) {
         if (item.getType() == ItemTypes.WRITABLE_BOOK || item.getType() == ItemTypes.WRITTEN_BOOK) {
             BookTag.validateBook(item, context);
         }
     }
 
-    public static WrappedImmutableItemStack read(NetProtocol protocol, PacketDataSerializer serializer, int itemId, int amount, short durability, CodecVisitor visitor) throws IOException {
+    public static void validatePreTag(ItemType type, DecodeContext.StackContext context) {
+        int forTag = context.serializer().readableBytes() - context.maxMissingBytes();
+        if (type == ItemTypes.WRITABLE_BOOK || type == ItemTypes.WRITTEN_BOOK) {
+            if (forTag > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH) {
+                throw new DecoderException("Tried to read a book with too big nbt: " + forTag + " (at max)");
+            }
+        }
+
+        if (forTag > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH) {
+            throw new DecoderException("Tried to read too big nbt: " + forTag + " (at max)");
+        }
+    }
+
+    public static WrappedImmutableItemStack read(DecodeContext.StackContext context, PacketDataSerializer serializer, int itemId, int amount, short durability, CodecVisitor visitor) throws IOException {
+        NetProtocol protocol = context.protocol();
         ItemType type = ItemTypes.getById(protocol.toPECVersion(), itemId);
         if (type == null) {
             return null; // no type found
         }
+
+        CodecTypeValidation.ITEM_STACK_PRE_TAG.validate(type, context);
 
         ItemTag tag;
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {

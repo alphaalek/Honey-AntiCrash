@@ -1,4 +1,4 @@
-package me.alek.honey.validation.types;
+package me.alek.honey.validation;
 
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;

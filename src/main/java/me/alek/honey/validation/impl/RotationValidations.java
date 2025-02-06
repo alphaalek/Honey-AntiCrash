@@ -14,8 +14,8 @@ import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 import org.bukkit.Location;
 
 import java.util.*;
@@ -95,7 +95,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class RotationA<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -130,7 +130,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class RotationB<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private static final HoneyKey yawKey = HoneyKey.of(0, "yaw");
         private static final HoneyKey pitchKey = HoneyKey.of(1, "pitch");
 
@@ -176,7 +176,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class RotationC<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private static final HoneyKey yawKey = HoneyKey.of(0, "yaw");
         private static final HoneyKey pitchKey = HoneyKey.of(1, "pitch");
 

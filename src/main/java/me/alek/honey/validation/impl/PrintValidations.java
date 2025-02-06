@@ -5,14 +5,14 @@ import me.alek.honey.lang.Lang;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.validation.Settings;
 import me.alek.honey.validation.ValidationPipeline;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.ViolationValidation;
 
 public class PrintValidations {
 
     public static final ValidationPipeline<ViolationValidation.IntViolation> PIPELINE = ValidationPipeline.from(new PrintA(), new PrintB());
 
     public static class PrintA implements ViolationValidation.IntViolation {
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public Integer getID() {
@@ -37,7 +37,7 @@ public class PrintValidations {
 
     public static class PrintB implements ViolationValidation.IntViolation {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public Integer getID() {

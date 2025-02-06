@@ -6,6 +6,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.Map;
 
@@ -57,12 +58,11 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacket<WrappedPlayInW
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
             this.slots = serializer.readMap(
                     () -> Math.toIntExact(serializer.readShort()),
-                    () -> serializer.readItemStackSafely(protocol, packet)
+                    () -> serializer.readItemStackSafely(packet)
             );
         }
 
-        serializer.prepareReadItemStack(0);
-        this.carriedItemStack = serializer.readItemStackSafely(protocol, packet);
+        this.carriedItemStack = serializer.readItemStackSafely(packet);
     }
 
     public ByteBuf constructModifiedBuf(NetProtocol protocol) {

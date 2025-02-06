@@ -5,10 +5,9 @@ import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.ValidationViolationContext;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -36,7 +35,7 @@ public class HeldItemValidations extends AbstractValidationPacketListener<Wrappe
 
     public static class HeldItemA implements PacketValidation<WrappedPlayInHeldItemSlot>, ViolationValidation<WrappedPlayInHeldItemSlot> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInHeldItemSlot packet, ValidationPipelineContext context) {

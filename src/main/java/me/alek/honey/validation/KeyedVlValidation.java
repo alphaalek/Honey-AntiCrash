@@ -1,4 +1,4 @@
-package me.alek.honey.validation.types;
+package me.alek.honey.validation;
 
 import me.alek.honey.HoneyKey;
 import me.alek.honey.configuration.ConfigurationOptions;

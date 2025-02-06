@@ -21,8 +21,8 @@ import me.alek.honey.util.Array;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 import org.bukkit.Location;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
 
     public static class NettyB<WP extends SourcedWrappedPacket<WP>> extends AbstractValidationPacketListener<WP> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         private static final Array<PacketReader.Container<?>> READERS = new Array<>();
 
@@ -159,7 +159,7 @@ public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
 
     public static class NettyH<WP extends SourcedWrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         public static <WP extends SourcedWrappedPacket<WP>> ValidationViolationContext check0(WP packet, ViolationKey key, ConfigurationOptions.ViolationSetting setting, ValidationPipelineContext context) {
             double decodeTime = packet.getContainer().getEventloopStateTimings().getTimeForMillis(LifecycleState.DECODE);
@@ -204,7 +204,7 @@ public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
 
     public static class NettyI<WP extends SourcedWrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {

@@ -5,8 +5,8 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.ValidationViolationContext;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.util.counter.DecayingListeningCounter;
@@ -23,7 +23,7 @@ public class NettyDecodeValidations {
 
     public static class NettyD implements PacketValidation.Byte, ViolationValidation<ByteInWrappedPacket<?>> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, ByteInWrappedPacket<?> packet, ValidationPipelineContext context) {
@@ -57,7 +57,7 @@ public class NettyDecodeValidations {
 
     public static class NettyE implements PacketValidation.Byte, ViolationValidation<ByteInWrappedPacket<?>> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, ByteInWrappedPacket<?> packet, ValidationPipelineContext context) {
@@ -91,7 +91,7 @@ public class NettyDecodeValidations {
 
     public static class NettyF implements PacketValidation.Byte, ViolationValidation<ByteInWrappedPacket<?>> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, ByteInWrappedPacket<?> packet, ValidationPipelineContext context) {
@@ -125,7 +125,7 @@ public class NettyDecodeValidations {
 
     public static class NettyG implements PacketValidation.Byte, ViolationValidation<ByteInWrappedPacket<?>> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, ByteInWrappedPacket<?> packet, ValidationPipelineContext context) {
@@ -159,7 +159,7 @@ public class NettyDecodeValidations {
 
     public static class NettyK implements PacketValidation.Byte, ViolationValidation<ByteInWrappedPacket<?>> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, ByteInWrappedPacket<?> packet, ValidationPipelineContext context) {
@@ -240,7 +240,7 @@ public class NettyDecodeValidations {
 
     public static class NettyL extends AbstractCategorizedCheck {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public Integer getID() {
@@ -299,7 +299,7 @@ public class NettyDecodeValidations {
 
     public static class NettyM extends AbstractFloodDecodeCheck {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public Integer getID() {
@@ -324,7 +324,7 @@ public class NettyDecodeValidations {
 
     public static class NettyN extends AbstractFloodDecodeCheck {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public Integer getID() {
@@ -349,7 +349,7 @@ public class NettyDecodeValidations {
 
     public static class NettyO extends AbstractCategorizedCheck {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         public static class LocalCategorizedHandler {
 

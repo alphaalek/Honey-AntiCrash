@@ -8,6 +8,10 @@ public interface Cancellable {
 
     class Trigger implements Cancellable {
 
+        public static Trigger create() {
+            return new Trigger();
+        }
+
         private boolean cancelled;
 
         @Override

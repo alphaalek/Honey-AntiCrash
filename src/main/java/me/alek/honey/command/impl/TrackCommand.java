@@ -4,14 +4,13 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.Notifications;
 import me.alek.honey.command.CommandImpl;
-import me.alek.honey.command.CommandManager;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.PacketLifecycleTimings;
 import me.alek.honey.tracker.KeyedHandleTracker;
 import me.alek.honey.tracker.TimedHandleTracker;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.statics.NumberUtils;
-import me.alek.honey.validation.types.HoneyValidation;
+import me.alek.honey.validation.HoneyValidation;
 import org.bukkit.command.CommandSender;
 
 import java.text.DecimalFormat;

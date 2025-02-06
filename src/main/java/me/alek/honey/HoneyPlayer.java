@@ -201,6 +201,19 @@ public class HoneyPlayer implements IntIdentifiable {
         }
     }
 
+    public String getFailedPacketCause(Throwable ex) {
+        if (ex.getCause() == null || ex.getCause().getMessage() == null) {
+            return ex.getLocalizedMessage();
+        }
+        StringBuilder msg = new StringBuilder();
+        Throwable exc = ex.getCause();
+        while (exc != null && exc.getMessage() != null) {
+            msg.append(": ").append(exc.getMessage());
+            exc = exc.getCause();
+        }
+        return msg.substring(2);
+    }
+
     public void failPacket(Throwable ex, PacketContainer<?> packet) {
         if (packet != null) {
             packet.releaseIfAutoReleasable();
@@ -209,13 +222,7 @@ public class HoneyPlayer implements IntIdentifiable {
         this.phase = Phase.OFFLINE;
         if (this.bukkit != null) {
             if (ex.getMessage() != null) {
-                StringBuilder msg = new StringBuilder();
-                Throwable exc = ex;
-                while (exc != null && exc.getMessage() != null) {
-                    msg.append(": ").append(exc.getMessage());
-                    exc = exc.getCause();
-                }
-                kick(msg.substring(2));
+                kick(getFailedPacketCause(ex));
             } else {
                 kick(DISCONNECTED);
             }

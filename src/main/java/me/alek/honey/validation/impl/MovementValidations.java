@@ -19,8 +19,8 @@ import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -143,7 +143,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementA<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private boolean wasOnGround;
 
         @Override
@@ -187,7 +187,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementB<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private static final HoneyKey XZKey = HoneyKey.of(0, "2d");
         private static final HoneyKey YKey = HoneyKey.of(1, "y");
 
@@ -278,7 +278,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementC<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private Location lastFlaggedLocation;
 
         @Override
@@ -334,7 +334,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementD<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private WrappedChunkCoordinates lastChunkCameFrom;
         private WrappedChunkCoordinates lastChunk;
 
@@ -389,7 +389,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementE<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -423,7 +423,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementF<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         private static final Map<Direction, Axis> axisLookup = new EnumMap<>(Direction.class);
 
@@ -542,7 +542,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementG<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -572,7 +572,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementH<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP>{
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private static final HoneyKey twoDKey = HoneyKey.of(0, "2d");
         private static final HoneyKey YKey = HoneyKey.of(1, "y");
 
@@ -644,7 +644,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementI<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -692,7 +692,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     public static class MovementJ<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {

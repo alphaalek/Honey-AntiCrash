@@ -19,9 +19,9 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.types.KeyedVlValidation;
-import me.alek.honey.validation.types.PacketValidation;
-import me.alek.honey.validation.types.ViolationValidation;
+import me.alek.honey.validation.KeyedVlValidation;
+import me.alek.honey.validation.PacketValidation;
+import me.alek.honey.validation.ViolationValidation;
 import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
 
@@ -90,7 +90,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
 
     public static class FloodA<WP extends SourcedWrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
@@ -115,7 +115,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
 
     public static class FloodB<WP extends SourcedWrappedPacket<WP>> extends AbstractCustomizableFloodCheck<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ConfigurationOptions.ViolationSetting getSetting() {
@@ -140,7 +140,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
 
     public static class FloodC<WP extends SourcedWrappedPacket<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
         private static final IDRegistry packetTypes = new IDRegistry();
 
         static {
@@ -194,7 +194,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
 
     public static class FloodD<WP extends SourcedWrappedPacket<WP>> implements PacketValidation<WP>, KeyedVlValidation<WP> {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
@@ -233,7 +233,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
 
     public static class FloodE implements ViolationValidation.IntViolation {
 
-        private static final int id = IDRegistry.CHECKS.acquire();
+        private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public Integer getID() {

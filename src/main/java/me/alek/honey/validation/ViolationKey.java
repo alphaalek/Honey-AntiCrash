@@ -1,7 +1,6 @@
 package me.alek.honey.validation;
 
 import me.alek.honey.HoneyKey;
-import me.alek.honey.validation.types.HoneyValidation;
 
 import java.util.Objects;
 
