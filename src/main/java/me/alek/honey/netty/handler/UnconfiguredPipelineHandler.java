@@ -38,7 +38,7 @@ public class UnconfiguredPipelineHandler {
                 try {
                     task.accept(ctx);
                     if (!(msg instanceof InboundConfigurationTask)) {
-                        relocate(ctx.channel());
+                        relocate(ctx.channel(), PacketBound.SERVER);
                     }
                     ReferenceCountUtil.release(msg);
                     promise.setSuccess();
@@ -67,7 +67,7 @@ public class UnconfiguredPipelineHandler {
                 try {
                     task.accept(ctx);
                     if (!(msg instanceof OutboundConfigurationTask)) {
-                        relocate(ctx.channel());
+                        relocate(ctx.channel(), PacketBound.CLIENT);
                     }
                     ReferenceCountUtil.release(msg);
                     promise.setSuccess();
@@ -123,7 +123,7 @@ public class UnconfiguredPipelineHandler {
         return ctx -> {
             ctx.pipeline().replace(ctx.name(), MinecraftHandlers.DECODER, handler);
             ctx.channel().config().setAutoRead(true);
-            relocate(ctx.channel());
+            relocate(ctx.channel(), PacketBound.SERVER);
         };
     }
 
@@ -134,13 +134,13 @@ public class UnconfiguredPipelineHandler {
     private static OutboundConfigurationTask setupOutboundHandler(ChannelOutboundHandler handler) {
         return ctx -> {
             ctx.pipeline().replace(ctx.name(), MinecraftHandlers.ENCODER, handler);
-            relocate(ctx.channel());
+            relocate(ctx.channel(), PacketBound.CLIENT);
         };
     }
 
-    private static void relocate(Channel channel) {
+    private static void relocate(Channel channel, PacketBound bound) {
         try {
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(channel);
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(channel, bound);
         } catch (MissingHandlerException ex) {
             ChannelCloseInspection.close(channel);
         }

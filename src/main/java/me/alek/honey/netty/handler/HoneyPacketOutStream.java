@@ -29,14 +29,12 @@ import java.util.logging.Level;
 @ChannelHandler.Sharable
 public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
 
-    private final AsyncPacketStream async;
     private final HoneyPacketHandler packetHandler;
     private final HoneyPlayer player;
     private ChannelHandler encoder;
     private MethodHandle encodeInvoker;
 
-    public HoneyPacketOutStream(Channel channel, AsyncPacketStream async, HoneyPacketHandler packetHandler) {
-        this.async = async;
+    public HoneyPacketOutStream(Channel channel, HoneyPacketHandler packetHandler) {
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();
         setupMethodInvoke(channel.pipeline());
@@ -44,10 +42,6 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
 
     public HoneyPacketHandler getPacketHandler() {
         return packetHandler;
-    }
-
-    public AsyncPacketStream getAsyncPacketStream() {
-        return async;
     }
 
     private void setupMethodInvoke(ChannelPipeline pipeline) {
@@ -75,7 +69,7 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
                 || !PacketInterceptorResolver.hasDecoderHandler(ctx.pipeline())) {
             write0(ctx, msg, promise);
         } else {
-            this.async.prependDecode((s) -> {
+            this.packetHandler.getAsyncPacketStream().prependDecode((s) -> {
                 if (this.player.isStreamActive()) {
                     try {
                         ChannelPromise asyncPromise;

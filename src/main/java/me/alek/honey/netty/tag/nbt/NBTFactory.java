@@ -13,6 +13,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
+import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemFactory;
@@ -33,10 +34,9 @@ import java.util.stream.Collectors;
 
 public class NBTFactory {
 
-    private static final String NAMED_COMPOUND_TAG_NAME = "";
+    public static final String NAMED_COMPOUND_TAG_NAME = "";
 
-    private static final int SIXTY_FOUR_KILOBYTES = 1024 * 64;
-    private static final int MAX_COMPLEXITY = 256;
+    private static final int THIRTY_TWO_KILOBYTES = 1024 * 320;
 
     public static class Serializer implements TypeSerializer<AbstractTag<?, ?, ?>, TypeSerializer.TypeContext.OneArg<CodecVisitor>> {
 
@@ -82,7 +82,11 @@ public class NBTFactory {
 
         // deserialize tag
         return type.getCodec().read(new DataInputStream(stream),
-                new TagLimiter.Default(SIXTY_FOUR_KILOBYTES, ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING, MAX_COMPLEXITY, ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES), visitor);
+                new TagLimiter.Default(
+                        THIRTY_TWO_KILOBYTES,
+                        ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING,
+                        ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_COMPLEXITY,
+                        ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES), visitor);
     }
 
     private static <TAG extends AbstractTag<?, ?, TAG>> ByteBufOutputStream write(ByteBufOutputStream stream, TAG tag, TagVisitor.Out visitor) throws IOException {

@@ -51,18 +51,6 @@ public class MonitorManager {
         }, 0L, ConfigurationOptions.Monitor.MESSAGE_INTERVAL, TimeUnit.MILLISECONDS);
     }
 
-    public void reload() {
-        try {
-            this.executorService.shutdown();
-            if (!this.executorService.awaitTermination(1000L, TimeUnit.MILLISECONDS)) {
-                HoneyPlugin.get().getLogger().getLogger().severe(Lang.get("monitor.executor.service.shutdown.error"));
-            }
-        } catch (Exception ex) {
-            HoneyPlugin.get().getLogger().getLogger().severe(Lang.get("monitor.executor.service.shutdown.exception"));
-        }
-        schedule();
-    }
-
     public Monitorer getMonitorer(HoneyPlayer player) {
         return this.playerMonitorerMap.computeIfAbsent(player.uuid, (d) -> new PlayerMonitorer(player));
     }

@@ -30,13 +30,5 @@ public class PostActions {
             packet.addServerCallbackAction(Callback.Action.from(__ -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(packet.getChannel())));
             packet.getPacketHandler().hasCompression();
         }));
-
-        packetProcessor.addPostAction(PacketTypes.Login.Server.LOGIN_SUCCESS, Callback.Action.<PacketContainer<?>>from(packet -> {
-            try {
-                HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(packet.getChannel());
-            } catch (MissingHandlerException ex) {
-                ChannelCloseInspection.close(packet.getChannel());
-            }
-        }));
     }
 }

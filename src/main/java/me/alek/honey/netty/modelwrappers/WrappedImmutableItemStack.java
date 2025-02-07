@@ -8,7 +8,6 @@ import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.TypeSerializer;
 import me.alek.honey.netty.codec.types.Types;
-import me.alek.honey.netty.codec.types.VarInt;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.tag.ItemTag;
@@ -16,9 +15,8 @@ import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.TagVisitor;
+import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -69,7 +67,6 @@ public class WrappedImmutableItemStack implements Cloneable {
             try {
                 return WrappedImmutableItemStack.read(context.getSecond(), buf, id, amount, durability, context.getFirst());
             } catch (Exception ex) {
-                Bukkit.getLogger().info("Failed to decode! " + ex.getMessage());
                 throw new DecoderException("Failed to decode item stack", ex);
             }
         }

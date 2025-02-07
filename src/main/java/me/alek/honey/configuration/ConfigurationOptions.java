@@ -716,6 +716,7 @@ public class ConfigurationOptions {
             public static int MAX_BOOK_TITLE_LENGTH;
             public static int MAX_NBT_BASES;
             public static int MAX_NBT_NESTING;
+            public static int MAX_NBT_COMPLEXITY;
             public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
 
             public static void load() {
@@ -734,6 +735,7 @@ public class ConfigurationOptions {
 
                 MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases");
                 MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting");
+                MAX_NBT_COMPLEXITY = file.getInt("item-analysis.nbt.max-nbt-complexity");
 
                 CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("item-analysis.nbt.check-illegal-skull-textures");
             }

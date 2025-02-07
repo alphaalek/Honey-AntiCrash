@@ -1,5 +1,7 @@
 package me.alek.honey.netty.tag.nbt;
 
+import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

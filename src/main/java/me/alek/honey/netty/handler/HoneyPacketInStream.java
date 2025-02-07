@@ -33,14 +33,12 @@ import java.util.logging.Level;
 @ChannelHandler.Sharable
 public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
 
-    private final AsyncPacketStream stream;
     private final HoneyPacketHandler packetHandler;
     private final HoneyPlayer player;
     private MethodHandle decodeInvoker;
     private ChannelHandler decoder;
 
-    public HoneyPacketInStream(Channel channel, AsyncPacketStream async, HoneyPacketHandler packetHandler) {
-        this.stream = async;
+    public HoneyPacketInStream(Channel channel, HoneyPacketHandler packetHandler) {
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();
         setupMethodInvoke(channel.pipeline());
@@ -48,10 +46,6 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
 
     public HoneyPacketHandler getPacketHandler() {
         return this.packetHandler;
-    }
-
-    public AsyncPacketStream getAsyncPacketStream() {
-        return this.stream;
     }
 
     private void setupMethodInvoke(ChannelPipeline pipeline) {
@@ -248,7 +242,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                 buf.release();
 
                 PacketContainer<?> copy = packet;
-                this.stream.decode((s) -> {
+                this.packetHandler.getAsyncPacketStream().decode((s) -> {
                     InboundPacketFilter.MARK.set(copy);
 
                     if (this.player.isStreamActive()) {

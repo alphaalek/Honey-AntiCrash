@@ -36,7 +36,7 @@ public interface WrappedPacketFactory<TP extends SourcedWrappedPacket<WP>, WP ex
         }
 
         public ObjectWrappedPacket<WP> createPacket(Object handle, PacketContainer<WP> packet) {
-            return function.apply(handle, packet);
+            return this.function.apply(handle, packet);
         }
     }
 
@@ -53,7 +53,7 @@ public interface WrappedPacketFactory<TP extends SourcedWrappedPacket<WP>, WP ex
         }
 
         public ByteInWrappedPacket<WP> createPacket(PacketDataSerializer buf, PacketContainer<WP> packet) {
-            return function.apply(buf, packet);
+            return this.function.apply(buf, packet);
         }
     }
 }

@@ -374,8 +374,6 @@ public class HoneyPlugin implements HoneyAPI {
         }
 
         this.validationHandleTracker.clear();
-
-        this.monitorManager.reload();
     }
 
     @Override

@@ -1,8 +1,9 @@
-package me.alek.honey.netty.tag.nbt;
+package me.alek.honey.netty.tag.nbt.visitor;
 
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.types.Utf8String;
+import me.alek.honey.netty.tag.nbt.*;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.io.DataInputStream;

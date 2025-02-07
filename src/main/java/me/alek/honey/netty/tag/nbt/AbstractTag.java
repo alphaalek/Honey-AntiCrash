@@ -5,7 +5,7 @@ import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
 
 import java.io.DataOutputStream;
 import java.io.IOException;

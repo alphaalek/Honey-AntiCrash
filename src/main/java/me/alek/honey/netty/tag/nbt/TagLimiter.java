@@ -1,6 +1,5 @@
 package me.alek.honey.netty.tag.nbt;
 
-import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.types.Utf8String;
 
@@ -55,7 +54,7 @@ public interface TagLimiter {
         private final int maxDepth;
         private final int maxComplexity;
         private final int maxBases;
-        private int bytes;
+        protected int bytes;
         private int depth;
         private int complexity;
         private int bases;
@@ -81,7 +80,7 @@ public interface TagLimiter {
             this.bytes += bytes;
 
             if (this.bytes > this.maxBytes) {
-                throw new DecoderException("Tried to read nbt with too many bytes: " + this.bytes);
+                throw new DecoderException("Tried to read too complex nbt: " + this.bytes);
             }
         }
 

@@ -4,6 +4,8 @@ public class MinecraftHandlers {
 
     public static String SPLITTER = "splitter";
 
+    public static String FLOW_CONTROL = "FlowControlHandler#0";
+
     public static String PREPENDER = "prepender";
 
     public static String DECOMPRESS = "decompress";

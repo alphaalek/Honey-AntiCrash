@@ -222,6 +222,9 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     @Override
     public void releaseIfAutoReleasable() {
+        if (true) {
+            return;
+        }
         if (this.initialByteWrapped instanceof AutoReleasable) {
             ((AutoReleasable) this.initialByteWrapped).release();
         }

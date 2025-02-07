@@ -1,17 +1,19 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
+import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.codec.StackDecodingException;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
@@ -24,11 +26,11 @@ import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPa
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.reflection.Reflection;
+import me.alek.honey.validation.HoneyValidation;
 import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.validation.impl.FloodValidations;
-import me.alek.honey.validation.HoneyValidation;
 import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
@@ -36,6 +38,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 @ChannelHandler.Sharable
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
@@ -125,7 +128,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         ctx.fireChannelInactive();
 
         if (!this.hasCalledChannelInactive) {
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().decrementTaskSupplierCount(ctx.channel());
+            this.packetHandler.getAsyncPacketStream().farewell();
         }
         this.hasCalledChannelInactive = true;
 
@@ -164,9 +167,10 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         // the filter and decode preparation dropped this packet
         // and did not clear the marker properly
         if (prev != null && !PacketTypes.isUnknown(prev.getType()) && !prev.isHandled()) {
-            // ignore PONG (used by AntiCheats), TICK_END and PLAYER_MOVEMENT because the client sends a lot of these packets,
-            // and they will all be dropped in the pipeline if the backend server does not support these packet types
+            // ignore PONG, TRANSACTION (those are used by AntiCheats), TICK_END and PLAYER_MOVEMENT because the client sends
+            // a lot of these packets, and they will all be dropped in the pipeline if the backend server does not support these packets
             if (prev.getType() != PacketTypes.Play.Client.PONG
+                    && prev.getType() != PacketTypes.Play.Client.TRANSACTION
                     && prev.getType() != PacketTypes.Play.Client.TICK_END
                     && prev.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT) {
                 HoneyPlayer player = prev.getPlayer();
@@ -215,25 +219,21 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                 }
             }
 
+            this.packetHandler.getProtocolSwapHandler().swapProtocolInboundFilter(packet);
+
             if (!this.packetHandler.isCancelled(packet)) {
                 list.add(serializer.readerIndex(0).retain());
             } else {
                 packet.releaseIfAutoReleasable();
-                list.add(Unpooled.buffer());
             }
-
-            this.packetHandler.getProtocolSwapHandler().swapProtocolInboundFilter(packet);
 
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (StackDecodingException ex) {
-            list.clear();
-            list.add(Unpooled.buffer());
-
             ViolationManagement management = HoneyPlugin.get().getViolationManagement();
 
             ValidationPipelineContext.DevelopmentData data = new ValidationPipelineContext.DevelopmentData();
-            ValidationPipeline.applyDevelopmentDataDirectly(data, this.player, STACK_PROCESS_VALIDATION, Optional.ofNullable(type).orElse(PacketType.UNKNOWN), buf.capacity());
+            ValidationPipeline.applyDevelopmentDataDirectly(data, this.player, STACK_PROCESS_VALIDATION, Optional.ofNullable(type).orElse(PacketType.UNKNOWN), buf.readerIndex() + buf.readableBytes());
             data.addValue(" Error", this.player.getFailedPacketCause(ex));
 
             management.flag(this.player, STACK_PROCESS_VALIDATION, STACK_PROCESS_SETTING, data);
@@ -260,8 +260,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             }
 
             list.clear();
-            list.add(Unpooled.buffer());
-
             this.player.failPacket(ex, packet);
         }
     }

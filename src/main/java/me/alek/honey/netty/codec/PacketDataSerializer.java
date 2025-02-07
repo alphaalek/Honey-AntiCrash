@@ -14,7 +14,7 @@ import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.tag.nbt.TagVisitor;
+import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;

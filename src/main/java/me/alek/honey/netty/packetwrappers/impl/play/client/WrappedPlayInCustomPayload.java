@@ -3,8 +3,6 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
@@ -13,13 +11,11 @@ import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.EditBookTagVisitor;
-import me.alek.honey.netty.tag.nbt.PrimitiveTag;
+import me.alek.honey.netty.tag.nbt.visitor.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 
@@ -50,7 +46,6 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         @Override
         public void release() {
             AutoReleasable.doRelease(this.data.getSerializer());
-            this.data.release();
         }
 
         @Override
@@ -59,7 +54,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         }
     }
 
-    class PayloadData<WP extends WrappedPlayInCustomPayload<WP>> implements AutoReleasable {
+    class PayloadData<WP extends WrappedPlayInCustomPayload<WP>> {
 
         public static final String EDIT_BOOK_CHANNEL = "MC|BEdit";
         public static final String SIGN_BOOK_CHANNEL = "MC|BSign";
@@ -72,7 +67,6 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         private final NetProtocol protocol;
         private final boolean signing;
         private LazyInit<WrappedImmutableItemStack> bookChannelItemStack;
-        private Runnable release;
 
         public PayloadData(WP source, PacketContainer<WP> packet, String channel, PacketDataSerializer serializer) {
             this.channel = channel;
@@ -83,7 +77,6 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
             if (this.protocol.isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
                 this.bookChannelItemStack = new LazyInit<>(() -> source.decodeExternally(() -> this.readItemStack(serializer)));
-                this.release = () -> AutoReleasable.doRelease(serializer);
             }
         }
 
@@ -122,13 +115,6 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             item.setTag(tag);
         }
 
-        @Override
-        public void release() {
-            if (this.release != null) {
-                this.release.run();
-            }
-        }
-
         public Map<String, Object> getProperties() {
             Map<String, Object> properties = new HashMap<>();
             properties.put("channel", this.channel);
@@ -146,10 +132,6 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         public PacketDataSerializer getSerializer() {
             return this.serializer;
-        }
-
-        public PacketDataSerializer makeSerializerCopy() {
-            return new PacketDataSerializer(Unpooled.copiedBuffer(this.serializer));
         }
 
         public String getChannel() {

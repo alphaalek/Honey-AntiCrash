@@ -93,6 +93,7 @@ public class PacketInterceptorResolver {
     }
 
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
+        pipeline.channel().config().setAutoRead(false);
         ByteBuf buf = createByteBuf(PacketTypes.Play.Client.KEEP_ALIVE, serializer -> {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2)) {
                 serializer.writeLong(System.currentTimeMillis());
@@ -119,7 +120,7 @@ public class PacketInterceptorResolver {
                         prev.set(name);
 
                         ChannelHandler intercepted = ctx.pipeline().get(name);
-                        if (intercepted != null && !name.equals(ViaHandlers.DECODER)) {
+                        if (intercepted != null && !name.equals(ViaHandlers.DECODER) && !name.equals(MinecraftHandlers.FLOW_CONTROL) && !name.startsWith("pe-decoder")) {
                             ((ChannelInboundHandler) intercepted).channelRead(ctx, buf.copy());
                         } else {
                             ctx.fireChannelRead(o);
@@ -142,11 +143,13 @@ public class PacketInterceptorResolver {
         }
 
         pipeline.fireChannelRead(buf);
+        pipeline.channel().config().setAutoRead(true);
 
         return handlers;
     }
 
     private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> pos) {
+        pipeline.channel().config().setAutoRead(false);
         ByteBuf buf = createByteBuf(PacketTypes.Play.Server.KEEP_ALIVE, serializer -> {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2)) {
                 serializer.writeLong(System.currentTimeMillis());
@@ -188,6 +191,7 @@ public class PacketInterceptorResolver {
         );
 
         pipeline.channel().writeAndFlush(raw);
+        pipeline.channel().config().setAutoRead(true);
 
         return handlers;
     }

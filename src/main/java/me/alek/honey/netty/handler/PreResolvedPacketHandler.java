@@ -173,7 +173,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     public void checkRelocation(PacketBound bound) {
         try {
             this.resolving = true;
-            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(this.packetHandler.getChannel());
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().relocatePreparationHandlers(this.packetHandler.getChannel(), bound);
             if (bound.equals(PacketBound.SERVER) && HoneyPlugin.get().getPacketLibrary().getChannelManager().getInStream(this.packetHandler.getChannel()) != null) {
                 this.read = false;
             } else if (bound.equals(PacketBound.CLIENT) && HoneyPlugin.get().getPacketLibrary().getChannelManager().getOutStream(this.packetHandler.getChannel()) != null) {

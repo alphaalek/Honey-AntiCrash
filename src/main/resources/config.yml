@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + This configuration file is generated using version v2.6.3
+#   + This configuration file is generated using version v2.6.4
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -165,7 +165,7 @@ monitor:
   # Should player monitor also be a packet logger (not detailed data).
   # OBS: remember you also can use /honey packetmonitor, if you want to use an advanced packet monitor for players.
   enable-packet-logger: true
-  # Interval for sending messages when having a monitor enabled.
+  # Interval for sending messages when having a monitor enabled. If you edit this, the server needs to reset to make changes take effect.
   message-interval: 500
 
 packet-logger:
@@ -264,7 +264,9 @@ item-analysis:
     # How many NBT bases may an item have. (the general representation of NBT data, covers lists, strings, doubles etc...)
     max-nbt-bases: 512
     # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)
-    max-nbt-nesting: 8
+    max-nbt-nesting: 6
+    # How complex may an NBT be.
+    max-nbt-complexity: 16
     # May player heads not have invalid textures.
     check-illegal-skull-textures: true
 

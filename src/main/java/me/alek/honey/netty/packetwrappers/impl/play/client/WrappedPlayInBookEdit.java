@@ -13,7 +13,7 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.EditBookTagVisitor;
+import me.alek.honey.netty.tag.nbt.visitor.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.util.protocol.NetProtocol;
 
