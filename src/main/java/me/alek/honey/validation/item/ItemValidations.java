@@ -215,64 +215,11 @@ public class ItemValidations {
         }
     }
 
-    public static class MaxPageLengthItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (nbt.hasKeyOfType("pages", TagType.STRING)) {
-                ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
-                for (String page : pages) {
-                    if (page.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-    }
-
     public static class MaxFireworkLengthItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_FIREWORK_NBT_LENGTH;
-        }
-    }
-
-    public static class MaxBookNBTLengthItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            return nbt.toString().getBytes().length > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH;
-        }
-    }
-
-    public static class MaxBookPagesItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            return nbt.hasKeyOfType("pages", TagTypeCollection.getCollection(TagTypeCollection.ARRAY))
-                    && nbt.getArrayOf("pages", String.class).size() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGES;
-        }
-    }
-
-    public static class MaxBookAuthorLengthItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            String author;
-            return nbt != null
-                    && nbt.hasKeyOfType("author", TagType.STRING)
-                    && (author = nbt.getString("author")) != null && author.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH;
-        }
-    }
-
-    public static class MaxBookTitleLengthItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            return nbt.hasKeyOfType("title", TagType.STRING)
-                    && nbt.getString("title").length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH;
         }
     }
 

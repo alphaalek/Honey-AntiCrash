@@ -43,7 +43,7 @@ public class Utf8String implements TypeSerializer<String, TypeSerializer.TypeCon
             throw new EncoderException("String too big (was " + encodedByteArray.length + " bytes encoded, max " + context.get() + ")");
         }
 
-        Types.VAR_INT.write(buf, encodedByteArray.length, null);
+        buf.writeVarInt(encodedByteArray.length);
         buf.writeBytes(encodedByteArray);
 
         return buf;

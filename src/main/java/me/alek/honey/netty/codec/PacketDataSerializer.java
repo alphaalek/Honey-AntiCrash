@@ -76,7 +76,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public PacketDataSerializer writeItemStack(NetProtocol protocol, WrappedImmutableItemStack stack) throws EncoderException {
-        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(TagVisitor.Out.createDefault(protocol), null));
+        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(TagVisitor.Out.createDefault(protocol, true), null));
     }
 
     public WrappedImmutableItemStack readItemStack(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
@@ -89,7 +89,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public WrappedImmutableItemStack readItemStack(CodecVisitor visitor) throws StackDecodingException {
-        return readItemStack(visitor, 0);
+        return readItemStack(visitor, -1);
     }
 
     public WrappedImmutableItemStack readItemStackSafely(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
@@ -106,11 +106,11 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public WrappedImmutableItemStack readItemStackSafely(PacketContainer<?> packet, int maxMissingBytes) throws StackDecodingException {
-        return readItemStackSafely(TagVisitor.In.createDefault(packet.getProtocol()), maxMissingBytes);
+        return readItemStackSafely(TagVisitor.In.createDefault(packet.getProtocol(), true), maxMissingBytes);
     }
 
     public WrappedImmutableItemStack readItemStackSafely(PacketContainer<?> packet) throws StackDecodingException {
-        return readItemStackSafely(packet, 0);
+        return readItemStackSafely(packet, -1);
     }
 
     public <K, V> Map<K, V> readMap(Supplier<K> keyFunction, Supplier<V> valueFunction) {

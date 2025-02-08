@@ -2,8 +2,6 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.ChannelCloseInspection;
-import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.handshake.WrappedHandshakeInSetProtocol;
 import me.alek.honey.netty.processor.PacketProcessor;
@@ -27,8 +25,11 @@ public class PostActions {
         }));
 
         packetProcessor.addPostAction(PacketTypes.Login.Server.SET_COMPRESSION, Callback.Action.<PacketContainer<?>>from(packet -> {
-            packet.addServerCallbackAction(Callback.Action.from(__ -> HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(packet.getChannel())));
             packet.getPacketHandler().hasCompression();
+        }));
+
+        packetProcessor.addPostAction(PacketTypes.Login.Server.LOGIN_SUCCESS, Callback.Action.<PacketContainer<?>>from(packet -> {
+            HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(packet.getChannel());
         }));
     }
 }

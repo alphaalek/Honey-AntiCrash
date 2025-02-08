@@ -501,7 +501,7 @@ public class CodecTypes {
                     }
                 }
 
-                key = visitor.visitCompoundKey(key);
+                key = visitor.visitCompoundKey(key, type);
                 compound.put(key, tag);
                 visitor.visitCompoundElement(key, tag);
             }

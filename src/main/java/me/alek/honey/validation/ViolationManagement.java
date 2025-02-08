@@ -94,9 +94,9 @@ public class ViolationManagement {
                     return new ViolationDistributor(player,
                             new KeyedViolationLookupGenerator(key, setting));
                 } else {
-                    AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), player, setting);
+                    AbstractPacketLimitHandler packetLimitHandler = generatePacketLimitHandler(setting.getPacketLimitHandlerType(), this.player, setting);
                     if (packetLimitHandler == null) {
-                        throw new RuntimeException("No packet limit handler could be created.");
+                        throw new RuntimeException("No packet limit handler could be created: " + setting.getPacketLimitHandlerType());
                     }
 
                     return new ViolationDistributor(player, packetLimitHandler);

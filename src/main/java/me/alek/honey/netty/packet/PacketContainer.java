@@ -37,10 +37,6 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
 
     long getTimeCreated();
 
-    void addServerCallbackAction(Callback.Action action);
-
-    void invokeServerCallback();
-
     PacketType getType();
 
     default PacketState getState() {

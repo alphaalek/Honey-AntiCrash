@@ -11,7 +11,7 @@ import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.visitor.EditBookTagVisitor;
+import me.alek.honey.netty.tag.nbt.visitor.book.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
@@ -82,7 +82,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
         private WrappedImmutableItemStack readItemStack(PacketDataSerializer serializer) {
             EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(this.protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(this.protocol);
-            WrappedImmutableItemStack stack = serializer.readItemStack(visitor); // no need to read safely, because we applied the edit book tag visitor
+            WrappedImmutableItemStack stack = serializer.readItemStack(visitor, 0); // no need to read safely, because we applied the edit book tag visitor
             CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(serializer, this.packet, this.signing));
 
             HoneyPacketCodec.checkReadable(this.protocol, this.packet.getType(), Optional.ofNullable(this.packet.getObjectWrapped()).map(WrappedObject::getHandle).orElse(null), serializer);

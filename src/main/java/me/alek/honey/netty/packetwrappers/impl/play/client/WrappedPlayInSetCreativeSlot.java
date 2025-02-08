@@ -18,7 +18,7 @@ public class WrappedPlayInSetCreativeSlot extends ByteInWrappedPacket<WrappedPla
         super(serializer, packet);
 
         this.slot = serializer.readShort();
-        this.item = serializer.readItemStackSafely(packet);
+        this.item = serializer.readItemStackSafely(packet, 0);
     }
 
     public int getSlot() {

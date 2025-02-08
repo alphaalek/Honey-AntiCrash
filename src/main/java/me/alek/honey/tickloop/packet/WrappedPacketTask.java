@@ -29,8 +29,6 @@ public class WrappedPacketTask {
 
     public void runPost() {
         this.done = true;
-        this.packet.invokeServerCallback();
-
         TaskLifecycleHandler.unregisterTask(this.packet);
     }
 

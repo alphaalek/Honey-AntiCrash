@@ -13,7 +13,7 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.visitor.EditBookTagVisitor;
+import me.alek.honey.netty.tag.nbt.visitor.book.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.util.protocol.NetProtocol;
 
@@ -61,7 +61,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             PacketDataSerializer itemBuf = new PacketDataSerializer(buf.readBytes(buf.readableBytes() - 2));
 
             EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol);
-            WrappedImmutableItemStack stack = itemBuf.readItemStack(visitor); // no need to read safely, because we applied the edit book tag visitor
+            WrappedImmutableItemStack stack = itemBuf.readItemStack(visitor, 0); // no need to read safely, because we applied the edit book tag visitor
             CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(buf, packet, this.signing));
 
             HoneyPacketCodec.checkReadable(protocol, PacketTypes.Play.Client.BOOK_EDIT, null, itemBuf);

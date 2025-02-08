@@ -1,6 +1,7 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -256,7 +257,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                         .orElse(-1);
                 Bukkit.getLogger().log(Level.WARNING,
                         "Error occurred while handling packet " + type0 + " (id " + id
-                                + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
+                                + ") sent by " + this.player.name + ", " + (buf.readerIndex() + buf.readableBytes()) + " bytes", ex);
             }
 
             list.clear();

@@ -660,31 +660,34 @@ public class ConfigurationOptions {
 
     @Setting
     public static class ItemAnalysis {
+
         public static int MAX_ENCHANTMENT_LEVEL;
         public static int MAX_AMOUNT;
         public static int MAX_DISPLAYNAME_LENGTH;
         public static int MAX_TOTAL_LORE_LENGTH;
         public static int MAX_FIREWORK_EXPLOSIONS;
         public static int MAX_BANNER_PATTERNS;
+        public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
         public static boolean CHECK_CUSTOM_POTION_EFFECTS;
         public static boolean CHECK_UNBREAKABLE_ITEMS;
         public static boolean CHECK_ATTRIBUTE_MODIFIERS;
         public static boolean CHECK_BOOK_NO_TEXT_COMPONENTS;
 
         public static void load() {
-            MAX_ENCHANTMENT_LEVEL = file.getInt("item-analysis.max-enchantment-level", 256);
-            MAX_AMOUNT = file.getInt("item-analysis.max-amount", 64);
+            MAX_ENCHANTMENT_LEVEL = file.getInt("item-analysis.max-enchantment-level");
+            MAX_AMOUNT = file.getInt("item-analysis.max-amount");
 
-            MAX_DISPLAYNAME_LENGTH = file.getInt("item-analysis.max-displayname-length", 100);
-            MAX_TOTAL_LORE_LENGTH = file.getInt("item-analysis.max-total-lore-length", 2000);
+            MAX_DISPLAYNAME_LENGTH = file.getInt("item-analysis.max-displayname-length");
+            MAX_TOTAL_LORE_LENGTH = file.getInt("item-analysis.max-total-lore-length");
 
-            MAX_FIREWORK_EXPLOSIONS = file.getInt("item-analysis.max-firework-explosions", 17);
-            MAX_BANNER_PATTERNS = file.getInt("item-analysis.max-banner-patterns", 6);
+            MAX_FIREWORK_EXPLOSIONS = file.getInt("item-analysis.max-firework-explosions");
+            MAX_BANNER_PATTERNS = file.getInt("item-analysis.max-banner-patterns");
+            CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("item-analysis.check-illegal-skull-textures");
 
-            CHECK_CUSTOM_POTION_EFFECTS = file.getBoolean("item-analysis.disable-custom-potion-effects", false);
-            CHECK_UNBREAKABLE_ITEMS = file.getBoolean("item-analysis.disable-unbreakable-items", false);
-            CHECK_ATTRIBUTE_MODIFIERS = file.getBoolean("item-analysis.check-attribute-modifiers", false);
-            CHECK_BOOK_NO_TEXT_COMPONENTS = file.getBoolean("item-analysis.disable-book-no-text-components", true);
+            CHECK_CUSTOM_POTION_EFFECTS = file.getBoolean("item-analysis.disable-custom-potion-effects");
+            CHECK_UNBREAKABLE_ITEMS = file.getBoolean("item-analysis.disable-unbreakable-items");
+            CHECK_ATTRIBUTE_MODIFIERS = file.getBoolean("item-analysis.check-attribute-modifiers");
+            CHECK_BOOK_NO_TEXT_COMPONENTS = file.getBoolean("item-analysis.disable-book-no-text-components");
         }
 
         @Setting
@@ -704,44 +707,54 @@ public class ConfigurationOptions {
         @Setting
         public static class NBT {
 
-            public static int MAX_NBT_LENGTH;
-            public static int MAX_NBT_STRING_LENGTH;
-            public static int MAX_NBT_KEY_LENGTH;
             public static int MAX_FIREWORK_NBT_LENGTH;
-            public static int MAX_BOOK_NBT_LENGTH;
-            public static int MAX_BOOK_PAGES;
+
+            public static int MAX_BOOK_NBT_LENGTH_MODERN;
+            public static int MAX_BOOK_NBT_LENGTH_LEGACY;
+            public static int MAX_BOOK_PAGES_MODERN;
             public static int MAX_BOOK_PAGES_LEGACY;
             public static int MAX_BOOK_PAGE_LENGTH;
             public static int MAX_BOOK_AUTHOR_LENGTH;
             public static int MAX_BOOK_TITLE_LENGTH;
+
+            public static int MAX_NBT_LENGTH_MODERN;
+            public static int MAX_NBT_LENGTH_LEGACY;
+            public static int MAX_NBT_STRING_LENGTH;
+            public static int MAX_NBT_KEY_LENGTH;
             public static int MAX_NBT_BASES;
             public static int MAX_NBT_NESTING;
             public static int MAX_NBT_COMPLEXITY;
-            public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
 
             public static void load() {
-                MAX_NBT_LENGTH = file.getInt("item-analysis.nbt.max-nbt-length");
-                MAX_NBT_STRING_LENGTH = file.getInt("item-analysis.nbt.max-nbt-string-length");
-                MAX_NBT_KEY_LENGTH = file.getInt("item-analysis.nbt.max-nbt-key-length");
-
                 MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length");
 
-                MAX_BOOK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-book-nbt-length");
+                MAX_BOOK_NBT_LENGTH_MODERN = file.getInt("item-analysis.nbt.max-book-nbt-length.modern");
+                MAX_BOOK_NBT_LENGTH_LEGACY = file.getInt("item-analysis.nbt.max-book-nbt-length.legacy");
                 MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length");
-                MAX_BOOK_PAGES = file.getInt("item-analysis.nbt.max-book-pages");
-                MAX_BOOK_PAGES_LEGACY = file.getInt("item-analysis.nbt.max-book-pages-legacy");
+                MAX_BOOK_PAGES_MODERN = file.getInt("item-analysis.nbt.max-book-pages.modern");
+                MAX_BOOK_PAGES_LEGACY = file.getInt("item-analysis.nbt.max-book-pages.legacy");
                 MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length");
                 MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length");
 
+                MAX_NBT_LENGTH_MODERN = file.getInt("item-analysis.nbt.max-nbt-length.modern");
+                MAX_NBT_LENGTH_LEGACY = file.getInt("item-analysis.nbt.max-nbt-length.legacy");
+                MAX_NBT_STRING_LENGTH = file.getInt("item-analysis.nbt.max-nbt-string-length");
+                MAX_NBT_KEY_LENGTH = file.getInt("item-analysis.nbt.max-nbt-key-length");
                 MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases");
                 MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting");
                 MAX_NBT_COMPLEXITY = file.getInt("item-analysis.nbt.max-nbt-complexity");
-
-                CHECK_ILLEGAL_SKULL_TEXTURES = file.getBoolean("item-analysis.nbt.check-illegal-skull-textures");
             }
 
             public static int getMaxBookPages(NetProtocol protocol) {
-                return protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_BOOK_PAGES : MAX_BOOK_PAGES_LEGACY;
+                return protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_BOOK_PAGES_MODERN : MAX_BOOK_PAGES_LEGACY;
+            }
+
+            public static int getMaxBookNBTLength(NetProtocol protocol) {
+                return protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_BOOK_NBT_LENGTH_MODERN : MAX_BOOK_NBT_LENGTH_LEGACY;
+            }
+
+            public static int getMaxItemNBTLength(NetProtocol protocol) {
+                return protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_NBT_LENGTH_MODERN : MAX_NBT_LENGTH_LEGACY;
             }
         }
     }

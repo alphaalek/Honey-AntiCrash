@@ -101,18 +101,23 @@ public interface TagVisitor extends CodecVisitor {
         }
 
         @Override
-        public String visitCompoundKey(String key) {
+        public String visitCompoundKey(String key, TagType type) {
             return key;
         }
     }
 
     interface In extends TagVisitor {
 
-        static TagVisitor.In createDefault(NetProtocol protocol) {
+        static TagVisitor.In createDefault(NetProtocol protocol, boolean replacedByRegistered) {
             return new Adapter() {
                 @Override
                 public NetProtocol protocol() {
                     return protocol;
+                }
+
+                @Override
+                public boolean replacedByRegistried() {
+                    return replacedByRegistered;
                 }
             };
         }
@@ -242,11 +247,16 @@ public interface TagVisitor extends CodecVisitor {
 
     interface Out extends TagVisitor {
 
-        static TagVisitor.Out createDefault(NetProtocol protocol) {
+        static TagVisitor.Out createDefault(NetProtocol protocol, boolean replaceByRegistered) {
             return new Adapter() {
                 @Override
                 public NetProtocol protocol() {
                     return protocol;
+                }
+
+                @Override
+                public boolean replacedByRegistried() {
+                    return replaceByRegistered;
                 }
             };
         }
@@ -301,5 +311,5 @@ public interface TagVisitor extends CodecVisitor {
 
     void visitCompoundElement(String key, AbstractTag<?, ?, ?> tag);
 
-    String visitCompoundKey(String key);
+    String visitCompoundKey(String key, TagType type);
 }

@@ -15,7 +15,7 @@ import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
+import me.alek.honey.netty.tag.nbt.visitor.Visitors;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.inventory.ItemStack;
 
@@ -108,10 +108,18 @@ public class WrappedImmutableItemStack implements Cloneable {
                 }
             }
 
+            CodecVisitor visitor = context.getFirst();
+            if (visitor.replacedByRegistried()) {
+                CodecVisitor.Factory<?> factory = CodecVisitor.Factory.OUT_REGISTRY.get(stack.getType());
+                if (factory != null) {
+                    visitor = factory.create(protocol, stack.getType());
+                }
+            }
+
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
                 Types.OUT_COMPONENT_MAP.write(buf, stack.getTag().asComponentMap().orElse(ComponentMap.EMPTY), TypeContext.TwoArgs.of(stack.getType(), protocol));
             } else {
-                Types.NBT.write(buf, stack.getTag().asNBT().orElse(CompoundTag.EMPTY), TypeContext.OneArg.of(TagVisitor.Out.createDefault(protocol)));
+                Types.NBT.write(buf, stack.getTag().asNBT().orElse(CompoundTag.EMPTY), TypeContext.OneArg.of(visitor));
             }
 
             return buf;
@@ -121,6 +129,8 @@ public class WrappedImmutableItemStack implements Cloneable {
     static {
         CodecTypeValidation.ITEM_STACK.addValidation(WrappedImmutableItemStack::validate);
         CodecTypeValidation.ITEM_STACK_PRE_TAG.addValidation(WrappedImmutableItemStack::validatePreTag);
+
+        Visitors.load();
     }
 
     public static void validate(WrappedImmutableItemStack item, DecodeContext context) {
@@ -130,15 +140,17 @@ public class WrappedImmutableItemStack implements Cloneable {
     }
 
     public static void validatePreTag(ItemType type, DecodeContext.StackContext context) {
-        int forTag = context.serializer().readableBytes() - context.maxMissingBytes();
-        if (type == ItemTypes.WRITABLE_BOOK || type == ItemTypes.WRITTEN_BOOK) {
-            if (forTag > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_NBT_LENGTH) {
-                throw new DecoderException("Tried to read a book with too big nbt: " + forTag + " (at max)");
+        if (context.maxMissingBytes() != -1) {
+            int forTag = context.serializer().readableBytes() - context.maxMissingBytes();
+            if (type == ItemTypes.WRITABLE_BOOK || type == ItemTypes.WRITTEN_BOOK) {
+                if (forTag > ConfigurationOptions.ItemAnalysis.NBT.getMaxBookNBTLength(context.protocol())) {
+                    throw new DecoderException("Tried to read a book with too big nbt: " + forTag + " (at max)");
+                }
             }
-        }
 
-        if (forTag > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_LENGTH) {
-            throw new DecoderException("Tried to read too big nbt: " + forTag + " (at max)");
+            if (forTag > ConfigurationOptions.ItemAnalysis.NBT.getMaxItemNBTLength(context.protocol())) {
+                throw new DecoderException("Tried to read too big nbt: " + forTag + " (at max)");
+            }
         }
     }
 
@@ -147,6 +159,13 @@ public class WrappedImmutableItemStack implements Cloneable {
         ItemType type = ItemTypes.getById(protocol.toPECVersion(), itemId);
         if (type == null) {
             return null; // no type found
+        }
+
+        if (visitor.replacedByRegistried()) {
+            CodecVisitor.Factory<?> factory = CodecVisitor.Factory.IN_REGISTRY.get(type);
+            if (factory != null) {
+                visitor = factory.create(protocol, type);
+            }
         }
 
         CodecTypeValidation.ITEM_STACK_PRE_TAG.validate(type, context);

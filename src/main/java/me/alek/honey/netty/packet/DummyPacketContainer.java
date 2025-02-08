@@ -82,16 +82,6 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
     }
 
     @Override
-    public void addServerCallbackAction(Callback.Action action) {
-
-    }
-
-    @Override
-    public void invokeServerCallback() {
-
-    }
-
-    @Override
     public PipelineState getPipelineState() {
         return null;
     }

@@ -62,7 +62,7 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacket<WrappedPlayInW
             );
         }
 
-        this.carriedItemStack = serializer.readItemStackSafely(packet);
+        this.carriedItemStack = serializer.readItemStackSafely(packet, 0);
     }
 
     public ByteBuf constructModifiedBuf(NetProtocol protocol) {

@@ -172,16 +172,6 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
-    public void addServerCallbackAction(Callback.Action action) {
-        this.serverCallback.addAction(action);
-    }
-
-    @Override
-    public void invokeServerCallback() {
-        this.serverCallback.call(this);
-    }
-
-    @Override
     public Channel getChannel() {
         return this.player.channel;
     }
