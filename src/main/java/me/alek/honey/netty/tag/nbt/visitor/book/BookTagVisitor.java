@@ -21,16 +21,16 @@ public class BookTagVisitor extends ComplexTagVisitor {
         public static final Factory FACTORY = new Factory();
 
         @Override
-        public BookTagVisitor create(NetProtocol protocol, ItemType type) {
-            return new BookTagVisitor(protocol, type);
+        public BookTagVisitor create(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
+            return new BookTagVisitor(protocol, protocolCreated, type);
         }
     }
 
     private final ItemType type;
     protected int pages;
 
-    public BookTagVisitor(NetProtocol protocol, ItemType type) {
-        super(CodecVisitor.of(protocol, false));
+    public BookTagVisitor(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
+        super(CodecVisitor.of(protocol, protocolCreated, false));
         this.type = type;
     }
 
@@ -83,7 +83,7 @@ public class BookTagVisitor extends ComplexTagVisitor {
     @Override
     public <TAG extends AbstractTag<?, ?, TAG>> TAG visitAtArrayInsert(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException {
         if (currentGrandChild().equals(BookTag.PAGES)) {
-            if (++this.pages > ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(protocol())) {
+            if (++this.pages > ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(protocolCreated())) {
                 throw new DecoderException("Invalid book data: too many pages: " + this.pages);
             }
 

@@ -10,13 +10,11 @@ import java.util.function.Consumer;
 
 public class ValidationViolationContext implements Cloneable {
 
-    public static ValidationViolationContext PASS = Builder
-            .validate()
+    public static ValidationViolationContext PASS = Builder.validate()
             .pass()
             .build();
 
-    public static ValidationViolationContext FLAG = Builder
-            .validate()
+    public static ValidationViolationContext FLAG = Builder.validate()
             .cancel()
             .flag()
             .build();
@@ -57,7 +55,7 @@ public class ValidationViolationContext implements Cloneable {
         }
 
         public Builder() {
-            responseContainer = new ValidationViolationContext();
+            this.responseContainer = new ValidationViolationContext();
         }
 
         public Builder(ValidationViolationContext container) {
@@ -70,17 +68,17 @@ public class ValidationViolationContext implements Cloneable {
         }
 
         public Builder add(ValidationViolationContext... containers) {
-            responseContainer.subContainers.addAll(Arrays.asList(containers));
+            this.responseContainer.subContainers.addAll(Arrays.asList(containers));
             return this;
         }
 
         public Builder pass() {
-            responseContainer.success = true;
+            this.responseContainer.success = true;
             return this;
         }
 
         public Builder cancel() {
-            responseContainer.cancelled = true;
+            this.responseContainer.cancelled = true;
             return this;
         }
 
@@ -89,36 +87,36 @@ public class ValidationViolationContext implements Cloneable {
         }
 
         public Builder flag(double amount) {
-            responseContainer.flag = amount;
+            this.responseContainer.flag = amount;
             return this;
         }
 
         public Builder terminate() {
-            responseContainer.terminate = true;
+            this.responseContainer.terminate = true;
             return this;
         }
 
         public Builder skip(int indices) {
-            responseContainer.skipIndices = indices;
+            this.responseContainer.skipIndices = indices;
             return this;
         }
 
         public Builder withViolationKey(HoneyKey key) {
-            responseContainer.violationKey = key;
+            this.responseContainer.violationKey = key;
             return this;
         }
 
         public Builder onPunish(Runnable runnable) {
-            responseContainer.onPunish = runnable;
+            this.responseContainer.onPunish = runnable;
             return this;
         }
 
         public synchronized Builder onViolation(ViolationKey key, BiConsumer<ViolationKey, Runnable> runnable) {
-            Consumer<ViolationKey> prior = responseContainer.onViolation;
+            Consumer<ViolationKey> prior = this.responseContainer.onViolation;
             Consumer<ViolationKey> next = v -> {
                 if (prior != null) prior.accept(v);
             };
-            responseContainer.onViolation = v -> {
+            this.responseContainer.onViolation = v -> {
                 if (v.equals(key)) {
                     runnable.accept(v, () -> next.accept(v));
                 } else {
@@ -130,7 +128,7 @@ public class ValidationViolationContext implements Cloneable {
         }
 
         public ValidationViolationContext build() {
-            return responseContainer;
+            return this.responseContainer;
         }
     }
 }

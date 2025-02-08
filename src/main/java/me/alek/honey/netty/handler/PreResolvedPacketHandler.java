@@ -116,7 +116,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         } catch (Exception ex) {
             if (packet != null && HoneyPlugin.get().getLogger().isDebug()) {
                 Bukkit.getLogger().log(Level.WARNING,
-                        "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
+                        "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getID()
                                 + ") sent by " + this.packetHandler.getPlayer().name + ", " + packet.getInitialByteWrapped().getByteSize() + " bytes", ex);
             }
 
@@ -159,12 +159,8 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
             if (HoneyPlugin.get().getLogger().isDebug()) {
                 PacketType type = Optional.ofNullable(packet)
                         .map(PacketContainer::getType)
-                        .orElse(PacketTypes.getPacketType(msg.getClass(), this.packetHandler.getProtocolState(PacketBound.CLIENT)).orElse(null));
-                int id = Optional.ofNullable(type)
-                        .map(PacketType::getMinecraftID)
-                        .map(LazyInit<Integer>::get)
-                        .orElse(-1);
-                Bukkit.getLogger().log(Level.WARNING, "Error occurred while handling packet " + type + " (id " + id + ") sent by " + this.packetHandler.getPlayer().name, ex);
+                        .orElse(PacketTypes.getPacketType(msg.getClass(), this.packetHandler.getProtocolState(PacketBound.CLIENT)).orElse(PacketType.UNKNOWN));
+                Bukkit.getLogger().log(Level.WARNING, "Error occurred while handling packet " + type + " (id " + type.getID() + ") sent by " + this.packetHandler.getPlayer().name, ex);
             }
             promise.setSuccess();
         }

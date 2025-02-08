@@ -112,7 +112,7 @@ public class WrappedImmutableItemStack implements Cloneable {
             if (visitor.replacedByRegistried()) {
                 CodecVisitor.Factory<?> factory = CodecVisitor.Factory.OUT_REGISTRY.get(stack.getType());
                 if (factory != null) {
-                    visitor = factory.create(protocol, stack.getType());
+                    visitor = factory.create(protocol, context.getFirst().protocolCreated(), stack.getType());
                 }
             }
 
@@ -143,12 +143,12 @@ public class WrappedImmutableItemStack implements Cloneable {
         if (context.maxMissingBytes() != -1) {
             int forTag = context.serializer().readableBytes() - context.maxMissingBytes();
             if (type == ItemTypes.WRITABLE_BOOK || type == ItemTypes.WRITTEN_BOOK) {
-                if (forTag > ConfigurationOptions.ItemAnalysis.NBT.getMaxBookNBTLength(context.protocol())) {
+                if (forTag > ConfigurationOptions.ItemAnalysis.NBT.getMaxBookNBTLength(context.protocolCreated())) {
                     throw new DecoderException("Tried to read a book with too big nbt: " + forTag + " (at max)");
                 }
             }
 
-            if (forTag > ConfigurationOptions.ItemAnalysis.NBT.getMaxItemNBTLength(context.protocol())) {
+            if (forTag > ConfigurationOptions.ItemAnalysis.NBT.getMaxItemNBTLength(context.protocolCreated())) {
                 throw new DecoderException("Tried to read too big nbt: " + forTag + " (at max)");
             }
         }
@@ -156,6 +156,7 @@ public class WrappedImmutableItemStack implements Cloneable {
 
     public static WrappedImmutableItemStack read(DecodeContext.StackContext context, PacketDataSerializer serializer, int itemId, int amount, short durability, CodecVisitor visitor) throws IOException {
         NetProtocol protocol = context.protocol();
+        NetProtocol protocolCreated = context.protocolCreated();
         ItemType type = ItemTypes.getById(protocol.toPECVersion(), itemId);
         if (type == null) {
             return null; // no type found
@@ -164,7 +165,7 @@ public class WrappedImmutableItemStack implements Cloneable {
         if (visitor.replacedByRegistried()) {
             CodecVisitor.Factory<?> factory = CodecVisitor.Factory.IN_REGISTRY.get(type);
             if (factory != null) {
-                visitor = factory.create(protocol, type);
+                visitor = factory.create(protocol, protocolCreated, type);
             }
         }
 
@@ -172,8 +173,15 @@ public class WrappedImmutableItemStack implements Cloneable {
 
         ItemTag tag;
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            NetProtocol componentProtocol;
+            if (protocolCreated.isOlderThan(NetProtocol.v1_20_5)) {
+                // rewritten by ViaRewind
+                componentProtocol = protocol;
+            } else {
+                componentProtocol = protocolCreated;
+            }
             // wrap component map
-            tag = Types.IN_COMPONENT_MAP.read(serializer, TypeSerializer.TypeContext.TwoArgs.of(type, protocol));
+            tag = Types.IN_COMPONENT_MAP.read(serializer, TypeSerializer.TypeContext.TwoArgs.of(type, componentProtocol));
         } else {
             // wrap nbt
             tag = Optional.ofNullable(

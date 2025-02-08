@@ -7,12 +7,17 @@ import me.alek.honey.util.protocol.NetProtocol;
 
 public interface DecodeContext {
 
-    static DecodeContext from(PacketDataSerializer serializer, NetProtocol protocol) {
+    static DecodeContext from(PacketDataSerializer serializer, NetProtocol protocol, NetProtocol protocolCreated) {
         return new DecodeContext() {
 
             @Override
             public NetProtocol protocol() {
                 return protocol;
+            }
+
+            @Override
+            public NetProtocol protocolCreated() {
+                return protocolCreated;
             }
 
             @Override
@@ -24,11 +29,13 @@ public interface DecodeContext {
 
     NetProtocol protocol();
 
+    NetProtocol protocolCreated();
+
     PacketDataSerializer serializer();
 
     class BookEditContext<WP extends SourcedWrappedPacket<WP>> implements DecodeContext {
 
-        public static <WP extends SourcedWrappedPacket<WP>> BookEditContext<WP> of(PacketDataSerializer buf, PacketContainer<WP> packet, boolean signing) {
+        public static <WP extends SourcedWrappedPacket<WP>> BookEditContext<WP> from(PacketDataSerializer buf, PacketContainer<WP> packet, boolean signing) {
             return new BookEditContext<>(buf, packet, signing);
         }
 
@@ -52,6 +59,11 @@ public interface DecodeContext {
         }
 
         @Override
+        public NetProtocol protocolCreated() {
+            return this.packet.getProtocolCreated();
+        }
+
+        @Override
         public PacketDataSerializer serializer() {
             return this.buf;
         }
@@ -63,17 +75,19 @@ public interface DecodeContext {
 
     class StackContext implements DecodeContext {
 
-        public static StackContext of(PacketDataSerializer buf, NetProtocol protocol, int maxMissingBytes) {
-            return new StackContext(buf, protocol, maxMissingBytes);
+        public static StackContext from(PacketDataSerializer buf, NetProtocol protocol, NetProtocol protocolCreated, int maxMissingBytes) {
+            return new StackContext(buf, protocol, protocolCreated, maxMissingBytes);
         }
 
         private final int maxMissingBytes;
         private final NetProtocol protocol;
+        private final NetProtocol protocolCreated;
         private final PacketDataSerializer buf;
 
-        public StackContext(PacketDataSerializer buf, NetProtocol protocol, int maxMissingBytes) {
+        public StackContext(PacketDataSerializer buf, NetProtocol protocol, NetProtocol protocolCreatesd, int maxMissingBytes) {
             this.buf = buf;
             this.protocol = protocol;
+            this.protocolCreated = protocolCreatesd;
             this.maxMissingBytes = maxMissingBytes;
         }
 
@@ -84,6 +98,11 @@ public interface DecodeContext {
         @Override
         public NetProtocol protocol() {
             return this.protocol;
+        }
+
+        @Override
+        public NetProtocol protocolCreated() {
+            return this.protocolCreated;
         }
 
         @Override

@@ -37,8 +37,7 @@ public class WrappedPlayInBlockPlace extends ByteInWrappedPacket<WrappedPlayInBl
 
     public WrappedPlayInBlockPlace(PacketDataSerializer serializer, PacketContainer<WrappedPlayInBlockPlace> packet) {
         super(serializer, packet);
-
-        NetProtocol protocol = packet.getProtocol();
+        NetProtocol protocol = getProtocol();
 
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
             this.interactionHand = InteractionHand.values()[serializer.readVarInt()];

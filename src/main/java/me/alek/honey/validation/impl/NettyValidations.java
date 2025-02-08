@@ -39,6 +39,7 @@ public class NettyValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         return PacketTypes.getTypesAvailableFor(PacketState.PLAY, PacketBound.SERVER).stream().collect(Collectors.toList());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
         return ValidationPipeline.from(new NettyH<>(), new NettyI<>());

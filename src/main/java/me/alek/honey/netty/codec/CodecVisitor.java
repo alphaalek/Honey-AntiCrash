@@ -14,14 +14,19 @@ public interface CodecVisitor {
         Map<ItemType, Factory<?>> IN_REGISTRY = new HashMap<>();
         Map<ItemType, Factory<?>> OUT_REGISTRY = new HashMap<>();
 
-        C create(NetProtocol protocol, ItemType type);
+        C create(NetProtocol protocol, NetProtocol protocolCreated, ItemType type);
     }
 
-    static CodecVisitor of(NetProtocol protocol, boolean replaceByRegistered) {
+    static CodecVisitor of(NetProtocol protocol, NetProtocol protocolCreated, boolean replaceByRegistered) {
         return new CodecVisitor() {
             @Override
             public NetProtocol protocol() {
                 return protocol;
+            }
+
+            @Override
+            public NetProtocol protocolCreated() {
+                return protocolCreated;
             }
 
             @Override
@@ -32,6 +37,8 @@ public interface CodecVisitor {
     }
 
     NetProtocol protocol();
+
+    NetProtocol protocolCreated();
 
     boolean replacedByRegistried();
 }

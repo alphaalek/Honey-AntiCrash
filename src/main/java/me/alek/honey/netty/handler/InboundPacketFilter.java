@@ -13,6 +13,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.ChannelCloseInspection;
+import me.alek.honey.netty.ChannelLookupSynchronizer;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.StackDecodingException;
@@ -130,9 +131,11 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
         if (!this.hasCalledChannelInactive) {
             this.packetHandler.getAsyncPacketStream().farewell();
+            this.player.remove();
         }
         this.hasCalledChannelInactive = true;
 
+        ChannelLookupSynchronizer.removeChannelLookup(this.player.name);
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(ctx.channel());
     }
 
@@ -203,7 +206,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             if (packet.getInitialByteWrapped().isAbstract()) {
                 // check if any bytes has not been decoded
                 // if any is left, the protocol has not been followed properly
-                HoneyPacketCodec.checkReadable(packet.getProtocol(), type, null, serializer);
+                HoneyPacketCodec.checkReadable(packet.getProtocolCreated(), type, null, serializer);
             }
 
             // call listeners
@@ -216,7 +219,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             if (type == PacketTypes.Play.Client.CUSTOM_PAYLOAD) {
                 WrappedPlayInCustomPayload.PayloadData<?> data = ((WrappedPlayInCustomPayload<?>) packet.getCurrentWrapped()).getPayloadData();
                 if (data.isBookChannel() && data.isItemInitialized()) {
-                    HoneyPacketCodec.checkReadable(packet.getProtocol(), packet.getType(), null, data.getSerializer());
+                    HoneyPacketCodec.checkReadable(packet.getProtocolCreated(), packet.getType(), null, data.getSerializer());
                 }
             }
 
@@ -239,7 +242,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
             management.flag(this.player, STACK_PROCESS_VALIDATION, STACK_PROCESS_SETTING, data);
         } catch (Exception ex) {
-            ex.printStackTrace();
             InboundPacketFilter.removeMarker();
             if (this.player.pinging || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet
@@ -250,13 +252,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
             if (HoneyPlugin.get().getLogger().isDebug()) {
                 PacketType type0 = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);
-
-                int id = Optional.ofNullable(type)
-                        .map(PacketType::getMinecraftID)
-                        .map(LazyInit::get)
-                        .orElse(-1);
                 Bukkit.getLogger().log(Level.WARNING,
-                        "Error occurred while handling packet " + type0 + " (id " + id
+                        "Error occurred while handling packet " + type0 + " (id " + type0.getID()
                                 + ") sent by " + this.player.name + ", " + (buf.readerIndex() + buf.readableBytes()) + " bytes", ex);
             }
 

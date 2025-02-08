@@ -32,7 +32,7 @@ public class ComponentMap implements ItemTag {
             }
 
             if (absent < 0 || present < 0) {
-                throw new DecoderException("Invalid component map");
+                throw new DecoderException("Invalid component map: absent " + absent + ", present " + present);
             }
 
             NetProtocol protocol = context.getSecond();
@@ -43,10 +43,10 @@ public class ComponentMap implements ItemTag {
                     .map(e -> new ComponentMap.Val<>((ComponentType<Object>) e.getKey(), e.getValue(), ComponentSource.BASE))
                     .collect(Collectors.toList());
             if (absent > bases.size()) {
-                throw new DecoderException("Too many absent tags");
+                throw new DecoderException("Too many absent tags: " + absent + ", bases " + bases.size());
             }
             if (present > available.size() - bases.size()) {
-                throw new DecoderException("Too many present tags");
+                throw new DecoderException("Too many present tags: " + present + ", available " + (available.size() - bases.size()));
             }
 
             PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(serializer);
@@ -66,7 +66,7 @@ public class ComponentMap implements ItemTag {
                     Object val = type.read(wrapper);
                     map.set(type, val);
                 } else {
-                    throw new DecoderException("Invalid present component type");
+                    throw new DecoderException("Invalid present component type: " + type);
                 }
             }
             for (int i = 0; i < absent; i++) {
@@ -74,7 +74,7 @@ public class ComponentMap implements ItemTag {
                 if (map.has(type) && available.contains(type)) {
                     map.remove(type);
                 } else {
-                    throw new DecoderException("Invalid absent component type");
+                    throw new DecoderException("Invalid absent component type: " + type);
                 }
             }
 

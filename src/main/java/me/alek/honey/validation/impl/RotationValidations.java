@@ -137,7 +137,7 @@ public class RotationValidations<WP extends MovementPacketWrapper<WP>> extends A
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             float yaw = packet.getLocation(player.getWorld()).getYaw();
-            if (yaw == 0 || MovementValidations.isAnyLatelyTeleportationLocationsCloseTo(
+            if (yaw == 0 || MovementValidations.INSTANCE.isAnyLatelyTeleportationLocationsCloseTo(
                     player, 100,
                     (location) -> (double) LocationUtils.calculateYawDistance(location.getYaw(), yaw))) {
                 return ValidationViolationContext.PASS.copy().terminate().build();

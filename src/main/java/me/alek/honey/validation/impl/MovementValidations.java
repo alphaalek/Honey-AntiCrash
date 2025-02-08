@@ -6,21 +6,19 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.processor.ListenerPriority;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedChunkCoordinates;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.MovementPacketWrapper;
 import me.alek.honey.netty.packetwrappers.impl.play.server.WrappedPlayOutPosition;
+import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.statics.LocationUtils;
 import me.alek.honey.validation.*;
-import me.alek.honey.validation.PacketValidation;
-import me.alek.honey.validation.ViolationValidation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -30,12 +28,15 @@ import java.util.function.Function;
 
 public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends AbstractValidationPacketListener<WP> {
 
-    private static final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
-    private static final Map<UUID, Location> lastPacketLocation = new HashMap<>();
-    private static final Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(null);
+    private static final Location ORIGIN_LOCATION = WrappedBlockPosition.ORIGIN.toLocation(null);
+
+    public static MovementValidations<?> INSTANCE;
+    private final Map<UUID, Location> lastTeleportationLocationMap = new HashMap<>();
+    private final Map<UUID, Location> lastPacketLocation = new HashMap<>();
 
     public MovementValidations(PacketLibrary library) {
         super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        INSTANCE = this;
         HoneyPlugin.get().getPacketLibrary().addListener(new PacketListenerAdapter.InboundCommon<WrappedPlayOutPosition>() {
 
             @Override
@@ -62,21 +63,14 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context) {
         Location currentLoc = packet.getAnyWrapped().getLocation(player.getWorld());
-        Location lastLoc = lastPacketLocation.getOrDefault(player.uuid, currentLoc);
+        Location lastLoc = this.lastPacketLocation.getOrDefault(player.uuid, currentLoc);
 
-        // check if the packet has any valid location to be checked, or just origin location
-        // if it does, ignore this packet and avoid adding this location to the last packet location lookup
-        if (LocationUtils.compareLocation(currentLoc, originLocation)) {
+        if (LocationUtils.compareLocation(currentLoc, ORIGIN_LOCATION)) {
             return false;
         }
-        lastPacketLocation.put(player.uuid, currentLoc);
+        this.lastPacketLocation.put(player.uuid, currentLoc);
 
-        // check if the player has moved since last packet
-        if (LocationUtils.compare3DLocation(currentLoc, lastLoc)) {
-            return false;
-        }
-
-        // share this last location with the pipeline, so the checks can take use of it
+        // share this last location with the pipeline
         context.putLocation(lastLoc);
 
         context.getCallback().addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
@@ -96,6 +90,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         return true;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
         return ValidationPipeline.from(new MovementA<>(), new MovementB<>(), new MovementC<>(), new MovementD<>(), new MovementE<>(),
@@ -104,12 +99,12 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     @Override
     public void cleanup(HoneyPlayer player) {
-        lastPacketLocation.remove(player.uuid);
-        lastTeleportationLocationMap.remove(player.uuid);
+        this.lastPacketLocation.remove(player.uuid);
+        this.lastTeleportationLocationMap.remove(player.uuid);
     }
 
-    public static Location getLastLocationFor(HoneyPlayer player) {
-        return lastPacketLocation.getOrDefault(player.uuid, player.getLocation());
+    public Location getLastLocationFor(HoneyPlayer player) {
+        return this.lastPacketLocation.getOrDefault(player.uuid, player.getLocation());
     }
 
     public static boolean isChunkLoaded(Location location) {
@@ -130,9 +125,9 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         return new WrappedChunkCoordinates(x, z, world -> isChunkLoaded(world, x, z));
     }
 
-    public static boolean isAnyLatelyTeleportationLocationsCloseTo(HoneyPlayer player, double diff, Function<Location, Double> distanceFunction) {
-        if (lastTeleportationLocationMap.containsKey(player.uuid)) {
-            Location lastTeleportationLocation = lastTeleportationLocationMap.get(player.uuid);
+    public boolean isAnyLatelyTeleportationLocationsCloseTo(HoneyPlayer player, double diff, Function<Location, Double> distanceFunction) {
+        if (this.lastTeleportationLocationMap.containsKey(player.uuid)) {
+            Location lastTeleportationLocation = this.lastTeleportationLocationMap.get(player.uuid);
             double distance = distanceFunction.apply(lastTeleportationLocation);
 
             return distance != -1 && distance < diff;
@@ -148,8 +143,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
-            if (packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
-                    && packet.getType() != PacketTypes.Play.Client.GROUND) {
+            if (packet.getType() == PacketTypes.Play.Client.PLAYER_POSITION || packet.getType() == PacketTypes.Play.Client.PLAYER_POS_ROT) {
                 return ValidationViolationContext.PASS;
             }
 
@@ -196,7 +190,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
             Location loc = packet.getLocation(player.getWorld());
             Location lastKnownLocation = context.getLocation(0);
 
-            if (isAnyLatelyTeleportationLocationsCloseTo(
+            if (INSTANCE.isAnyLatelyTeleportationLocationsCloseTo(
                     player, getSetting().max,
                     l -> LocationUtils.calculate3DDistance(l, loc))) {
                 return ValidationViolationContext.PASS.copy().skip(3).build();
@@ -212,9 +206,9 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                 ValidationViolationContext.Builder builder = ValidationViolationContext.Builder.validate();
 
                 if (distance2d >= getSetting().max && distance2d != 0) {
-                    final String x = format(lastKnownLocation.getX());
-                    final String y = format(lastKnownLocation.getY());
-                    final String z = format(lastKnownLocation.getZ());
+                    String x = format(lastKnownLocation.getX());
+                    String y = format(lastKnownLocation.getY());
+                    String z = format(lastKnownLocation.getZ());
 
                     builder.add(
                             ValidationViolationContext.Builder.validate().cancel().flag().withViolationKey(XZKey)
@@ -230,9 +224,9 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                 }
 
                 if (distanceY >= getSetting().max && distanceY != 0) {
-                    final String x = format(lastKnownLocation.getX());
-                    final String y = format(lastKnownLocation.getY());
-                    final String z = format(lastKnownLocation.getZ());
+                    String x = format(lastKnownLocation.getX());
+                    String y = format(lastKnownLocation.getY());
+                    String z = format(lastKnownLocation.getZ());
 
                     builder.add(
                             ValidationViolationContext.Builder.validate().cancel().flag().withViolationKey(YKey)
@@ -298,11 +292,11 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
                 Location loc = packet.getLocation(player.getWorld());
                 // ignores packets close to the recent flag
-                if (lastFlaggedLocation != null
+                if (this.lastFlaggedLocation != null
                         && LocationUtils.calculate3DDistance(lastFlaggedLocation, loc) < 1) {
                     return ValidationViolationContext.PASS;
                 }
-                lastFlaggedLocation = loc;
+                this.lastFlaggedLocation = loc;
 
                 double priorDistance = LocationUtils.calculate3DDistance(priorLocation, loc);
                 return ValidationViolationContext.Builder.validate().flag(Math.min(10, priorDistance)).build();
@@ -343,14 +337,14 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
             // gets the chunk of the player's location which should be compared to the last chunk of the player, and this way
             // consider if the player is moving too fast around the map and loading excessively chunks
             WrappedChunkCoordinates chunk = getChunkAt(packet.getLocation(player.getWorld()));
-            boolean equalsChunk = chunk.equals(lastChunk);
-            boolean equalsPreviousChunk = chunk.equals(lastChunkCameFrom);
+            boolean equalsChunk = chunk.equals(this.lastChunk);
+            boolean equalsPreviousChunk = chunk.equals(this.lastChunkCameFrom);
 
             int skip = equalsChunk || equalsPreviousChunk ? 1 : chunk.isLoaded(player.getWorld()) ? 1 : 0;
 
             if (!equalsChunk) {
-                lastChunkCameFrom = lastChunk;
-                lastChunk = chunk;
+                this.lastChunkCameFrom = this.lastChunk;
+                this.lastChunk = chunk;
             }
 
             // if the setting is disabled, we will just return SUCCESS
@@ -359,7 +353,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
             if (!getSetting().isEnabled()
                     || equalsChunk
                     || equalsPreviousChunk
-                    || lastChunkCameFrom == null) {
+                    || this.lastChunkCameFrom == null) {
                 return ValidationViolationContext.PASS.copy().skip(skip).build();
             }
 
@@ -425,7 +419,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
         private static final int id = IDRegistry.VALIDATION.acquire();
 
-        private static final Map<Direction, Axis> axisLookup = new EnumMap<>(Direction.class);
+        private static final Map<Direction, Axis> AXISES = new EnumMap<>(Direction.class);
 
         private enum Direction {
             UP, DOWN, NORTH, SOUTH, WEST, EAST, STILL
@@ -456,8 +450,8 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
         static {
             for (Axis axis : Axis.values()) {
-                axisLookup.put(axis.opp1, axis);
-                axisLookup.put(axis.opp2, axis);
+                AXISES.put(axis.opp1, axis);
+                AXISES.put(axis.opp2, axis);
             }
         }
 
@@ -488,7 +482,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
                 Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation(player.getWorld()));
                 Direction[] priorVelocity = lastDirectionFlow;
-                lastDirectionFlow = velocity;
+                this.lastDirectionFlow = velocity;
                 if (priorVelocity == null) {
                     return ValidationViolationContext.PASS;
                 }
@@ -501,7 +495,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                         continue;
                     }
 
-                    Axis axis = axisLookup.get(dir);
+                    Axis axis = AXISES.get(dir);
                     if (corr.equals(axis.getOther(dir))) {
                         builder.add(
                                 ValidationViolationContext.Builder.validate().flag()
@@ -593,7 +587,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
                 ValidationViolationContext.Builder builder = ValidationViolationContext.Builder.validate();
 
-                if (lastDeltaY == deltaY && deltaY > 0) {
+                if (this.lastDeltaY == deltaY && deltaY > 0) {
                     builder.add(
                             context.put(ValidationViolationContext.class,
                                     ValidationViolationContext.Builder.validate().flag()
@@ -602,7 +596,7 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                             )
                     );
                 }
-                if (lastDelta2D == delta2D && delta2D > 0) {
+                if (this.lastDelta2D == delta2D && delta2D > 0) {
                     builder.add(
                             context.put(ValidationViolationContext.class,
                                     ValidationViolationContext.Builder.validate().flag()
@@ -612,8 +606,8 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                     );
                 }
 
-                lastDeltaY = deltaY;
-                lastDelta2D = delta2D;
+                this.lastDeltaY = deltaY;
+                this.lastDelta2D = delta2D;
 
                 return builder.build();
             }

@@ -32,7 +32,7 @@ public class ByteInWrappedPacket<WP extends SourcedWrappedPacket<WP>> implements
         this.state = packet.getPipelineState();
         this.byteSize = buf.readableBytes();
 
-        if (packet.getInitialByteWrapped() == null) {
+        if (packet.getAnyByteWrapped() == null) {
             int start = buf.readerIndex(), accumulated = 0, prevByte = 0, doubleSequences = 0;
             while (buf.isReadable()) {
                 byte b = buf.readByte();
@@ -46,8 +46,8 @@ public class ByteInWrappedPacket<WP extends SourcedWrappedPacket<WP>> implements
             this.accumulatedByteSize = accumulated;
             this.doubleByteSequences = doubleSequences;
         } else {
-            this.accumulatedByteSize = packet.getInitialByteWrapped().getAccumulatedByteSize();
-            this.doubleByteSequences = packet.getInitialByteWrapped().getDoubleByteSequences();
+            this.accumulatedByteSize = packet.getAnyByteWrapped().getAccumulatedByteSize();
+            this.doubleByteSequences = packet.getAnyByteWrapped().getDoubleByteSequences();
         }
     }
 

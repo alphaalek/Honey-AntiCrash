@@ -74,6 +74,11 @@ public class ComplexTagVisitor extends TagVisitor.In.Adapter {
     }
 
     @Override
+    public NetProtocol protocolCreated() {
+        return this.delegate.protocolCreated();
+    }
+
+    @Override
     public boolean replacedByRegistried() {
         return this.delegate.replacedByRegistried();
     }

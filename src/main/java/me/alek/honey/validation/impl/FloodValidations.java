@@ -71,6 +71,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         lastSetCreativeSlot.remove(player.uuid);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ValidationPipeline<PacketValidation<WP>> createValidationPipeline() {
         return ValidationPipeline.from(new FloodA<>(), new FloodB<>(), new FloodC<>(), new FloodD<>());

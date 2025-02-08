@@ -327,7 +327,7 @@ netty:
     enabled: true
   d:
     enabled: true
-    threshold: 30000
+    threshold: 40000
   e:
     enabled: true
     until: 85000
@@ -336,25 +336,23 @@ netty:
     decay-amount: 8000
   f:
     enabled: true
-    until: 5500000
-    threshold: 1200000
+    until: 5000000
+    threshold: 4000000
     decay: 650
-    decay-amount: 350000
+    decay-amount: 1000000
   g:
     enabled: true
-    threshold: 700000
+    threshold: 3500000
   h:
     enabled: true
     threshold: 500
   i:
     enabled: true
-    until: 1000
-    threshold: 600
+    until: 1200
+    threshold: 700
     decay: 150
     decay-amount: 500
     vls-amount: 5
-  j:
-    enabled: false # moved to execution postpone check
   k:
     enabled: true
     throttle-after: 500

@@ -133,7 +133,7 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
                     Bukkit.getLogger().log(Level.WARNING,
-                            "Error occurred while encoding packet " + packet.getType() + " (id " + packet.getType().getMinecraftID().get()
+                            "Error occurred while encoding packet " + packet.getType() + " (id " + packet.getType().getID()
                                     + ") sent by " + this.player.name, ex);
                 }
                 promise.setSuccess();

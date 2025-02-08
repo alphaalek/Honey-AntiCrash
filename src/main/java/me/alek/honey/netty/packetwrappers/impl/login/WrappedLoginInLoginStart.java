@@ -24,9 +24,9 @@ public class WrappedLoginInLoginStart extends ByteInWrappedPacket<WrappedLoginIn
 
     public WrappedLoginInLoginStart(PacketDataSerializer serializer, PacketContainer<WrappedLoginInLoginStart> packet) {
         super(serializer, packet);
+        NetProtocol protocol = getProtocol();
 
         this.username = serializer.readString(USERNAME_MAX_LENGTH);
-        NetProtocol protocol = packet.getProtocol();
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_19)) {
             if (protocol.isOlderThanOrEqual(NetProtocol.v1_19_3) && serializer.readBoolean()) {
                 this.signatureData = new SignatureData(

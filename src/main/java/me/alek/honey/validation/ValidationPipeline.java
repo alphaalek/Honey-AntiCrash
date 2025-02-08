@@ -28,7 +28,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
 
     public static void applyPacketDevelopmentData(ValidationPipelineContext.DevelopmentData data, HoneyPlayer player, PacketType type, int bytes) {
         data.addEmpty();
-        data.addValue(" Packet", type + " (id " + type.getMinecraftID().get() + ")");
+        data.addValue(" Packet", type + " (id " + type.getID() + ")");
         data.addValue(" Buffer", bytes + " bytes");
         data.addValue(" Version", Bukkit.getServer().getVersion());
         data.removeLastInternalData();

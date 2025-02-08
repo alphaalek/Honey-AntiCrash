@@ -17,12 +17,12 @@ public class PacketLifecycleTimings {
     }
 
     public synchronized void startTimings(LifecycleState state, long time) {
-        if (currentState != LifecycleState.NO_STATE) {
+        if (this.currentState != LifecycleState.NO_STATE) {
             stopTimings();
         }
 
-        currentStateStart = time;
-        currentState = state;
+        this.currentStateStart = time;
+        this.currentState = state;
     }
 
     public void stopTimings() {
@@ -30,23 +30,23 @@ public class PacketLifecycleTimings {
     }
 
     public synchronized void stopTimings(long time) {
-        if (currentState == LifecycleState.NO_STATE) {
+        if (this.currentState == LifecycleState.NO_STATE) {
             return;
         }
 
-        long deltaTime = time - currentStateStart;
-        times[currentState.ordinal()] = getTimeFor(currentState) + deltaTime;
-        totalTime += deltaTime;
+        long deltaTime = time - this.currentStateStart;
+        this.times[this.currentState.ordinal()] = getTimeFor(this.currentState) + deltaTime;
+        this.totalTime += deltaTime;
 
-        currentState = LifecycleState.NO_STATE;
+        this.currentState = LifecycleState.NO_STATE;
     }
 
     public long getTotalTime() {
-        return totalTime;
+        return this.totalTime;
     }
 
     public long getTimeFor(LifecycleState state) {
-        return times[state.ordinal()];
+        return this.times[state.ordinal()];
 }
 
     public double getTimeForMillis(LifecycleState state) {
@@ -62,6 +62,6 @@ public class PacketLifecycleTimings {
     }
 
     public LifecycleState getCurrentState() {
-        return currentState;
+        return this.currentState;
     }
 }

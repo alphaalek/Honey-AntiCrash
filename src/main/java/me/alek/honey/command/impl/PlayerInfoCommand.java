@@ -1,11 +1,10 @@
 package me.alek.honey.command.impl;
 
-import io.netty.channel.socket.DatagramChannel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.Notifications;
 import me.alek.honey.command.CommandImpl;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.Notifications;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.command.CommandSender;
 

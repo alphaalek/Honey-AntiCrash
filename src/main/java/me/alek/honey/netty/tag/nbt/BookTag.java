@@ -28,9 +28,9 @@ public class BookTag {
             CompoundTag nbt = tag.asNBT().get();
             if (nbt.hasKeyOfType(PAGES, TagTypeCollection.getCollection(TagTypeCollection.ARRAY))) {
                 ArrayTag<String> pages = nbt.getArrayOf(PAGES, TagType.STRING);
-                int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(context.protocol());
+                int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(context.protocolCreated());
                 if (pages.size() > max) {
-                    throw new IllegalStateException("Too many pages: " + pages.size() + ", limit: " + max);
+                    throw new DecoderException("Too many pages: " + pages.size() + ", limit: " + max);
                 }
             }
 

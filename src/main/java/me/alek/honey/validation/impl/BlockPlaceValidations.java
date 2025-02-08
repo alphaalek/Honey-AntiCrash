@@ -42,10 +42,9 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
     }
 
     public static ValidationViolationContext checkExceedingMaxDistance(HoneyPlayer player, ViolationKey key, WrappedBlockPosition blockPosition, int maxDistance, ValidationPipelineContext context) {
-
         // check if the block position is close to the origin block position, just ignore this packet if it is
         Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
-        Location lastPlayerLocation = MovementValidations.getLastLocationFor(player);
+        Location lastPlayerLocation = MovementValidations.INSTANCE.getLastLocationFor(player);
 
         if (blockPosition.distance(originLocation) < 10
                 && LocationUtils.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
@@ -61,7 +60,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         }
 
         // checks distance between the player and the block placed
-        Location playerLocation = MovementValidations.getLastLocationFor(player);
+        Location playerLocation = MovementValidations.INSTANCE.getLastLocationFor(player);
         if (playerLocation == null) {
             playerLocation = player.getLocation();
         }
@@ -70,7 +69,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
         // the distance is higher than the recent client location
         if (distance == -1 ||
-                distance > maxDistance && !MovementValidations.isAnyLatelyTeleportationLocationsCloseTo(
+                distance > maxDistance && !MovementValidations.INSTANCE.isAnyLatelyTeleportationLocationsCloseTo(
                         player, maxDistance, blockPosition::distance)) {
 
             // add the distance to the development data

@@ -198,6 +198,7 @@ public class Array<T> implements Iterable<T> {
         return get(0);
     }
 
+    @SuppressWarnings("unchecked")
     public Optional<T> getIfSet(int index) {
         if (!has(index)) {
             return Optional.empty();
@@ -214,6 +215,7 @@ public class Array<T> implements Iterable<T> {
         return isEmpty() ? null : get(data.length - 1);
     }
 
+    @SuppressWarnings("unchecked")
     public T get(int index, Supplier<T> or) {
         if (!has(index) && or == null) {
             return null;

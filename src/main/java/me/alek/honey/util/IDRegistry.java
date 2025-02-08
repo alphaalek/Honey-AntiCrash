@@ -8,7 +8,7 @@ public class IDRegistry {
     /* pre-made ID registries */
     public static final IDRegistry VALIDATION = new IDRegistry();
     public static final IDRegistry TRACKER_CONTEXT = new IDRegistry();
-    public static final IDRegistry PLAYERS = new IDRegistry();
+    public static final IDRegistry PLAYER = new IDRegistry();
 
     private static final int EMPTY = -1;
 

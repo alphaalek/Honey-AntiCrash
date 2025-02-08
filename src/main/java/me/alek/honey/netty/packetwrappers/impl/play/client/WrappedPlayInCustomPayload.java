@@ -65,6 +65,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         private final PacketDataSerializer serializer;
         private final PacketContainer<WP> packet;
         private final NetProtocol protocol;
+        private final NetProtocol protocolCreated;
         private final boolean signing;
         private LazyInit<WrappedImmutableItemStack> bookChannelItemStack;
 
@@ -72,7 +73,8 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
             this.channel = channel;
             this.serializer = serializer;
             this.packet = packet;
-            this.protocol = packet.getProtocol();
+            this.protocol = source.getProtocol();
+            this.protocolCreated = source.getProtocolCreated();
             this.signing = this.channel.equals(SIGN_BOOK_CHANNEL);
 
             if (this.protocol.isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
@@ -81,11 +83,11 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
         }
 
         private WrappedImmutableItemStack readItemStack(PacketDataSerializer serializer) {
-            EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(this.protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(this.protocol);
+            EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(this.protocol, this.protocolCreated, true, packet.getPlayerName()) : EditBookTagVisitor.of(this.protocol, this.protocolCreated);
             WrappedImmutableItemStack stack = serializer.readItemStack(visitor, 0); // no need to read safely, because we applied the edit book tag visitor
-            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(serializer, this.packet, this.signing));
+            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.from(serializer, this.packet, this.signing));
 
-            HoneyPacketCodec.checkReadable(this.protocol, this.packet.getType(), Optional.ofNullable(this.packet.getObjectWrapped()).map(WrappedObject::getHandle).orElse(null), serializer);
+            HoneyPacketCodec.checkReadable(this.protocolCreated, this.packet.getType(), Optional.ofNullable(this.packet.getObjectWrapped()).map(WrappedObject::getHandle).orElse(null), serializer);
 
             applyTagLegacy(stack, this.signing);
             return stack;

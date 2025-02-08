@@ -95,7 +95,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
                     Bukkit.getLogger().log(Level.WARNING,
-                            "Error occurred while decoding packet " + earlyPacket.getType() + " (id " + earlyPacket.getType().getMinecraftID().get()
+                            "Error occurred while decoding packet " + earlyPacket.getType() + " (id " + earlyPacket.getType().getID()
                                     + ") sent by " + this.player.name + ", " + Optional.ofNullable(earlyPacket.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
@@ -137,6 +137,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             try {
                 super.exceptionCaught(ctx, ex);
             } catch (Exception ignored) {
+                // to do nothing
             }
 
             stopTimings(earlyPacket);
@@ -197,9 +198,10 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketContainer<?> packet = null;
+        PacketType type = null;
         try {
             packet = InboundPacketFilter.MARK.get();
-            PacketType type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, false);
+            type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, false);
 
             if (packet == null || !packet.getType().equals(type)) {
                 // this packet is not sent by the client (because it was not received by the filter),
@@ -255,9 +257,10 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                 return true;
             }
         } catch (Exception ex) {
-            if (packet != null && HoneyPlugin.get().getLogger().isDebug()) {
+            if (HoneyPlugin.get().getLogger().isDebug()) {
+                type = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);
                 Bukkit.getLogger().log(Level.WARNING,
-                        "Error occurred while handling packet " + packet.getType() + " (id " + Optional.ofNullable(packet.getType()).map(t -> t.getMinecraftID().get()).orElse(-1)
+                        "Error occurred while handling packet " + type + " (id " + type.getID()
                                 + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
             }
             serializer.release();

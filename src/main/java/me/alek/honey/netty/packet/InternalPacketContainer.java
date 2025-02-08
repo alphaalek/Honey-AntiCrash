@@ -20,6 +20,7 @@ import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.impl.NettyDecodeValidations;
 
+import javax.xml.transform.Source;
 import java.util.Optional;
 
 public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> extends PacketContainerLifecycle<WP> implements PacketContainer<WP> {
@@ -36,7 +37,6 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     private final HoneyPlayer player;
     private final long timeCreated = System.currentTimeMillis();
     private final PacketLifecycleTimings eventLoopStateTracker = new PacketLifecycleTimings();
-    private final Callback serverCallback = new Callback();
 
     public InternalPacketContainer(Object handle, HoneyPlayer player, PacketType type, Callback postAction) {
         this(PipelineState.OBJECT, null, player, type, postAction);
@@ -54,36 +54,41 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         applyPostActions();
 
         this.createdPipelineState = this.pipelineState = createdState;
-        if (serializer != null && createdState != PipelineState.OBJECT && !PacketTypes.isUnknown(type)
+        if (serializer != null && !createdState.equals(PipelineState.OBJECT) && !PacketTypes.isUnknown(type)
                 && (this.initialByteWrapped == null || !this.initialByteWrapped.isAbstract())
                 && (this.finalByteWrapped == null || !this.finalByteWrapped.isAbstract())) {
-            ByteInWrappedPacket<WP> byteWrappedPacket = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
-
-            boolean validate = this.initialByteWrapped == null && this.finalByteWrapped == null;
-            if (createdState == PipelineState.INITIAL_BYTE) {
-                this.initialByteWrapped = byteWrappedPacket;
-            } else if (createdState == PipelineState.FINAL_BYTE) {
-                this.finalByteWrapped = byteWrappedPacket;
+            // validate this buffer
+            if (this.initialByteWrapped == null && this.finalByteWrapped == null) {
+                ByteInWrappedPacket<WP> pre = new ByteInWrappedPacket<>(serializer, this);
+                if (createdState.equals(PipelineState.INITIAL_BYTE)) {
+                    this.initialByteWrapped = pre;
+                } else if (createdState.equals(PipelineState.FINAL_BYTE)) {
+                    this.finalByteWrapped = pre;
+                }
+                validateBytePacket(pre);
             }
-            if (validate) {
-                validateBytePacket(byteWrappedPacket);
+
+            // construct the wrapped packet buffer
+            ByteInWrappedPacket<WP> byteWrappedPacket = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
+            if (createdState.equals(PipelineState.INITIAL_BYTE)) {
+                this.initialByteWrapped = byteWrappedPacket;
+            } else if (createdState.equals(PipelineState.FINAL_BYTE)) {
+                this.finalByteWrapped = byteWrappedPacket;
             }
         }
     }
 
     private void validateBytePacket(ByteInWrappedPacket<WP> packet) {
-        if (this.initialByteWrapped == null && this.finalByteWrapped == null) {
-            ValidationPipelineContext context = new ValidationPipelineContext(true);
-            ValidationPipeline.applyCallbackDevelopmentData(this, context);
-            NettyDecodeValidations.BYTE_FILTER_PIPELINE.doStream(
-                    this.player,
-                    context,
-                    (validation, __) -> validation.validate(this.player, packet, context),
-                    this
-            );
-            if (this.cancelled) {
-                throw new DecoderException("Failed byte filter validation");
-            }
+        ValidationPipelineContext context = new ValidationPipelineContext(true);
+        ValidationPipeline.applyCallbackDevelopmentData(this, context);
+
+        NettyDecodeValidations.BYTE_FILTER_PIPELINE.doStream(
+                this.player,
+                context,
+                (validation, __) -> validation.validate(this.player, packet, context),
+                this);
+        if (this.cancelled) {
+            throw new DecoderException("Failed byte filter validation");
         }
     }
 
@@ -148,11 +153,13 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
-    public NetProtocol getProtocol() { // TODO: make a getProtocolCreated() ?
-        if (!this.callingLateInitialByteWrapped && this.pipelineState == PipelineState.INITIAL_BYTE && this.player.clientInfo != null) {
-            return this.player.clientInfo.getProtocol(); // use the client version to check for different protocols
+    public NetProtocol getProtocol() {
+        if (!this.callingLateInitialByteWrapped && this.pipelineState == PipelineState.INITIAL_BYTE && !getState().equals(PacketState.HANDSHAKE)) {
+            // use the client-side protocol
+            return getProtocolCreated();
         } else {
-            return NetProtocol.getProtocol(); // if modified by ViaVersion, using either client or server should read same packet data
+            // if modified by ViaVersion (or not) at this state, using either client or server should read same packet data
+            return NetProtocol.getProtocol();
         }
     }
 
@@ -248,9 +255,9 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     @Override
     public ByteInWrappedPacket<WP> getAnyByteWrapped() {
-        if (this.initialByteWrapped != null && !this.initialByteWrapped.getClass().equals(ByteInWrappedPacket.class)) {
+        if (this.initialByteWrapped != null && this.initialByteWrapped.isAbstract()) {
             return this.initialByteWrapped;
-        } else if (this.finalByteWrapped != null && !this.finalByteWrapped.getClass().equals(ByteInWrappedPacket.class)) {
+        } else if (this.finalByteWrapped != null && this.finalByteWrapped.isAbstract()) {
             return this.finalByteWrapped;
         } else {
             if (this.initialByteWrapped != null) {
@@ -258,43 +265,31 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
             } else if (this.finalByteWrapped != null) {
                 return this.finalByteWrapped;
             } else {
-                throw new IllegalStateException();
+                return null;
             }
         }
     }
 
     @Override
     public WP getAnyWrapped() {
-        // TODO: settings to prioritize order (choose which pipeline state to log)
-        if (this.objectWrapped != null && !this.objectWrapped.getClass().equals(ObjectWrappedPacket.class)) {
+        if (this.objectWrapped != null && this.objectWrapped.isAbstract()) {
             return this.objectWrapped.get();
-        } else if (this.finalByteWrapped != null && !this.finalByteWrapped.getClass().equals(ByteInWrappedPacket.class)) {
+        } else if (this.finalByteWrapped != null && this.finalByteWrapped.isAbstract()) {
             return this.finalByteWrapped.get();
-        } else if (this.initialByteWrapped != null && !this.initialByteWrapped.getClass().equals(ByteInWrappedPacket.class)) {
+        } else if (this.initialByteWrapped != null && this.initialByteWrapped.isAbstract()) {
             return this.initialByteWrapped.get();
         } else {
-            // none of the wrapped packets are specific, just return any abstract instance
-
-            // the abstract object wrapped is prioritized first because packet logging needs an object instance to read properties
-            if (this.objectWrapped != null) {
-                return this.objectWrapped.get();
-            } else if (this.finalByteWrapped != null) {
-                return this.finalByteWrapped.get();
-            } else if (this.initialByteWrapped != null) {
-                return this.initialByteWrapped.get();
-            } else {
-                throw new IllegalStateException();
-            }
+            throw new IllegalStateException();
         }
     }
 
     @Override
     public WP getCurrentWrapped() {
-        if (this.pipelineState.equals(PipelineState.OBJECT)) {
+        if (this.pipelineState.equals(PipelineState.OBJECT) && this.objectWrapped.isAbstract()) {
             return this.objectWrapped.get();
-        } else if (this.pipelineState.equals(PipelineState.FINAL_BYTE)) {
+        } else if (this.pipelineState.equals(PipelineState.FINAL_BYTE) && this.finalByteWrapped.isAbstract()) {
             return this.finalByteWrapped.get();
-        } else if (this.pipelineState.equals(PipelineState.INITIAL_BYTE)) {
+        } else if (this.pipelineState.equals(PipelineState.INITIAL_BYTE) && this.initialByteWrapped.isAbstract()) {
             return this.initialByteWrapped.get();
         } else {
             throw new IllegalStateException();

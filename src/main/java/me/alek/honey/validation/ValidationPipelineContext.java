@@ -38,27 +38,27 @@ public class ValidationPipelineContext {
         private final List<String> internalData = new ArrayList<>();
 
         public int size() {
-            return developmentDataSet.size();
+            return this.developmentDataSet.size();
         }
 
         public void addInternalData(String data) {
-            internalData.add(data);
+            this.internalData.add(data);
         }
 
         public void removeLastInternalData() {
-            internalData.remove(internalData.size() - 1);
+            this.internalData.remove(this.internalData.size() - 1);
         }
 
         public List<String> getInternalData() {
-            return internalData;
+            return this.internalData;
         }
 
         public void addText(String line) {
-            developmentDataSet.add(line);
+            this.developmentDataSet.add(line);
         }
 
         public void setText(int index, String line) {
-            developmentDataSet.set(index, line);
+            this.developmentDataSet.set(index, line);
         }
 
         public void addEmpty() {
@@ -106,14 +106,14 @@ public class ValidationPipelineContext {
         }
 
         public List<String> getDataSet() {
-            return developmentDataSet;
+            return this.developmentDataSet;
         }
 
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
 
-            for (String data : internalData) {
+            for (String data : this.internalData) {
                 builder.append(data.trim()).append(", ");
             }
             return builder.substring(0, builder.length() - 1);
@@ -228,8 +228,9 @@ public class ValidationPipelineContext {
         return structure.get(index);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> ContainerStructure<T> getStructure(int index) {
-        return (ContainerStructure<T>) dataContextStorage.get(index, () -> new ContainerStructure<>());
+        return (ContainerStructure<T>) this.dataContextStorage.get(index, ContainerStructure::new);
     }
 
     public static final class ContainerStructure<T> {
@@ -237,13 +238,11 @@ public class ValidationPipelineContext {
         private final Array<T> values = new Array<>();
 
         public void add(T value) {
-            values.add(value);
+            this.values.add(value);
         }
 
         public T get(int index) {
-            if (!values.has(index)) return null;
-
-            return values.get(index);
+            return this.values.getOr(index, () -> null);
         }
     }
 }

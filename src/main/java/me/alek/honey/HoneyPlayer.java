@@ -39,7 +39,6 @@ public class HoneyPlayer implements IntIdentifiable {
     }
 
     private static final Map<UUID, HoneyPlayer> HONEY_PLAYER_LOOKUP = new HashMap<>();
-    private static final Array<HoneyPlayer> PLAYERS = new Array<>();
 
     public static void register(HoneyPlayer honeyPlayer, Player player) {
         HONEY_PLAYER_LOOKUP.put(player.getUniqueId(), honeyPlayer);
@@ -56,7 +55,7 @@ public class HoneyPlayer implements IntIdentifiable {
     private static final String DISCONNECTED = "Disconnected";
 
     public final Channel channel;
-    public final int registryID = IDRegistry.PLAYERS.acquire();
+    public final int registryID = IDRegistry.PLAYER.acquire();
     public final long tickInitialized = HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick();
 
     public Player bukkit;
@@ -92,7 +91,6 @@ public class HoneyPlayer implements IntIdentifiable {
     );
 
     public HoneyPlayer(Channel channel, HoneyPacketHandler handler) {
-        PLAYERS.set(this.registryID, this);
         this.channel = channel;
         this.packetHandler = handler;
 
@@ -126,8 +124,7 @@ public class HoneyPlayer implements IntIdentifiable {
 
     public synchronized void remove() {
         HONEY_PLAYER_LOOKUP.remove(this.uuid);
-        PLAYERS.remove(this.registryID);
-        IDRegistry.PLAYERS.remove(this.registryID);
+        IDRegistry.PLAYER.remove(this.registryID);
 
         this.phase = Phase.OFFLINE;
 

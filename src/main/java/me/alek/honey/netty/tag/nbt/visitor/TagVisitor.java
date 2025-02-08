@@ -108,11 +108,16 @@ public interface TagVisitor extends CodecVisitor {
 
     interface In extends TagVisitor {
 
-        static TagVisitor.In createDefault(NetProtocol protocol, boolean replacedByRegistered) {
+        static TagVisitor.In createDefault(NetProtocol protocol, NetProtocol protocolCreated, boolean replacedByRegistered) {
             return new Adapter() {
                 @Override
                 public NetProtocol protocol() {
                     return protocol;
+                }
+
+                @Override
+                public NetProtocol protocolCreated() {
+                    return protocolCreated;
                 }
 
                 @Override
@@ -247,11 +252,16 @@ public interface TagVisitor extends CodecVisitor {
 
     interface Out extends TagVisitor {
 
-        static TagVisitor.Out createDefault(NetProtocol protocol, boolean replaceByRegistered) {
+        static TagVisitor.Out createDefault(NetProtocol protocol, NetProtocol protocolCreated, boolean replaceByRegistered) {
             return new Adapter() {
                 @Override
                 public NetProtocol protocol() {
                     return protocol;
+                }
+
+                @Override
+                public NetProtocol protocolCreated() {
+                    return protocolCreated;
                 }
 
                 @Override

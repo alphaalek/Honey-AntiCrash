@@ -6,11 +6,9 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.impl.login.WrappedLoginInLoginStart;
 import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -32,6 +30,14 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
     void callLateInitialByteListeners(PacketDataSerializer serializer);
 
     NetProtocol getProtocol();
+
+    default NetProtocol getProtocolCreated() {
+        if (!getState().equals(PacketState.HANDSHAKE)) {
+            return getPlayer().clientInfo.getProtocol();
+        } else {
+            return getProtocol();
+        }
+    }
 
     ObjectPacketStructure getStructure();
 

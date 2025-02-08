@@ -17,7 +17,7 @@ public interface SourcedWrappedPacket<WP extends SourcedWrappedPacket<WP>> exten
         exCallback.addAction(Callback.Action.<Throwable>from(ex -> {
             if (HoneyPlugin.get().getLogger().isDebug()) {
                 Bukkit.getLogger().log(Level.WARNING,
-                        "Error occurred while decoding packet " + getContainer().getType() + " (id " + getContainer().getType().getMinecraftID().get()
+                        "Error occurred while decoding packet " + getContainer().getType() + " (id " + getContainer().getType().getID()
                                 + ") sent by " + getPlayer().name, ex);
             }
 
@@ -28,6 +28,10 @@ public interface SourcedWrappedPacket<WP extends SourcedWrappedPacket<WP>> exten
 
     default NetProtocol getProtocol() {
         return getContainer().getProtocol();
+    }
+
+    default NetProtocol getProtocolCreated() {
+        return getContainer().getProtocolCreated();
     }
 
     boolean isAbstract();

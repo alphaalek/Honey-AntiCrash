@@ -76,12 +76,12 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public PacketDataSerializer writeItemStack(NetProtocol protocol, WrappedImmutableItemStack stack) throws EncoderException {
-        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(TagVisitor.Out.createDefault(protocol, true), null));
+        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(TagVisitor.Out.createDefault(protocol, protocol, true), null));
     }
 
     public WrappedImmutableItemStack readItemStack(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
         try {
-            return Optional.ofNullable(Types.ITEM_STACK.read(this, TypeSerializer.TypeContext.TwoArgs.of(visitor, DecodeContext.StackContext.of(this, visitor.protocol(), maxMissingBytes))))
+            return Optional.ofNullable(Types.ITEM_STACK.read(this, TypeSerializer.TypeContext.TwoArgs.of(visitor, DecodeContext.StackContext.from(this, visitor.protocol(), visitor.protocolCreated(), maxMissingBytes))))
                     .orElse(WrappedImmutableItemStack.AIR);
         } catch (DecoderException ex) {
             throw new StackDecodingException(ex);
@@ -96,7 +96,7 @@ public class PacketDataSerializer extends ByteBuf {
         WrappedImmutableItemStack stack = readItemStack(visitor, maxMissingBytes);
         if (stack != WrappedImmutableItemStack.AIR) {
             try {
-                CodecTypeValidation.ITEM_STACK.validate(stack, DecodeContext.from(this, visitor.protocol()));
+                CodecTypeValidation.ITEM_STACK.validate(stack, DecodeContext.from(this, visitor.protocol(), visitor.protocolCreated()));
             } catch (DecoderException ex) {
                 throw new StackDecodingException(ex);
             }
@@ -106,7 +106,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public WrappedImmutableItemStack readItemStackSafely(PacketContainer<?> packet, int maxMissingBytes) throws StackDecodingException {
-        return readItemStackSafely(TagVisitor.In.createDefault(packet.getProtocol(), true), maxMissingBytes);
+        return readItemStackSafely(TagVisitor.In.createDefault(packet.getProtocol(), packet.getProtocolCreated(), true), maxMissingBytes);
     }
 
     public WrappedImmutableItemStack readItemStackSafely(PacketContainer<?> packet) throws StackDecodingException {

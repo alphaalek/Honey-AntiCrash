@@ -41,24 +41,4 @@ public class BukkitEventInternal implements Listener {
                     () -> HoneyPlayer.kick(player, BROKEN_PIPE_KICK_MESSAGE));
         }
     }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onLoginDisallow(PlayerLoginEvent event) {
-        if (!event.getResult().equals(PlayerLoginEvent.Result.ALLOWED)) {
-            unregister(event.getPlayer());
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onQuit(PlayerQuitEvent event) {
-        unregister(event.getPlayer());
-    }
-
-    protected void unregister(Player player) {
-        HoneyPlayer honeyPlayer = HoneyPlayer.getPlayer(player.getUniqueId());
-        if (honeyPlayer != null) {
-            honeyPlayer.remove();
-        }
-        ChannelLookupSynchronizer.removeChannelLookup(player.getName());
-    }
 }

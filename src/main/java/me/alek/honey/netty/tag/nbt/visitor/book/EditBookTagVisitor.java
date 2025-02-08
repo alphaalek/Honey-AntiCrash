@@ -7,19 +7,19 @@ import me.alek.honey.util.protocol.NetProtocol;
 
 public class EditBookTagVisitor extends BookTagVisitor {
 
-    public static EditBookTagVisitor of(NetProtocol protocol, boolean signing, String signingUsername) {
-        return new EditBookTagVisitor(protocol, signing, signingUsername);
+    public static EditBookTagVisitor of(NetProtocol protocol, NetProtocol protocolCreated, boolean signing, String signingUsername) {
+        return new EditBookTagVisitor(protocol, protocolCreated, signing, signingUsername);
     }
 
-    public static EditBookTagVisitor of(NetProtocol protocol) {
-        return of(protocol, false, null);
+    public static EditBookTagVisitor of(NetProtocol protocol, NetProtocol protocolCreated) {
+        return of(protocol, protocolCreated, false, null);
     }
 
     private final boolean signing;
     private final String signingUsername;
 
-    public EditBookTagVisitor(NetProtocol protocol, boolean signing, String signingUsername) {
-        super(protocol, signing ? ItemTypes.WRITTEN_BOOK : ItemTypes.WRITABLE_BOOK);
+    public EditBookTagVisitor(NetProtocol protocol, NetProtocol protocolCreated, boolean signing, String signingUsername) {
+        super(protocol, protocolCreated, signing ? ItemTypes.WRITTEN_BOOK : ItemTypes.WRITABLE_BOOK);
         this.signing = signing;
         this.signingUsername = signingUsername;
     }

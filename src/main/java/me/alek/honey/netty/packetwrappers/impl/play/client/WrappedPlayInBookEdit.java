@@ -37,7 +37,8 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
 
     public WrappedPlayInBookEdit(PacketDataSerializer buf, PacketContainer<WrappedPlayInBookEdit> packet) {
         super(buf, packet);
-        NetProtocol protocol = packet.getProtocol();
+        NetProtocol protocol = getProtocol();
+        NetProtocol protocolCreated = getProtocolCreated();
 
         if (protocol.isOlderThanOrEqual(NetProtocol.v1_17)) {
             // we want to swap the field reading order of the packet, so we can find out if this book edit packet wants
@@ -60,11 +61,11 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
             this.signing = buf.getByte(buf.readableBytes() - 1) != 0;
             PacketDataSerializer itemBuf = new PacketDataSerializer(buf.readBytes(buf.readableBytes() - 2));
 
-            EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol);
+            EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, protocolCreated, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol, protocolCreated);
             WrappedImmutableItemStack stack = itemBuf.readItemStack(visitor, 0); // no need to read safely, because we applied the edit book tag visitor
-            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.of(buf, packet, this.signing));
+            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.from(buf, packet, this.signing));
 
-            HoneyPacketCodec.checkReadable(protocol, PacketTypes.Play.Client.BOOK_EDIT, null, itemBuf);
+            HoneyPacketCodec.checkReadable(protocolCreated, PacketTypes.Play.Client.BOOK_EDIT, null, itemBuf);
 
             // will always represent nbt as we are before or equal 1.17
             CompoundTag tag = stack.getTag().asNBT().get();
@@ -96,7 +97,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
                 this.author = packet.getPlayer().name;
             }
 
-            validateModernBookEdit(protocol, buf, packet);
+            validateModernBookEdit(protocolCreated, buf, packet);
         }
 
         if (this.slot < 0 || this.slot > 8) {
@@ -114,7 +115,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBook
                 tag.putPrimitive("author", TagType.STRING, this.author);
             }
 
-            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, DecodeContext.BookEditContext.of(serializer, packet, this.signing));
+            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, DecodeContext.BookEditContext.from(serializer, packet, this.signing));
         }
     }
 

@@ -48,6 +48,14 @@ public enum ValidationContainerRegistry {
         return validations;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <B extends BaseValidationContainer> B get(Class<? extends B> clazz) {
+        return (B) getValidations().stream()
+                .filter(b -> b.getClass().equals(clazz))
+                .findFirst()
+                .orElseThrow(IllegalStateException::new);
+    }
+
     private final Function<PacketLibrary, BaseValidationContainer> validation;
 
     ValidationContainerRegistry(Function<PacketLibrary, BaseValidationContainer> validation) {
