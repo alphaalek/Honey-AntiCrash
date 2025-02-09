@@ -62,16 +62,12 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WP> packet, ValidationPipelineContext context) {
-        Location currentLoc = packet.getAnyWrapped().getLocation(player.getWorld());
-        Location lastLoc = this.lastPacketLocation.getOrDefault(player.uuid, currentLoc);
+        Location currentLoc = packet.getCurrentWrapped().getLocation(player.getWorld());
 
         if (LocationUtils.compareLocation(currentLoc, ORIGIN_LOCATION)) {
             return false;
         }
         this.lastPacketLocation.put(player.uuid, currentLoc);
-
-        // share this last location with the pipeline
-        context.putLocation(lastLoc);
 
         context.getCallback().addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
@@ -185,10 +181,13 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
         private static final HoneyKey XZKey = HoneyKey.of(0, "2d");
         private static final HoneyKey YKey = HoneyKey.of(1, "y");
 
+        private Location lastLoc;
+
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             Location loc = packet.getLocation(player.getWorld());
-            Location lastKnownLocation = context.getLocation(0);
+            Location lastLoc = Optional.ofNullable(this.lastLoc).orElse(loc);
+            this.lastLoc = loc;
 
             if (INSTANCE.isAnyLatelyTeleportationLocationsCloseTo(
                     player, getSetting().max,
@@ -196,19 +195,19 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                 return ValidationViolationContext.PASS.copy().skip(3).build();
             }
 
-            double distance2d = LocationUtils.calculate2DDistance(loc, lastKnownLocation);
+            double distance2d = LocationUtils.calculate2DDistance(loc, lastLoc);
             context.putDouble(distance2d);
 
-            double distanceY = LocationUtils.calculateYDistance(loc, lastKnownLocation);
+            double distanceY = LocationUtils.calculateYDistance(loc, lastLoc);
             context.putDouble(distanceY);
 
             if (getSetting().isEnabled()) {
                 ValidationViolationContext.Builder builder = ValidationViolationContext.Builder.validate();
 
                 if (distance2d >= getSetting().max && distance2d != 0) {
-                    String x = format(lastKnownLocation.getX());
-                    String y = format(lastKnownLocation.getY());
-                    String z = format(lastKnownLocation.getZ());
+                    String x = format(lastLoc.getX());
+                    String y = format(lastLoc.getY());
+                    String z = format(lastLoc.getZ());
 
                     builder.add(
                             ValidationViolationContext.Builder.validate().cancel().flag().withViolationKey(XZKey)
@@ -224,9 +223,9 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                 }
 
                 if (distanceY >= getSetting().max && distanceY != 0) {
-                    String x = format(lastKnownLocation.getX());
-                    String y = format(lastKnownLocation.getY());
-                    String z = format(lastKnownLocation.getZ());
+                    String x = format(lastLoc.getX());
+                    String y = format(lastLoc.getY());
+                    String z = format(lastLoc.getZ());
 
                     builder.add(
                             ValidationViolationContext.Builder.validate().cancel().flag().withViolationKey(YKey)
@@ -273,10 +272,15 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
     public static class MovementC<WP extends MovementPacketWrapper<WP>> implements PacketValidation<WP>, ViolationValidation<WP> {
 
         private static final int id = IDRegistry.VALIDATION.acquire();
-        private Location lastFlaggedLocation;
+        private Location lastFlaggedLoc;
+        private Location lastLoc;
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+            Location loc = packet.getLocation(player.getWorld());
+            Location lastLoc = Optional.ofNullable(this.lastLoc).orElse(loc);
+            this.lastLoc = loc;
+
             if (getSetting().isEnabled()) {
                 // ignores when you fall down. note, that if it would be at 0, it will also ignore when you
                 // walk around on ground, because the gravity affect the player's velocity
@@ -284,21 +288,19 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
                     return ValidationViolationContext.PASS;
                 }
 
-                Location priorLocation = context.getLocation(0);
                 // return if it's the first location being sent
-                if (priorLocation == null) {
+                if (lastLoc == null) {
                     return ValidationViolationContext.PASS;
                 }
 
-                Location loc = packet.getLocation(player.getWorld());
                 // ignores packets close to the recent flag
-                if (this.lastFlaggedLocation != null
-                        && LocationUtils.calculate3DDistance(lastFlaggedLocation, loc) < 1) {
+                if (this.lastFlaggedLoc != null
+                        && LocationUtils.calculate3DDistance(lastFlaggedLoc, loc) < 1) {
                     return ValidationViolationContext.PASS;
                 }
-                this.lastFlaggedLocation = loc;
+                this.lastFlaggedLoc = loc;
 
-                double priorDistance = LocationUtils.calculate3DDistance(priorLocation, loc);
+                double priorDistance = LocationUtils.calculate3DDistance(lastLoc, loc);
                 return ValidationViolationContext.Builder.validate().flag(Math.min(10, priorDistance)).build();
             }
 
@@ -470,17 +472,21 @@ public class MovementValidations<WP extends MovementPacketWrapper<WP>> extends A
             return velocity;
         }
 
+        private Location lastLoc;
         private Direction[] lastDirectionFlow;
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
+            Location loc = packet.getLocation(player.getWorld());
+            Location lastLoc = Optional.ofNullable(this.lastLoc).orElse(loc);
+            this.lastLoc = loc;
+
             if (getSetting().isEnabled()) {
-                Location priorLocation = context.getLocation(0);
-                if (priorLocation == null) {
+                if (LocationUtils.compare3DLocation(loc, lastLoc)) {
                     return ValidationViolationContext.PASS;
                 }
 
-                Direction[] velocity = calculateVelocity(priorLocation, packet.getLocation(player.getWorld()));
+                Direction[] velocity = calculateVelocity(lastLoc, loc);
                 Direction[] priorVelocity = lastDirectionFlow;
                 this.lastDirectionFlow = velocity;
                 if (priorVelocity == null) {

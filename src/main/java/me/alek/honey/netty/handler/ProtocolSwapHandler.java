@@ -12,6 +12,7 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MinecraftReflection;
+import org.bukkit.Bukkit;
 
 public class ProtocolSwapHandler {
 

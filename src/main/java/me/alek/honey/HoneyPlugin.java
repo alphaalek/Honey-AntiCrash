@@ -4,8 +4,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import me.alek.honey.async.DebugCommand;
-import me.alek.honey.async.WorkerPool;
 import me.alek.honey.command.CommandManager;
 import me.alek.honey.compat.Paper;
 import me.alek.honey.compat.spark.SparkTPSProvider;
@@ -38,11 +36,11 @@ import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.BaseValidationContainer;
+import me.alek.honey.validation.HoneyValidation;
 import me.alek.honey.validation.ValidationContainerRegistry;
 import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.print.PrintValidationBridge;
-import me.alek.honey.validation.HoneyValidation;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -52,7 +50,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredListener;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -286,7 +283,6 @@ public class HoneyPlugin implements HoneyAPI {
 
         // setup commands
         this.commandManager = new CommandManager(plugin);
-        ((JavaPlugin) this.plugin).getCommand("asyncdecoderdebug").setExecutor(new DebugCommand());
 
         // setup metrics
         new Metrics(this.plugin, 19028);
@@ -311,8 +307,6 @@ public class HoneyPlugin implements HoneyAPI {
             this.isRunning = false;
 
             getPacketLibrary().disable();
-
-            WorkerPool.ASYNC_PACKET_DECODER_POOL.terminate();
 
             getLogger().getLogger().info(Lang.get("unloaded"));
         }

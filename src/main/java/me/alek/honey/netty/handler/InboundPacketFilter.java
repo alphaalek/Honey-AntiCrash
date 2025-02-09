@@ -1,7 +1,6 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -26,7 +25,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.IDRegistry;
-import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.HoneyValidation;
 import me.alek.honey.validation.ValidationPipeline;
@@ -40,7 +38,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.logging.Level;
-import java.util.stream.Collectors;
 
 @ChannelHandler.Sharable
 public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
@@ -51,8 +48,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
     private static final String CONNECTION_EVENT_CLASS_NAME = "io.papermc.paper.network.ConnectionEvent";
     private static final String COMPRESSION_THRESHOLD_SET_FIELD_NAME = "COMPRESSION_THRESHOLD_SET";
     private static final Object PAPER_COMPRESSION_ENABLED_EVENT = getPaperCompressionEnabledEvent();
-
-    public static final ThreadLocal<PacketContainer<?>> MARK = new ThreadLocal<>();
 
     private static final HoneyValidation<Integer> STACK_PROCESS_VALIDATION = HoneyValidation.of("Item Processing", "Could not process item stack", IDRegistry.VALIDATION.acquire());
     private static final ConfigurationOptions.ViolationSetting STACK_PROCESS_SETTING = new ConfigurationOptions.ViolationSetting(PacketLimitHandlerType.SIMPLE);
@@ -66,9 +61,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         }
     }
 
-    public static void removeMarker() {
-        MARK.remove();
-    }
+    public static final ThreadLocal<PacketContainer<?>> MARK = new ThreadLocal<>();
 
     private final HoneyPlayer player;
     private final HoneyPacketHandler packetHandler;
@@ -130,7 +123,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         ctx.fireChannelInactive();
 
         if (!this.hasCalledChannelInactive) {
-            this.packetHandler.getAsyncPacketStream().farewell();
             this.player.remove();
         }
         this.hasCalledChannelInactive = true;
@@ -165,7 +157,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
         this.packetHandler.executeDelayedTasks(PacketBound.SERVER);
 
-        PacketContainer<?> prev = MARK.get();
+        PacketContainer<?> prev = this.packetHandler.filterMark;
         // check for too early dropped packet in the previous eventloop
         // if the filter mark has a value, it means that a channel handler between
         // the filter and decode preparation dropped this packet
@@ -184,7 +176,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                         prev);
             }
 
-            InboundPacketFilter.removeMarker();
+            this.packetHandler.filterMark = null;
+            MARK.remove();
             prev.releaseIfAutoReleasable();
             this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(prev);
         }
@@ -201,6 +194,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                 throw new DecoderException("Invalid packet, state " + this.packetHandler.getSimulatedServerboundProtocolState() + ", id " + serializer.readVarInt());
             }
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
+            this.packetHandler.filterMark = packet;
             MARK.set(packet);
 
             if (packet.getInitialByteWrapped().isAbstract()) {
@@ -234,6 +228,9 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (StackDecodingException ex) {
+            this.packetHandler.filterMark = null;
+            MARK.remove();
+
             ViolationManagement management = HoneyPlugin.get().getViolationManagement();
 
             ValidationPipelineContext.DevelopmentData data = new ValidationPipelineContext.DevelopmentData();
@@ -242,7 +239,8 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
             management.flag(this.player, STACK_PROCESS_VALIDATION, STACK_PROCESS_SETTING, data);
         } catch (Exception ex) {
-            InboundPacketFilter.removeMarker();
+            this.packetHandler.filterMark = null;
+            MARK.remove();
             if (this.player.pinging || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
                 // failed to handle handshake packet
                 // most likely something pinging this server without following the Minecraft protocol

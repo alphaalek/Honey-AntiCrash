@@ -6,8 +6,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.util.Attribute;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.async.AsyncPacketStream;
-import me.alek.honey.async.WorkerPool;
 import me.alek.honey.compat.via.ViaHandlers;
 import me.alek.honey.compat.via.ViaProtocol;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -21,7 +19,6 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MinecraftReflection;
-import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -34,11 +31,11 @@ public class HoneyPacketHandler {
     @SuppressWarnings("unchecked")
     public static final ThreadLocal<Queue<Runnable>>[] DELAYED_TASKS = new ThreadLocal[]{new ThreadLocal<>(), new ThreadLocal<>()};
 
-    public static final ThreadLocal<PacketContainer<?>> MARK = new ThreadLocal<>();
+    public PacketContainer<?> filterMark;
+    public PacketContainer<?> finalMark;
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
     private final Channel channel;
     private final HoneyPlayer player;
-    private final AsyncPacketStream asyncPacketStream;
     private boolean hasCompression;
     private boolean dependentOnVia;
     private boolean relocatedViaInterceptor;
@@ -58,15 +55,10 @@ public class HoneyPacketHandler {
     public HoneyPacketHandler(Channel channel) {
         this.channel = channel;
         this.player = new HoneyPlayer(channel, this);
-        this.asyncPacketStream = new AsyncPacketStream(player, WorkerPool.ASYNC_PACKET_DECODER_POOL);
     }
 
     public Channel getChannel() {
         return this.channel;
-    }
-
-    public AsyncPacketStream getAsyncPacketStream() {
-        return this.asyncPacketStream;
     }
 
     public HoneyPlayer getPlayer() {
@@ -278,7 +270,7 @@ public class HoneyPacketHandler {
             return false;
         }
 
-        MARK.set(packet);
+        this.finalMark = packet;
 
         return true;
     }

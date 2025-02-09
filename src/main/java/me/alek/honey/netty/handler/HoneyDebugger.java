@@ -1,10 +1,10 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
-import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.packet.PacketContainer;
@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.logging.Level;
 
+@ChannelHandler.Sharable
 public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
     private static final String VIA_VERSION_CANCEL = "This packet is supposed to be cancelled; If you have debug enabled, you can ignore these";
@@ -21,14 +22,14 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
     private static final String NETTY_NATIVE_WRITE_BROKEN_PIPE = "Error while write(...): Broken pipe";
     private static final String NETTY_CONNECTION_RESET = "Connection reset";
 
-    private final HoneyPlayer player;
+    private final HoneyPacketHandler packetHandler;
 
-    public HoneyDebugger(HoneyPlayer player) {
-        this.player = player;
+    public HoneyDebugger(HoneyPacketHandler packetHandler) {
+        this.packetHandler = packetHandler;
     }
 
-    public HoneyPlayer getPlayer() {
-        return player;
+    public HoneyPacketHandler getPacketHandler() {
+        return this.packetHandler;
     }
 
     @Override
@@ -43,15 +44,15 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
         ChannelCloseInspection.close(ctx.channel());
     }
 
-    public static void onExceptionCaught(Channel channel, Throwable throwable) {
+    public void onExceptionCaught(Channel channel, Throwable throwable) {
         String message = Optional.ofNullable(throwable.getMessage()).orElse("");
 
         if (message.equals(VIA_VERSION_CANCEL)) {
-            PacketContainer<?> packet = InboundPacketFilter.MARK.get();
+            PacketContainer<?> packet = this.packetHandler.filterMark;
             if (packet != null) {
                 HoneyPlugin.get().getPacketLibrary().getChannelManager().getFilter(channel).handleViaDroppedPacket(packet);
             }
-            InboundPacketFilter.removeMarker();
+            this.packetHandler.filterMark = null;
             return;
         }
 

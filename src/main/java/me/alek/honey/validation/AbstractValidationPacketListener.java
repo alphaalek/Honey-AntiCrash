@@ -26,7 +26,6 @@ public abstract class AbstractValidationPacketListener<WP extends SourcedWrapped
     }
 
     private final Array<ValidationPipeline<PacketValidation<WP>>> pipelines = new Array<>();
-    private final ThreadLocal<Boolean> hasCalledCallback = new ThreadLocal<>();
 
     public AbstractValidationPacketListener(PacketLibrary library, PacketContainer.PipelineState state, ListenerPriority priority, List<PacketType> types) {
         library.addListener(this, state, priority, types);
@@ -49,8 +48,6 @@ public abstract class AbstractValidationPacketListener<WP extends SourcedWrapped
                 (validation, key) -> Settings.getSetting(player, validation, key, packet.getAnyWrapped()),
                 validation -> validation.validate(player, packet.getAnyWrapped(), context),
                 packet, context);
-
-        this.hasCalledCallback.remove();
 
         onPostPacketReceive(player, packet, context);
     }

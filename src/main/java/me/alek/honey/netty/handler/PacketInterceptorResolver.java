@@ -14,7 +14,6 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,6 +76,8 @@ public class PacketInterceptorResolver {
     }
 
     public static String setupInterceptors(ChannelPipeline pipeline, boolean isEncoder) {
+        pipeline.channel().config().setAutoRead(false);
+
         AtomicReference<String> position = new AtomicReference<>();
         List<String> handlers;
         if (isEncoder) {
@@ -89,11 +90,12 @@ public class PacketInterceptorResolver {
             pipeline.remove(handler);
         }
 
+        pipeline.channel().config().setAutoRead(true);
+
         return position.get();
     }
 
     private static List<String> setupDecoderInterceptors(ChannelPipeline pipeline, AtomicReference<String> position) {
-        pipeline.channel().config().setAutoRead(false);
         ByteBuf buf = createByteBuf(PacketTypes.Play.Client.KEEP_ALIVE, serializer -> {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2)) {
                 serializer.writeLong(System.currentTimeMillis());
@@ -143,13 +145,11 @@ public class PacketInterceptorResolver {
         }
 
         pipeline.fireChannelRead(buf);
-        pipeline.channel().config().setAutoRead(true);
 
         return handlers;
     }
 
     private static List<String> setupEncoderPosition(ChannelPipeline pipeline, AtomicReference<String> pos) {
-        pipeline.channel().config().setAutoRead(false);
         ByteBuf buf = createByteBuf(PacketTypes.Play.Server.KEEP_ALIVE, serializer -> {
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_12_2)) {
                 serializer.writeLong(System.currentTimeMillis());
@@ -191,7 +191,6 @@ public class PacketInterceptorResolver {
         );
 
         pipeline.channel().writeAndFlush(raw);
-        pipeline.channel().config().setAutoRead(true);
 
         return handlers;
     }

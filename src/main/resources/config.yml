@@ -146,17 +146,6 @@ packet-dump:
     # Minimum main thread handle time (in millis) for thread to be dumped in log.
     min-server-handle: 750
 
-async-decoder:
-  # Should the async decoder be enabled.
-  enabled: false
-  # If you edit the values below, you will have to restart the server for the changes to be applied.
-  # Minimum of worker threads to be used for packet decoding. At urgency relocation there will be created more worker threads.
-  min-worker-threads: NETTY_DEFAULT
-  # Minimum packet decode time (in millis), before a worker is quarantined.
-  min-time-for-quarantine: 15.0
-  # Minimum pending task size, before a worker is quarantined.
-  min-pending-task-size-for-quarantine: 20
-
 monitor:
   # Packets which the player monitor should ignore.
   ignored-packets:

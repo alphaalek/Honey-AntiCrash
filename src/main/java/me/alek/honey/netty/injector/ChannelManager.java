@@ -8,10 +8,6 @@ import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Properties;
-
 public class ChannelManager {
 
     public <WP extends SourcedWrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, ObjectWrappedPacket<WP> packet) {

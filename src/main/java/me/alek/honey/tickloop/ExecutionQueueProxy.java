@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.Runnables;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.handler.PreMainThreadInterceptor;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.LifecycleState;
@@ -191,7 +192,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                             + task.getPacket().getPlayerName());
                 }
 
-                return getEmptyTask();
+                return EMPTY_TICK_TASK;
             }
 
             if (shouldPostponeTask(task)) {
@@ -205,7 +206,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 collector.add(currentPollIndex - 1);
                 super.add(EMPTY_VALUE);
 
-                return getEmptyTask();
+                return EMPTY_TICK_TASK;
             }
 
             this.recentPollStart = System.nanoTime();
@@ -224,7 +225,8 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 return super.add(value);
             }
 
-            PacketContainer<?> packet = HoneyPacketHandler.MARK.get();
+            PacketContainer<?> packet = PreMainThreadInterceptor.POST_TO_MAIN_THREAD.get();
+            PreMainThreadInterceptor.POST_TO_MAIN_THREAD.remove();
             if (packet == null || !packet.getPlayer().isStreamActive()) {
                 return false;
             }

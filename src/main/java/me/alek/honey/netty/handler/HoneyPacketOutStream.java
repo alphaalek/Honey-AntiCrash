@@ -5,7 +5,6 @@ import io.netty.channel.*;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
@@ -63,33 +62,8 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
             ctx.write(msg, promise);
             return;
         }
-        // TODO fix
-        if (true || !ConfigurationOptions.AsyncDecoder.ENABLED
-                || !this.player.linkedBukkit()
-                || !PacketInterceptorResolver.hasDecoderHandler(ctx.pipeline())) {
-            write0(ctx, msg, promise);
-        } else {
-            this.packetHandler.getAsyncPacketStream().prependDecode((s) -> {
-                if (this.player.isStreamActive()) {
-                    try {
-                        ChannelPromise asyncPromise;
-                        if (!promise.isDone()) {
-                            asyncPromise = promise;
-                        } else {
-                            asyncPromise = new DefaultChannelPromise(ctx.channel());
-                        }
 
-                        write0(ctx, ReferenceCountUtil.retain(msg), asyncPromise);
-                    } catch (Exception ex) {
-                        try {
-                            super.exceptionCaught(ctx, ex);
-                        } catch (Exception ignored) {
-                            // to do nothing
-                        }
-                    }
-                }
-            });
-        }
+        write0(ctx, msg, promise);
     }
 
     private <WP extends SourcedWrappedPacket<WP>> void write0(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
@@ -149,7 +123,6 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
                 postAction.call(packet);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
             try {
                 super.exceptionCaught(ctx, ex);
             } catch (Exception ignored) {

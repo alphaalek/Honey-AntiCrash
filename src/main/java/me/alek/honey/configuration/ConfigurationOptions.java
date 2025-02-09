@@ -491,28 +491,6 @@ public class ConfigurationOptions {
             DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE = file.getBoolean("decoder.disable-creative-slot-for-non-creative", true);
         }
     }
-
-    @Setting
-    public static class AsyncDecoder {
-
-        public static boolean ENABLED;
-        public static int MIN_WORKER_THREADS;
-        public static int MIN_PENDING_TASK_FOR_QUARANTINE;
-        public static double MIN_TIME_FOR_QUARANTINE;
-
-        public static void load() {
-            ENABLED = file.getBoolean("async-decoder.enabled");
-            if (file.getString("async-decoder.min-worker-threads").equals("NETTY_DEFAULT")) {
-                MIN_WORKER_THREADS = YamlConfiguration.loadConfiguration(new File("spigot.yml"))
-                        .getInt("settings.netty-threads");
-            } else {
-                MIN_WORKER_THREADS = file.getInt("async-decoder.min-worker-threads");
-            }
-            MIN_PENDING_TASK_FOR_QUARANTINE = file.getInt("async-decoder.min-pending-task-size-for-quarantine");
-            MIN_TIME_FOR_QUARANTINE = file.getDouble("async-decoder.min-time-for-quarantine");
-        }
-    }
-
     @Setting
     public static class Messages {
 

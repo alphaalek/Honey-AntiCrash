@@ -17,12 +17,12 @@ public interface ClientInfo {
 
         @Override
         public NetProtocol getProtocol() {
-            return NetProtocol.getProtocol();
+            return NetProtocol.UNKNOWN;
         }
 
         @Override
         public String getBrand() {
-            throw new UnsupportedOperationException("This client info does not belong to a real client");
+            throw new UnsupportedOperationException("Can't get brand of a non existent client");
         }
 
         @Override

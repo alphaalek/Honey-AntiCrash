@@ -4,8 +4,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.async.AsyncPacketStream;
-import me.alek.honey.async.WorkerPool;
 import me.alek.honey.compat.floodgate.Floodgate;
 import me.alek.honey.compat.via.ViaHandlers;
 import me.alek.honey.netty.ChannelCloseInspection;
@@ -38,10 +36,12 @@ public class SpigotPipelineInjector {
         HoneyPacketHandler packetHandler = new HoneyPacketHandler(channel);
         setupPreparationHandlers(channel, PacketBound.SERVER, packetHandler);
         setupPreparationHandlers(channel, PacketBound.CLIENT, packetHandler);
-        togglePreResolvedBounds(channel, new PreResolvedPacketHandler(packetHandler));
 
         channel.pipeline().addAfter(MinecraftHandlers.SPLITTER, filterName, new InboundPacketFilter(packetHandler));
-        channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, debuggerName, new HoneyDebugger(packetHandler.getPlayer()));
+        channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, debuggerName, new HoneyDebugger(packetHandler));
+        channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, PreMainThreadInterceptor.NAME, new PreMainThreadInterceptor(packetHandler));
+
+        togglePreResolvedBounds(channel, new PreResolvedPacketHandler(packetHandler));
 
         if (channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getChannelInitName()) != null) {
             channel.pipeline().remove(HoneyPlugin.get().getPacketLibrary().getChannelInitName());
@@ -101,10 +101,20 @@ public class SpigotPipelineInjector {
             }
         }
 
-        ViaClientboundInterceptor interceptor = (ViaClientboundInterceptor) channel.pipeline().get(ViaClientboundInterceptor.NAME);
-        if (interceptor != null && handlers.indexOf(ViaClientboundInterceptor.NAME) != handlers.indexOf(ViaHandlers.ENCODER) - 1) {
-            channel.pipeline().remove(interceptor);
-            channel.pipeline().addBefore(ViaHandlers.ENCODER, ViaClientboundInterceptor.NAME, interceptor);
+        ViaClientboundInterceptor viaInterceptor = (ViaClientboundInterceptor) channel.pipeline().get(ViaClientboundInterceptor.NAME);
+        if (viaInterceptor != null && handlers.indexOf(ViaClientboundInterceptor.NAME) != handlers.indexOf(ViaHandlers.ENCODER) - 1) {
+            channel.pipeline().remove(viaInterceptor);
+            channel.pipeline().addBefore(ViaHandlers.ENCODER, ViaClientboundInterceptor.NAME, viaInterceptor);
+        }
+
+        PreMainThreadInterceptor mainThreadInterceptor = (PreMainThreadInterceptor) channel.pipeline().get(PreMainThreadInterceptor.NAME);
+        if (mainThreadInterceptor == null) {
+            ChannelCloseInspection.close(channel);
+            return;
+        }
+        if (handlers.indexOf(PreMainThreadInterceptor.NAME) != handlers.indexOf(MinecraftHandlers.CONNECTION) - 1) {
+            channel.pipeline().remove(mainThreadInterceptor);
+            channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, PreMainThreadInterceptor.NAME, mainThreadInterceptor);
         }
     }
 
@@ -192,6 +202,14 @@ public class SpigotPipelineInjector {
         if (channel.pipeline().get(PreResolvedPacketHandler.NAME) != null) {
             channel.pipeline().remove(PreResolvedPacketHandler.NAME);
         }
+
+        if (channel.pipeline().get(PreMainThreadInterceptor.NAME) != null) {
+            channel.pipeline().remove(PreMainThreadInterceptor.NAME);
+        }
+
+        if( channel.pipeline().get(ViaClientboundInterceptor.NAME) != null) {
+            channel.pipeline().remove(ViaClientboundInterceptor.NAME);
+        }
     }
 
     public void ejectChannel(Channel channel) {
@@ -274,7 +292,7 @@ public class SpigotPipelineInjector {
                 // inject before floodgate, because floodgate is dropping some packets for the pipeline that we need to listen to
                 channel.pipeline().addBefore(Floodgate.DATA_HANDLER, PreResolvedPacketHandler.NAME, handler);
             } else {
-                channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, PreResolvedPacketHandler.NAME, handler);
+                channel.pipeline().addBefore(PreMainThreadInterceptor.NAME, PreResolvedPacketHandler.NAME, handler);
             }
         }
     }

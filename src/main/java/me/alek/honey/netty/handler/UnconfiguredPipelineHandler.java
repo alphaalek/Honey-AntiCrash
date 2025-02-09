@@ -6,7 +6,6 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.injector.MissingHandlerException;
 import me.alek.honey.netty.packet.type.PacketBound;

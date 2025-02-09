@@ -38,7 +38,7 @@ public class PrintValidationBridge {
         }
 
         PacketContainer<?> packet = null;
-        if (Thread.currentThread().getName().startsWith("Netty") || Thread.currentThread().getName().startsWith("honey-packet-decoder")) {
+        if (Thread.currentThread().getName().startsWith("Netty")) {
             packet = InboundPacketFilter.MARK.get();
         } else if (Thread.currentThread().getName().equals("Server Thread")) {
             packet = TaskLifecycleHandler.getCurrentHandledPacket();

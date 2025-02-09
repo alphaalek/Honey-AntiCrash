@@ -22,7 +22,7 @@ import java.util.function.Function;
 public class ValidationPipeline<C extends HoneyValidation<?>> {
 
     public static void applyValidationDevelopmentData(ValidationPipelineContext.DevelopmentData data, HoneyPlayer player, HoneyValidation<?> validation) {
-        data.setText(0, "§8* §7Player " + player.name + " flagged " + validation.getName() + " §8*");
+        data.setText(0, "§8* §7Player " + player.name + " §8(" + player.registryID + ")§7 flagged " + validation.getName() + " §8*");
         data.setLine(7, validation.getDescription());
     }
 
@@ -113,17 +113,14 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
         }
 
         int skipping = 0;
-        for (C validation : validations) {
+        for (C validation : this.validations) {
             if (skipping-- > 0) {
                 continue;
             }
 
-            // ---------------------
-            // pre requisites
             HoneyKey distributionKey = HoneyKey.of(validation);
             ConfigurationOptions.ViolationSetting setting = getSetting.apply(validation, distributionKey);
 
-            // start to check this validation
             ValidationViolationContext defaultResponse = getResponseAndRegisterTimings(validation, getServiceContext, setting);
             List<ValidationViolationContext> responsesList = new LinkedList<>(defaultResponse.subContainers);
             responsesList.add(defaultResponse);

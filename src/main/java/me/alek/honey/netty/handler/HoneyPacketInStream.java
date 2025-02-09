@@ -2,10 +2,8 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
-import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.async.AsyncPacketStream;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
@@ -18,7 +16,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import org.bukkit.Bukkit;
 
@@ -153,6 +150,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
         this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(packet);
 
         if (packetExecutorTask != null) {
+            PreMainThreadInterceptor.POST_TO_MAIN_THREAD.set(packet);
             HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue().add(packetExecutorTask);
             // drop the packet for the pipeline
             return;
@@ -169,38 +167,37 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object o) {
-        if (!read(ctx, o)) {
-            PacketContainer<?> packet = HoneyPacketHandler.MARK.get();
-            if (packet != null) {
-                packet.releaseIfAutoReleasable();
-            }
-        }
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        internalRead(ctx, msg);
+        if (this.packetHandler.filterMark != null) {
+            this.packetHandler.filterMark.releaseIfAutoReleasable();
+            this.packetHandler.filterMark = null;
 
-        InboundPacketFilter.removeMarker();
+            InboundPacketFilter.MARK.remove();
+        }
     }
 
-    public boolean read(ChannelHandlerContext ctx, Object msg) {
+    private void internalRead(ChannelHandlerContext ctx, Object msg) {
         if (!this.player.isStreamActive()) {
-            return false;
+            return;
         }
 
         if (!(msg instanceof ByteBuf)) {
-            ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
-            return false;
+            ctx.fireChannelRead(msg);
+            return;
         }
 
         ByteBuf buf = (ByteBuf) msg;
         if (!buf.isReadable()) {
             ctx.fireChannelRead(buf);
-            return false;
+            return;
         }
 
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketContainer<?> packet = null;
         PacketType type = null;
         try {
-            packet = InboundPacketFilter.MARK.get();
+            packet = this.packetHandler.filterMark;
             type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, false);
 
             if (packet == null || !packet.getType().equals(type)) {
@@ -210,7 +207,6 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                     serializer.markReaderIndex();
                     packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, type, null);
                     serializer.resetReaderIndex();
-                    InboundPacketFilter.MARK.set(packet);
                 } else {
                     packet.handleRewritten(type, PacketContainer.PipelineState.FINAL_BYTE);
                 }
@@ -220,7 +216,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                 serializer.readerIndex(0);
             }
             if (PacketTypes.isUnknown(packet.getType())) {
-                return false;
+                return;
             }
 
             // stops in-between timings
@@ -232,30 +228,7 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             }
             serializer.readerIndex(0);
 
-            // TODO:
-            // force sync packet stream until fixed
-            if (true || !ConfigurationOptions.AsyncDecoder.ENABLED
-                    || !this.player.linkedBukkit()
-                    || !PacketInterceptorResolver.hasEncoderHandler(ctx.pipeline())) {
-                invokeRead(packet, ctx, buf);
-                return false;
-            } else {
-                ByteBuf wrapped = buf.readBytes(buf.readableBytes()).retain();
-                buf.release();
-
-                PacketContainer<?> copy = packet;
-                this.packetHandler.getAsyncPacketStream().decode((s) -> {
-                    InboundPacketFilter.MARK.set(copy);
-
-                    if (this.player.isStreamActive()) {
-                        invokeRead(copy, ctx, wrapped);
-                    }
-
-                    copy.releaseIfAutoReleasable();
-                    InboundPacketFilter.removeMarker();
-                });
-                return true;
-            }
+            invokeRead(packet, ctx, buf);
         } catch (Exception ex) {
             if (HoneyPlugin.get().getLogger().isDebug()) {
                 type = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);
@@ -265,7 +238,6 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             }
             serializer.release();
             this.player.failPacket(ex, packet);
-            return false;
         }
     }
 }

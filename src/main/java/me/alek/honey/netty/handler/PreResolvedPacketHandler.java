@@ -14,7 +14,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.Callback;
-import me.alek.honey.util.LazyInit;
 import org.bukkit.Bukkit;
 
 import java.util.Optional;
@@ -43,9 +42,9 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     private <WP extends SourcedWrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Object msg, PacketBound bound) {
         switch (bound) {
             case SERVER:
-                PacketContainer<WP> packet = (PacketContainer<WP>) InboundPacketFilter.MARK.get();
+                PacketContainer<WP> packet = (PacketContainer<WP>) this.packetHandler.filterMark;
                 if (packet != null && packet.isHandled()) {
-                    InboundPacketFilter.removeMarker();
+                    this.packetHandler.filterMark = null;
                     return packet;
                 }
                 PacketContainer<WP> newPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(this.packetHandler.getPlayer(), msg, packet);
@@ -61,7 +60,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                     }
                 }
 
-                InboundPacketFilter.removeMarker();
+                this.packetHandler.filterMark = null;
                 return newPacket;
             case CLIENT:
                 return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().writeObjectPacket(this.packetHandler.getPlayer(), msg);
@@ -108,11 +107,11 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                 return;
             }
             if (packet.isHandled()) {
-                ctx.fireChannelRead(ReferenceCountUtil.retain(msg));
+                ctx.fireChannelRead(msg);
                 return;
             }
 
-            streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
+            streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(msg));
         } catch (Exception ex) {
             if (packet != null && HoneyPlugin.get().getLogger().isDebug()) {
                 Bukkit.getLogger().log(Level.WARNING,
@@ -147,13 +146,13 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                 return;
             }
             if (packet.isHandled()) {
-                ctx.write(ReferenceCountUtil.retain(msg), promise);
+                ctx.write(msg, promise);
                 return;
             }
             packet.handle();
 
             this.packetHandler.getProtocolSwapHandler().swapProtocolOutbound(packet);
-            streamToPipeline(msg, packet, this.packetHandler::write, () -> ctx.write(ReferenceCountUtil.retain(msg), promise));
+            streamToPipeline(msg, packet, this.packetHandler::write, () -> ctx.write(msg, promise));
             this.packetHandler.getProtocolSwapHandler().swapProtocolOutboundPostPipeline(packet);
         } catch (Exception ex) {
             if (HoneyPlugin.get().getLogger().isDebug()) {

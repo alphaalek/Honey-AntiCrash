@@ -35,7 +35,7 @@ import java.util.concurrent.Callable;
 public class HoneyPlayer implements IntIdentifiable {
 
     public enum Phase {
-        UNSET, LOGGING_IN, ONLINE, OFFLINE
+        INITIALIZING, LOGGING_IN, ONLINE, OFFLINE
     }
 
     private static final Map<UUID, HoneyPlayer> HONEY_PLAYER_LOOKUP = new HashMap<>();
@@ -60,10 +60,10 @@ public class HoneyPlayer implements IntIdentifiable {
 
     public Player bukkit;
     public UUID uuid;
-    public String name = "Unknown";
+    public String name = HoneyPacketHandler.UNKNOWN;
     public boolean floodgate;
     public boolean pinging;
-    public Phase phase = Phase.UNSET;
+    public Phase phase = Phase.INITIALIZING;
     public boolean punished;
     public long postponedPackets;
     public long postponedPacketsForTick;

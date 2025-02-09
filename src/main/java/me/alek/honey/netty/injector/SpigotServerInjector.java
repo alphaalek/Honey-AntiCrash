@@ -9,7 +9,6 @@ import me.alek.honey.netty.handler.MinecraftHandlers;
 import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
