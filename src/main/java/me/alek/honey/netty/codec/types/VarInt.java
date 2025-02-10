@@ -1,6 +1,7 @@
 package me.alek.honey.netty.codec.types;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.TypeSerializer;
 
 public class VarInt implements TypeSerializer.NoContext<Integer> {
 

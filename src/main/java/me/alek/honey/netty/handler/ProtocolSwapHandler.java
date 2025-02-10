@@ -39,7 +39,7 @@ public class ProtocolSwapHandler {
         if (packet.getType() == PacketTypes.Login.Server.LOGIN_SUCCESS) {
             setConfigurationBridgePhase(handler, PacketBound.CLIENT);
 
-            if (packet.getPlayer().clientInfo.getProtocol().isOlderThan(NetProtocol.v1_20_2)) {
+            if (packet.getProtocolCreated().isOlderThan(NetProtocol.v1_20_2)) {
                 handler.setSimulatedServerboundProtocolState(PacketState.PLAY);
                 handler.setSimulatedClientboundProtocolState(PacketState.PLAY);
             }

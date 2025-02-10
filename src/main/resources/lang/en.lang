@@ -76,10 +76,6 @@ validation.netty.f=Buffer of accumulated packet size exceeded
 validation.netty.g=Too high accumulated packet size
 validation.netty.h=Too long decode time
 validation.netty.i=Buffer of decode time exceeded
-validation.netty.l=Too many categorized big packets
-validation.netty.m=Packet flood for big packets
-validation.netty.n=Packet flood for big packets
-validation.netty.o=Too many timed categorized big packets
 
 validation.payload.a=Empty serializer for payload
 validation.payload.b=Too big serializer for payload

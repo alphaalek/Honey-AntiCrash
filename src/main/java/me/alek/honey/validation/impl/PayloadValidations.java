@@ -20,7 +20,7 @@ import me.alek.honey.validation.ViolationValidation;
 import java.util.Collections;
 import java.util.List;
 
-public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> extends AbstractValidationPacketListener<CP> {
+public class PayloadValidations extends AbstractValidationPacketListener<WrappedPlayInCustomPayload> {
 
     public PayloadValidations(PacketLibrary library) {
         super(library, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
@@ -31,7 +31,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
     }
 
     @Override
-    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<CP> packet, ValidationPipelineContext context) {
+    public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<WrappedPlayInCustomPayload> packet, ValidationPipelineContext context) {
         String channel = packet.getCurrentWrapped().getPayloadData().getChannel();
 
         context.getCallback().addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
@@ -47,16 +47,16 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
     @SuppressWarnings("unchecked")
     @Override
-    public ValidationPipeline<PacketValidation<CP>> createValidationPipeline() {
-        return ValidationPipeline.from(new PayloadA<>(), new PayloadB<>(), new PayloadC<>(), new PayloadD<>());
+    public ValidationPipeline<PacketValidation<WrappedPlayInCustomPayload>> createValidationPipeline() {
+        return ValidationPipeline.from(new PayloadA(), new PayloadB(), new PayloadC(), new PayloadD());
     }
 
-    public static class PayloadA<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
+    public static class PayloadA implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
         private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
-        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
             return ValidationViolationContext.PASS;
         }
 
@@ -81,12 +81,12 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         }
     }
 
-    public static class PayloadB<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
+    public static class PayloadB implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
         private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
-        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 return ValidationViolationContext.Builder.validate().flag(packet.getPayloadData().getSerializer().readableBytes()).build();
             }
@@ -115,12 +115,12 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         }
     }
 
-    public static class PayloadC<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
+    public static class PayloadC implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
         private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
-        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled() && packet.getPayloadData().isBookChannel()) {
                 WrappedImmutableItemStack item = packet.getPayloadData().getBookChannelItemStack();
                 if (item != null) {
@@ -152,12 +152,12 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         }
     }
 
-    public static class PayloadD<CP extends WrappedPlayInCustomPayload<CP>> implements PacketValidation<CP>, ViolationValidation<CP> {
+    public static class PayloadD implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
         private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
-        public ValidationViolationContext validate(HoneyPlayer player, CP packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 String channel = packet.getPayloadData().getChannel();
                 if (channel.equalsIgnoreCase("register") &&

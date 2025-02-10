@@ -7,8 +7,8 @@ import java.net.URLClassLoader;
 
 public class HoneyClassLoader extends URLClassLoader {
 
-    private static final Class<?> PLUGIN_CLASS_LOADER;
-    private static final Class<?> PAPER_PLUGIN_CLASS_LOADER;
+    public static final Class<?> PLUGIN_CLASS_LOADER;
+    public static final Class<?> PAPER_PLUGIN_CLASS_LOADER;
 
     static {
         PLUGIN_CLASS_LOADER = Reflection.getClass("org.bukkit.plugin.java.PluginClassLoader");

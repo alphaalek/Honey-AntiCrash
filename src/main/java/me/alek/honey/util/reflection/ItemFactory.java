@@ -20,7 +20,6 @@ public class ItemFactory {
     private static final MethodInvoker<?> nmsCopyInvoker = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "asNMSCopy", ItemStack.class);
     private static final MethodInvoker<ItemStack> craftMirrorInvoker = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "asCraftMirror", MinecraftReflection.getItemStackClass());
     private static final MethodInvoker<ItemStack> bukkitCopyInvoker = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "asBukkitCopy", MinecraftReflection.getItemStackClass());
-    private static final MethodInvoker<ItemMeta> createItemMetaInvoker = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "getItemMeta", MinecraftReflection.getItemStackClass());
     private static final MethodInvoker<?> itemGetByIdInvoker = Reflection.getMethod(MinecraftReflection.getItemClass(), method -> {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1)) {
             return method.getName().equals("getById");
@@ -31,9 +30,6 @@ public class ItemFactory {
     private static final MethodInvoker<Material> materialGetByItemInvoker = Reflection.getMethod(MinecraftReflection.getMagicNumbersUtilClass(), method -> {
         return method.getReturnType().equals(Material.class) && Arrays.equals(method.getParameterTypes(), new Class[]{MinecraftReflection.getItemClass()});
     });
-    private static final MethodInvoker<Void> craftItemSetMeta = Reflection.getMethod(MinecraftReflection.getCraftItemStackClass(), "setItemMeta", MinecraftReflection.getItemStackClass(), ItemMeta.class);
-
-    private static final Gson CHAT_SERIALIZER_GSON;
 
     static {
         ConstructorInvoker<?> invoker;
@@ -43,15 +39,6 @@ public class ItemFactory {
             invoker = Reflection.getConstructor(MinecraftReflection.getItemStackClass(), MinecraftReflection.getIMaterialClass(), int.class);
         }
         itemStackConstructor = invoker;
-
-        CHAT_SERIALIZER_GSON = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getChatSerializerClass())
-                .withType(Gson.class)
-                .withTarget(null)
-                .readField(0);
-    }
-
-    public static JsonElement chatComponentToJson(Object component) {
-        return CHAT_SERIALIZER_GSON.toJsonTree(component);
     }
 
     public static ItemStack asBukkitCopy(Object itemStack) throws Exception {
@@ -141,13 +128,5 @@ public class ItemFactory {
                     .withType(MinecraftReflection.getNBTTagCompoundClass()).withTarget(item)
                     .writeField(0, tag.asNBT().get().getHandle());
         }
-    }
-
-    public static void setItemMeta(Object item) {
-        craftItemSetMeta.invoke(null, item, createItemMeta(item));
-    }
-
-    public static ItemMeta createItemMeta(Object item) {
-        return createItemMetaInvoker.invoke(null, item);
     }
 }

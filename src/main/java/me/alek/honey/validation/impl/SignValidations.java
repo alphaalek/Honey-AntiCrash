@@ -1,9 +1,9 @@
 package me.alek.honey.validation.impl;
 
-import com.google.gson.JsonObject;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInUpdateSign;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.validation.*;
@@ -11,7 +11,6 @@ import me.alek.honey.validation.PacketValidation;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInUpdateSign;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.validation.ViolationValidation;
 
@@ -43,20 +42,9 @@ public class SignValidations extends AbstractValidationPacketListener<WrappedPla
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInUpdateSign packet, ValidationPipelineContext context) {
-            List<JsonObject> lines = packet.getLegacyJsonLines();
-            for (JsonObject page : lines) {
-                if (!page.has("text")) {
-                    return ValidationViolationContext.FLAG;
-                }
-            }
-
-            for (String line : packet.getLines()) {
-                if (line.length() > 47) {
-                    return ValidationViolationContext.FLAG;
-                }
-
+            for (String line : packet.getText()) {
                 for (String string : ILLEGAL_COMPONENT_STRINGS) {
-                    if (line.toLowerCase().replace("\"", "").trim().contains(string)) {
+                    if (line.toLowerCase().contains(string)) {
                         return ValidationViolationContext.FLAG;
                     }
                 }

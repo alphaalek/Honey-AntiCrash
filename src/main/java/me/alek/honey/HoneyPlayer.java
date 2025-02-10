@@ -177,27 +177,6 @@ public class HoneyPlayer implements IntIdentifiable {
         };
     }
 
-    public void executeExternally(Runnable runnable, Callback exCallback) {
-        try {
-            runnable.run();
-        } catch (Exception ex) {
-            if (exCallback != null) {
-                exCallback.call(ex);
-            }
-        }
-    }
-
-    public <T> T executeExternally(Callable<T> callable, Callback exCallback) {
-        try {
-            return callable.call();
-        } catch (Exception ex) {
-            if (exCallback != null) {
-                exCallback.call(ex);
-            }
-            return null;
-        }
-    }
-
     public String getFailedPacketCause(Throwable ex) {
         if (ex.getCause() == null || ex.getCause().getMessage() == null) {
             return ex.getLocalizedMessage();

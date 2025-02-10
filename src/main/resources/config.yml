@@ -248,7 +248,7 @@ item-analysis:
       # (pre 1.14)
       legacy: 50
     # How long may the page of a book be.
-    max-book-page-length: 1024
+    max-book-page-length: 320
     # How long title may a book have.
     max-book-title-length: 32
     # How long name may the author of a book be.

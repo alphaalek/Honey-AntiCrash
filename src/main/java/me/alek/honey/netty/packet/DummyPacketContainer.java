@@ -2,6 +2,7 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
@@ -29,8 +30,8 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
 
     @Override
     public NetProtocol getProtocol() {
-        if (this.player.clientInfo != null) {
-            return this.player.clientInfo.getProtocol();
+        if (this.player.clientInfo != null && !this.type.getState().equals(PacketState.HANDSHAKE)) {
+            return getProtocolCreated();
         } else {
             return NetProtocol.getProtocol();
         }
@@ -62,8 +63,13 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
     }
 
     @Override
-    public void handleRewritten(PacketType type, PipelineState state) {
+    public void handleUnknownRewritten(PacketType type, PipelineState state) {
 
+    }
+
+    @Override
+    public PacketDataSerializer rewrite(PacketDataSerializer buf) {
+        return buf;
     }
 
     @Override
@@ -108,11 +114,6 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
 
     @Override
     public ByteInWrappedPacket<WP> getAnyByteWrapped() {
-        return null;
-    }
-
-    @Override
-    public SourcedWrappedPacket<WP> getAnySourceWrapped() {
         return null;
     }
 

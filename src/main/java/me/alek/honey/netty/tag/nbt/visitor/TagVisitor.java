@@ -121,7 +121,7 @@ public interface TagVisitor extends CodecVisitor {
                 }
 
                 @Override
-                public boolean replacedByRegistried() {
+                public boolean replacedByRegistered() {
                     return replacedByRegistered;
                 }
             };
@@ -265,7 +265,7 @@ public interface TagVisitor extends CodecVisitor {
                 }
 
                 @Override
-                public boolean replacedByRegistried() {
+                public boolean replacedByRegistered() {
                     return replaceByRegistered;
                 }
             };

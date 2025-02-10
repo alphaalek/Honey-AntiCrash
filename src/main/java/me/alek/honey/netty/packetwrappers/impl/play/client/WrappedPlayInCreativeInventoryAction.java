@@ -1,11 +1,12 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 
-public class WrappedPlayInCreativeInventoryAction extends ByteInWrappedPacketImpl<WrappedPlayInCreativeInventoryAction> {
+public class WrappedPlayInCreativeInventoryAction extends ByteInWrappedPacketImpl.CacheRewriteCaller<WrappedPlayInCreativeInventoryAction> {
 
     @Property
     private final int slot;
@@ -16,7 +17,9 @@ public class WrappedPlayInCreativeInventoryAction extends ByteInWrappedPacketImp
         super(serializer, packet);
 
         this.slot = serializer.readShort();
-        this.item = serializer.readItemStackSafely(packet, 0);
+        Rewritable<WrappedImmutableItemStack> rewritable = serializer.readItemStackSafely(packet, 0);
+        handleRewritten(rewritable);
+        this.item = rewritable.get();
     }
 
     public int getSlot() {

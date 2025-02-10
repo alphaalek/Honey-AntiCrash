@@ -188,20 +188,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         try {
             // initialize packet container
             type = this.packetHandler.getPacketType(serializer, false, this.packetHandler.getSimulatedServerboundProtocolState(), PacketBound.SERVER, true);
-            if (type == null) {
+            if (PacketTypes.isUnknown(type)) {
                 // invalid packet
-                serializer.resetReaderIndex();
-                throw new DecoderException("Invalid packet, state " + this.packetHandler.getSimulatedServerboundProtocolState() + ", id " + serializer.readVarInt());
+                throw new DecoderException("Invalid packet, state " + this.packetHandler.getSimulatedServerboundProtocolState() + ", id " + serializer.readerIndex(0).readVarInt());
             }
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
             this.packetHandler.filterMark = packet;
             MARK.set(packet);
-
-            if (packet.getInitialByteWrapped().isAbstract()) {
-                // check if any bytes has not been decoded
-                // if any is left, the protocol has not been followed properly
-                HoneyPacketCodec.checkReadable(packet.getProtocolCreated(), type, null, serializer);
-            }
 
             // call listeners
             if (!this.player.bypassEverything()) {
@@ -210,17 +203,11 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                 packet.getEventloopStateTimings().stopTimings();
             }
 
-            if (type == PacketTypes.Play.Client.CUSTOM_PAYLOAD) {
-                WrappedPlayInCustomPayload.PayloadData<?> data = ((WrappedPlayInCustomPayload<?>) packet.getCurrentWrapped()).getPayloadData();
-                if (data.isBookChannel() && data.isItemInitialized()) {
-                    HoneyPacketCodec.checkReadable(packet.getProtocolCreated(), packet.getType(), null, data.getSerializer());
-                }
-            }
-
             this.packetHandler.getProtocolSwapHandler().swapProtocolInboundFilter(packet);
 
             if (!this.packetHandler.isCancelled(packet)) {
-                list.add(serializer.readerIndex(0).retain());
+                serializer = packet.rewrite(serializer.readerIndex(0));
+                list.add(serializer);
             } else {
                 packet.releaseIfAutoReleasable();
             }
@@ -228,6 +215,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (StackDecodingException ex) {
+            ex.printStackTrace();
             this.packetHandler.filterMark = null;
             MARK.remove();
 

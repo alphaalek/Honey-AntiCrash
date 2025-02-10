@@ -1,7 +1,6 @@
 package me.alek.honey.netty.codec;
 
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.HashMap;
@@ -30,7 +29,7 @@ public interface CodecVisitor {
             }
 
             @Override
-            public boolean replacedByRegistried() {
+            public boolean replacedByRegistered() {
                 return replaceByRegistered;
             }
         };
@@ -40,5 +39,5 @@ public interface CodecVisitor {
 
     NetProtocol protocolCreated();
 
-    boolean replacedByRegistried();
+    boolean replacedByRegistered();
 }

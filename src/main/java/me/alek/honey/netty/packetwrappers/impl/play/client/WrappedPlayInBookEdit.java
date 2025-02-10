@@ -4,6 +4,7 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.codec.types.VarInt;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
@@ -11,6 +12,7 @@ import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
+import me.alek.honey.netty.packetwrappers.protocol.InteractionHand;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.visitor.book.EditBookTagVisitor;
@@ -20,10 +22,12 @@ import me.alek.honey.util.protocol.NetProtocol;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl<WrappedPlayInBookEdit> {
+public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteCaller<WrappedPlayInBookEdit> {
 
-    @Property
-    private final int slot;
+    @Property(from = @NetProtocol.From(from = NetProtocol.v1_16_4))
+    private int slot;
+    @Property(from = @NetProtocol.From(from = NetProtocol.v1_13_1), to = @NetProtocol.To(to = NetProtocol.v1_16_3))
+    private InteractionHand interactionHand;
     @Property
     private final boolean signing;
     @Property
@@ -45,29 +49,34 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl<WrappedPlayIn
             // to sign a book or not before trying to decode the item stack, so we can apply the correct tag visitor
             // however, reversing the byte buffer gives some problems NORMALLY, but luckily not for this packet:
             //
-            // the protocol notes the slot field is a VarInt, however it can just be treated as a byte
+            // the protocol notes the interaction-hand-idx/slot field is a VarInt, however it can just be treated as a byte
             // this is very important, because this makes it possible to reverse the byte buf correctly
-            // if the packet had properties that could potentially require more space than one byte, it means the
-            // correct start/end position of that section can not be identified without reading from the start
+            // if the packet had properties that could potentially require more space than one byte and is irreversible,
+            // it means the correct start/end position of that section can not be identified without reading from the start
             // of the initial buffer, which we do not want, as written above.
-            // Note, a boolean only requires a byte, therefore the slot and signing property only requires 1 byte each and
-            // their end/start position is therefore known as they are the same
-            this.slot = buf.getUnsignedByte(buf.readableBytes()); // encoded as last field, so read the last byte of this buffer
-            // check if we can continue with our assumption
-            if ((this.slot & VarInt.CONTINUE_BIT) != 0) {
-                // Well, this client was just broken (I guess?) ...
-                throw new DecoderException("Invalid slot");
+            // Note, a boolean (signing property) only requires a byte, therefore the interaction-hand-idx/slot field and
+            // signing property field only requires 1 byte each and their end/start position is therefore known as they are the same
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_1)) {
+                int slot = buf.getUnsignedByte(buf.readableBytes()); // encoded as last field, so read the last byte of this buffer
+                // check if we can continue with our assumption
+                if ((slot & VarInt.CONTINUE_BIT) != 0) {
+                    // Well, this client was just broken (I guess?) ...
+                    throw new DecoderException("Invalid slot");
+                }
+
+                if (protocol.isNewerThanOrEqual(NetProtocol.v1_16_4)) {
+                    this.slot = slot;
+                } else {
+                    this.interactionHand = InteractionHand.values()[slot];
+                }
             }
             this.signing = buf.getByte(buf.readableBytes() - 1) != 0;
             PacketDataSerializer itemBuf = new PacketDataSerializer(buf.readBytes(buf.readableBytes() - 2));
 
-            EditBookTagVisitor visitor = this.signing ? EditBookTagVisitor.of(protocol, protocolCreated, true, packet.getPlayerName()) : EditBookTagVisitor.of(protocol, protocolCreated);
-            WrappedImmutableItemStack stack = itemBuf.readItemStack(visitor, 0); // no need to read safely, because we applied the edit book tag visitor
-            CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.from(buf, packet, this.signing));
+            WrappedImmutableItemStack stack = BookTag.decodeBookEditStack(this, packet, this.signing, itemBuf);
+            itemBuf.release();
 
-            HoneyPacketCodec.checkReadable(protocolCreated, PacketTypes.Play.Client.BOOK_EDIT, null, itemBuf);
-
-            // will always represent nbt as we are before or equal 1.17
+            // will always represent nbt as we are before 1.17.1
             CompoundTag tag = stack.getTag().asNBT().get();
             for (String page : tag.<String>getArrayOf(BookTag.PAGES, TagType.STRING)) {
                 this.pages.add(page);
@@ -121,6 +130,10 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl<WrappedPlayIn
 
     public int getSlot() {
         return this.slot;
+    }
+
+    public InteractionHand getInteractionHand() {
+        return this.interactionHand;
     }
 
     public boolean isSigning() {

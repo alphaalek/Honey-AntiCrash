@@ -15,7 +15,7 @@ public class GeneticArrayTypes {
 
     public static class ArrayOfCompoundTag extends AbstractArrayTag<CompoundTag, ArrayOfCompoundTag, MapConverter<String, Object, AbstractTag<?, ?, ?>>> {
 
-        private static final LazyInit<TagType> TYPE = new LazyInit<>(() -> TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND));
+        private static final LazyInit<TagType> TYPE = new LazyInit<>(() -> TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY_OF_COMPOUND));
 
         public ArrayOfCompoundTag(Object base) {
             super(base, TYPE.get());
@@ -60,7 +60,7 @@ public class GeneticArrayTypes {
 
     public static class ArrayOfArrayTag<ARRAY extends ArrayOfArrayTag<ARRAY, IN, IN_IN>, IN extends AbstractArrayTag<IN_IN, IN, ?>, IN_IN extends AbstractTag<?, ?, IN_IN>> extends AbstractArrayTag<IN, ARRAY, ListConverter<Object, IN_IN>> {
 
-        private static final LazyInit<TagType> TYPE = new LazyInit<>(() -> TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_ARRAY));
+        private static final LazyInit<TagType> TYPE = new LazyInit<>(() -> TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY_OF_ARRAY));
 
         public ArrayOfArrayTag(Object base) {
             super(base, TYPE.get());

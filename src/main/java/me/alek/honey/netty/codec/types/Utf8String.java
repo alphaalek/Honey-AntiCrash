@@ -3,6 +3,7 @@ package me.alek.honey.netty.codec.types;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.TypeSerializer;
 
 import java.io.DataInputStream;
 import java.io.IOException;

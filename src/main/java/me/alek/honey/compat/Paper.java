@@ -1,8 +1,15 @@
 package me.alek.honey.compat;
 
-import org.bukkit.Bukkit;
-
 public class Paper {
 
-    public static final boolean IS_PAPER = Bukkit.getServer().getName().contains("Paper");
+    public static final boolean IS_PAPER = isPaper();
+
+    private static boolean isPaper() {
+        try {
+            Class.forName("com.destroystokyo.paper.PaperConfig");
+            return true; // Paper detected
+        } catch (ClassNotFoundException e) {
+            return false; // Not Paper
+        }
+    }
 }

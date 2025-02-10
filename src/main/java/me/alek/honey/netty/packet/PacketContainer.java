@@ -21,7 +21,9 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
 
     PacketLifecycleTimings getEventloopStateTimings();
 
-    void handleRewritten(PacketType type, PipelineState state);
+    void handleUnknownRewritten(PacketType type, PipelineState state);
+
+    PacketDataSerializer rewrite(PacketDataSerializer buf);
 
     void callPostMinecraftDecode(Object packet, PacketType type);
 
@@ -64,8 +66,6 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
     ByteInWrappedPacket<WP> getFinalByteWrapped();
 
     ByteInWrappedPacket<WP> getAnyByteWrapped();
-
-    SourcedWrappedPacket<WP> getAnySourceWrapped();
 
     WP getAnyWrapped();
 

@@ -2,19 +2,24 @@ package me.alek.honey.netty.modelwrappers;
 
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.SlicedByteBuf;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.TypeSerializer;
+import me.alek.honey.netty.codec.Rewritable;
+import me.alek.honey.netty.codec.TypeSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
+import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
 import me.alek.honey.netty.tag.nbt.visitor.Visitors;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.inventory.ItemStack;
@@ -24,12 +29,12 @@ import java.util.Optional;
 
 public class WrappedImmutableItemStack implements Cloneable {
 
-    public static class Serializer implements TypeSerializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.TwoArgs<CodecVisitor, DecodeContext.StackContext>> {
+    public static class Serializer implements Rewritable.Serializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.TwoArgs<CodecVisitor, DecodeContext.StackContext>> {
 
         private static final int EMPTY_ID_LEGACY = -1;
 
         @Override
-        public WrappedImmutableItemStack read(PacketDataSerializer buf, TypeContext.TwoArgs<CodecVisitor, DecodeContext.StackContext> context) {
+        public Rewritable<WrappedImmutableItemStack> readRewritable(PacketDataSerializer buf, TypeContext.TwoArgs<CodecVisitor, DecodeContext.StackContext> context) {
             NetProtocol protocol = context.getFirst().protocol();
             int amount = -1;
             short durability = -1;
@@ -65,8 +70,8 @@ public class WrappedImmutableItemStack implements Cloneable {
             }
 
             try {
-                return WrappedImmutableItemStack.read(context.getSecond(), buf, id, amount, durability, context.getFirst());
-            } catch (Exception ex) {
+                return WrappedImmutableItemStack.readTag(context.getSecond(), buf, id, amount, durability, context.getFirst());
+            } catch (DecoderException | IOException ex) {
                 throw new DecoderException("Failed to decode item stack", ex);
             }
         }
@@ -108,19 +113,7 @@ public class WrappedImmutableItemStack implements Cloneable {
                 }
             }
 
-            CodecVisitor visitor = context.getFirst();
-            if (visitor.replacedByRegistried()) {
-                CodecVisitor.Factory<?> factory = CodecVisitor.Factory.OUT_REGISTRY.get(stack.getType());
-                if (factory != null) {
-                    visitor = factory.create(protocol, context.getFirst().protocolCreated(), stack.getType());
-                }
-            }
-
-            if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-                Types.OUT_COMPONENT_MAP.write(buf, stack.getTag().asComponentMap().orElse(ComponentMap.EMPTY), TypeContext.TwoArgs.of(stack.getType(), protocol));
-            } else {
-                Types.NBT.write(buf, stack.getTag().asNBT().orElse(CompoundTag.EMPTY), TypeContext.OneArg.of(visitor));
-            }
+            WrappedImmutableItemStack.writeTag(context.getFirst(), context.getSecond(), buf, stack);
 
             return buf;
         }
@@ -154,7 +147,28 @@ public class WrappedImmutableItemStack implements Cloneable {
         }
     }
 
-    public static WrappedImmutableItemStack read(DecodeContext.StackContext context, PacketDataSerializer serializer, int itemId, int amount, short durability, CodecVisitor visitor) throws IOException {
+    public static void writeTag(CodecVisitor visitor, DecodeContext.StackContext context, PacketDataSerializer serializer, WrappedImmutableItemStack stack) {
+        NetProtocol protocol = context.protocol();
+        NetProtocol protocolCreated = context.protocolCreated();
+        if (visitor.replacedByRegistered()) {
+            CodecVisitor.Factory<?> factory = CodecVisitor.Factory.OUT_REGISTRY.get(stack.getType());
+            if (factory != null) {
+                visitor = factory.create(protocol, protocolCreated, stack.getType());
+            }
+        }
+
+        writeTag(visitor, serializer, stack.getType(), stack.getTag());
+    }
+
+    public static void writeTag(CodecVisitor visitor, PacketDataSerializer serializer, ItemType type, ItemTag tag) {
+        if (visitor.protocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
+            Types.OUT_COMPONENT_MAP.write(serializer, tag.asComponentMap().orElse(ComponentMap.EMPTY), TypeSerializer.TypeContext.TwoArgs.of(type, visitor.protocol()));
+        } else {
+            Types.NBT.write(serializer, tag.asNBT().orElse(CompoundTag.EMPTY), TypeSerializer.TypeContext.OneArg.of(visitor));
+        }
+    }
+
+    public static Rewritable<WrappedImmutableItemStack> readTag(DecodeContext.StackContext context, PacketDataSerializer serializer, int itemId, int amount, short durability, CodecVisitor visitor) throws IOException {
         NetProtocol protocol = context.protocol();
         NetProtocol protocolCreated = context.protocolCreated();
         ItemType type = ItemTypes.getById(protocol.toPECVersion(), itemId);
@@ -162,7 +176,7 @@ public class WrappedImmutableItemStack implements Cloneable {
             return null; // no type found
         }
 
-        if (visitor.replacedByRegistried()) {
+        if (visitor.replacedByRegistered()) {
             CodecVisitor.Factory<?> factory = CodecVisitor.Factory.IN_REGISTRY.get(type);
             if (factory != null) {
                 visitor = factory.create(protocol, protocolCreated, type);
@@ -171,6 +185,7 @@ public class WrappedImmutableItemStack implements Cloneable {
 
         CodecTypeValidation.ITEM_STACK_PRE_TAG.validate(type, context);
 
+        int preTagRidx = serializer.readerIndex();
         ItemTag tag;
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
             NetProtocol componentProtocol;
@@ -192,16 +207,69 @@ public class WrappedImmutableItemStack implements Cloneable {
 
         if (type == ItemTypes.AIR) {
             // done reading this item stack, but just ignore all other components if the type is air
-            return AIR.clone();
+            return Rewritable.noAction(AIR.clone());
         }
 
+        Rewritable.Result<PacketDataSerializer> rewritten;
+        if (tag != null && !tag.isEmpty()) {
+            // rewrite this tag
+            Rewritable<ItemTag> rewritableTag = rewriteTag(context, type, preTagRidx, serializer, tag);
+            tag = rewritableTag.get();
+            rewritten = rewritableTag.rewritten();
+        } else {
+            rewritten = Rewritable.Result.noRewritten();
+        }
+
+        WrappedImmutableItemStack stack;
         // create stack
         if (durability != -1) {
-            // before item update
-            return new WrappedImmutableItemStack(protocol, type, amount, durability, tag);
+            // before 1.13
+            stack = new WrappedImmutableItemStack(protocol, type, amount, durability, tag);
         } else {
-            return new WrappedImmutableItemStack(protocol, type, amount, tag);
+            stack = new WrappedImmutableItemStack(protocol, type, amount, tag);
         }
+
+        return Rewritable.rewritten(stack, rewritten);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <TAG extends ItemTag> Rewritable<TAG> rewriteTag(DecodeContext.StackContext context, ItemType type, int preTagRidx, PacketDataSerializer serializer, TAG itemTag) {
+        InTagRewriter<TAG> rewriter;
+        if (itemTag.asNBT().isPresent()) {
+            rewriter = (InTagRewriter<TAG>) InTagRewriter.NBTRewriter.REGISTRY.get(type);
+        } else {
+            rewriter = (InTagRewriter<TAG>) InTagRewriter.ComponentMapRewriter.REGISTRY.get(type);
+        }
+
+        if (rewriter != null) {
+            Rewritable.Result<TAG> result = rewriter.rewrite(context.protocol(), itemTag);
+            if (result != null && result.isRewritten()) {
+                TAG tag = result.get();
+                return rewriteTag0(context, tag,  type, preTagRidx, serializer);
+            }
+        }
+
+        return Rewritable.noAction(itemTag);
+    }
+
+    public static <TAG extends ItemTag> Rewritable<TAG> rewriteTag0(DecodeContext.StackContext context, TAG tag, ItemType type, int preTagRidx, PacketDataSerializer serializer) {
+        // temporarily reserve the end of this serializer
+        ByteBuf reserved = serializer.readBytes(serializer.readableBytes());
+
+        // slice the serializer we will rewrite to, and mark the writer index at the end
+        PacketDataSerializer rewritten = new PacketDataSerializer();
+        rewritten.writeBytes(serializer.slice(0, preTagRidx));
+
+        // write the rewritten tag to the rewritten buffer, and mark the reader index for expanding
+        writeTag(TagVisitor.Out.createDefault(context.protocol(), context.protocolCreated(), true), rewritten, type, tag);
+        rewritten.readerIndex(rewritten.writerIndex());
+
+        // write the reserved bytes to the rewritten buffer
+        rewritten.writeBytes(reserved);
+        // release the reserved buffer
+        reserved.release();
+
+        return Rewritable.rewritten(tag, Rewritable.Result.rewritten(rewritten));
     }
 
     public static final WrappedImmutableItemStack AIR = new WrappedImmutableItemStack();

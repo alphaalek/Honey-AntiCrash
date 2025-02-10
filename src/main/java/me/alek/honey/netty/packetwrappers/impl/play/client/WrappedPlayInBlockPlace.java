@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
+import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
@@ -13,7 +14,7 @@ import org.bukkit.util.Vector;
 import java.util.Arrays;
 import java.util.List;
 
-public class WrappedPlayInBlockPlace extends ByteInWrappedPacketImpl<WrappedPlayInBlockPlace> {
+public class WrappedPlayInBlockPlace extends ByteInWrappedPacketImpl.CacheRewriteCaller<WrappedPlayInBlockPlace> {
 
     private static final List<BlockFace> CARTESIAN_FACES = Arrays.asList(BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
 
@@ -53,7 +54,9 @@ public class WrappedPlayInBlockPlace extends ByteInWrappedPacketImpl<WrappedPlay
                 if (this.faceId == 255) {
                     this.face = BlockFace.SELF;
                 }
-                this.itemStack = serializer.readItemStackSafely(packet, 3); // 3 missing bytes for x, y, z of cursor position
+                Rewritable<WrappedImmutableItemStack> rewritable = serializer.readItemStackSafely(packet, 3); // 3 missing bytes for x, y, z of cursor position
+                handleRewritten(rewritable);
+                this.itemStack = rewritable.get();
                 this.interactionHand = InteractionHand.MAIN_HAND;
             }
         }

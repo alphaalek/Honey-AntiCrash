@@ -10,13 +10,13 @@ import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 
 public class ChannelManager {
 
-    public <WP extends SourcedWrappedPacket<WP>> void writeForcedPacket(HoneyPlayer player, ObjectWrappedPacket<WP> packet) {
+    public <WP extends SourcedWrappedPacket<WP>> void writePacket(HoneyPlayer player, ObjectWrappedPacket<WP> packet) {
         HoneyPacketOutStream out = getOutStream(player.channel);
         if (out == null) {
             return;
         }
 
-        out.writeForcedPacket(packet.getHandle());
+        out.writePacket(packet.getHandle());
     }
 
     public void sendPackets(Channel channel, ByteBuf buf) {

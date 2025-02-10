@@ -6,6 +6,8 @@ import com.github.retrooper.packetevents.protocol.component.builtin.item.Written
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.util.Filterable;
 import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
+import com.google.common.util.concurrent.Runnables;
+import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
@@ -21,6 +23,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ItemFactory;
 import me.alek.honey.validation.item.ItemAnalysis;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
@@ -35,44 +38,35 @@ public class PacketExecutors {
 
     public static void register() {
         if (NetProtocol.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2)) {
-            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPacketExecutor(PacketTypes.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor<>());
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().addPacketExecutor(PacketTypes.Play.Client.CUSTOM_PAYLOAD, new CustomPayloadPacketExecutor());
         }
     }
 
-    private static class CustomPayloadPacketExecutor<CP extends WrappedPlayInCustomPayload<CP>> implements PacketExecutor<CP> {
+    private static class CustomPayloadPacketExecutor implements PacketExecutor<WrappedPlayInCustomPayload> {
 
+        private static final GsonComponentSerializer GSON_COMPONENT_SERIALIZER = GsonComponentSerializer.colorDownsamplingGson();
         private static final Function<HoneyPlayer, Runnable> INVALID_BOOK_DATA = player -> () -> player.kick("Invalid book data!");
 
         @Override
-        public boolean test(PacketContainer<CP> packet) {
+        public boolean test(PacketContainer<WrappedPlayInCustomPayload> packet) {
             return packet.getAnyWrapped().getPayloadData().isBookChannel();
         }
 
         @Override
-        public Runnable getTask(PacketContainer<CP> packet) {
-            CP source = packet.getAnyWrapped();
+        public Runnable getTask(PacketContainer<WrappedPlayInCustomPayload> packet) {
+            WrappedPlayInCustomPayload source = packet.getAnyWrapped();
             WrappedImmutableItemStack item = source.getPayloadData().getBookChannelItemStack();
             if (item == null) {
-                source.release();
                 return null;
             }
 
-            Runnable edit = handleBookChannel(packet, item);
-            return Optional.ofNullable(edit)
-                    .map(r -> (Runnable) () -> {
-                        source.release();
-                        r.run();
-                    })
-                    .orElse(null);
+            Runnable task = handleBookChannel(packet, item);
+            return Optional.ofNullable(task).orElse(Runnables.doNothing());
         }
 
-        private Runnable handleBookChannel(PacketContainer<CP> packet, WrappedImmutableItemStack item) {
+        private Runnable handleBookChannel(PacketContainer<WrappedPlayInCustomPayload> packet, WrappedImmutableItemStack item) {
             ItemStack heldItem = packet.getPlayer().getItemInMainHand();
-            if (heldItem == null) {
-                return INVALID_BOOK_DATA.apply(packet.getPlayer());
-            }
-
-            if (heldItem.getType() != ItemFactory.getMaterial(ItemTypes.WRITABLE_BOOK)) {
+            if (heldItem == null || heldItem.getType() != ItemFactory.getMaterial(ItemTypes.WRITABLE_BOOK)) {
                 return null;
             }
 
@@ -80,7 +74,7 @@ public class PacketExecutors {
                 return INVALID_BOOK_DATA.apply(packet.getPlayer());
             }
 
-            String channel = packet.getCurrentWrapped().getPayloadData().getChannel();
+            String channel = packet.getAnyWrapped().getPayloadData().getChannel();
             if (channel.equals(WrappedPlayInCustomPayload.PayloadData.EDIT_BOOK_CHANNEL)) {
                 Runnable edit = handleBookEdit0(packet.getPlayer(), item, heldItem);
                 if (edit != null) {
@@ -127,7 +121,10 @@ public class PacketExecutors {
         }
 
         private Runnable handleBookSign0(HoneyPlayer player, WrappedImmutableItemStack item, ItemStack heldItem) {
-            if (item.getType() != ItemTypes.WRITTEN_BOOK && item.getType() != ItemTypes.WRITABLE_BOOK) {
+            NetProtocol protocol = player.clientInfo.getProtocol();
+            if (protocol.isOlderThanOrEqual(NetProtocol.v1_8_8) && item.getType() != ItemTypes.WRITTEN_BOOK) {
+                return null;
+            } else if (protocol.isNewerThan(NetProtocol.v1_8_8) && item.getType() != ItemTypes.WRITABLE_BOOK) {
                 return null;
             }
 
@@ -138,7 +135,8 @@ public class PacketExecutors {
 
                 List<String> pages = content.getPages().stream()
                         .map(Filterable::getRaw)
-                        .map(AdventureSerializer::toJson)
+                        .map(this::ensureTextComponent)
+                        .map(GSON_COMPONENT_SERIALIZER::serialize)
                         .collect(Collectors.toList());
                 String author = content.getAuthor();
                 String title = content.getTitle().getRaw();
@@ -147,13 +145,26 @@ public class PacketExecutors {
             } else if (tag.asNBT().isPresent()) {
                 CompoundTag nbt = tag.asNBT().get();
 
-                ArrayTag<String> pages = nbt.getArrayOf("pages", TagType.STRING);
+                List<String> pages = StreamSupport.stream(nbt.<String>getArrayOf("pages", TagType.STRING).spliterator(), false)
+                        .map(GSON_COMPONENT_SERIALIZER::deserialize)
+                        .map(this::ensureTextComponent)
+                        .map(GSON_COMPONENT_SERIALIZER::serialize)
+                        .collect(Collectors.toList());
+                Bukkit.getLogger().info("Pages " + pages);
                 String author = nbt.getString("author");
                 String title = nbt.getString("title");
 
                 return () -> applyContent(player, heldItem, pages, author, title);
             } else {
                 return null;
+            }
+        }
+
+        private Component ensureTextComponent(Component component) {
+            if (!(component instanceof TextComponent)) {
+                return Component.text(GSON_COMPONENT_SERIALIZER.serialize(component));
+            } else {
+                return component;
             }
         }
 
@@ -172,10 +183,7 @@ public class PacketExecutors {
         private CompoundTag addContentToWrittenBook(ItemStack item, Iterable<String> pages, String author, String title) {
             CompoundTag tag = NBTFactory.fromItem(item, true);
 
-            tag.putArray("pages", TagType.STRING,
-                    StreamSupport.stream(pages.spliterator(), false)
-                            .map(p -> AdventureSerializer.toJson(Component.text(p)))
-                            .collect(Collectors.toList()));
+            tag.putArray("pages", TagType.STRING, pages);
             tag.putPrimitive("author", TagType.STRING, author);
             tag.putPrimitive("title", TagType.STRING, title);
 

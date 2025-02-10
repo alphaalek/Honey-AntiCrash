@@ -1,9 +1,12 @@
 package me.alek.honey.netty.packet;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -77,6 +80,13 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
             } else if (createdState.equals(PipelineState.FINAL_BYTE)) {
                 this.finalByteWrapped = byteWrappedPacket;
             }
+
+            if (byteWrappedPacket.isAbstract()) {
+                // check if any bytes has not been decoded
+                // if any is left, the protocol has not been followed properly
+                HoneyPacketCodec.checkReadable(getProtocolCreated(), type, Optional.ofNullable(this.objectWrapped).map(ObjectWrappedPacket::getHandle).orElse(null), serializer);
+                serializer.readerIndex(0);
+            }
         }
     }
 
@@ -94,6 +104,28 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         }
     }
 
+    @Override
+    public PacketDataSerializer rewrite(PacketDataSerializer serializer) {
+        if (this.pipelineState.equals(PipelineState.OBJECT)) {
+            throw new IllegalStateException("Can't rewrite object");
+        }
+
+        WP packet = getCurrentWrapped();
+        // check if this packet should be rewritten
+        if (!packet.getState().equals(PipelineState.OBJECT) && packet.isAbstract() && packet instanceof PacketRewriter) {
+            PacketRewriter rewriter = (PacketRewriter) packet;
+            if (rewriter.shouldRewrite()) {
+                // rewrite the buffer
+                serializer = new PacketDataSerializer();
+                serializer.writeVarInt(this.type.getMinecraftID().get());
+                rewriter.rewrite(serializer);
+                return serializer;
+            }
+        }
+
+        return serializer.retain();
+    }
+
     private void applyPostActions() {
         Callback registeredPostAction = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPostAction(this.type);
         if (registeredPostAction != null) {
@@ -102,7 +134,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
-    public void handleRewritten(PacketType type, PipelineState state) {
+    public void handleUnknownRewritten(PacketType type, PipelineState state) {
         if (!this.type.equals(type)) {
             // rewritten new type by ViaVersion
             this.type = type;
@@ -117,7 +149,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     @Override
     public void callPostMinecraftDecode(Object handle, PacketType type) {
-        handleRewritten(type, PipelineState.OBJECT);
+        handleUnknownRewritten(type, PipelineState.OBJECT);
 
         if (PacketTypes.isUnknown(type)
                 || !type.getNmsClass().equals(handle.getClass())) {
@@ -135,7 +167,15 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         if (this.pipelineState == PipelineState.INITIAL_BYTE) {
             this.pipelineState = PipelineState.FINAL_BYTE;
             if (this.finalByteWrapped == null) {
+                serializer.markReaderIndex();
                 this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
+
+                if (this.finalByteWrapped.isAbstract()) {
+                    // check if any bytes has not been decoded
+                    // if any is left, the protocol has not been followed properly
+                    HoneyPacketCodec.checkReadable(getProtocolCreated(), this.type, Optional.ofNullable(this.objectWrapped).map(ObjectWrappedPacket::getHandle).orElse(null), serializer);
+                    serializer.resetReaderIndex();
+                }
             }
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(this.player, this);
         }
@@ -269,19 +309,6 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
-    public SourcedWrappedPacket<WP> getAnySourceWrapped() {
-        if (this.objectWrapped != null) {
-            return this.objectWrapped;
-        } else if (this.finalByteWrapped != null) {
-            return this.finalByteWrapped;
-        } else if (this.initialByteWrapped != null) {
-            return this.initialByteWrapped;
-        } else {
-            throw new IllegalStateException();
-        }
-    }
-
-    @Override
     public WP getAnyWrapped() {
         if (this.objectWrapped != null && this.objectWrapped.isAbstract()) {
             return this.objectWrapped.get();
@@ -290,17 +317,25 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         } else if (this.initialByteWrapped != null && this.initialByteWrapped.isAbstract()) {
             return this.initialByteWrapped.get();
         } else {
-            return getAnySourceWrapped().get();
+            if (this.objectWrapped != null) {
+                return this.objectWrapped.get();
+            } else if (this.finalByteWrapped != null) {
+                return this.finalByteWrapped.get();
+            } else if (this.initialByteWrapped != null) {
+                return this.initialByteWrapped.get();
+            } else {
+                throw new IllegalStateException();
+            }
         }
     }
 
     @Override
     public WP getCurrentWrapped() {
-        if (this.pipelineState.equals(PipelineState.OBJECT) && this.objectWrapped.isAbstract()) {
+        if (this.pipelineState.equals(PipelineState.OBJECT)) {
             return this.objectWrapped.get();
-        } else if (this.pipelineState.equals(PipelineState.FINAL_BYTE) && this.finalByteWrapped.isAbstract()) {
+        } else if (this.pipelineState.equals(PipelineState.FINAL_BYTE)) {
             return this.finalByteWrapped.get();
-        } else if ((this.pipelineState.equals(PipelineState.INITIAL_BYTE) || this.callingLateInitialByteWrapped) && this.initialByteWrapped.isAbstract()) {
+        } else if ((this.pipelineState.equals(PipelineState.INITIAL_BYTE) || this.callingLateInitialByteWrapped)) {
             return this.initialByteWrapped.get();
         } else {
             throw new IllegalStateException();

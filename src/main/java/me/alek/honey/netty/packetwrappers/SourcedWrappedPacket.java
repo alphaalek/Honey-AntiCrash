@@ -12,20 +12,6 @@ import java.util.logging.Level;
 
 public interface SourcedWrappedPacket<WP extends SourcedWrappedPacket<WP>> extends WrappedPacket<WP> {
 
-    default <T> T decodeExternally(Callable<T> callable) {
-        Callback exCallback = new Callback();
-        exCallback.addAction(Callback.Action.<Throwable>from(ex -> {
-            if (HoneyPlugin.get().getLogger().isDebug()) {
-                HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
-                        "Error occurred while decoding packet " + getContainer().getType() + " (id " + getContainer().getType().getID()
-                                + ") sent by " + getPlayer().name, ex);
-            }
-
-            getPlayer().failPacket(ex, getContainer());
-        }));
-        return getPlayer().executeExternally(callable, exCallback);
-    }
-
     default NetProtocol getProtocol() {
         return getContainer().getProtocol();
     }

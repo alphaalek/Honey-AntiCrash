@@ -8,7 +8,6 @@ import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.tag.nbt.*;
 import me.alek.honey.netty.tag.nbt.visitor.ComplexTagVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -57,8 +56,8 @@ public class BookTagVisitor extends ComplexTagVisitor {
     public String visitCompoundKey(String key, TagType type) {
         if (isRootTag()) {
             if ((key.equals(BookTag.AUTHOR) || key.equals(BookTag.TITLE) || key.equals(BookTag.FILTERED_TITLE)) && !type.equals(TagType.STRING)
-                    || key.equals(BookTag.PAGES) && !type.equals(TagTypeCollection.getCollection(TagTypeCollection.ARRAY))
-                    || key.equals(BookTag.FILTERED_PAGES) && !type.equals(TagTypeCollection.getCollection(TagTypeCollection.COMPOUND))) {
+                    || key.equals(BookTag.PAGES) && !type.equals(TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY))
+                    || key.equals(BookTag.FILTERED_PAGES) && !type.equals(TagTypeCollection.getFromCollection(TagTypeCollection.COMPOUND))) {
                 throw new DecoderException("Invalid book data: invalid tag type: " + key + ", " + type);
             }
         }

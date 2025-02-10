@@ -4,11 +4,11 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 
 public interface ByteInWrappedPacket<WP extends SourcedWrappedPacket<WP>> extends SourcedWrappedPacket<WP>, ByteWrappedPacket<WP> {
 
-    PacketDataSerializer getBuf();
+    PacketDataSerializer serializer();
 
-    int getByteSize();
+    int bytes();
 
-    int getAccumulatedByteSize();
+    int accumulatedBytes();
 
-    int getDoubleByteSequences();
+    int doubleByteSequences();
 }

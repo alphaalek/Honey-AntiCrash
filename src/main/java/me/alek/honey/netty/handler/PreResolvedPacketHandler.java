@@ -14,7 +14,6 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.Callback;
-import org.bukkit.Bukkit;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -116,7 +115,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                 PacketType type = PacketTypes.getPacketType(msg.getClass(), this.packetHandler.getProtocolState(PacketBound.SERVER)).orElse(PacketType.UNKNOWN);
                 HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
                         "Error occurred while handling packet " + type + " (id " + type.getID()
-                                + ") sent by " + this.packetHandler.getPlayer().name + ", " + Optional.ofNullable(packet).map(p -> p.getAnyByteWrapped().getByteSize()).orElse(-1) + " bytes", ex);
+                                + ") sent by " + this.packetHandler.getPlayer().name + ", " + Optional.ofNullable(packet).map(p -> p.getAnyByteWrapped().bytes()).orElse(-1) + " bytes", ex);
             }
 
             this.packetHandler.getPlayer().failPacket(ex, packet);

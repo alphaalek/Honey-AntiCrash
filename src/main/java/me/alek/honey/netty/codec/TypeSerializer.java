@@ -1,9 +1,7 @@
-package me.alek.honey.netty.codec.types;
+package me.alek.honey.netty.codec;
 
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
-import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.util.protocol.NetProtocol;
 
 public interface TypeSerializer<T, C extends TypeSerializer.TypeContext> {
 
@@ -23,11 +21,6 @@ public interface TypeSerializer<T, C extends TypeSerializer.TypeContext> {
         default T read(PacketDataSerializer buf, C context) {
             throw new UnsupportedOperationException();
         }
-    }
-
-    interface ProtocolType<T, C extends TypeContext, TYPE extends TypeSerializer<T, C>> {
-
-        TYPE forProtocol(NetProtocol protocol);
     }
 
     interface NoContext<T> extends TypeSerializer<T, TypeContext.Empty> {

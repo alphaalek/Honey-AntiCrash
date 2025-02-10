@@ -1,15 +1,16 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
-import io.netty.buffer.ByteBuf;
-import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
+import me.alek.honey.netty.packetwrappers.PacketRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.Map;
 
-public class WrappedPlayInWindowClick extends ByteInWrappedPacketImpl<WrappedPlayInWindowClick> {
+public class WrappedPlayInWindowClick extends ByteInWrappedPacketImpl.CacheRewriteCaller<WrappedPlayInWindowClick> {
 
     public enum WindowClickType {
         PICKUP, QUICK_MOVE, SWAP, CLONE, THROW, QUICK_CRAFT, PICKUP_ALL;
@@ -54,17 +55,26 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacketImpl<WrappedPla
         int clickTypeIndex = serializer.readVarInt();
         this.windowClickType = WindowClickType.values()[clickTypeIndex];
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
+            // Note, that I'm using ByteInWrappedPacket#serializer() because if any prior item stacks
+            // has rewritten the serializer, I have to handle the continuation properly
             this.slots = serializer.readMap(
-                    () -> Math.toIntExact(serializer.readShort()),
-                    () -> serializer.readItemStackSafely(packet)
+                    () -> Math.toIntExact(serializer().readShort()),
+                    () -> {
+                        Rewritable<WrappedImmutableItemStack> rewritable = serializer().readItemStackSafely(packet);
+                        handleRewritten(rewritable); // update rewritten serializer
+                        return rewritable.get();
+                    }
             );
         }
-
-        this.carriedItemStack = serializer.readItemStackSafely(packet, 0);
+        // Note, same as when reading the item stack slots
+        Rewritable<WrappedImmutableItemStack> rewritable = serializer().readItemStackSafely(packet, 0);
+        handleRewritten(rewritable); // update rewritten serializer
+        this.carriedItemStack = rewritable.get();
     }
 
-    public ByteBuf constructModifiedBuf(NetProtocol protocol) {
-        PacketDataSerializer serializer = new PacketDataSerializer();
+    public void rewrite0(PacketDataSerializer serializer) {
+        NetProtocol protocol = getProtocol();
+
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_21_2)) {
             serializer.writeVarInt(this.windowId);
         } else {
@@ -89,7 +99,6 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacketImpl<WrappedPla
         }
 
         serializer.writeItemStack(protocol, WrappedImmutableItemStack.AIR);
-        return serializer;
     }
 
     public int getWindowId() {

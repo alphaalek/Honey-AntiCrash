@@ -7,8 +7,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.TypeSerializer;
-import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.codec.TypeSerializer;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.util.protocol.NetProtocol;
 
@@ -131,7 +130,7 @@ public class ComponentMap implements ItemTag {
 
             // write absent types
             for (Val<?> absent : absents) {
-                buf.writeVarInt(absent.type().getId(protocol.toPECVersion()));
+                buf.writeVarInt(absent.type().getId(wrapper.getClientVersion()));
             }
 
             return buf;

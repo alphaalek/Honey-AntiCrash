@@ -325,6 +325,7 @@ public class Notifications {
 
     public void sendActionBar(HoneyPlayer player, String text) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
+            // TODO: for paper 1.17+ (I guess?) use adventure
             player.bukkit.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
             return;
         }
@@ -343,7 +344,7 @@ public class Notifications {
             Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
             packetContainer.getStructure().getObjectsOf(MinecraftReflection.getIChatBaseComponentClass()).writeField(0, chatComponent);
 
-            HoneyPlugin.get().getPacketLibrary().getChannelManager().writeForcedPacket(player, actionBarPacket);
+            HoneyPlugin.get().getPacketLibrary().getChannelManager().writePacket(player, actionBarPacket);
         } catch (Exception ex) {
             HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to send action bar packet", ex);
         }

@@ -2,7 +2,6 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
-import io.netty.util.ReferenceCountUtil;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -16,7 +15,6 @@ import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -131,9 +129,9 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
         }
     }
 
-    public void writeForcedPacket(Object value) {
+    public void writePacket(Object value) {
         if (!this.player.channel.eventLoop().inEventLoop()) {
-            this.player.channel.eventLoop().submit(() -> writeForcedPacket(value));
+            this.player.channel.eventLoop().submit(() -> writePacket(value));
             return;
         }
 
@@ -144,8 +142,8 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
             }
 
             write0(ctx, value, new DefaultChannelPromise(this.player.channel));
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to write packet " + value, ex);
         }
     }
 }

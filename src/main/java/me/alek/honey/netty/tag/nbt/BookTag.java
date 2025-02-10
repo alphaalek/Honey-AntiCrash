@@ -3,11 +3,21 @@ package me.alek.honey.netty.tag.nbt;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.codec.HoneyPacketCodec;
+import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.modelwrappers.WrappedObject;
+import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.visitor.book.EditBookTagVisitor;
+import me.alek.honey.netty.tag.rewriter.InTagRewriter;
+
+import java.util.Optional;
 
 public class BookTag {
 
@@ -22,11 +32,59 @@ public class BookTag {
         CodecTypeValidation.BOOK_EDIT_ITEM_STACK.addValidation(BookTag::validateBookEdit);
     }
 
+    public static WrappedImmutableItemStack decodeBookEditStack(ByteInWrappedPacketImpl.CacheRewriteCaller<?> source, PacketContainer<?> packet, boolean signing, PacketDataSerializer serializer) {
+        // read the item stack
+        EditBookTagVisitor visitor = signing ? EditBookTagVisitor.of(packet.getProtocol(), packet.getProtocolCreated(), true, packet.getPlayerName()) : EditBookTagVisitor.of(packet.getProtocol(), packet.getProtocolCreated());
+        int idx = serializer.readerIndex();
+        Rewritable<WrappedImmutableItemStack> rewritable = serializer.readItemStack(visitor, 0); // no need to read safely, because we applied the edit book tag visitor
+        WrappedImmutableItemStack stack = rewritable.get();
+
+        // check if there is any bytes left
+        HoneyPacketCodec.checkReadable(packet.getProtocolCreated(), packet.getType(), Optional.ofNullable(packet.getObjectWrapped()).map(WrappedObject::getHandle).orElse(null), serializer);
+
+        // in some versions the client sends a writable_book when signing books instead of written_book, but the server will
+        // still serialize the pages and treat it as a written_book, so we have to make sure it has been rewritten, otherwise try again
+        if (!rewritable.rewritten().isRewritten() && signing && stack.getType().equals(ItemTypes.WRITABLE_BOOK)) {
+            CompoundTag tag = stack.getTag().asNBT().get();
+            Rewritable.Result<CompoundTag> result = InTagRewriter.NBTRewriter.REGISTRY.get(ItemTypes.WRITTEN_BOOK).rewrite(packet.getProtocol(), tag);
+            if (result.isRewritten()) {
+                // slice the serializer we will rewrite to, and mark the writer index at the end
+                PacketDataSerializer rewritten = new PacketDataSerializer();
+                rewritten.writeBytes(serializer.slice(0, idx));
+
+                // write the rewritten item (tag) to the rewritten buffer
+                stack.setTag(tag);
+                rewritten.writeItemStack(packet.getProtocol(), stack);
+                rewritten.readerIndex(rewritten.writerIndex());
+
+                Rewritable<CompoundTag> tagRewritable = new Rewritable<CompoundTag>() {
+
+                    @Override
+                    public CompoundTag get() {
+                        return result.get();
+                    }
+
+                    @Override
+                    public Result<PacketDataSerializer> rewritten() {
+                        return Result.rewritten(rewritten);
+                    }
+                };
+                source.handleRewritten(tagRewritable);
+            }
+        } else {
+            source.handleRewritten(rewritable);
+        }
+
+        // validate this stack
+        CodecTypeValidation.BOOK_EDIT_ITEM_STACK.validate(stack, DecodeContext.BookEditContext.from(serializer, packet, signing));
+        return stack;
+    }
+
     public static void validateBook(WrappedImmutableItemStack item, DecodeContext context) {
         ItemTag tag = item.getTag();
         if (tag.asNBT().isPresent()) {
             CompoundTag nbt = tag.asNBT().get();
-            if (nbt.hasKeyOfType(PAGES, TagTypeCollection.getCollection(TagTypeCollection.ARRAY))) {
+            if (nbt.hasKeyOfType(PAGES, TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY))) {
                 ArrayTag<String> pages = nbt.getArrayOf(PAGES, TagType.STRING);
                 int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(context.protocolCreated());
                 if (pages.size() > max) {
@@ -62,7 +120,7 @@ public class BookTag {
     }
 
     public static void validateBookEdit(CompoundTag nbt, DecodeContext.BookEditContext<?> context) {
-        if (!nbt.hasKeyOfType(PAGES, TagTypeCollection.getCollection(TagTypeCollection.ARRAY))) {
+        if (!nbt.hasKeyOfType(PAGES, TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY))) {
             throw new DecoderException("Invalid book data: no pages tag");
         }
 

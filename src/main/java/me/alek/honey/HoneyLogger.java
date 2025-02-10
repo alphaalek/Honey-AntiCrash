@@ -245,8 +245,7 @@ public class HoneyLogger {
             return;
         }
 
-        SourcedWrappedPacket<WP> source = packet.getAnySourceWrapped();
-
+        WP source = packet.getAnyWrapped();
         StringBuilder message = new StringBuilder();
         if (comparingTime > packet.getTimeCreated()) {
             message.append("(")
@@ -290,7 +289,7 @@ public class HoneyLogger {
         }
 
         Map<String, Object> entries = new HashMap<>();
-        for (Map.Entry<String, Object> entry : packet.getAnySourceWrapped().getProperties().entrySet()) {
+        for (Map.Entry<String, Object> entry : packet.getAnyWrapped().getProperties().entrySet()) {
             if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS
                     && entry.getValue() != null
                     && entry.getValue().getClass().isArray()) {

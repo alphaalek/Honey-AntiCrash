@@ -298,7 +298,7 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
 
         @Override
         public void append(PacketContainer<?> input, List<String> data) {
-            data.add(input.getAnyByteWrapped().getByteSize() + " bytes");
+            data.add(input.getAnyByteWrapped().bytes() + " bytes");
         }
     }
 
@@ -307,7 +307,7 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
 
         @Override
         public void append(PacketContainer<?> input, List<String> data) {
-            data.add(input.getAnyByteWrapped().getAccumulatedByteSize() + " accumulated bytes");
+            data.add(input.getAnyByteWrapped().accumulatedBytes() + " accumulated bytes");
         }
     }
 
@@ -316,7 +316,7 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
 
         @Override
         public void append(PacketContainer<?> input, List<String> data) {
-            data.add(input.getAnyByteWrapped().getDoubleByteSequences() + " byte sequences");
+            data.add(input.getAnyByteWrapped().doubleByteSequences() + " byte sequences");
         }
     }
 

@@ -24,7 +24,7 @@ public class WrappedPacketFactoryCollection {
         loadByteWrapper(PacketTypes.Play.Client.BLOCK_PLACE, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInBlockPlace::new);
         loadByteWrapper(PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInCreativeInventoryAction::new);
         loadByteWrapper(PacketTypes.Play.Client.CLICK_WINDOW, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInWindowClick::new);
-        loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInCustomPayload.ByteWrappedPlayInCustomPayload::new);
+        loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInCustomPayload::new);
         loadByteWrapper(PacketTypes.Play.Client.BOOK_EDIT, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInBookEdit::new);
 
         loadByteWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.INITIAL_BYTE, WrappedHandshakeInSetProtocol::new);
@@ -34,6 +34,7 @@ public class WrappedPacketFactoryCollection {
         loadByteWrapper(PacketTypes.Play.Client.PLAYER_POS_ROT, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInPositionAndRotation::new);
         loadByteWrapper(PacketTypes.Play.Client.PLAYER_ROTATION, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInRotation::new);
         loadByteWrapper(PacketTypes.Play.Client.PLAYER_MOVEMENT, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInFlying.Flying::new);
+        loadByteWrapper(PacketTypes.Play.Client.UPDATE_SIGN, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInUpdateSign::new);
 
         loadByteWrapper(PacketTypes.Play.Client.PICK_ITEM, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInPickItem::new);
 
@@ -41,7 +42,6 @@ public class WrappedPacketFactoryCollection {
         loadObjectWrapper(PacketTypes.Play.Client.CHAT_MESSAGE, WrappedPlayInChat::new);
         loadObjectWrapper(PacketTypes.Play.Client.CHAT_COMMAND, WrappedPlayInChat::new);
         loadObjectWrapper(PacketTypes.Play.Client.HELD_ITEM_CHANGE, WrappedPlayInHeldItemSlot::new);
-        loadObjectWrapper(PacketTypes.Play.Client.UPDATE_SIGN, WrappedPlayInUpdateSign::new);
         loadObjectWrapper(PacketTypes.Play.Client.TAB_COMPLETE, WrappedPlayInTabComplete::new);
 
         loadObjectWrapper(PacketTypes.Play.Server.CHAT, WrappedPlayOutChat::new);

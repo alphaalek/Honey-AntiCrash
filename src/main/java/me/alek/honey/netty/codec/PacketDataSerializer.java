@@ -7,7 +7,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.codec.types.TypeSerializer;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
@@ -79,24 +78,24 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(TagVisitor.Out.createDefault(protocol, protocol, true), null));
     }
 
-    public WrappedImmutableItemStack readItemStack(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
+    public Rewritable<WrappedImmutableItemStack> readItemStack(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
         try {
-            return Optional.ofNullable(Types.ITEM_STACK.read(this, TypeSerializer.TypeContext.TwoArgs.of(visitor, DecodeContext.StackContext.from(this, visitor.protocol(), visitor.protocolCreated(), maxMissingBytes))))
-                    .orElse(WrappedImmutableItemStack.AIR);
+            return Optional.ofNullable(Types.ITEM_STACK.readRewritable(this, TypeSerializer.TypeContext.TwoArgs.of(visitor, DecodeContext.StackContext.from(this, visitor.protocol(), visitor.protocolCreated(), maxMissingBytes))))
+                    .orElse(Rewritable.noAction(WrappedImmutableItemStack.AIR));
         } catch (DecoderException ex) {
             throw new StackDecodingException(ex);
         }
     }
 
-    public WrappedImmutableItemStack readItemStack(CodecVisitor visitor) throws StackDecodingException {
+    public Rewritable<WrappedImmutableItemStack> readItemStack(CodecVisitor visitor) throws StackDecodingException {
         return readItemStack(visitor, -1);
     }
 
-    public WrappedImmutableItemStack readItemStackSafely(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
-        WrappedImmutableItemStack stack = readItemStack(visitor, maxMissingBytes);
-        if (stack != WrappedImmutableItemStack.AIR) {
+    public Rewritable<WrappedImmutableItemStack> readItemStackSafely(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
+        Rewritable<WrappedImmutableItemStack> stack = readItemStack(visitor, maxMissingBytes);
+        if (stack.get() != WrappedImmutableItemStack.AIR) {
             try {
-                CodecTypeValidation.ITEM_STACK.validate(stack, DecodeContext.from(this, visitor.protocol(), visitor.protocolCreated()));
+                CodecTypeValidation.ITEM_STACK.validate(stack.get(), DecodeContext.from(this, visitor.protocol(), visitor.protocolCreated()));
             } catch (DecoderException ex) {
                 throw new StackDecodingException(ex);
             }
@@ -105,11 +104,11 @@ public class PacketDataSerializer extends ByteBuf {
         return stack;
     }
 
-    public WrappedImmutableItemStack readItemStackSafely(PacketContainer<?> packet, int maxMissingBytes) throws StackDecodingException {
+    public Rewritable<WrappedImmutableItemStack> readItemStackSafely(PacketContainer<?> packet, int maxMissingBytes) throws StackDecodingException {
         return readItemStackSafely(TagVisitor.In.createDefault(packet.getProtocol(), packet.getProtocolCreated(), true), maxMissingBytes);
     }
 
-    public WrappedImmutableItemStack readItemStackSafely(PacketContainer<?> packet) throws StackDecodingException {
+    public Rewritable<WrappedImmutableItemStack> readItemStackSafely(PacketContainer<?> packet) throws StackDecodingException {
         return readItemStackSafely(packet, -1);
     }
 
@@ -167,8 +166,9 @@ public class PacketDataSerializer extends ByteBuf {
         return this.delegate.capacity();
     }
 
-    public ByteBuf capacity(int i) {
-        return this.delegate.capacity(i);
+    public PacketDataSerializer capacity(int i) {
+        this.delegate.capacity(i);
+        return this;
     }
 
     public int maxCapacity() {
@@ -183,12 +183,14 @@ public class PacketDataSerializer extends ByteBuf {
         return this.delegate.order();
     }
 
-    public ByteBuf order(ByteOrder byteorder) {
-        return this.delegate.order(byteorder);
+    public PacketDataSerializer order(ByteOrder byteorder) {
+        this.delegate.order(byteorder);
+        return this;
     }
 
-    public ByteBuf unwrap() {
-        return this.delegate.unwrap();
+    public PacketDataSerializer unwrap() {
+        this.delegate.unwrap();
+        return this;
     }
 
     public boolean isDirect() {
@@ -199,20 +201,23 @@ public class PacketDataSerializer extends ByteBuf {
         return this.delegate.readerIndex();
     }
 
-    public ByteBuf readerIndex(int i) {
-        return this.delegate.readerIndex(i);
+    public PacketDataSerializer readerIndex(int i) {
+        this.delegate.readerIndex(i);
+        return this;
     }
 
     public int writerIndex() {
         return this.delegate.writerIndex();
     }
 
-    public ByteBuf writerIndex(int i) {
-        return this.delegate.writerIndex(i);
+    public PacketDataSerializer writerIndex(int i) {
+        this.delegate.writerIndex(i);
+        return this;
     }
 
-    public ByteBuf setIndex(int i, int j) {
-        return this.delegate.setIndex(i, j);
+    public PacketDataSerializer setIndex(int i, int j) {
+        this.delegate.setIndex(i, j);
+        return this;
     }
 
     public int readableBytes() {
@@ -243,36 +248,44 @@ public class PacketDataSerializer extends ByteBuf {
         return this.delegate.isWritable(i);
     }
 
-    public ByteBuf clear() {
-        return this.delegate.clear();
+    public PacketDataSerializer clear() {
+        this.delegate.clear();
+        return this;
     }
 
-    public ByteBuf markReaderIndex() {
-        return this.delegate.markReaderIndex();
+    public PacketDataSerializer markReaderIndex() {
+        this.delegate.markReaderIndex();
+        return this;
     }
 
-    public ByteBuf resetReaderIndex() {
-        return this.delegate.resetReaderIndex();
+    public PacketDataSerializer resetReaderIndex() {
+        this.delegate.resetReaderIndex();
+        return this;
     }
 
-    public ByteBuf markWriterIndex() {
-        return this.delegate.markWriterIndex();
+    public PacketDataSerializer markWriterIndex() {
+        this.delegate.markWriterIndex();
+        return this;
     }
 
-    public ByteBuf resetWriterIndex() {
-        return this.delegate.resetWriterIndex();
+    public PacketDataSerializer resetWriterIndex() {
+        this.delegate.resetWriterIndex();
+        return this;
     }
 
-    public ByteBuf discardReadBytes() {
-        return this.delegate.discardReadBytes();
+    public PacketDataSerializer discardReadBytes() {
+        this.delegate.discardReadBytes();
+        return this;
     }
 
-    public ByteBuf discardSomeReadBytes() {
-        return this.delegate.discardSomeReadBytes();
+    public PacketDataSerializer discardSomeReadBytes() {
+        this.delegate.discardSomeReadBytes();
+        return this;
     }
 
-    public ByteBuf ensureWritable(int i) {
-        return this.delegate.ensureWritable(i);
+    public PacketDataSerializer ensureWritable(int i) {
+        this.delegate.ensureWritable(i);
+        return this;
     }
 
     public int ensureWritable(int i, boolean flag) {
@@ -363,64 +376,79 @@ public class PacketDataSerializer extends ByteBuf {
         return this.delegate.getBytes(i, gatheringbytechannel, j);
     }
 
-    public ByteBuf setBoolean(int i, boolean flag) {
-        return this.delegate.setBoolean(i, flag);
+    public PacketDataSerializer setBoolean(int i, boolean flag) {
+        this.delegate.setBoolean(i, flag);
+        return this;
     }
 
-    public ByteBuf setByte(int i, int j) {
-        return this.delegate.setByte(i, j);
+    public PacketDataSerializer setByte(int i, int j) {
+        this.delegate.setByte(i, j);
+        return this;
     }
 
-    public ByteBuf setShort(int i, int j) {
-        return this.delegate.setShort(i, j);
+    public PacketDataSerializer setShort(int i, int j) {
+        this.delegate.setShort(i, j);
+        return this;
     }
 
-    public ByteBuf setMedium(int i, int j) {
-        return this.delegate.setMedium(i, j);
+    public PacketDataSerializer setMedium(int i, int j) {
+        this.delegate.setMedium(i, j);
+        return this;
     }
 
-    public ByteBuf setInt(int i, int j) {
-        return this.delegate.setInt(i, j);
+    public PacketDataSerializer setInt(int i, int j) {
+        this.delegate.setInt(i, j);
+        return this;
     }
 
-    public ByteBuf setLong(int i, long j) {
-        return this.delegate.setLong(i, j);
+    public PacketDataSerializer setLong(int i, long j) {
+        this.delegate.setLong(i, j);
+        return this;
     }
 
-    public ByteBuf setChar(int i, int j) {
-        return this.delegate.setChar(i, j);
+    public PacketDataSerializer setChar(int i, int j) {
+        this.delegate.setChar(i, j);
+        return this;
     }
 
-    public ByteBuf setFloat(int i, float f) {
-        return this.delegate.setFloat(i, f);
+    public PacketDataSerializer setFloat(int i, float f) {
+        this.delegate.setFloat(i, f);
+        return this;
     }
 
-    public ByteBuf setDouble(int i, double d0) {
-        return this.delegate.setDouble(i, d0);
+    public PacketDataSerializer setDouble(int i, double d0) {
+        this.delegate.setDouble(i, d0);
+        return this;
     }
 
-    public ByteBuf setBytes(int i, ByteBuf bytebuf) {
-        return this.delegate.setBytes(i, bytebuf);
+    public PacketDataSerializer setBytes(int i, ByteBuf bytebuf) {
+        this.delegate.setBytes(i, bytebuf);
+        return this;
     }
 
-    public ByteBuf setBytes(int i, ByteBuf bytebuf, int j) {
-        return this.delegate.setBytes(i, bytebuf, j);
+    public PacketDataSerializer setBytes(int i, ByteBuf bytebuf, int j) {
+        this.delegate.setBytes(i, bytebuf, j);
+        return this;
     }
 
-    public ByteBuf setBytes(int i, ByteBuf bytebuf, int j, int k) {
-        return this.delegate.setBytes(i, bytebuf, j, k);
+    public PacketDataSerializer setBytes(int i, ByteBuf bytebuf, int j, int k) {
+        this.delegate.setBytes(i, bytebuf, j, k);
+        return this;
     }
 
-    public ByteBuf setBytes(int i, byte[] abyte) {
-        return this.delegate.setBytes(i, abyte);
+    public PacketDataSerializer setBytes(int i, byte[] abyte) {
+        this.delegate.setBytes(i, abyte);
+        return this;
     }
 
-    public ByteBuf setBytes(int i, byte[] abyte, int j, int k) {
-        return this.delegate.setBytes(i, abyte, j, k);
+    public PacketDataSerializer setBytes(int i, byte[] abyte, int j, int k) {
+        this.delegate.setBytes(i, abyte, j, k);
+        return this;
     }
 
-    public ByteBuf setBytes(int i, ByteBuffer bytebuffer) {
-        return this.delegate.setBytes(i, bytebuffer);
+    public PacketDataSerializer setBytes(int i, ByteBuffer bytebuffer) {
+        this.delegate.setBytes(i, bytebuffer);
+        return this;
     }
 
     public int setBytes(int i, InputStream inputstream, int j) throws IOException {
@@ -431,8 +459,9 @@ public class PacketDataSerializer extends ByteBuf {
         return this.delegate.setBytes(i, scatteringbytechannel, j);
     }
 
-    public ByteBuf setZero(int i, int j) {
-        return this.delegate.setZero(i, j);
+    public PacketDataSerializer setZero(int i, int j) {
+        this.delegate.setZero(i, j);
+        return this;
     }
 
     public boolean readBoolean() {
@@ -527,68 +556,84 @@ public class PacketDataSerializer extends ByteBuf {
         return this.delegate.readBytes(gatheringbytechannel, i);
     }
 
-    public ByteBuf skipBytes(int i) {
-        return this.delegate.skipBytes(i);
+    public PacketDataSerializer skipBytes(int i) {
+        this.delegate.skipBytes(i);
+        return this;
     }
 
-    public ByteBuf writeBoolean(boolean flag) {
-        return this.delegate.writeBoolean(flag);
+    public PacketDataSerializer writeBoolean(boolean flag) {
+        this.delegate.writeBoolean(flag);
+        return this;
     }
 
-    public ByteBuf writeByte(int i) {
-        return this.delegate.writeByte(i);
+    public PacketDataSerializer writeByte(int i) {
+        this.delegate.writeByte(i);
+        return this;
     }
 
-    public ByteBuf writeShort(int i) {
-        return this.delegate.writeShort(i);
+    public PacketDataSerializer writeShort(int i) {
+        this.delegate.writeShort(i);
+        return this;
     }
 
-    public ByteBuf writeMedium(int i) {
-        return this.delegate.writeMedium(i);
+    public PacketDataSerializer writeMedium(int i) {
+        this.delegate.writeMedium(i);
+        return this;
     }
 
-    public ByteBuf writeInt(int i) {
-        return this.delegate.writeInt(i);
+    public PacketDataSerializer writeInt(int i) {
+        this.delegate.writeInt(i);
+        return this;
     }
 
-    public ByteBuf writeLong(long i) {
-        return this.delegate.writeLong(i);
+    public PacketDataSerializer writeLong(long i) {
+        this.delegate.writeLong(i);
+        return this;
     }
 
-    public ByteBuf writeChar(int i) {
-        return this.delegate.writeChar(i);
+    public PacketDataSerializer writeChar(int i) {
+        this.delegate.writeChar(i);
+        return this;
     }
 
-    public ByteBuf writeFloat(float f) {
-        return this.delegate.writeFloat(f);
+    public PacketDataSerializer writeFloat(float f) {
+        this.delegate.writeFloat(f);
+        return this;
     }
 
-    public ByteBuf writeDouble(double d0) {
-        return this.delegate.writeDouble(d0);
+    public PacketDataSerializer writeDouble(double d0) {
+        this.delegate.writeDouble(d0);
+        return this;
     }
 
-    public ByteBuf writeBytes(ByteBuf bytebuf) {
-        return this.delegate.writeBytes(bytebuf);
+    public PacketDataSerializer writeBytes(ByteBuf bytebuf) {
+        this.delegate.writeBytes(bytebuf);
+        return this;
     }
 
-    public ByteBuf writeBytes(ByteBuf bytebuf, int i) {
-        return this.delegate.writeBytes(bytebuf, i);
+    public PacketDataSerializer writeBytes(ByteBuf bytebuf, int i) {
+        this.delegate.writeBytes(bytebuf, i);
+        return this;
     }
 
-    public ByteBuf writeBytes(ByteBuf bytebuf, int i, int j) {
-        return this.delegate.writeBytes(bytebuf, i, j);
+    public PacketDataSerializer writeBytes(ByteBuf bytebuf, int i, int j) {
+        this.delegate.writeBytes(bytebuf, i, j);
+        return this;
     }
 
-    public ByteBuf writeBytes(byte[] abyte) {
-        return this.delegate.writeBytes(abyte);
+    public PacketDataSerializer writeBytes(byte[] abyte) {
+        this.delegate.writeBytes(abyte);
+        return this;
     }
 
-    public ByteBuf writeBytes(byte[] abyte, int i, int j) {
-        return this.delegate.writeBytes(abyte, i, j);
+    public PacketDataSerializer writeBytes(byte[] abyte, int i, int j) {
+        this.delegate.writeBytes(abyte, i, j);
+        return this;
     }
 
-    public ByteBuf writeBytes(ByteBuffer bytebuffer) {
-        return this.delegate.writeBytes(bytebuffer);
+    public PacketDataSerializer writeBytes(ByteBuffer bytebuffer) {
+        this.delegate.writeBytes(bytebuffer);
+        return this;
     }
 
     public int writeBytes(InputStream inputstream, int i) throws IOException {
@@ -599,8 +644,9 @@ public class PacketDataSerializer extends ByteBuf {
         return this.delegate.writeBytes(scatteringbytechannel, i);
     }
 
-    public ByteBuf writeZero(int i) {
-        return this.delegate.writeZero(i);
+    public PacketDataSerializer writeZero(int i) {
+        this.delegate.writeZero(i);
+        return this;
     }
 
     public int indexOf(int i, int j, byte b0) {
@@ -727,12 +773,14 @@ public class PacketDataSerializer extends ByteBuf {
         return this.delegate.toString();
     }
 
-    public ByteBuf retain(int i) {
-        return this.delegate.retain(i);
+    public PacketDataSerializer retain(int i) {
+        this.delegate.retain(i);
+        return this;
     }
 
-    public ByteBuf retain() {
-        return this.delegate.retain();
+    public PacketDataSerializer retain() {
+        this.delegate.retain();
+        return this;
     }
 
     public int refCnt() {

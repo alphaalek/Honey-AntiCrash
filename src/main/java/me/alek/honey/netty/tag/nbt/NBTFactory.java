@@ -8,7 +8,7 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.types.TypeSerializer;
+import me.alek.honey.netty.codec.TypeSerializer;
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
@@ -19,7 +19,6 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemFactory;
 import me.alek.honey.util.reflection.MinecraftReflection;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -71,7 +70,7 @@ public class NBTFactory {
         if (type == TagType.END) {
             return null;
         }
-        if (type != TagTypeCollection.getCollection(TagTypeCollection.COMPOUND)) {
+        if (type != TagTypeCollection.getFromCollection(TagTypeCollection.COMPOUND)) {
             throw new IOException("Expected compound as root tag");
         }
         assert type != null;
@@ -92,7 +91,7 @@ public class NBTFactory {
 
     private static <TAG extends AbstractTag<?, ?, TAG>> ByteBufOutputStream write(ByteBufOutputStream stream, TAG tag, TagVisitor.Out visitor) throws IOException {
         TagType type = tag.getType();
-        if (type != TagTypeCollection.getCollection(TagTypeCollection.COMPOUND)) {
+        if (type != TagTypeCollection.getFromCollection(TagTypeCollection.COMPOUND)) {
             throw new IOException("Expected compound as root tag");
         }
         stream.writeByte(type.getId());
@@ -278,9 +277,9 @@ public class NBTFactory {
             if (arrayType.hasCollection()) {
                 switch (arrayType.getCollection()) {
                     case COMPOUND:
-                        return TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND);
+                        return TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY_OF_COMPOUND);
                     case ARRAY:
-                        return TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_ARRAY);
+                        return TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY_OF_ARRAY);
                 }
             }
         }
@@ -307,9 +306,9 @@ public class NBTFactory {
             if (!array.isEmpty()) {
                 Object first = array.get(0);
                 if (List.class.isAssignableFrom(first.getClass())) {
-                    type = TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_ARRAY);
+                    type = TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY_OF_ARRAY);
                 } else if (Map.class.isAssignableFrom(first.getClass())) {
-                    type = TagTypeCollection.getCollection(TagTypeCollection.ARRAY_OF_COMPOUND);
+                    type = TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY_OF_COMPOUND);
                 } else {
                     of = TagType.getFromClass(first.getClass());
                 }

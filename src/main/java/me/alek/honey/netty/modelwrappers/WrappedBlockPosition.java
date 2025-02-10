@@ -24,7 +24,7 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
     private static final AtomicReference<FieldAccessor<Integer>> blockPositionYCachedAccessor = new AtomicReference<>();
     private static final AtomicReference<FieldAccessor<Integer>> blockPositionZCachedAccessor = new AtomicReference<>();
 
-    private static final int c = 1 + MathHelper.c(MathHelper.b(30000000));
+    private static final int c = 1 + MathHelper.c(MathHelper.b(30_000_000));
     private static final int d = c;
     private static final int e = 64 - c - d;
     private static final int f = d;
@@ -66,6 +66,10 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
 
     public WrappedBlockPosition(Location location) {
         this(location.getX(), location.getY(), location.getZ());
+    }
+
+    public long asLong() {
+        return ((getX() & h) << g) | ((getY() & i) << f) | ((getZ() & j));
     }
 
     public int getX() {

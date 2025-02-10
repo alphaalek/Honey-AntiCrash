@@ -19,7 +19,7 @@ import java.util.stream.StreamSupport;
 
 public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY extends AbstractArrayTag<IN, ARRAY, C>, C> extends AbstractTag<List<Object>, ListConverter<Object, IN>, ARRAY> implements Iterable<C> {
 
-    private static final TagType TYPE = TagTypeCollection.getCollection(TagTypeCollection.ARRAY);
+    private static final TagType TYPE = TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY);
 
     private ListConverter<Object, IN> delegate;
     protected TagType typeOf;

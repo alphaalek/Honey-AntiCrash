@@ -24,7 +24,7 @@ public enum TagTypeCollection {
         TagTypeCollection collection();
     }
 
-    public static TagType getCollection(TagTypeCollection collection) {
+    public static TagType getFromCollection(TagTypeCollection collection) {
         return TYPE_COLLECTION_LOOKUP.get(collection);
     }
 

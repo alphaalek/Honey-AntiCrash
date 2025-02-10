@@ -79,8 +79,8 @@ public class ComplexTagVisitor extends TagVisitor.In.Adapter {
     }
 
     @Override
-    public boolean replacedByRegistried() {
-        return this.delegate.replacedByRegistried();
+    public boolean replacedByRegistered() {
+        return this.delegate.replacedByRegistered();
     }
 
     public ComplexTagVisitor child() {

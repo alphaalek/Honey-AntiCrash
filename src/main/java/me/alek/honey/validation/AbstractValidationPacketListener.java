@@ -31,10 +31,11 @@ public abstract class AbstractValidationPacketListener<WP extends SourcedWrapped
         library.addListener(this, state, priority, types);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void onPacketStream(HoneyPlayer player, PacketBound bound, PacketContainer<WP> packet) {
-        if (!player.isStreamActive() || requiresPlayer() && !player.linkedBukkit()) {
+        if (!player.isStreamActive()
+                || requiresPlayer() && !player.linkedBukkit()
+                || player.bypassEverything()) {
             return;
         }
 
