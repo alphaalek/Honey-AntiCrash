@@ -1,6 +1,8 @@
 package me.alek.honey;
 
 import com.google.common.collect.Sets;
+import io.github.retrooper.packetevents.adventure.serializer.legacy.LegacyComponentSerializer;
+import me.alek.honey.compat.Paper;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketFactory;
@@ -21,6 +23,8 @@ import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.statics.NumberUtils;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ViolationManagement;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.HoverEventSource;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -31,6 +35,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.management.NotificationListener;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -86,14 +91,14 @@ public class Notifications {
     public void reload() {
         PREFIX = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.General.PREFIX);
 
-        violationFormat = MessageFormat.load(ConfigurationOptions.Messages.VIOLATION_MESSAGE);
-        punishFormat = MessageFormat.load(ConfigurationOptions.Messages.PUNISH_MESSAGE);
+        this.violationFormat = MessageFormat.load(ConfigurationOptions.Messages.VIOLATION_MESSAGE);
+        this.punishFormat = MessageFormat.load(ConfigurationOptions.Messages.PUNISH_MESSAGE);
 
-        packetFilterPre = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.Messages.PACKET_FILTER_PRE);
-        packetFilterCancelFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_CANCEL);
-        packetFilterPostponeFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_POSTPONE);
+        this.packetFilterPre = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.Messages.PACKET_FILTER_PRE);
+        this.packetFilterCancelFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_CANCEL);
+        this.packetFilterPostponeFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_POSTPONE);
 
-        quarantinedAsyncWorkerFormat = MessageFormat.load(ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER);
+        this.quarantinedAsyncWorkerFormat = MessageFormat.load(ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER);
     }
 
     public String getPrefix() {
@@ -105,11 +110,11 @@ public class Notifications {
     }
 
     public boolean isUntoggled(CommandSender observer) {
-        return untoggledlist.contains(observer);
+        return this.untoggledlist.contains(observer);
     }
 
     public boolean isSubscribed(CommandSender observer) {
-        return observerMap.containsKey(observer);
+        return this.observerMap.containsKey(observer);
     }
 
     private String getAppropriateMessage(CommandSender observer, String message) {
@@ -119,12 +124,13 @@ public class Notifications {
     }
 
     public void subscribe(final CommandSender observer) {
-        observerMap.put(observer, new NotificationListener() {
+        this.observerMap.put(observer, new Notifications.NotificationListener() {
             @Override
             public void notify(String notification) {
                 observer.sendMessage(getAppropriateMessage(observer, notification));
             }
 
+            @SuppressWarnings("deprecation")
             @Override
             public void notify(HoneyPlayer player,
                                String type,
@@ -143,18 +149,23 @@ public class Notifications {
                     observer.sendMessage(message);
                     return;
                 }
+                Player observerPlayer = (Player) observer;
 
                 StringBuilder hoverable = new StringBuilder();
                 for (String dataSetEntry : developmentData.getDataSet()) {
                     hoverable.append(dataSetEntry).append("\n");
                 }
-                String text = hoverable.substring(0, hoverable.length() - 1);
+                String hoverText = hoverable.substring(0, hoverable.length() - 1);
 
-                TextComponent textComponentMessage = new TextComponent(message);
-                textComponentMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(text).create()));
-
-                Player observerPlayer = (Player) observer;
-                observerPlayer.spigot().sendMessage(textComponentMessage);
+                if (Paper.IS_PAPER) {
+                    Component text = LegacyComponentSerializer.legacyAmpersand().deserialize(message)
+                            .hoverEvent(net.kyori.adventure.text.event.HoverEvent.hoverEvent(net.kyori.adventure.text.event.HoverEvent.Action.SHOW_TEXT, LegacyComponentSerializer.legacyAmpersand().deserialize(hoverText)));
+                    observerPlayer.sendMessage(text);
+                } else {
+                    TextComponent text = new TextComponent(message);
+                    text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent[]{new TextComponent(hoverText)}));
+                    observerPlayer.spigot().sendMessage(text);
+                }
             }
 
             @Override
@@ -177,21 +188,21 @@ public class Notifications {
     }
 
     public void unsubscribe(CommandSender observer) {
-        observerMap.remove(observer);
+        this.observerMap.remove(observer);
 
         if (observer instanceof Player) {
-            cancelledPackets.remove(((Player) observer).getUniqueId());
+            this.cancelledPackets.remove(((Player) observer).getUniqueId());
         }
     }
 
     public void untoggle(CommandSender observer) {
         unsubscribe(observer);
-        untoggledlist.add(observer);
+        this.untoggledlist.add(observer);
     }
 
     public void toggle(CommandSender observer) {
         subscribe(observer);
-        untoggledlist.remove(observer);
+        this.untoggledlist.remove(observer);
     }
 
     public int getPing(HoneyPlayer player) {
@@ -258,9 +269,9 @@ public class Notifications {
             return;
         }
 
-        DecayingListeningCounter cancelled = cancelledPackets.computeIfAbsent(player.uuid,
+        DecayingListeningCounter cancelled = this.cancelledPackets.computeIfAbsent(player.uuid,
                 (d) -> new DecayingListeningCounter(() -> (long) 5000));
-        DecayingListeningCounter postponed = postponedPackets.computeIfAbsent(player.uuid,
+        DecayingListeningCounter postponed = this.postponedPackets.computeIfAbsent(player.uuid,
                 (d) -> new DecayingListeningCounter(() -> (long) 5000));
 
         if (increment) {
@@ -284,16 +295,16 @@ public class Notifications {
             return;
         }
 
-        StringBuilder messageBuilder = new StringBuilder(packetFilterPre);
+        StringBuilder messageBuilder = new StringBuilder(this.packetFilterPre);
         if (postponedSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_POSTPONE && postponedSize != 0) {
-            messageBuilder.append(" ").append(packetFilterPostponeFormat.getMessage(
+            messageBuilder.append(" ").append(this.packetFilterPostponeFormat.getMessage(
                     new MessageOffer.Builder()
                             .offer(Placeholders.AMOUNT, () -> postponedSize)
                             .offer(Placeholders.CURRENT_AMOUNT, () -> player.postponedPackets)
                             .build()));
         }
         if (cancelledSize >= ConfigurationOptions.Messages.PACKET_FILTER_MIN_CANCEL && cancelledSize != 0) {
-            messageBuilder.append(" ").append(packetFilterCancelFormat.getMessage(
+            messageBuilder.append(" ").append(this.packetFilterCancelFormat.getMessage(
                     new MessageOffer.Builder()
                             .offer(Placeholders.AMOUNT, () -> cancelledSize)
                             .build()));
@@ -305,48 +316,35 @@ public class Notifications {
         }
     }
 
-    public void showQuarantinedAsyncWorker(HoneyPlayer player, long time) {
-        if (!ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER_ENABLED
-                || !player.linkedBukkit()
-                || !player.isOnlineBukkit()) {
-            return;
-        }
-
-        String message = quarantinedAsyncWorkerFormat.getMessage(
-                new MessageOffer.Builder()
-                        .offer(Placeholders.TIME, () -> time)
-                        .build()
-        );
-
-        sendActionBar(player, message);
-    }
-
     private static IStructureModifier<Object> chatSerializer;
 
+    @SuppressWarnings("deprecation")
     public void sendActionBar(HoneyPlayer player, String text) {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_9)) {
-            // TODO: for paper 1.17+ (I guess?) use adventure
-            player.bukkit.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
-            return;
-        }
-
-        try {
-            ObjectWrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketTypes.Play.Server.CHAT, player);
-            PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
-
-            packetContainer.getStructure().getBytes().writeField(0, (byte) 2);
-
-            if (chatSerializer == null) {
-                chatSerializer = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getChatSerializerClass())
-                        .withType(MinecraftReflection.getIChatBaseComponentClass())
-                        .withTarget(null);
+            if (Paper.IS_PAPER) {
+                player.bukkit.sendActionBar(LegacyComponentSerializer.legacyAmpersand().deserialize(text));
+            } else {
+                player.bukkit.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
             }
-            Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
-            packetContainer.getStructure().getObjectsOf(MinecraftReflection.getIChatBaseComponentClass()).writeField(0, chatComponent);
+        } else {
+            try {
+                ObjectWrappedPacket<WrappedPlayOutChat> actionBarPacket = PacketFactory.createNewPacket(PacketTypes.Play.Server.CHAT, player);
+                PacketContainer<WrappedPlayOutChat> packetContainer = actionBarPacket.getContainer();
 
-            HoneyPlugin.get().getPacketLibrary().getChannelManager().writePacket(player, actionBarPacket);
-        } catch (Exception ex) {
-            HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to send action bar packet", ex);
+                packetContainer.getStructure().getBytes().writeField(0, (byte) 2);
+
+                if (chatSerializer == null) {
+                    chatSerializer = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getChatSerializerClass())
+                            .withType(MinecraftReflection.getIChatBaseComponentClass())
+                            .withTarget(null);
+                }
+                Object chatComponent = chatSerializer.invokeMethod(null, 0, "{\"text\":\"" + text + "\"}");
+                packetContainer.getStructure().getObjectsOf(MinecraftReflection.getIChatBaseComponentClass()).writeField(0, chatComponent);
+
+                HoneyPlugin.get().getPacketLibrary().getChannelManager().writePacket(player, actionBarPacket);
+            } catch (Exception ex) {
+                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to send action bar packet", ex);
+            }
         }
     }
 
