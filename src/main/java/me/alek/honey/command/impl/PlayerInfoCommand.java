@@ -32,7 +32,7 @@ public class PlayerInfoCommand implements CommandImpl {
         sender.sendMessage("§8* §7Connected with IP §8" + ((InetSocketAddress)player.channel.remoteAddress()).getAddress().getHostAddress());
 
         long livedTicks = HoneyPlugin.get().getExecutionQueueProxy().getCurrentExecutionTick() - player.tickInitialized;
-        sender.sendMessage("§8* §7Existed for " + livedTicks + " execution ticks.");
+        sender.sendMessage("§8* §7Existed for §8" + livedTicks + "§7 execution ticks.");
 
         if (player.bypassEverything()) {
             sender.sendMessage("§cThis player bypasses everything!");

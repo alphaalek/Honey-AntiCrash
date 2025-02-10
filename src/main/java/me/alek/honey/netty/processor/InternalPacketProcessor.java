@@ -300,6 +300,9 @@ public class InternalPacketProcessor implements PacketProcessor {
             callObjectPacketProcessListeners(player, packet);
         } catch (Exception ex) {
             if (packet != null) {
+                if (HoneyPlugin.get().getLogger().isDebug()) {
+                    HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Error occurred while handling packet " + packet.getType() + " sent by " + packet.getPlayerName(), ex);
+                }
                 packet.cancel();
             }
         }

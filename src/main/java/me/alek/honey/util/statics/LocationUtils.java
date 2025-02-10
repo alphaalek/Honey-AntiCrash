@@ -1,6 +1,6 @@
 package me.alek.honey.util.statics;
 
-import me.alek.honey.util.statics.NumberUtils;
+import me.alek.honey.netty.modelwrappers.WrappedLocation;
 import org.bukkit.Location;
 
 public class LocationUtils {
@@ -9,19 +9,13 @@ public class LocationUtils {
         return x1 == x2 && y1 == y2 && z1 == z2;
     }
 
-    public static boolean compare3DLocation(Location loc1, Location loc2) {
+    public static boolean compare3DLocation(WrappedLocation loc1, WrappedLocation loc2) {
         if (loc1 == null || loc2 == null) return loc1 == loc2;
 
         return compare(loc1.getX(), loc2.getX(), loc1.getY(), loc2.getY(), loc1.getZ(), loc2.getZ());
     }
 
-    public static boolean compare3DBlockLocation(Location loc1, Location loc2) {
-        if (loc1 == null || loc2 == null) return loc1 == loc2;
-
-        return compare(loc1.getBlockX(), loc2.getBlockX(), loc1.getBlockY(), loc2.getBlockY(), loc1.getBlockZ(), loc2.getBlockZ());
-    }
-
-    public static boolean compareLocation(Location loc1, Location loc2) {
+    public static boolean compareLocation(WrappedLocation loc1, WrappedLocation loc2) {
         if (loc1 == null || loc2 == null) return loc1 == loc2;
 
         if (!compare3DLocation(loc1, loc2)) {
@@ -30,8 +24,8 @@ public class LocationUtils {
         return loc1.getPitch() == loc2.getPitch() && loc1.getYaw() == loc2.getYaw();
     }
 
-    public static boolean checkInvalidLocation(Location... locations) {
-        for (Location location : locations) {
+    public static boolean checkInvalidLocation(WrappedLocation... locations) {
+        for (WrappedLocation location : locations) {
             if (location == null) continue;
 
             if (NumberUtils.isInvalid(location.getX(), location.getZ(), location.getY())
@@ -42,7 +36,7 @@ public class LocationUtils {
         return false;
     }
 
-    public static double calculateYDistance(Location loc1, Location loc2) {
+    public static double calculateYDistance(WrappedLocation loc1, WrappedLocation loc2) {
         if (loc1 == null || loc2 == null) return 0d;
 
         if (checkInvalidLocation(loc1, loc2)) return -1;
@@ -50,13 +44,13 @@ public class LocationUtils {
         return Math.abs(loc1.getY() - loc2.getY());
     }
 
-    public static float calculateYawDistance(float yaw1, float yaw2) {
+    public static float calculateRotationalDistance(float yaw1, float yaw2) {
         if (NumberUtils.isInvalid(yaw1, yaw2)) return -1;
 
         return Math.abs(yaw1 - yaw2);
     }
 
-    public static double calculate2DDistance(Location loc1, Location loc2) {
+    public static double calculate2DDistance(WrappedLocation loc1, WrappedLocation loc2) {
         if (loc1 == null || loc2 == null) return 0d;
 
         if (checkInvalidLocation(loc1, loc2)) return -1;
@@ -67,7 +61,7 @@ public class LocationUtils {
         return Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaZ, 2));
     }
 
-    public static double calculate3DDistance(Location loc1, Location loc2) {
+    public static double calculate3DDistance(WrappedLocation loc1, WrappedLocation loc2) {
         if (loc1 == null || loc2 == null) return 0d;
 
         final double distance2D = calculate2DDistance(loc1, loc2);

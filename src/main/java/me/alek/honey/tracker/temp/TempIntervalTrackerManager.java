@@ -10,45 +10,54 @@ import me.alek.honey.util.IDRegistry;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TempIntervalTrackerManager implements TimedManualHandleTracker<Long, Double, HoneyPlayer> {
+public abstract class TempIntervalTrackerManager implements TimedManualHandleTracker<Long, Double, HoneyPlayer> {
+
+    public static class Netty extends TempIntervalTrackerManager {
+
+        @Override
+        public TempIntervalTracker getPropertyTracker(HoneyPlayer player) {
+            return player.nettyThreadTimedQueuedTracker;
+        }
+
+        @Override
+        public void setPropertyTracker(HoneyPlayer player, TempIntervalTracker tracker) {
+            player.nettyThreadTimedQueuedTracker = tracker;
+        }
+    }
 
     private final Map<UUID, TempIntervalTracker> trackerMap = new HashMap<>();
     private final TempIntervalTracker commonTracker = new TempIntervalTracker(false, false);
 
     @Override
     public synchronized void remove(HoneyPlayer key) {
-        if (trackerMap.containsKey(key.uuid)) {
+        if (this.trackerMap.containsKey(key.uuid)) {
             TempIntervalTracker tracker = getTracker(key);
             for (Timespan timespan : Timespan.values()) {
                 timespan.clearContext(tracker);
             }
             IDRegistry.TRACKER_CONTEXT.remove(tracker.getID());
 
-            trackerMap.remove(key.uuid);
+            this.trackerMap.remove(key.uuid);
         }
-        for (UUID uuid : Sets.newHashSet(trackerMap.keySet())) {
+        for (UUID uuid : Sets.newHashSet(this.trackerMap.keySet())) {
             if (HoneyPlayer.getPlayer(uuid) == null) {
-                trackerMap.remove(uuid);
+                this.trackerMap.remove(uuid);
             }
         }
     }
 
     @Override
     public boolean has(HoneyPlayer key) {
-        return trackerMap.containsKey(key.uuid);
+        return this.trackerMap.containsKey(key.uuid);
     }
 
-    public TempIntervalTracker getPropertyTracker(HoneyPlayer player) {
-        return player.timedQueuedTracker;
-    }
+    public abstract TempIntervalTracker getPropertyTracker(HoneyPlayer player);
 
-    public void setPropertyTracker(HoneyPlayer player, TempIntervalTracker tracker) {
-        player.timedQueuedTracker = tracker;
-    }
+    public abstract void setPropertyTracker(HoneyPlayer player, TempIntervalTracker tracker);
 
     public synchronized TempIntervalTracker getTracker(HoneyPlayer player) {
         if (getPropertyTracker(player) == null) {
-            setPropertyTracker(player, trackerMap.computeIfAbsent(player.uuid, (d) -> new TempIntervalTracker(true, false)));
+            setPropertyTracker(player, this.trackerMap.computeIfAbsent(player.uuid, (d) -> new TempIntervalTracker(true, false)));
         }
         return getPropertyTracker(player);
     }
@@ -62,7 +71,7 @@ public class TempIntervalTrackerManager implements TimedManualHandleTracker<Long
 
     public void clearExceedingNodes(HoneyPlayer player, Timespan timespan, long time) {
         getTracker(player).clearExceedingNodes(timespan, time);
-        commonTracker.clearExceedingNodes(timespan, time);
+        this.commonTracker.clearExceedingNodes(timespan, time);
     }
 
     public void clearExceedingNodes(boolean alsoPlayers, long time) {
@@ -72,7 +81,7 @@ public class TempIntervalTrackerManager implements TimedManualHandleTracker<Long
     }
 
     public void clearExceedingNodes(Timespan timespan, boolean alsoPlayers, long time) {
-        commonTracker.clearExceedingNodes(timespan, time);
+        this.commonTracker.clearExceedingNodes(timespan, time);
 
         if (alsoPlayers) {
             for (TempIntervalTracker tracker : trackerMap.values()) {
@@ -87,7 +96,7 @@ public class TempIntervalTrackerManager implements TimedManualHandleTracker<Long
 
         TimedNode<Long> node = new TimedNode<>(value);
         getTracker(key).add(node);
-        commonTracker.add(node);
+        this.commonTracker.add(node);
     }
 
     public boolean hasCollected(HoneyPlayer player, Timespan timespan) {
@@ -228,17 +237,17 @@ public class TempIntervalTrackerManager implements TimedManualHandleTracker<Long
             return playerTotal;
         }
 
-        return (getTotal(timespan, update) - playerTotal) / (getTrackerSize() - 1);
+        return ((double) (getTotal(timespan, update) - playerTotal)) / (getTrackerSize() - 1);
     }
 
     public Long getTotal(Timespan timespan, boolean update) {
         if (update) {
-            commonTracker.clearExceedingNodes(timespan, System.nanoTime());
+            this.commonTracker.clearExceedingNodes(timespan, System.nanoTime());
         }
 
-        long total = commonTracker.getTotal(timespan);
+        long total = this.commonTracker.getTotal(timespan);
         if (update) {
-            total -= getExceedingTimedNode(commonTracker, timespan);
+            total -= getExceedingTimedNode(this.commonTracker, timespan);
         }
 
         return total;
@@ -246,12 +255,12 @@ public class TempIntervalTrackerManager implements TimedManualHandleTracker<Long
 
     @Override
     public int getTrackerSize() {
-        return trackerMap.size();
+        return this.trackerMap.size();
     }
 
     @Override
     public Set<HoneyPlayer> getTrackers() {
-        return trackerMap.keySet().stream()
+        return this.trackerMap.keySet().stream()
                 .map(HoneyPlayer::getPlayer)
                 .filter(p -> p != null && p.isOnlineBukkit())
                 .collect(Collectors.toSet());
@@ -261,12 +270,7 @@ public class TempIntervalTrackerManager implements TimedManualHandleTracker<Long
     public List<HoneyPlayer> getTrackersOrdered() {
         List<HoneyPlayer> trackersList = new ArrayList<>(getTrackers());
         trackersList.removeIf(player -> getPlayerTotal(player, Timespan.FIVE_SECOND, false) == 0);
-        trackersList.sort(new Comparator<HoneyPlayer>() {
-            @Override
-            public int compare(HoneyPlayer o1, HoneyPlayer o2) {
-                return Double.compare(getPlayerTotal(o1, Timespan.TEN_SECOND, true), getPlayerTotal(o2, Timespan.TEN_SECOND, true));
-            }
-        });
+        trackersList.sort((o1, o2) -> Double.compare(getPlayerTotal(o1, Timespan.TEN_SECOND, true), getPlayerTotal(o2, Timespan.TEN_SECOND, true)));
         return trackersList;
     }
 

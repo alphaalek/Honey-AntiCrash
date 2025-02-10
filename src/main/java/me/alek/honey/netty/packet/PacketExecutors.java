@@ -50,16 +50,17 @@ public class PacketExecutors {
 
         @Override
         public Runnable getTask(PacketContainer<CP> packet) {
-            WrappedImmutableItemStack item = packet.getAnyWrapped().getPayloadData().getBookChannelItemStack();
+            CP source = packet.getAnyWrapped();
+            WrappedImmutableItemStack item = source.getPayloadData().getBookChannelItemStack();
             if (item == null) {
-                packet.getAnyWrapped().release();
+                source.release();
                 return null;
             }
 
             Runnable edit = handleBookChannel(packet, item);
             return Optional.ofNullable(edit)
                     .map(r -> (Runnable) () -> {
-                        packet.getAnyWrapped().release();
+                        source.release();
                         r.run();
                     })
                     .orElse(null);
@@ -79,7 +80,7 @@ public class PacketExecutors {
                 return INVALID_BOOK_DATA.apply(packet.getPlayer());
             }
 
-            String channel = packet.getAnyWrapped().getPayloadData().getChannel();
+            String channel = packet.getCurrentWrapped().getPayloadData().getChannel();
             if (channel.equals(WrappedPlayInCustomPayload.PayloadData.EDIT_BOOK_CHANNEL)) {
                 Runnable edit = handleBookEdit0(packet.getPlayer(), item, heldItem);
                 if (edit != null) {
@@ -164,7 +165,7 @@ public class PacketExecutors {
                 ItemFactory.setItemTag(newItem, heldItemTag);
                 player.setItemInMainHand(newItem);
             } catch (Exception ex) {
-                Bukkit.getLogger().log(Level.SEVERE, "Failed to handle book sign", ex);
+                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to handle book sign", ex);
             }
         }
 

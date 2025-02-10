@@ -43,12 +43,13 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         switch (bound) {
             case SERVER:
                 PacketContainer<WP> packet = (PacketContainer<WP>) this.packetHandler.filterMark;
+                this.packetHandler.filterMark = null;
+                InboundPacketFilter.MARK.remove();
                 if (packet != null && packet.isHandled()) {
-                    this.packetHandler.filterMark = null;
                     return packet;
                 }
-                PacketContainer<WP> newPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(this.packetHandler.getPlayer(), msg, packet);
 
+                PacketContainer<WP> newPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(this.packetHandler.getPlayer(), msg, packet);
                 if (newPacket != null && (packet == null || newPacket.getType().equals(packet.getType()))) {
                     this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(newPacket);
                 } else {
@@ -59,8 +60,6 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                         this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(newPacket);
                     }
                 }
-
-                this.packetHandler.filterMark = null;
                 return newPacket;
             case CLIENT:
                 return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().writeObjectPacket(this.packetHandler.getPlayer(), msg);
@@ -69,21 +68,21 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
         }
     }
 
-    private <WP extends SourcedWrappedPacket<WP>> void streamToPipeline(Object msg, PacketContainer<WP> packetContainer, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
+    private <WP extends SourcedWrappedPacket<WP>> void streamToPipeline(Object msg, PacketContainer<WP> packet, Function<PacketContainer<WP>, Boolean> handling, Runnable sending) {
         if (msg instanceof ByteBuf) {
             sending.run();
             return;
         }
 
-        if (!handling.apply(packetContainer)) {
+        if (!handling.apply(packet)) {
             return;
         }
 
         sending.run();
 
-        Callback postAction = packetContainer.getPostAction();
+        Callback postAction = packet.getPostAction();
         if (postAction != null) {
-            postAction.call(packetContainer);
+            postAction.call(packet);
         }
     }
 
@@ -111,12 +110,13 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                 return;
             }
 
-            streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(msg));
+            streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
         } catch (Exception ex) {
-            if (packet != null && HoneyPlugin.get().getLogger().isDebug()) {
-                Bukkit.getLogger().log(Level.WARNING,
-                        "Error occurred while handling packet " + packet.getType() + " (id " + packet.getType().getID()
-                                + ") sent by " + this.packetHandler.getPlayer().name + ", " + packet.getInitialByteWrapped().getByteSize() + " bytes", ex);
+            if (HoneyPlugin.get().getLogger().isDebug()) {
+                PacketType type = PacketTypes.getPacketType(msg.getClass(), this.packetHandler.getProtocolState(PacketBound.SERVER)).orElse(PacketType.UNKNOWN);
+                HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
+                        "Error occurred while handling packet " + type + " (id " + type.getID()
+                                + ") sent by " + this.packetHandler.getPlayer().name + ", " + Optional.ofNullable(packet).map(p -> p.getAnyByteWrapped().getByteSize()).orElse(-1) + " bytes", ex);
             }
 
             this.packetHandler.getPlayer().failPacket(ex, packet);
@@ -159,7 +159,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                 PacketType type = Optional.ofNullable(packet)
                         .map(PacketContainer::getType)
                         .orElse(PacketTypes.getPacketType(msg.getClass(), this.packetHandler.getProtocolState(PacketBound.CLIENT)).orElse(PacketType.UNKNOWN));
-                Bukkit.getLogger().log(Level.WARNING, "Error occurred while handling packet " + type + " (id " + type.getID() + ") sent by " + this.packetHandler.getPlayer().name, ex);
+                HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING, "Error occurred while handling packet " + type + " (id " + type.getID() + ") sent by " + this.packetHandler.getPlayer().name, ex);
             }
             promise.setSuccess();
         }

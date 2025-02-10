@@ -31,6 +31,7 @@ public abstract class AbstractValidationPacketListener<WP extends SourcedWrapped
         library.addListener(this, state, priority, types);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void onPacketStream(HoneyPlayer player, PacketBound bound, PacketContainer<WP> packet) {
         if (!player.isStreamActive() || requiresPlayer() && !player.linkedBukkit()) {
@@ -43,10 +44,11 @@ public abstract class AbstractValidationPacketListener<WP extends SourcedWrapped
             return;
         }
 
+        WP source = packet.getAnyWrapped();
         getCachedPipeline(this, player).doStream(
                 player,
-                (validation, key) -> Settings.getSetting(player, validation, key, packet.getAnyWrapped()),
-                validation -> validation.validate(player, packet.getAnyWrapped(), context),
+                (validation, key) -> Settings.getSetting(player, validation, key, source),
+                validation -> validation.validate(player, source, context),
                 packet, context);
 
         onPostPacketReceive(player, packet, context);

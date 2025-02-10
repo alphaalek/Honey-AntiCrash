@@ -20,7 +20,7 @@ public interface WrappedPacketFactory<TP extends SourcedWrappedPacket<WP>, WP ex
 
         public final ObjectWrappedPacketFactory<WP> OBJECT_FACTORY = ObjectWrappedPacketFactory.factoryFromSupplier(ObjectWrappedPacket::new);
 
-        public final ByteWrappedPacketFactory<WP> BYTE_FACTORY = ByteWrappedPacketFactory.factoryFromSupplier(ByteInWrappedPacket::new);
+        public final ByteWrappedPacketFactory<WP> BYTE_FACTORY = ByteWrappedPacketFactory.factoryFromSupplier(ByteInWrappedPacketImpl::new);
     }
 
     class ObjectWrappedPacketFactory<WP extends SourcedWrappedPacket<WP>> implements WrappedPacketFactory<ObjectWrappedPacket<WP>, WP, Object> {

@@ -4,14 +4,13 @@ import com.github.retrooper.packetevents.util.crypto.MinecraftEncryptionUtil;
 import com.github.retrooper.packetevents.util.crypto.SignatureData;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.time.Instant;
 import java.util.UUID;
 
-public class WrappedLoginInLoginStart extends ByteInWrappedPacket<WrappedLoginInLoginStart> {
+public class WrappedLoginInLoginStart extends ByteInWrappedPacketImpl<WrappedLoginInLoginStart> {
 
     public static final int USERNAME_MAX_LENGTH = 16;
 

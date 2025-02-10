@@ -58,7 +58,6 @@ public class TaskLifecycleHandler {
                     || packet.getType() != PacketTypes.Play.Client.PLAYER_MOVEMENT
                     && packet.getType() != PacketTypes.Play.Client.PLAYER_POSITION
                     && packet.getType() != PacketTypes.Play.Client.PLAYER_POS_ROT
-                    && packet.getType() != PacketTypes.Play.Client.GROUND
                     && packet.getType() != PacketTypes.Play.Client.BOAT_MOVE
                     && packet.getType() != PacketTypes.Play.Client.VEHICLE_MOVE) {
                 dump(packet);

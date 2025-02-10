@@ -5,6 +5,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
+import me.alek.honey.netty.modelwrappers.WrappedLocation;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -16,7 +17,6 @@ import me.alek.honey.validation.*;
 import me.alek.honey.validation.item.ItemAnalysis;
 import me.alek.honey.validation.PacketValidation;
 import me.alek.honey.validation.ViolationValidation;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class BlockPlaceValidations extends AbstractValidationPacketListener<WrappedPlayInBlockPlace> {
+
+
 
     public BlockPlaceValidations(PacketLibrary library) {
         super(library, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
@@ -43,11 +45,10 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
 
     public static ValidationViolationContext checkExceedingMaxDistance(HoneyPlayer player, ViolationKey key, WrappedBlockPosition blockPosition, int maxDistance, ValidationPipelineContext context) {
         // check if the block position is close to the origin block position, just ignore this packet if it is
-        Location originLocation = WrappedBlockPosition.ORIGIN.toLocation(player.getWorld());
-        Location lastPlayerLocation = MovementValidations.INSTANCE.getLastLocationFor(player);
+        WrappedLocation lastPlayerLocation = MovementValidations.INSTANCE.getLastLocationFor(player);
 
-        if (blockPosition.distance(originLocation) < 10
-                && LocationUtils.calculate3DDistance(lastPlayerLocation, originLocation) > 10) {
+        if (blockPosition.distance(WrappedBlockPosition.ORIGIN) < 10
+                && LocationUtils.calculate3DDistance(lastPlayerLocation, WrappedLocation.ORIGIN) > 10) {
             return ValidationViolationContext.PASS;
         }
 
@@ -60,11 +61,7 @@ public class BlockPlaceValidations extends AbstractValidationPacketListener<Wrap
         }
 
         // checks distance between the player and the block placed
-        Location playerLocation = MovementValidations.INSTANCE.getLastLocationFor(player);
-        if (playerLocation == null) {
-            playerLocation = player.getLocation();
-        }
-
+        WrappedLocation playerLocation = MovementValidations.INSTANCE.getLastLocationFor(player);
         double distance = blockPosition.distance(playerLocation);
 
         // the distance is higher than the recent client location

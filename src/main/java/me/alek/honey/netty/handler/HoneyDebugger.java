@@ -16,7 +16,7 @@ import java.util.logging.Level;
 @ChannelHandler.Sharable
 public class HoneyDebugger extends ChannelInboundHandlerAdapter {
 
-    private static final String VIA_VERSION_CANCEL = "This packet is supposed to be cancelled; If you have debug enabled, you can ignore these";
+    private static final String VIA_VERSION_DECODER_CANCEL = "This packet is supposed to be cancelled; If you have debug enabled, you can ignore these";
     private static final String NETTY_NATIVE_READ_RESET = "Error while read(...): Connection reset by peer";
     private static final String NETTY_NATIVE_WRITE_RESET = "Error while write(...): Connection reset by peer";
     private static final String NETTY_NATIVE_WRITE_BROKEN_PIPE = "Error while write(...): Broken pipe";
@@ -47,12 +47,14 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
     public void onExceptionCaught(Channel channel, Throwable throwable) {
         String message = Optional.ofNullable(throwable.getMessage()).orElse("");
 
-        if (message.equals(VIA_VERSION_CANCEL)) {
+        // works only in legacy versions, as modern legacy drops the exception for the pipeline
+        if (message.equals(VIA_VERSION_DECODER_CANCEL)) {
             PacketContainer<?> packet = this.packetHandler.filterMark;
+            this.packetHandler.filterMark = null;
+            InboundPacketFilter.MARK.remove();
             if (packet != null) {
                 HoneyPlugin.get().getPacketLibrary().getChannelManager().getFilter(channel).handleViaDroppedPacket(packet);
             }
-            this.packetHandler.filterMark = null;
             return;
         }
 

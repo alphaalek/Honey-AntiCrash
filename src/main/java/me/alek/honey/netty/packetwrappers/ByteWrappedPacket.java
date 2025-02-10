@@ -22,21 +22,16 @@ public interface ByteWrappedPacket<WP extends WrappedPacket<WP>> extends Wrapped
 
     @Override
     default Map<String, Object> getProperties() {
-        if (getClass() != ByteInWrappedPacket.class) {
-            Map<String, Object> properties = new HashMap<>();
-            for (Field field : getClass().getDeclaredFields()) {
+        Map<String, Object> properties = new HashMap<>();
+
+        Class<?> cls = getClass();
+        for (;;) {
+            for (Field field : cls.getDeclaredFields()) {
                 if (field.isAnnotationPresent(Property.class)) {
                     Property property = field.getAnnotation(Property.class);
 
                     if (NetProtocolRange.matchProtocol(getProtocol(), property.to(), property.from())) {
-                        Object val;
-                        if (field.isAnnotationPresent(Property.Unlock.class)) {
-                            String methodSupplierName = field.getAnnotation(Property.Unlock.class).methodSupplier();
-                            val = Reflection.getMethod(getClass(), methodSupplierName).invoke(this);
-                        } else {
-                            val = Reflection.getField(field).get(this);
-                        }
-
+                        Object val = Reflection.getField(field).get(this);
                         if (val == null && field.isAnnotationPresent(Property.IgnoreIfNull.class)) {
                             continue;
                         }
@@ -45,10 +40,13 @@ public interface ByteWrappedPacket<WP extends WrappedPacket<WP>> extends Wrapped
                     }
                 }
             }
-            return properties;
+            cls = cls.getSuperclass();
+            if (!ByteWrappedPacket.class.isAssignableFrom(cls)) {
+                break;
+            }
         }
 
-        return Collections.emptyMap();
+        return properties;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -58,13 +56,6 @@ public interface ByteWrappedPacket<WP extends WrappedPacket<WP>> extends Wrapped
         NetProtocol.To to() default @NetProtocol.To(to = NetProtocol.LATEST);
 
         NetProtocol.From from() default @NetProtocol.From(from = NetProtocol.OLDEST);
-
-        @Retention(RetentionPolicy.RUNTIME)
-        @Target(ElementType.FIELD)
-        @interface Unlock {
-
-            String methodSupplier();
-        }
 
         @Retention(RetentionPolicy.RUNTIME)
         @Target(ElementType.FIELD)

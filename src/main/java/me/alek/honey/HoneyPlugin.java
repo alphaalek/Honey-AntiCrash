@@ -268,7 +268,7 @@ public class HoneyPlugin implements HoneyAPI {
         // setup tracking
         this.executionQueueProxy = new ExecutionQueueProxy();
         this.executionQueueProxy.inject();
-        this.packetNettyTracker = new TempIntervalTrackerManager();
+        this.packetNettyTracker = new TempIntervalTrackerManager.Netty();
         this.validationHandleTracker = new RegistryHandleTracker<>();
 
         // setup validations

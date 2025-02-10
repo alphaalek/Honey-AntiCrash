@@ -13,7 +13,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packet.type.PacketType;
-import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInSetCreativeSlot;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCreativeInventoryAction;
 import me.alek.honey.util.IDRegistry;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -22,7 +22,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Collections;
 import java.util.List;
 
-public class CreativeValidations extends AbstractValidationPacketListener<WrappedPlayInSetCreativeSlot> {
+public class CreativeValidations extends AbstractValidationPacketListener<WrappedPlayInCreativeInventoryAction> {
 
     public CreativeValidations(PacketLibrary library) {
         super(library, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
@@ -33,16 +33,16 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
     }
 
     @Override
-    public ValidationPipeline<PacketValidation<WrappedPlayInSetCreativeSlot>> createValidationPipeline() {
+    public ValidationPipeline<PacketValidation<WrappedPlayInCreativeInventoryAction>> createValidationPipeline() {
         return ValidationPipeline.from(new CreativeA(), new CreativeB(), new CreativeC());
     }
 
-    public static class CreativeA implements PacketValidation<WrappedPlayInSetCreativeSlot>, ViolationValidation<WrappedPlayInSetCreativeSlot> {
+    public static class CreativeA implements PacketValidation<WrappedPlayInCreativeInventoryAction>, ViolationValidation<WrappedPlayInCreativeInventoryAction> {
 
         private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
-        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCreativeInventoryAction packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 if (player.bukkit.getGameMode() != GameMode.CREATIVE) {
                     return ValidationViolationContext.Builder.validate().cancel().flag().build();
@@ -73,12 +73,12 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         }
     }
 
-    public static class CreativeB implements PacketValidation<WrappedPlayInSetCreativeSlot>, ViolationValidation<WrappedPlayInSetCreativeSlot> {
+    public static class CreativeB implements PacketValidation<WrappedPlayInCreativeInventoryAction>, ViolationValidation<WrappedPlayInCreativeInventoryAction> {
 
         private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
-        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCreativeInventoryAction packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled() && (packet.getSlot() > 45 || packet.getSlot() < -1)) {
                 // TODO: check if slot 0-4 can be used (crafting input + output)
                 return ValidationViolationContext.FLAG.builder()
@@ -113,12 +113,12 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         }
     }
 
-    public static class CreativeC implements PacketValidation<WrappedPlayInSetCreativeSlot>, ViolationValidation<WrappedPlayInSetCreativeSlot> {
+    public static class CreativeC implements PacketValidation<WrappedPlayInCreativeInventoryAction>, ViolationValidation<WrappedPlayInCreativeInventoryAction> {
 
         private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
-        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInSetCreativeSlot packet, ValidationPipelineContext context) {
+        public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCreativeInventoryAction packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context)
                         .builder().onViolation(generateKey(), (keyInner, onViolation) -> {

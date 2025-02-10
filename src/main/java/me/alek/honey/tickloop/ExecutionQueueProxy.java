@@ -21,6 +21,7 @@ import me.alek.honey.util.Array;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.*;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -37,12 +38,12 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 ? MinecraftReflection.getMinecraftServerClass() : MinecraftReflection.getIAsyncTaskHandlerClass();
         Object minecraftServer = MinecraftReflection.getMinecraftServer();
 
-        FieldAccessor<Queue<?>> queueAccessor = Reflection.getField(queueHolderClass, 0, Queue.class);
+        FieldAccessor<Queue<Object>> queueAccessor = Reflection.getField(queueHolderClass, 0, Queue.class);
         if (queueAccessor.get(minecraftServer) instanceof DelegatedWrapper) {
             return;
         }
 
-        DelegatedWrapper queueWrapper = this.executionQueue = new DelegatedWrapper((Queue<Object>) queueAccessor.get(minecraftServer));
+        DelegatedWrapper queueWrapper = this.executionQueue = new DelegatedWrapper(queueAccessor.get(minecraftServer));
         try {
             Reflection.setFinalField(minecraftServer, queueAccessor, queueWrapper);
         } catch (Exception ex) {
@@ -58,18 +59,19 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
         return this.executionQueue;
     }
 
+    @Override
     public TempIntervalTracker getPropertyTracker(HoneyPlayer player) {
         return player.serverThreadTimedQueuedTracker;
     }
 
+    @Override
     public void setPropertyTracker(HoneyPlayer player, TempIntervalTracker tracker) {
         player.serverThreadTimedQueuedTracker = tracker;
     }
 
     @Override
     public List<HoneyPlayer> getTrackersOrdered() {
-        List<HoneyPlayer> trackersList = new ArrayList<>(getTrackers());
-        trackersList.removeIf(player -> getPlayerRate(player, Timespan.FIVE_SECOND, false) == 0);
+        List<HoneyPlayer> trackersList = super.getTrackersOrdered();
         trackersList.sort((o1, o2) -> Double.compare(getTimeToAverageWithoutQuotient(o1, Timespan.FIVE_SECOND, true), getTimeToAverageWithoutQuotient(o2, Timespan.FIVE_SECOND, true)));
 
         return trackersList;
@@ -103,7 +105,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
         }
 
         private long getDeltaTime() {
-            return System.nanoTime() - recentPollStart;
+            return System.nanoTime() - this.recentPollStart;
         }
 
         private long getDeltaTimeExact(PacketContainer<?> packet) {
@@ -202,8 +204,8 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 task.getPlayer().postponedPackets++;
                 task.getPlayer().postponedPacketsForTick++;
                 task.postpone();
-                submitQueue.set(currentPollIndex - 1, task);
-                collector.add(currentPollIndex - 1);
+                this.submitQueue.set(currentPollIndex - 1, task);
+                this.collector.add(currentPollIndex - 1);
                 super.add(EMPTY_VALUE);
 
                 return EMPTY_TICK_TASK;
@@ -256,7 +258,6 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             return packet.getType() == PacketTypes.Play.Client.PLAYER_MOVEMENT
                     || packet.getType() == PacketTypes.Play.Client.PLAYER_POSITION
                     || packet.getType() == PacketTypes.Play.Client.PLAYER_POS_ROT
-                    || packet.getType() == PacketTypes.Play.Client.GROUND
                     || packet.getType() == PacketTypes.Play.Client.BOAT_MOVE
                     || packet.getType() == PacketTypes.Play.Client.VEHICLE_MOVE;
         }

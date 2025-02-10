@@ -8,10 +8,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.AutoReleasable;
-import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
-import me.alek.honey.netty.packetwrappers.ObjectWrappedPacket;
-import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
+import me.alek.honey.netty.packetwrappers.*;
 import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
@@ -20,14 +17,13 @@ import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.impl.NettyDecodeValidations;
 
-import javax.xml.transform.Source;
 import java.util.Optional;
 
 public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> extends PacketContainerLifecycle<WP> implements PacketContainer<WP> {
 
     private final PipelineState createdPipelineState;
-    private PacketType type;
     private PipelineState pipelineState;
+    private PacketType type;
     private InternalObjectPacketStructure structure;
     private ObjectWrappedPacket<WP> objectWrapped;
     private ByteInWrappedPacket<WP> initialByteWrapped;
@@ -56,18 +52,24 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         this.createdPipelineState = this.pipelineState = createdState;
         if (serializer != null && !createdState.equals(PipelineState.OBJECT) && !PacketTypes.isUnknown(type)
                 && (this.initialByteWrapped == null || !this.initialByteWrapped.isAbstract())
-                && (this.finalByteWrapped == null || !this.finalByteWrapped.isAbstract())) {
-            // validate this buffer
+                && (this.finalByteWrapped == null || !this.finalByteWrapped.isAbstract())
+        ) {
             if (this.initialByteWrapped == null && this.finalByteWrapped == null) {
-                ByteInWrappedPacket<WP> pre = new ByteInWrappedPacket<>(serializer, this);
-                if (createdState.equals(PipelineState.INITIAL_BYTE)) {
-                    this.initialByteWrapped = pre;
-                } else if (createdState.equals(PipelineState.FINAL_BYTE)) {
-                    this.finalByteWrapped = pre;
+                // ignore spam packets
+                if (type != PacketTypes.Play.Client.PONG
+                        && type != PacketTypes.Play.Client.TRANSACTION
+                        && type != PacketTypes.Play.Client.TICK_END
+                        && type != PacketTypes.Play.Client.PLAYER_MOVEMENT) {
+                    // validate this buffer
+                    ByteInWrappedPacket<WP> pre = new ByteInWrappedPacketImpl<>(serializer, this);
+                    if (createdState.equals(PipelineState.INITIAL_BYTE)) {
+                        this.initialByteWrapped = pre;
+                    } else if (createdState.equals(PipelineState.FINAL_BYTE)) {
+                        this.finalByteWrapped = pre;
+                    }
+                    validateBytePacket(pre);
                 }
-                validateBytePacket(pre);
             }
-
             // construct the wrapped packet buffer
             ByteInWrappedPacket<WP> byteWrappedPacket = WrappedPacketFactoryCollection.initWrappedPacket(type, createdState, serializer, this);
             if (createdState.equals(PipelineState.INITIAL_BYTE)) {
@@ -106,7 +108,6 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
             this.type = type;
             this.handled = false;
             this.initialByteWrapped = null;
-            this.finalByteWrapped = null;
 
             this.postAction.clear();
             applyPostActions();
@@ -219,9 +220,6 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     @Override
     public void releaseIfAutoReleasable() {
-        if (true) {
-            return;
-        }
         if (this.initialByteWrapped instanceof AutoReleasable) {
             ((AutoReleasable) this.initialByteWrapped).release();
         }
@@ -271,6 +269,19 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
+    public SourcedWrappedPacket<WP> getAnySourceWrapped() {
+        if (this.objectWrapped != null) {
+            return this.objectWrapped;
+        } else if (this.finalByteWrapped != null) {
+            return this.finalByteWrapped;
+        } else if (this.initialByteWrapped != null) {
+            return this.initialByteWrapped;
+        } else {
+            throw new IllegalStateException();
+        }
+    }
+
+    @Override
     public WP getAnyWrapped() {
         if (this.objectWrapped != null && this.objectWrapped.isAbstract()) {
             return this.objectWrapped.get();
@@ -279,7 +290,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         } else if (this.initialByteWrapped != null && this.initialByteWrapped.isAbstract()) {
             return this.initialByteWrapped.get();
         } else {
-            throw new IllegalStateException();
+            return getAnySourceWrapped().get();
         }
     }
 
@@ -289,7 +300,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
             return this.objectWrapped.get();
         } else if (this.pipelineState.equals(PipelineState.FINAL_BYTE) && this.finalByteWrapped.isAbstract()) {
             return this.finalByteWrapped.get();
-        } else if (this.pipelineState.equals(PipelineState.INITIAL_BYTE) && this.initialByteWrapped.isAbstract()) {
+        } else if ((this.pipelineState.equals(PipelineState.INITIAL_BYTE) || this.callingLateInitialByteWrapped) && this.initialByteWrapped.isAbstract()) {
             return this.initialByteWrapped.get();
         } else {
             throw new IllegalStateException();

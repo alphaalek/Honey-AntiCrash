@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.codec.PacketDataSerializer;
@@ -191,7 +192,7 @@ public class NBTFactory {
                 return null;
             }
         } catch (Exception ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to get handle item", ex);
+            HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to get handle item", ex);
             return null;
         }
 
@@ -203,7 +204,8 @@ public class NBTFactory {
                 structureModifier.writeField(0, nbt);
                 return nbt;
             } catch (Exception ex) {
-                Bukkit.getLogger().log(Level.SEVERE, "Failed to create tag", ex);
+                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to create tag", ex);
+                return null;
             }
         }
 

@@ -19,7 +19,7 @@ public class ValidationPipelineContext {
     }
 
     public DevelopmentData getDevelopmentData(ViolationKey key) {
-        return developmentDataMap
+        return this.developmentDataMap
                 .get(key.getRegistryId(), Array::new)
                 .get(key.getValidation().getID(), DevelopmentData::new);
     }
@@ -117,132 +117,6 @@ public class ValidationPipelineContext {
                 builder.append(data.trim()).append(", ");
             }
             return builder.substring(0, builder.length() - 1);
-        }
-    }
-
-    private final Array<ContainerStructure<?>> dataContextStorage = new Array<>();
-
-    public boolean putBoolean(boolean bool) {
-        put(ContainerStorageTypes.BOOLEAN, bool);
-        return bool;
-    }
-
-    public String putString(String string) {
-        put(ContainerStorageTypes.STRING, string);
-        return string;
-    }
-
-    public char putChar(char character) {
-        put(ContainerStorageTypes.CHAR, character);
-        return character;
-    }
-
-    public int putInt(int integer) {
-        put(ContainerStorageTypes.INT, integer);
-        return integer;
-    }
-
-    public float putFloat(float floatValue) {
-        put(ContainerStorageTypes.FLOAT, floatValue);
-        return floatValue;
-    }
-
-    public byte putByte(byte byteValue) {
-        put(ContainerStorageTypes.BYTE, byteValue);
-        return byteValue;
-    }
-
-    public double putDouble(double doubleValue) {
-        put(ContainerStorageTypes.DOUBLE, doubleValue);
-        return doubleValue;
-    }
-
-    public long putLong(long longValue) {
-        put(ContainerStorageTypes.LONG, longValue);
-        return longValue;
-    }
-
-    public Location putLocation(Location location) {
-        put(ContainerStorageTypes.LOCATION, location);
-        return location;
-    }
-
-    public String getString(int index) {
-        return get(ContainerStorageTypes.STRING, index);
-    }
-
-    public boolean getBoolean(int index) {
-        return getVal(index, ContainerStorageTypes.BOOLEAN, false);
-    }
-
-    public char getChar(int index) {
-        return getVal(index, ContainerStorageTypes.CHAR, ' ');
-    }
-
-    public int getInt(int index) {
-        return getVal(index, ContainerStorageTypes.INT, 0);
-    }
-
-    public float getFloat(int index) {
-        return getVal(index, ContainerStorageTypes.FLOAT, 0f);
-    }
-
-    public byte getByte(int index) {
-        return getVal(index, ContainerStorageTypes.BYTE, (byte) 0);
-    }
-
-    public double getDouble(int index) {
-        return getVal(index, ContainerStorageTypes.DOUBLE, 0d);
-    }
-
-    public long getLong(int index) {
-        return getVal(index, ContainerStorageTypes.LONG, 0L);
-    }
-
-    public Location getLocation(int index) {
-        return get(index, ContainerStorageTypes.LOCATION);
-    }
-
-    public synchronized <T> T put(int index, T value) {
-        ContainerStructure<T> structure = getStructure(index);
-        structure.add(value);
-        return value;
-    }
-
-    public <T> T put(Class<T> clazz, T value) {
-        put(ContainerStorageTypes.getIndex(clazz), value);
-        return value;
-    }
-
-    public <T> T getVal(int index, int typeIndex, T or) {
-        T val = get(index, typeIndex);
-        return val != null ? val : or;
-    }
-
-    public synchronized <T> T get(Class<T> clazz, int index) {
-        return get(index, ContainerStorageTypes.getIndex(clazz));
-    }
-
-    public synchronized <T> T get(int index, int typeIndex) {
-        ContainerStructure<T> structure = getStructure(typeIndex);
-        return structure.get(index);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> ContainerStructure<T> getStructure(int index) {
-        return (ContainerStructure<T>) this.dataContextStorage.get(index, ContainerStructure::new);
-    }
-
-    public static final class ContainerStructure<T> {
-
-        private final Array<T> values = new Array<>();
-
-        public void add(T value) {
-            this.values.add(value);
-        }
-
-        public T get(int index) {
-            return this.values.getOr(index, () -> null);
         }
     }
 }

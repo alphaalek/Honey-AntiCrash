@@ -16,7 +16,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Cancellable {
 
     enum PipelineState {
-        INITIAL_BYTE, FINAL_BYTE, OBJECT;
+        INITIAL_BYTE, FINAL_BYTE, OBJECT
     }
 
     PacketLifecycleTimings getEventloopStateTimings();
@@ -64,6 +64,8 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
     ByteInWrappedPacket<WP> getFinalByteWrapped();
 
     ByteInWrappedPacket<WP> getAnyByteWrapped();
+
+    SourcedWrappedPacket<WP> getAnySourceWrapped();
 
     WP getAnyWrapped();
 

@@ -5,6 +5,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.handler.MinecraftHandlers;
 import me.alek.honey.util.reflection.FieldAccessor;
 import me.alek.honey.util.reflection.MinecraftReflection;
@@ -167,6 +168,7 @@ public class SpigotServerInjector {
                 continue;
             }
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(channel);
+            ChannelCloseInspection.close(channel);
         }
 
         this.injected = false;

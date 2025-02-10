@@ -19,6 +19,7 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MinecraftReflection;
+import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.List;

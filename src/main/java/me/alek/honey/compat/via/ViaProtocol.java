@@ -151,7 +151,7 @@ public enum ViaProtocol {
                             continue;
                         }
                     } catch (Exception ex) {
-                        Bukkit.getLogger().log(Level.SEVERE, "Failed to acquire packet type via data from via key for type " + type, ex);
+                        HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to acquire packet type via data from via key for type " + type, ex);
                     }
                 }
 

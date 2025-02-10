@@ -50,7 +50,7 @@ public class InventoryProcessor<WP extends SourcedWrappedPacket<WP>> extends Typ
     }
 
     public void handleOpenWindow(HoneyPlayer player, PacketContainer<WrappedPlayOutOpenWindow> packet) {
-        getContext(player).container = packet.getAnyWrapped().getInventoryContainer();
+        getContext(player).container = packet.getCurrentWrapped().getInventoryContainer();
     }
 
     public static class InventoryEmulator implements TypeProcessorContext {

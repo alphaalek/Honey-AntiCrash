@@ -16,7 +16,7 @@ public interface SourcedWrappedPacket<WP extends SourcedWrappedPacket<WP>> exten
         Callback exCallback = new Callback();
         exCallback.addAction(Callback.Action.<Throwable>from(ex -> {
             if (HoneyPlugin.get().getLogger().isDebug()) {
-                Bukkit.getLogger().log(Level.WARNING,
+                HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
                         "Error occurred while decoding packet " + getContainer().getType() + " (id " + getContainer().getType().getID()
                                 + ") sent by " + getPlayer().name, ex);
             }

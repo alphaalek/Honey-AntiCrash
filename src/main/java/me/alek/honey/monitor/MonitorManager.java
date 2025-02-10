@@ -46,7 +46,7 @@ public class MonitorManager {
                     }
                 }
             } catch (Exception ex) {
-                Bukkit.getLogger().log(Level.SEVERE, "Error occurred for monitor tick", ex);
+                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Error occurred for monitor tick", ex);
             }
         }, 0L, ConfigurationOptions.Monitor.MESSAGE_INTERVAL, TimeUnit.MILLISECONDS);
     }

@@ -52,7 +52,7 @@ public class ValidationPipeline<C extends HoneyValidation<?>> {
             contextInner.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
                 ValidationPipelineContext.DevelopmentData data = context.getDevelopmentData(keyInner);
 
-                applyPacketDevelopmentData(data, packet.getPlayer(), packet.getType(), Optional.ofNullable(packet.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1));
+                applyPacketDevelopmentData(data, packet.getPlayer(), packet.getType(), Optional.ofNullable(packet.getAnyByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1));
 
                 if (onViolation != null) onViolation.run();
             });

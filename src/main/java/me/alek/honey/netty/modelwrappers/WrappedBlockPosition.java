@@ -19,7 +19,6 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
 
     private static final ConstructorInvoker<?> nmsConstructorInvoker = Reflection.getConstructor(MinecraftReflection.getBlockPositionClass(), int.class, int.class, int.class);
     public static final WrappedBlockPosition ORIGIN = new WrappedBlockPosition(0, 0, 0);
-    public static final WrappedBlockPosition DEFAULT = new WrappedBlockPosition(-1, -1, -1);
 
     private static final AtomicReference<FieldAccessor<Integer>> blockPositionXCachedAccessor = new AtomicReference<>();
     private static final AtomicReference<FieldAccessor<Integer>> blockPositionYCachedAccessor = new AtomicReference<>();
@@ -99,6 +98,10 @@ public class WrappedBlockPosition extends WrappedObject<WrappedBlockPosition> im
 
     public double distance(Location location) {
         return distance(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
+
+    public double distance(WrappedLocation location) {
+        return distance(location.getX(), location.getY(), location.getZ());
     }
 
     public double distance(double x, double y, double z) {

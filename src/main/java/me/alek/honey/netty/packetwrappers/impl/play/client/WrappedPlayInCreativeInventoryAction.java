@@ -3,18 +3,16 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
-import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 
-public class WrappedPlayInSetCreativeSlot extends ByteInWrappedPacket<WrappedPlayInSetCreativeSlot> {
+public class WrappedPlayInCreativeInventoryAction extends ByteInWrappedPacketImpl<WrappedPlayInCreativeInventoryAction> {
 
     @Property
     private final int slot;
     @Property
     private final WrappedImmutableItemStack item;
 
-    public WrappedPlayInSetCreativeSlot(PacketDataSerializer serializer, PacketContainer<WrappedPlayInSetCreativeSlot> packet) {
+    public WrappedPlayInCreativeInventoryAction(PacketDataSerializer serializer, PacketContainer<WrappedPlayInCreativeInventoryAction> packet) {
         super(serializer, packet);
 
         this.slot = serializer.readShort();

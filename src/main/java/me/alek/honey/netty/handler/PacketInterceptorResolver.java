@@ -53,7 +53,6 @@ public class PacketInterceptorResolver {
             toggleResolving(pipeline.channel(), PacketBound.SERVER, false);
         }
 
-
         return decoderPosition;
     }
 
@@ -90,7 +89,9 @@ public class PacketInterceptorResolver {
             pipeline.remove(handler);
         }
 
-        pipeline.channel().config().setAutoRead(true);
+        if (!HoneyPlugin.get().getPacketLibrary().getPipelineInjector().isConfigurationActive(pipeline, PacketBound.SERVER)) {
+            pipeline.channel().config().setAutoRead(true);
+        }
 
         return position.get();
     }

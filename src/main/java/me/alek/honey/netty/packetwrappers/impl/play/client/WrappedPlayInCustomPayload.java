@@ -9,13 +9,14 @@ import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.visitor.book.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.AutoReleasable;
-import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 
@@ -27,7 +28,7 @@ public interface WrappedPlayInCustomPayload<WP extends WrappedPlayInCustomPayloa
 
     PayloadData<WP> getPayloadData();
 
-    class ByteWrappedPlayInCustomPayload extends ByteInWrappedPacket<ByteWrappedPlayInCustomPayload> implements WrappedPlayInCustomPayload<ByteWrappedPlayInCustomPayload> {
+    class ByteWrappedPlayInCustomPayload extends ByteInWrappedPacketImpl<ByteWrappedPlayInCustomPayload> implements WrappedPlayInCustomPayload<ByteWrappedPlayInCustomPayload> {
 
         private final PayloadData<ByteWrappedPlayInCustomPayload> data;
 

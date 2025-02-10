@@ -4,13 +4,12 @@ import io.netty.buffer.ByteBuf;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
-import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 
 import java.util.Map;
 
-public class WrappedPlayInWindowClick extends ByteInWrappedPacket<WrappedPlayInWindowClick> {
+public class WrappedPlayInWindowClick extends ByteInWrappedPacketImpl<WrappedPlayInWindowClick> {
 
     public enum WindowClickType {
         PICKUP, QUICK_MOVE, SWAP, CLONE, THROW, QUICK_CRAFT, PICKUP_ALL;

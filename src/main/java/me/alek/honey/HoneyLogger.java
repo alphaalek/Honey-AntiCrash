@@ -245,6 +245,8 @@ public class HoneyLogger {
             return;
         }
 
+        SourcedWrappedPacket<WP> source = packet.getAnySourceWrapped();
+
         StringBuilder message = new StringBuilder();
         if (comparingTime > packet.getTimeCreated()) {
             message.append("(")
@@ -255,11 +257,11 @@ public class HoneyLogger {
                .append(" sent ")
                .append(formatPacketType(packet.getType()))
                .append(" (")
-               .append(packet.getAnyWrapped().getState().toString().toLowerCase().split("_")[0].charAt(0))
+               .append(source.getState().toString().toLowerCase().split("_")[0].charAt(0))
                .append(")");
 
         IDRegistry states = WrappedPacketFactoryCollection.getPipelineStates(packet.getType());
-        if (packet.getAnyWrapped().isAbstract() && !states.hasID(packet.getAnyWrapped().getState().ordinal())) {
+        if (source.isAbstract() && !states.hasID(source.getState().ordinal())) {
             message.append(" (invoked)");
         }
 
@@ -288,7 +290,7 @@ public class HoneyLogger {
         }
 
         Map<String, Object> entries = new HashMap<>();
-        for (Map.Entry<String, Object> entry : packet.getAnyWrapped().getProperties().entrySet()) {
+        for (Map.Entry<String, Object> entry : packet.getAnySourceWrapped().getProperties().entrySet()) {
             if (ConfigurationOptions.PacketLogger.FORMAT_ARRAYS
                     && entry.getValue() != null
                     && entry.getValue().getClass().isArray()) {

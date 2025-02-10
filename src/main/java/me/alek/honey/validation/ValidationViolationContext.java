@@ -19,6 +19,11 @@ public class ValidationViolationContext implements Cloneable {
             .flag()
             .build();
 
+    public static ValidationViolationContext TERMINATE = Builder.validate()
+            .pass()
+            .terminate()
+            .build();
+
     public List<ValidationViolationContext> subContainers = new ArrayList<>();
     public boolean cancelled;
     public boolean success;

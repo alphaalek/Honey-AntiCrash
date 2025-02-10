@@ -10,6 +10,7 @@ import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.handler.*;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +39,8 @@ public class SpigotPipelineInjector {
         setupPreparationHandlers(channel, PacketBound.CLIENT, packetHandler);
 
         channel.pipeline().addAfter(MinecraftHandlers.SPLITTER, filterName, new InboundPacketFilter(packetHandler));
-        channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, debuggerName, new HoneyDebugger(packetHandler));
         channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, PreMainThreadInterceptor.NAME, new PreMainThreadInterceptor(packetHandler));
+        channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, debuggerName, new HoneyDebugger(packetHandler));
 
         togglePreResolvedBounds(channel, new PreResolvedPacketHandler(packetHandler));
 
@@ -112,9 +113,9 @@ public class SpigotPipelineInjector {
             ChannelCloseInspection.close(channel);
             return;
         }
-        if (handlers.indexOf(PreMainThreadInterceptor.NAME) != handlers.indexOf(MinecraftHandlers.CONNECTION) - 1) {
+        if (handlers.indexOf(PreMainThreadInterceptor.NAME) != handlers.indexOf(HoneyPlugin.get().getPacketLibrary().getDebuggerName()) - 1) {
             channel.pipeline().remove(mainThreadInterceptor);
-            channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, PreMainThreadInterceptor.NAME, mainThreadInterceptor);
+            channel.pipeline().addBefore(HoneyPlugin.get().getPacketLibrary().getDebuggerName(), PreMainThreadInterceptor.NAME, mainThreadInterceptor);
         }
     }
 
@@ -218,8 +219,6 @@ public class SpigotPipelineInjector {
             return;
         }
         ejectHandlersIfExists(channel);
-
-        ChannelCloseInspection.close(channel);
     }
 
     public HoneyPacketHandler getPacketHandler(Channel channel) throws MissingHandlerException {
@@ -254,11 +253,6 @@ public class SpigotPipelineInjector {
             default:
                 return false;
         }
-    }
-
-    public boolean isConfigurationActive(ChannelPipeline pipeline) {
-        return isConfigurationActive(pipeline, PacketBound.CLIENT)
-                || isConfigurationActive(pipeline, PacketBound.SERVER);
     }
 
     public void togglePreResolvedBounds(Channel channel, HoneyPacketHandler handler) {

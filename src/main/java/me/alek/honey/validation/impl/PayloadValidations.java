@@ -32,7 +32,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
 
     @Override
     public boolean onPrePacketReceive(HoneyPlayer player, PacketContainer<CP> packet, ValidationPipelineContext context) {
-        String channel = packet.getAnyWrapped().getPayloadData().getChannel();
+        String channel = packet.getCurrentWrapped().getPayloadData().getChannel();
 
         context.getCallback().addAction(Callback.Action.<ViolationKey, ValidationViolationContext>from((keyOuter, response) -> {
             response.builder().onViolation(keyOuter, (keyInner, onViolation) -> {
@@ -45,6 +45,7 @@ public class PayloadValidations<CP extends WrappedPlayInCustomPayload<CP>> exten
         return true;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public ValidationPipeline<PacketValidation<CP>> createValidationPipeline() {
         return ValidationPipeline.from(new PayloadA<>(), new PayloadB<>(), new PayloadC<>(), new PayloadD<>());

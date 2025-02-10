@@ -345,7 +345,7 @@ public class Notifications {
 
             HoneyPlugin.get().getPacketLibrary().getChannelManager().writeForcedPacket(player, actionBarPacket);
         } catch (Exception ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to send action bar packet", ex);
+            HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to send action bar packet", ex);
         }
     }
 

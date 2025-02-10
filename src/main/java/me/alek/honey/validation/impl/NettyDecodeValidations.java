@@ -2,15 +2,12 @@ package me.alek.honey.validation.impl;
 
 import io.netty.buffer.ByteBuf;
 import me.alek.honey.HoneyPlayer;
-import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
-import me.alek.honey.validation.*;
-import me.alek.honey.validation.ValidationViolationContext;
-import me.alek.honey.validation.PacketValidation;
-import me.alek.honey.validation.ViolationValidation;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
-import me.alek.honey.util.counter.DecayingListeningCounter;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.IDRegistry;
+import me.alek.honey.util.counter.DecayingListeningCounter;
+import me.alek.honey.validation.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

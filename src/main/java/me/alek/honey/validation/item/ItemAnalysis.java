@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
@@ -104,7 +105,7 @@ public class ItemAnalysis {
         }
 
         if (ConfigurationOptions.PacketLogger.DEBUG) {
-            Bukkit.getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flagged);
+            HoneyPlugin.get().getLogger().getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flagged);
         }
 
         return true;
@@ -154,8 +155,7 @@ public class ItemAnalysis {
                 return getRegistryFrom(validation);
             }
         } catch (Exception ex) {
-            Bukkit.getLogger().log(Level.SEVERE, "Error occurred at item validation", ex);
-            throw new DecoderException(ex);
+            throw new DecoderException("Error occurred at item validation", ex);
         }
 
         return null;

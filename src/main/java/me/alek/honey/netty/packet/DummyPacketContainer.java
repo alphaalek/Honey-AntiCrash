@@ -112,6 +112,11 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
     }
 
     @Override
+    public SourcedWrappedPacket<WP> getAnySourceWrapped() {
+        return null;
+    }
+
+    @Override
     public WP getAnyWrapped() {
         return null;
     }

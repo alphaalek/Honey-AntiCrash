@@ -23,7 +23,7 @@ import java.util.List;
 public class LoginValidations extends AbstractValidationPacketListener<WrappedLoginInLoginStart> {
 
     public LoginValidations(PacketLibrary library) {
-        super(library, PacketContainer.PipelineState.OBJECT, ListenerPriority.NORMAL, getPacketTypes());
+        super(library, PacketContainer.PipelineState.INITIAL_BYTE, ListenerPriority.NORMAL, getPacketTypes());
     }
 
     private static List<PacketType> getPacketTypes() {

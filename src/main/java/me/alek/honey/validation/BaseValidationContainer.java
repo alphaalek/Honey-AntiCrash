@@ -12,7 +12,7 @@ public interface BaseValidationContainer {
 
     }
 
-    default void cleanup(HoneyPlayer player) {
+    default void remove(HoneyPlayer player) {
 
     }
 }

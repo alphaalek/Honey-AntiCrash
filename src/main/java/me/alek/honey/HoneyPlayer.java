@@ -70,7 +70,7 @@ public class HoneyPlayer implements IntIdentifiable {
     public long postponedLastTick;
     public ClientInfo clientInfo;
     public HoneyPacketHandler packetHandler;
-    public TempIntervalTracker timedQueuedTracker;
+    public TempIntervalTracker nettyThreadTimedQueuedTracker;
     public TempIntervalTracker serverThreadTimedQueuedTracker;
     public ViolationManagement.ViolationContext violationContext = new ViolationManagement.ViolationContext(this);
     public final Callback leaveCallback = new Callback();
@@ -129,7 +129,7 @@ public class HoneyPlayer implements IntIdentifiable {
         this.phase = Phase.OFFLINE;
 
         for (BaseValidationContainer validationContainer : ValidationContainerRegistry.getValidations()) {
-            validationContainer.cleanup(this);
+            validationContainer.remove(this);
         }
 
         HoneyPlugin.get().getLogger().removePacketData(this);

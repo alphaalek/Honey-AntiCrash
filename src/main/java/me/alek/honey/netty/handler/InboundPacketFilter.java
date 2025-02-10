@@ -250,7 +250,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
             if (HoneyPlugin.get().getLogger().isDebug()) {
                 PacketType type0 = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);
-                Bukkit.getLogger().log(Level.WARNING,
+                HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
                         "Error occurred while handling packet " + type0 + " (id " + type0.getID()
                                 + ") sent by " + this.player.name + ", " + (buf.readerIndex() + buf.readableBytes()) + " bytes", ex);
             }

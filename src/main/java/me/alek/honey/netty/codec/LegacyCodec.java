@@ -1,6 +1,7 @@
 package me.alek.honey.netty.codec;
 
 import io.netty.handler.codec.CodecException;
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.structure.IStructureModifier;
@@ -54,7 +55,7 @@ public interface LegacyCodec {
                 try {
                     return MethodHandles.lookup().unreflect(invoker.getHandle());
                 } catch (IllegalAccessException ex) {
-                    Bukkit.getLogger().log(Level.SEVERE, "Failed to create legacy serializer lookup for packet " + type + ", " + type.getState(), ex);
+                    HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to create legacy serializer lookup for packet " + type + ", " + type.getState(), ex);
                     return null;
                 }
             });

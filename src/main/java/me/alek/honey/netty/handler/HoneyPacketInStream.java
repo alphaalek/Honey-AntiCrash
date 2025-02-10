@@ -91,9 +91,9 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
                 }
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
-                    Bukkit.getLogger().log(Level.WARNING,
+                    HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
                             "Error occurred while decoding packet " + earlyPacket.getType() + " (id " + earlyPacket.getType().getID()
-                                    + ") sent by " + this.player.name + ", " + Optional.ofNullable(earlyPacket.getInitialByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
+                                    + ") sent by " + this.player.name + ", " + Optional.ofNullable(earlyPacket.getAnyByteWrapped()).map(ByteInWrappedPacket::getByteSize).orElse(-1) + " bytes", ex);
                 }
                 buf.release();
                 this.player.failPacket(ex, earlyPacket);
@@ -115,6 +115,10 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
             }
 
             PacketContainer<?> finalPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(player, packetObject, earlyPacket);
+            if (finalPacket == null) {
+                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to link object-instance to expected packet type, for " + earlyPacket.getType() + " sent by " + this.player.name + "; " + packetObject.getClass());
+                return;
+            }
 
             Runnable packetExecutorTask;
             if (!finalPacket.isCancelled()) {
@@ -172,7 +176,6 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
         if (this.packetHandler.filterMark != null) {
             this.packetHandler.filterMark.releaseIfAutoReleasable();
             this.packetHandler.filterMark = null;
-
             InboundPacketFilter.MARK.remove();
         }
     }
@@ -232,9 +235,9 @@ public class HoneyPacketInStream extends ChannelInboundHandlerAdapter {
         } catch (Exception ex) {
             if (HoneyPlugin.get().getLogger().isDebug()) {
                 type = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);
-                Bukkit.getLogger().log(Level.WARNING,
+                HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
                         "Error occurred while handling packet " + type + " (id " + type.getID()
-                                + ") sent by " + this.player.name + ", " + buf.readableBytes() + " bytes", ex);
+                                + ") sent by " + this.player.name + ", " + (buf.readerIndex() + buf.readableBytes()) + " bytes", ex);
             }
             serializer.release();
             this.player.failPacket(ex, packet);

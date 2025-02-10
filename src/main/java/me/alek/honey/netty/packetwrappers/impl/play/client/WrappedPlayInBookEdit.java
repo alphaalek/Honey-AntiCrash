@@ -10,7 +10,7 @@ import me.alek.honey.netty.codec.validation.DecodeContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
+import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.visitor.book.EditBookTagVisitor;
@@ -20,7 +20,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WrappedPlayInBookEdit extends ByteInWrappedPacket<WrappedPlayInBookEdit> {
+public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl<WrappedPlayInBookEdit> {
 
     @Property
     private final int slot;

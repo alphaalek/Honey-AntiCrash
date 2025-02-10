@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packet.type;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.via.ViaProtocol;
 import me.alek.honey.netty.codec.CodecFactory;
 import me.alek.honey.netty.codec.LegacyProtocol;
@@ -103,7 +104,7 @@ public class PacketTypes {
 
             int id = type.getMinecraftID().get();
             if (id == -1) {
-                Bukkit.getLogger().severe("Unknown ID: " + id + ", " + type + ", " + type.getBound() + ", " + type.getKeyName());
+                HoneyPlugin.get().getLogger().getLogger().severe("Unknown ID: " + id + ", " + type + ", " + type.getBound() + ", " + type.getKeyName());
             }
             typesArray.set(id, type);
         }
@@ -116,8 +117,8 @@ public class PacketTypes {
                     .filter(Array.ImmutableArrayNode::isNull)
                     .map(Array.ImmutableArrayNode::getIndex)
                     .collect(Collectors.toList());
-            Bukkit.getLogger().severe("Done registering: protocol: " + NetProtocol.getProtocol() + ", state: " + state + ", bound: " + bound + " but found missing packet-type indices: " + indices);
-            Bukkit.getLogger().severe(typesArray.toString());
+            HoneyPlugin.get().getLogger().getLogger().severe("Done registering: protocol: " + NetProtocol.getProtocol() + ", state: " + state + ", bound: " + bound + " but found missing packet-type indices: " + indices);
+            HoneyPlugin.get().getLogger().getLogger().severe(typesArray.toString());
         }
     }
 
@@ -718,7 +719,6 @@ public class PacketTypes {
         private static Class<?> DIFFICULTY_CHANGE_CLASS;
         private static Class<?> DIFFICULTY_LOCK_CLASS;
         private static Class<?> ENTITY_NBT_QUERY_CLASS;
-        private static Class<?> GROUND_CLASS;
         private static Class<?> ITEM_NAME_CLASS;
         private static Class<?> GENERATE_JIGSAW_CLASS;
         private static Class<?> PICK_ITEM_CLASS;
@@ -806,7 +806,7 @@ public class PacketTypes {
                 PLAYER_POSITION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPosition");
                 PLAYER_POS_ROT_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInPositionLook");
                 PLAYER_ROTATION_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$PacketPlayInLook");
-                GROUND_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$d");
+                PLAYER_MOVEMENT_CLASS = Reflection.getClass("{play}.PacketPlayInFlying$d");
                 PONG_RESPONSE_CLASS = Reflection.getUnsureClass("{play}.ServerboundPongPacket", "{common}.ServerboundPongPacket");
             }
             if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_19)) {
@@ -893,8 +893,6 @@ public class PacketTypes {
             ENTITY_ACTION(ENTITY_ACTION_CLASS, "player_command"),
             @ViaProtocol.Name(name = "entity_nbt_request", target = ViaProtocol.Name.Target.LEGACY)
             ENTITY_NBT_QUERY(ENTITY_NBT_QUERY_CLASS, "entity_tag_query", NetProtocolRange.since(NetProtocol.v1_13)),
-            @ViaProtocol.Name(name = "player_movement", target = ViaProtocol.Name.Target.LEGACY)
-            GROUND(GROUND_CLASS, "move_player_status_only", NetProtocolRange.since(NetProtocol.v1_17)),
             @ViaProtocol.Name(name = "held_item_change", target = ViaProtocol.Name.Target.LEGACY)
             HELD_ITEM_CHANGE(HELD_ITEM_CHANGE_CLASS, "set_carried_item"),
             @ViaProtocol.Name(name = "interact_entity", target = ViaProtocol.Name.Target.LEGACY)
@@ -913,7 +911,7 @@ public class PacketTypes {
             PLAYER_DIGGING(PLAYER_DIGGING_CLASS, "player_action"),
             PLAYER_LOADED(PLAYER_LOADED_CLASS, "player_loaded", NetProtocolRange.since(NetProtocol.v1_21_4)),
             @ViaProtocol.Name(name = "player_movement", target = ViaProtocol.Name.Target.LEGACY)
-            PLAYER_MOVEMENT(PLAYER_MOVEMENT_CLASS, "move_player_status_only", NetProtocolRange.until(NetProtocol.v1_16_5)),
+            PLAYER_MOVEMENT(PLAYER_MOVEMENT_CLASS, "move_player_status_only"),
             @ViaProtocol.Name(name = "player_position", target = ViaProtocol.Name.Target.LEGACY)
             PLAYER_POSITION(PLAYER_POSITION_CLASS, "move_player_pos"),
             @ViaProtocol.Name(name = "player_position_and_rotation", target = ViaProtocol.Name.Target.LEGACY)

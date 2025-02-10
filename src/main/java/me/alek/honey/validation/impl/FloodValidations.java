@@ -14,7 +14,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInSetCreativeSlot;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCreativeInventoryAction;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.reflection.MinecraftReflection;
@@ -54,7 +54,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         // ignore set creative slot packets when players in creative mode clear their inventory
         if (packet.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION
                 && player.bukkit.getGameMode() == GameMode.CREATIVE) {
-            int slot = ((WrappedPlayInSetCreativeSlot) packet.getAnyWrapped()).getSlot();
+            int slot = ((WrappedPlayInCreativeInventoryAction) packet.getAnyWrapped()).getSlot();
             int prevSlot = lastSetCreativeSlot.computeIfAbsent(player.uuid, (d) -> slot);
 
             lastSetCreativeSlot.put(player.uuid, slot);
@@ -67,7 +67,7 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
     }
 
     @Override
-    public void cleanup(HoneyPlayer player) {
+    public void remove(HoneyPlayer player) {
         lastSetCreativeSlot.remove(player.uuid);
     }
 

@@ -5,6 +5,8 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.tag.nbt.*;
 import me.alek.honey.util.protocol.NetProtocol;
 
+import java.io.IOException;
+
 public class EditBookTagVisitor extends BookTagVisitor {
 
     public static EditBookTagVisitor of(NetProtocol protocol, NetProtocol protocolCreated, boolean signing, String signingUsername) {
