@@ -1,6 +1,8 @@
 package me.alek.honey.netty.tag.nbt.visitor;
 
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import me.alek.honey.netty.codec.CodecVisitor;
+import me.alek.honey.netty.tag.FallbackDefaultCodecException;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.TagLimiter;
 import me.alek.honey.netty.tag.nbt.TagType;
@@ -12,13 +14,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public interface TagVisitor extends CodecVisitor {
+public interface NBTVisitor extends CodecVisitor {
 
-    class FallbackDefaultCodecException extends Exception {
-
-    }
-
-    abstract class Adapter implements TagVisitor {
+    abstract class Adapter implements NBTVisitor {
 
         @Override
         public <T> void visitType(TagType type, T val) {
@@ -106,10 +104,15 @@ public interface TagVisitor extends CodecVisitor {
         }
     }
 
-    interface In extends TagVisitor {
+    interface In extends NBTVisitor {
 
-        static TagVisitor.In createDefault(NetProtocol protocol, NetProtocol protocolCreated, boolean replacedByRegistered) {
+        static NBTVisitor.In createDefault(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
             return new Adapter() {
+                @Override
+                public ItemType type() {
+                    return type;
+                }
+
                 @Override
                 public NetProtocol protocol() {
                     return protocol;
@@ -119,15 +122,10 @@ public interface TagVisitor extends CodecVisitor {
                 public NetProtocol protocolCreated() {
                     return protocolCreated;
                 }
-
-                @Override
-                public boolean replacedByRegistered() {
-                    return replacedByRegistered;
-                }
             };
         }
 
-        abstract class Adapter extends TagVisitor.Adapter implements TagVisitor.In {
+        abstract class Adapter extends NBTVisitor.Adapter implements In {
 
             @Override
             public void visitAtEnd(DataInputStream stream, TagLimiter limiter) {
@@ -250,10 +248,15 @@ public interface TagVisitor extends CodecVisitor {
         <TAG extends AbstractTag<?, ?, TAG>> TAG visitAtArrayInsert(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException, IOException;
     }
 
-    interface Out extends TagVisitor {
+    interface Out extends NBTVisitor {
 
-        static TagVisitor.Out createDefault(NetProtocol protocol, NetProtocol protocolCreated, boolean replaceByRegistered) {
+        static Out createDefault(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
             return new Adapter() {
+                @Override
+                public ItemType type() {
+                    return type;
+                }
+
                 @Override
                 public NetProtocol protocol() {
                     return protocol;
@@ -263,15 +266,10 @@ public interface TagVisitor extends CodecVisitor {
                 public NetProtocol protocolCreated() {
                     return protocolCreated;
                 }
-
-                @Override
-                public boolean replacedByRegistered() {
-                    return replaceByRegistered;
-                }
             };
         }
 
-        abstract class Adapter extends TagVisitor.Adapter implements TagVisitor.Out {
+        abstract class Adapter extends NBTVisitor.Adapter implements Out {
 
             @Override
             public <TAG extends AbstractTag<?, ?, TAG>> TAG visitAtArrayFlush(DataOutputStream stream, TAG tag) throws FallbackDefaultCodecException {

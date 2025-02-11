@@ -2,20 +2,16 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
-import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.codec.types.VarInt;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
-import me.alek.honey.netty.codec.validation.DecodeContext;
+import me.alek.honey.netty.codec.validation.CodecContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.netty.packetwrappers.protocol.InteractionHand;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import me.alek.honey.netty.tag.nbt.visitor.book.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.util.protocol.NetProtocol;
 
@@ -124,7 +120,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteC
                 tag.putPrimitive("author", TagType.STRING, this.author);
             }
 
-            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, DecodeContext.BookEditContext.from(serializer, packet, this.signing));
+            CodecTypeValidation.BOOK_EDIT_TAG.validate(tag, CodecContext.BookValidationContext.from(serializer, packet, this.signing));
         }
     }
 

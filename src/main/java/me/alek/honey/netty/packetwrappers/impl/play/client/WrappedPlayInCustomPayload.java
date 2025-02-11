@@ -19,7 +19,7 @@ public class WrappedPlayInCustomPayload extends ByteInWrappedPacketImpl.CacheRew
     private final PayloadData data;
 
     public WrappedPlayInCustomPayload(PacketDataSerializer buf, PacketContainer<WrappedPlayInCustomPayload> packet) {
-        super(buf, packet);
+        super(buf, packet, false);
         String channel = buf.readString(MAX_CHANNEL_LENGTH);
         PacketDataSerializer serializer = new PacketDataSerializer(buf.readBytes(buf.readableBytes()));
         this.data = new PayloadData(this, packet, channel, serializer);
@@ -27,6 +27,12 @@ public class WrappedPlayInCustomPayload extends ByteInWrappedPacketImpl.CacheRew
 
     public PayloadData getPayloadData() {
         return data;
+    }
+
+    @Override
+    public void rewrite(PacketDataSerializer serializer) {
+        serializer.writeString(this.data.getChannel());
+        super.rewrite(serializer);
     }
 
     @Override
@@ -57,7 +63,6 @@ public class WrappedPlayInCustomPayload extends ByteInWrappedPacketImpl.CacheRew
 
             if (packet.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && isBookChannel()) {
                 this.bookChannelItemStack = BookTag.decodeBookEditStack(source, packet, this.signing, serializer);
-                Bukkit.getLogger().info(bookChannelItemStack.getTag()  + "");
             }
         }
 

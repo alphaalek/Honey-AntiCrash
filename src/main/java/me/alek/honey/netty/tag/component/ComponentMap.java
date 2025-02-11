@@ -8,7 +8,9 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.TypeSerializer;
+import me.alek.honey.netty.tag.FallbackDefaultCodecException;
 import me.alek.honey.netty.tag.ItemTag;
+import me.alek.honey.netty.tag.component.visitor.ComponentVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.HashMap;
@@ -19,11 +21,11 @@ import java.util.stream.Collectors;
 
 public class ComponentMap implements ItemTag {
 
-    public static class InSerializer implements TypeSerializer.In<ComponentMap, TypeSerializer.TypeContext.TwoArgs<ItemType, NetProtocol>> {
+    public static class Serializer implements TypeSerializer<ComponentMap, TypeSerializer.TypeContext.OneArg<ComponentVisitor>> {
 
         @SuppressWarnings("unchecked")
         @Override
-        public ComponentMap read(PacketDataSerializer serializer, TypeSerializer.TypeContext.TwoArgs<ItemType, NetProtocol> context) {
+        public ComponentMap read(PacketDataSerializer serializer, TypeSerializer.TypeContext.OneArg<ComponentVisitor> context) {
             int present = serializer.readVarInt();
             int absent = serializer.readVarInt();
             if (present == 0 && absent == 0) {
@@ -33,11 +35,14 @@ public class ComponentMap implements ItemTag {
             if (absent < 0 || present < 0) {
                 throw new DecoderException("Invalid component map: absent " + absent + ", present " + present);
             }
+            ComponentVisitor.In visitor = (ComponentVisitor.In) context.get();
+            visitor.visitAt(serializer, present, absent);
 
-            NetProtocol protocol = context.getSecond();
-            List<ComponentType<?>> available = VersionComponentTypes.getComponents(protocol);
+            NetProtocol protocol = visitor.protocol();
+            NetProtocol protocolCreated = visitor.protocolCreated();
+            List<ComponentType<?>> available = VersionComponentTypes.getComponents(protocolCreated);
 
-            ItemType itemType = context.getFirst();
+            ItemType itemType = visitor.type();
             List<Val<?>> bases = itemType.getComponents().getDelegate().entrySet().stream()
                     .map(e -> new ComponentMap.Val<>((ComponentType<Object>) e.getKey(), e.getValue(), ComponentSource.BASE))
                     .collect(Collectors.toList());
@@ -62,7 +67,15 @@ public class ComponentMap implements ItemTag {
                                 .equals(ComponentSource.BASE)) {
                     ComponentMap.validateComponentType(type, itemType);
 
-                    Object val = type.read(wrapper);
+                    WrapperComponentType<Object> wrapperType = (WrapperComponentType<Object>) WrapperComponentType.REGISTRY.get(type);
+                    Object val;
+                    try {
+                        val = wrapperType.visitAt(visitor, serializer);
+                    } catch (FallbackDefaultCodecException ex) {
+                        val = type.read(wrapper);
+                        // TODO: convert tag
+                    }
+                    wrapperType.visit(visitor, val);
                     map.set(type, val);
                 } else {
                     throw new DecoderException("Invalid present component type: " + type);
@@ -71,6 +84,7 @@ public class ComponentMap implements ItemTag {
             for (int i = 0; i < absent; i++) {
                 ComponentType<?> type = readType(protocol, serializer);
                 if (map.has(type) && available.contains(type)) {
+                    visitor.visitAbsent(type);
                     map.remove(type);
                 } else {
                     throw new DecoderException("Invalid absent component type: " + type);
@@ -78,6 +92,8 @@ public class ComponentMap implements ItemTag {
             }
 
             ComponentMap.validateComponentMap(map, itemType);
+
+            visitor.visitComponentMap(map);
 
             return map;
         }
@@ -88,14 +104,12 @@ public class ComponentMap implements ItemTag {
             return (ComponentType<Object>)
                     ComponentTypes.getRegistry().getById(protocol.toPECVersion(), id);
         }
-    }
-
-    public static class OutSerializer implements TypeSerializer.Out<ComponentMap, TypeSerializer.TypeContext.TwoArgs<ItemType, NetProtocol>> {
 
         @SuppressWarnings("unchecked")
         @Override
-        public PacketDataSerializer write(PacketDataSerializer buf, ComponentMap map, TypeContext.TwoArgs<ItemType, NetProtocol> context) {
-            ItemType itemType = context.getFirst();
+        public PacketDataSerializer write(PacketDataSerializer buf, ComponentMap map, TypeContext.OneArg<ComponentVisitor> context) {
+            ComponentVisitor.Out visitor = (ComponentVisitor.Out) context.get();
+            ItemType itemType = visitor.type();
             List<Val<?>> defaultBases = itemType.getComponents().getDelegate().entrySet().stream()
                     .map(e -> new ComponentMap.Val<>((ComponentType<Object>) e.getKey(), e.getValue(), ComponentSource.BASE))
                     .collect(Collectors.toList());
@@ -103,7 +117,7 @@ public class ComponentMap implements ItemTag {
                 buf.writeShort(0);
                 return buf;
             }
-            NetProtocol protocol = context.getSecond();
+            NetProtocol protocol = visitor.protocol();
 
             PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(buf);
             wrapper.setClientVersion(protocol.toPECVersion());

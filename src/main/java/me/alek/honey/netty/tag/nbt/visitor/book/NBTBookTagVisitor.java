@@ -5,31 +5,24 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.CodecVisitor;
+import me.alek.honey.netty.tag.FallbackDefaultCodecException;
+import me.alek.honey.netty.tag.component.visitor.book.ComponentBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.*;
 import me.alek.honey.netty.tag.nbt.visitor.ComplexTagVisitor;
+import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Map;
 
-public class BookTagVisitor extends ComplexTagVisitor {
-
-    public static class Factory implements CodecVisitor.Factory<BookTagVisitor> {
-
-        public static final Factory FACTORY = new Factory();
-
-        @Override
-        public BookTagVisitor create(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
-            return new BookTagVisitor(protocol, protocolCreated, type);
-        }
-    }
+public class NBTBookTagVisitor extends ComplexTagVisitor {
 
     private final ItemType type;
     protected int pages;
 
-    public BookTagVisitor(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
-        super(CodecVisitor.of(protocol, protocolCreated, false));
+    public NBTBookTagVisitor(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
+        super(CodecVisitor.of(protocol, protocolCreated, type));
         this.type = type;
     }
 
@@ -78,7 +71,6 @@ public class BookTagVisitor extends ComplexTagVisitor {
         return super.visitAtCompoundInsertTag(stream, limiter, type, key);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <TAG extends AbstractTag<?, ?, TAG>> TAG visitAtArrayInsert(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException {
         if (currentGrandChild().equals(BookTag.PAGES)) {
@@ -90,9 +82,18 @@ public class BookTagVisitor extends ComplexTagVisitor {
                 throw new DecoderException("Invalid book data: invalid page tag type: " + type);
             }
 
-            return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH), this);
+            return visitPage(stream, limiter, type);
         }
 
         return super.visitAtArrayInsert(stream, limiter, type);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <TAG extends AbstractTag<?, ?, TAG>> TAG visitPage(DataInputStream stream, TagLimiter limiter, TagType type) throws IOException {
+        if (this.type.equals(ItemTypes.WRITTEN_BOOK)) {
+            return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH), this);
+        } else {
+            return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH), this);
+        }
     }
 }

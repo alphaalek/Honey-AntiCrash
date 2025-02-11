@@ -9,11 +9,10 @@ import io.netty.handler.codec.EncoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.types.Types;
 import me.alek.honey.netty.codec.validation.CodecTypeValidation;
-import me.alek.honey.netty.codec.validation.DecodeContext;
+import me.alek.honey.netty.codec.validation.CodecContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -74,28 +73,30 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.VAR_INT.write(this, val);
     }
 
-    public PacketDataSerializer writeItemStack(NetProtocol protocol, WrappedImmutableItemStack stack) throws EncoderException {
-        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(TagVisitor.Out.createDefault(protocol, protocol, true), null));
+    public PacketDataSerializer writeItemStack(PacketContainer<?> packet, WrappedImmutableItemStack stack) throws EncoderException {
+        return writeItemStack(CodecContext.from(this, packet.getProtocol(), packet.getProtocolCreated()), stack);
     }
-
-    public Rewritable<WrappedImmutableItemStack> readItemStack(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
+    public PacketDataSerializer writeItemStack(CodecContext context, WrappedImmutableItemStack stack) throws EncoderException {
+        return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(CodecVisitor.Dynamic.OUT_DEFAULT, context));
+    }
+    public Rewritable<WrappedImmutableItemStack> readItemStack(CodecVisitor.Dynamic<?, ?> visitorFactory, CodecContext context) throws StackDecodingException {
         try {
-            return Optional.ofNullable(Types.ITEM_STACK.readRewritable(this, TypeSerializer.TypeContext.TwoArgs.of(visitor, DecodeContext.StackContext.from(this, visitor.protocol(), visitor.protocolCreated(), maxMissingBytes))))
+            return Optional.ofNullable(Types.ITEM_STACK.readRewritable(this, TypeSerializer.TypeContext.TwoArgs.of(visitorFactory, context)))
                     .orElse(Rewritable.noAction(WrappedImmutableItemStack.AIR));
         } catch (DecoderException ex) {
             throw new StackDecodingException(ex);
         }
     }
 
-    public Rewritable<WrappedImmutableItemStack> readItemStack(CodecVisitor visitor) throws StackDecodingException {
-        return readItemStack(visitor, -1);
+    public Rewritable<WrappedImmutableItemStack> readItemStack(CodecVisitor.Dynamic<?, ?> visitorFactory, NetProtocol protocol, NetProtocol protocolCreated, int maxMissingBytes) throws StackDecodingException {
+        return readItemStack(visitorFactory, CodecContext.StackContextImpl.from(this, protocol, protocolCreated, maxMissingBytes));
     }
 
-    public Rewritable<WrappedImmutableItemStack> readItemStackSafely(CodecVisitor visitor, int maxMissingBytes) throws StackDecodingException {
-        Rewritable<WrappedImmutableItemStack> stack = readItemStack(visitor, maxMissingBytes);
+    public Rewritable<WrappedImmutableItemStack> readItemStackSafely(CodecVisitor.Dynamic<?, ?> visitorFactory, NetProtocol protocol, NetProtocol protocolCreated, int maxMissingBytes) throws StackDecodingException {
+        Rewritable<WrappedImmutableItemStack> stack = readItemStack(visitorFactory, protocol, protocolCreated, maxMissingBytes);
         if (stack.get() != WrappedImmutableItemStack.AIR) {
             try {
-                CodecTypeValidation.ITEM_STACK.validate(stack.get(), DecodeContext.from(this, visitor.protocol(), visitor.protocolCreated()));
+                CodecTypeValidation.ITEM_STACK.validate(stack.get(), CodecContext.from(this, protocol, protocolCreated));
             } catch (DecoderException ex) {
                 throw new StackDecodingException(ex);
             }
@@ -105,7 +106,7 @@ public class PacketDataSerializer extends ByteBuf {
     }
 
     public Rewritable<WrappedImmutableItemStack> readItemStackSafely(PacketContainer<?> packet, int maxMissingBytes) throws StackDecodingException {
-        return readItemStackSafely(TagVisitor.In.createDefault(packet.getProtocol(), packet.getProtocolCreated(), true), maxMissingBytes);
+        return readItemStackSafely(CodecVisitor.Dynamic.IN_DEFAULT, packet.getProtocol(), packet.getProtocolCreated(), maxMissingBytes);
     }
 
     public Rewritable<WrappedImmutableItemStack> readItemStackSafely(PacketContainer<?> packet) throws StackDecodingException {

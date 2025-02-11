@@ -150,7 +150,6 @@ public class PacketExecutors {
                         .map(this::ensureTextComponent)
                         .map(GSON_COMPONENT_SERIALIZER::serialize)
                         .collect(Collectors.toList());
-                Bukkit.getLogger().info("Pages " + pages);
                 String author = nbt.getString("author");
                 String title = nbt.getString("title");
 

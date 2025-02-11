@@ -9,8 +9,8 @@ public class WrappedPlayInPickItem extends ByteInWrappedPacketImpl<WrappedPlayIn
     @Property
     private final int hotBarSlot;
 
-    public WrappedPlayInPickItem(PacketDataSerializer buf, PacketContainer<WrappedPlayInPickItem> wrappedPlayInPickItemPacketContainer) {
-        super(buf, wrappedPlayInPickItemPacketContainer);
+    public WrappedPlayInPickItem(PacketDataSerializer buf, PacketContainer<WrappedPlayInPickItem> packet) {
+        super(buf, packet);
         this.hotBarSlot = buf.readVarInt();
     }
 

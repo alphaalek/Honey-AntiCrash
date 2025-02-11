@@ -52,7 +52,6 @@ public class Notifications {
     private String packetFilterPre;
     private MessageFormat packetFilterCancelFormat;
     private MessageFormat packetFilterPostponeFormat;
-    private MessageFormat quarantinedAsyncWorkerFormat;
 
     public Notifications() {
         subscribe(Bukkit.getConsoleSender());
@@ -97,8 +96,6 @@ public class Notifications {
         this.packetFilterPre = ChatColor.translateAlternateColorCodes('&', ConfigurationOptions.Messages.PACKET_FILTER_PRE);
         this.packetFilterCancelFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_CANCEL);
         this.packetFilterPostponeFormat = MessageFormat.load(ConfigurationOptions.Messages.PACKET_FILTER_POSTPONE);
-
-        this.quarantinedAsyncWorkerFormat = MessageFormat.load(ConfigurationOptions.Messages.QUARANTINED_ASYNC_WORKER);
     }
 
     public String getPrefix() {

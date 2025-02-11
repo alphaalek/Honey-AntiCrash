@@ -2,28 +2,23 @@ package me.alek.honey.netty.tag.nbt.visitor.book;
 
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.configuration.ConfigurationOptions;
+import me.alek.honey.netty.tag.dynamic.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.*;
 import me.alek.honey.util.protocol.NetProtocol;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 
-public class EditBookTagVisitor extends BookTagVisitor {
-
-    public static EditBookTagVisitor of(NetProtocol protocol, NetProtocol protocolCreated, boolean signing, String signingUsername) {
-        return new EditBookTagVisitor(protocol, protocolCreated, signing, signingUsername);
-    }
-
-    public static EditBookTagVisitor of(NetProtocol protocol, NetProtocol protocolCreated) {
-        return of(protocol, protocolCreated, false, null);
-    }
+public class NBTEditBookTagVisitor extends NBTBookTagVisitor implements EditBookTagVisitor {
 
     private final boolean signing;
     private final String signingUsername;
 
-    public EditBookTagVisitor(NetProtocol protocol, NetProtocol protocolCreated, boolean signing, String signingUsername) {
+    public NBTEditBookTagVisitor(NetProtocol protocol, NetProtocol protocolCreated, String signingUsername, boolean signing) {
         super(protocol, protocolCreated, signing ? ItemTypes.WRITTEN_BOOK : ItemTypes.WRITABLE_BOOK);
-        this.signing = signing;
         this.signingUsername = signingUsername;
+        this.signing = signing;
     }
 
     @Override
@@ -55,6 +50,28 @@ public class EditBookTagVisitor extends BookTagVisitor {
             }
         }
 
+        if (isRootTag() && key.equals(BookTag.PAGES) && tag.asArray().isEmpty()) {
+            throw new DecoderException("Invalid book data: empty pages tag");
+        }
+
         super.visitCompoundElement(key, tag);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected <TAG extends AbstractTag<?, ?, TAG>> TAG visitPage(DataInputStream stream, TagLimiter limiter, TagType type) throws IOException {
+        // always read using the formatted text limit, because we will not allow formatting whatever components by
+        // the client when editing a book
+        return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH), this);
+    }
+
+    @Override
+    public String signingUsername() {
+        return this.signingUsername;
+    }
+
+    @Override
+    public boolean signing() {
+        return this.signing;
     }
 }

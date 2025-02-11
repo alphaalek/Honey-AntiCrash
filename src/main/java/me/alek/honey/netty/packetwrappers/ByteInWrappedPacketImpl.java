@@ -13,9 +13,15 @@ public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implem
     public static class CacheRewriteCaller<WP extends ByteInWrappedPacket<WP>> extends ByteInWrappedPacketImpl<WP> implements PacketRewriter, AutoReleasable {
 
         protected PacketDataSerializer cachedRewrittenSerializer;
+        private final boolean skipPacketId;
+
+        public CacheRewriteCaller(PacketDataSerializer buf, PacketContainer<WP> packet, boolean skipPacketId) {
+            super(buf, packet);
+            this.skipPacketId = skipPacketId;
+        }
 
         public CacheRewriteCaller(PacketDataSerializer buf, PacketContainer<WP> packet) {
-            super(buf, packet);
+            this(buf, packet, true);
         }
 
         @Override
@@ -25,6 +31,7 @@ public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implem
 
         public void handleRewritten(Rewritable<?> rewritable) {
             if (rewritable.rewritten().isRewritten()) {
+                Bukkit.getLogger().info("Handle rewritten " + rewritable.get() + " " + rewritable.rewritten().get());
                 if (this.cachedRewrittenSerializer != null) {
                     // release prior cached rewritten serializers, as we have expanded the rewriting of the buffer
                     this.cachedRewrittenSerializer.release();
@@ -48,8 +55,13 @@ public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implem
 
         @Override
         public void rewrite(PacketDataSerializer serializer) {
-            Bukkit.getLogger().info("Rewriting " + cachedRewrittenSerializer);
-            serializer.writeBytes(this.cachedRewrittenSerializer.readerIndex(0));
+            // skip packet id
+            this.cachedRewrittenSerializer.readerIndex(0);
+            if (this.skipPacketId) {
+                this.cachedRewrittenSerializer.readVarInt();
+            }
+
+            serializer.writeBytes(this.cachedRewrittenSerializer);
             this.cachedRewrittenSerializer = null;
         }
     }

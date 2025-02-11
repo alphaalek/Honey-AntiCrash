@@ -14,6 +14,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -41,24 +42,25 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
     private <WP extends SourcedWrappedPacket<WP>> PacketContainer<WP> initPacketContainer(Object msg, PacketBound bound) {
         switch (bound) {
             case SERVER:
+                // if the in-stream has already read this packet, we just use that
+                //
+                // this can happen at configuration bridge phase, where there will be inserted this pre-resolved handler
+                // by the protocol swap handler for the next packets, however it shouldn't handle the one invoking the phase
+                if (this.packetHandler.finalMark != null) {
+                    return (PacketContainer<WP>) this.packetHandler.finalMark;
+                }
+
                 PacketContainer<WP> packet = (PacketContainer<WP>) this.packetHandler.filterMark;
                 this.packetHandler.filterMark = null;
                 InboundPacketFilter.MARK.remove();
-                if (packet != null && packet.isHandled()) {
-                    return packet;
-                }
 
                 PacketContainer<WP> newPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(this.packetHandler.getPlayer(), msg, packet);
-                if (newPacket != null && (packet == null || newPacket.getType().equals(packet.getType()))) {
-                    this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(newPacket);
-                } else {
-                    if (packet != null) {
-                        this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(packet);
-                    }
-                    if (newPacket != null) {
-                        this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(newPacket);
-                    }
+                if (newPacket == null) {
+                    HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to link object-instance to expected packet type, for " + packet.getType() + " sent by " + this.packetHandler.getPlayer().name + "; " + msg.getClass());
+                    return null;
                 }
+                this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(newPacket);
+
                 return newPacket;
             case CLIENT:
                 return HoneyPlugin.get().getPacketLibrary().getPacketProcessor().writeObjectPacket(this.packetHandler.getPlayer(), msg);
@@ -109,7 +111,7 @@ public class PreResolvedPacketHandler extends ChannelDuplexHandler {
                 return;
             }
 
-            streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(ReferenceCountUtil.retain(msg)));
+            streamToPipeline(msg, packet, this.packetHandler::read, () -> ctx.fireChannelRead(msg));
         } catch (Exception ex) {
             if (HoneyPlugin.get().getLogger().isDebug()) {
                 PacketType type = PacketTypes.getPacketType(msg.getClass(), this.packetHandler.getProtocolState(PacketBound.SERVER)).orElse(PacketType.UNKNOWN);

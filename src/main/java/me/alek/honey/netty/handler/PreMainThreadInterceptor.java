@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
+import org.bukkit.Bukkit;
 
 @ChannelHandler.Sharable
 public class PreMainThreadInterceptor extends ChannelInboundHandlerAdapter {

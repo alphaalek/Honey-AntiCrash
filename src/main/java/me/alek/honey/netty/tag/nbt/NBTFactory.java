@@ -14,7 +14,7 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.ListConverter;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
-import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
+import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.ItemFactory;
@@ -38,33 +38,33 @@ public class NBTFactory {
 
     private static final int THIRTY_TWO_KILOBYTES = 1024 * 320;
 
-    public static class Serializer implements TypeSerializer<AbstractTag<?, ?, ?>, TypeSerializer.TypeContext.OneArg<CodecVisitor>> {
+    public static class Serializer implements TypeSerializer<AbstractTag<?, ?, ?>, TypeSerializer.TypeContext.OneArg<NBTVisitor>> {
 
         @Override
-        public AbstractTag<?, ?, ?> read(PacketDataSerializer buf, TypeContext.OneArg<CodecVisitor> context) throws DecoderException {
+        public AbstractTag<?, ?, ?> read(PacketDataSerializer buf, TypeContext.OneArg<NBTVisitor> context) throws DecoderException {
             try (ByteBufInputStream stream = new ByteBufInputStream(buf)) {
-                return NBTFactory.read(stream, (TagVisitor.In) context.get());
+                return NBTFactory.read(stream, (NBTVisitor.In) context.get());
             } catch (IOException ex) {
                 throw new DecoderException("Failed to read nbt tag", ex);
             }
         }
 
         @Override
-        public PacketDataSerializer write(PacketDataSerializer buf, AbstractTag<?, ?, ?> val, TypeContext.OneArg<CodecVisitor> context) throws EncoderException {
+        public PacketDataSerializer write(PacketDataSerializer buf, AbstractTag<?, ?, ?> val, TypeContext.OneArg<NBTVisitor> context) throws EncoderException {
             return write0(buf, val, context);
         }
 
         @SuppressWarnings("unchecked")
-        public <TAG extends AbstractTag<?, ?, TAG>> PacketDataSerializer write0(PacketDataSerializer buf, AbstractTag<?, ?, ?> tag, TypeContext.OneArg<CodecVisitor> context) throws EncoderException {
+        public <TAG extends AbstractTag<?, ?, TAG>> PacketDataSerializer write0(PacketDataSerializer buf, AbstractTag<?, ?, ?> tag, TypeContext.OneArg<NBTVisitor> context) throws EncoderException {
             try (ByteBufOutputStream stream = new ByteBufOutputStream(buf)) {
-                return (PacketDataSerializer) NBTFactory.write(stream, (TAG) tag, (TagVisitor.Out) context.get()).buffer();
+                return (PacketDataSerializer) NBTFactory.write(stream, (TAG) tag, (NBTVisitor.Out) context.get()).buffer();
             } catch (IOException ex) {
                 throw new EncoderException("Failed to write item tag", ex);
             }
         }
     }
 
-    private static AbstractTag<?, ?, ?> read(ByteBufInputStream stream, TagVisitor.In visitor) throws IOException {
+    private static AbstractTag<?, ?, ?> read(ByteBufInputStream stream, NBTVisitor.In visitor) throws IOException {
         byte id = stream.readByte();
         TagType type = TagType.getFromTypeId(id);
         if (type == TagType.END) {
@@ -89,7 +89,7 @@ public class NBTFactory {
                         ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES), visitor);
     }
 
-    private static <TAG extends AbstractTag<?, ?, TAG>> ByteBufOutputStream write(ByteBufOutputStream stream, TAG tag, TagVisitor.Out visitor) throws IOException {
+    private static <TAG extends AbstractTag<?, ?, TAG>> ByteBufOutputStream write(ByteBufOutputStream stream, TAG tag, NBTVisitor.Out visitor) throws IOException {
         TagType type = tag.getType();
         if (type != TagTypeCollection.getFromCollection(TagTypeCollection.COMPOUND)) {
             throw new IOException("Expected compound as root tag");

@@ -46,6 +46,15 @@ public enum NetProtocol {
         }
     }
 
+    public static NetProtocol newest(NetProtocol protocol1, NetProtocol protocol2) {
+        if (protocol1.isNewerThan(protocol2)) {
+            return protocol1;
+        } else {
+            // either equal or protocol 2 is newest
+            return protocol2;
+        }
+    }
+
     public static NetProtocol getByName(String name) {
         return getProtocols().stream().filter(p -> p.getName().equals(name)).findFirst().orElse(null);
     }

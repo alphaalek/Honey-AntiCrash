@@ -194,18 +194,15 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             }
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
             this.packetHandler.filterMark = packet;
-            MARK.set(packet);
 
-            // call listeners
-            if (!this.player.bypassEverything()) {
-                packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
-                HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, packet);
-                packet.getEventloopStateTimings().stopTimings();
-            }
+            packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, packet);
+            packet.getEventloopStateTimings().stopTimings();
 
             this.packetHandler.getProtocolSwapHandler().swapProtocolInboundFilter(packet);
 
             if (!this.packetHandler.isCancelled(packet)) {
+                MARK.set(packet);
                 serializer = packet.rewrite(serializer.readerIndex(0));
                 list.add(serializer);
             } else {
@@ -215,7 +212,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (StackDecodingException ex) {
-            ex.printStackTrace();
             this.packetHandler.filterMark = null;
             MARK.remove();
 

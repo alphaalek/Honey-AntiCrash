@@ -431,14 +431,14 @@ public class ConfigurationOptions {
         public static String PASTEBIN_DEVELOPER_KEY;
 
         public static void load() {
-            CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp", 120000);
+            CLEAR_OLD_VIOLATIONS_TIMESTAMP = file.getInt("clear-old-violations-timestamp");
             PREFIX = file.getString("messages.prefix", "&6Honey &8»");
 
-            HIDE_COMMAND_ENABLED = file.getBoolean("hide-command", false);
+            HIDE_COMMAND_ENABLED = file.getBoolean("hide-command");
             HIDE_COMMAND_MESSAGE = file.getString("hide-command-message", "SPIGOT_DEFAULT");
             HIDE_BYPASS_PERMISSION = file.getString("hide-bypass-permission", "honey.hide.bypass");
-            BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled", false);
-            BYPASS_PERMISSION_SERVER_THREAD_ENABLED = file.getBoolean("bypass-permission-serverthread-tracking", true);
+            BYPASS_PERMISSION_ENABLED = file.getBoolean("bypass-permission-enabled");
+            BYPASS_PERMISSION_SERVER_THREAD_ENABLED = file.getBoolean("bypass-permission-serverthread-tracking");
             BYPASS_PERMISSION = file.getString("bypass-permission", "honey.bypass");
             NOTIFY_PERMISSION = file.getString("notify-permission", "honey.notify");
 
@@ -468,11 +468,11 @@ public class ConfigurationOptions {
         public static double MIN_SERVER_HANDLE_THREAD_DUMP;
 
         public static void load() {
-            HEAVY_PACKET_DUMP_ENABLED = file.getBoolean("packet-dump.heavy-packet.enabled", true);
-            MIN_SERVER_HANDLE_PACKET_DUMP = file.getDouble("packet-dump.heavy-packet.min-server-handle", 5d);
+            HEAVY_PACKET_DUMP_ENABLED = file.getBoolean("packet-dump.heavy-packet.enabled");
+            MIN_SERVER_HANDLE_PACKET_DUMP = file.getDouble("packet-dump.heavy-packet.min-server-handle");
 
-            HEAVY_SERVER_THREAD_DUMP_ENABLED = file.getBoolean("packet-dump.server-thread-dump.enabled", true);
-            MIN_SERVER_HANDLE_THREAD_DUMP = file.getDouble("packet-dump.server-thread-dump.min-server-handle", 500d);
+            HEAVY_SERVER_THREAD_DUMP_ENABLED = file.getBoolean("packet-dump.server-thread-dump.enabled");
+            MIN_SERVER_HANDLE_THREAD_DUMP = file.getDouble("packet-dump.server-thread-dump.min-server-handle");
         }
     }
 
@@ -485,10 +485,10 @@ public class ConfigurationOptions {
         public static boolean DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE;
 
         public static void load() {
-            USE_DEFAULT = file.getBoolean("decoder.use-default", false);
-            DISABLE_ITEM_TAG_BLOCK_PLACE = file.getBoolean("decoder.disable-tag.block-place", true);
-            DISABLE_ITEM_TAG_WINDOW_CLICK = file.getBoolean("decoder.disable-tag.window-click", true);
-            DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE = file.getBoolean("decoder.disable-creative-slot-for-non-creative", true);
+            USE_DEFAULT = file.getBoolean("decoder.use-default");
+            DISABLE_ITEM_TAG_BLOCK_PLACE = file.getBoolean("decoder.disable-tag.block-place");
+            DISABLE_ITEM_TAG_WINDOW_CLICK = file.getBoolean("decoder.disable-tag.window-click");
+            DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE = file.getBoolean("decoder.disable-creative-slot-for-non-creative");
         }
     }
     @Setting
@@ -505,25 +505,17 @@ public class ConfigurationOptions {
         public static int PACKET_FILTER_MIN_CANCEL;
         public static int PACKET_FILTER_MIN_POSTPONE;
 
-        public static String QUARANTINED_ASYNC_WORKER;
-        public static boolean QUARANTINED_ASYNC_WORKER_ENABLED;
-        public static int QUARANTINED_ASYNC_WORKER_MIN_QUARANTINED;
-
         public static void load() {
-            BASE_COMMAND_FEATURE_INFOS = file.getBoolean("messages.base-command-feature-infos", true);
-            VIOLATION_MESSAGE = file.getString("messages.violation", "%prefix% &7%player% %network%&7 failed &e%check% &8&o(hover)&7. %context%");
-            PUNISH_MESSAGE = file.getString("messages.punish", "%prefix% &7%player% was kicked for &e%check%&7.");
+            BASE_COMMAND_FEATURE_INFOS = file.getBoolean("messages.base-command-feature-infos");
+            VIOLATION_MESSAGE = file.getString("messages.violation");
+            PUNISH_MESSAGE = file.getString("messages.punish");
 
-            PACKET_FILTER_PRE = file.getString("messages.packet-filter-action-bar.pre", "&cPacket filter:");
-            PACKET_FILTER_CANCEL = file.getString("messages.packet-filter-action-bar.cancel", "Cancelling... (%amount%)");
-            PACKET_FILTER_POSTPONE = file.getString("messages.packet-filter-action-bar.postpone", "Postponing... (%amount%) (current: %current_amount%)");
-            PACKET_FILTER_ENABLED = file.getBoolean("messages.packet-filter-action-bar.enabled", true);
-            PACKET_FILTER_MIN_CANCEL = file.getInt("messages.packet-filter-action-bar.min-cancelled", 10);
-            PACKET_FILTER_MIN_POSTPONE = file.getInt("messages.packet-filter-action-bar.min-postponed", 30);
-
-            QUARANTINED_ASYNC_WORKER = file.getString("messages.quarantined-async-worker-action-bar.message", "&cAsync worker moved to quarantine... (%time%ms)");
-            QUARANTINED_ASYNC_WORKER_ENABLED = file.getBoolean("messages.quarantined-async-worker-action-bar.enabled", true);
-            QUARANTINED_ASYNC_WORKER_MIN_QUARANTINED = file.getInt("messages.quarantined-async-worker-action-bar.min-quarantined", 100);
+            PACKET_FILTER_PRE = file.getString("messages.packet-filter-action-bar.pre");
+            PACKET_FILTER_CANCEL = file.getString("messages.packet-filter-action-bar.cancel");
+            PACKET_FILTER_POSTPONE = file.getString("messages.packet-filter-action-bar.postpone");
+            PACKET_FILTER_ENABLED = file.getBoolean("messages.packet-filter-action-bar.enabled");
+            PACKET_FILTER_MIN_CANCEL = file.getInt("messages.packet-filter-action-bar.min-cancelled");
+            PACKET_FILTER_MIN_POSTPONE = file.getInt("messages.packet-filter-action-bar.min-postponed");
         }
     }
 
@@ -544,18 +536,18 @@ public class ConfigurationOptions {
         public static double MIN_RATE_5S_FOR_QUOTIENT;
 
         public static void load() {
-            ENABLED = file.getBoolean("postpone.enabled", true);
-            MAX_POSTPONED_PACKETS = file.getInt("postpone.max-postponed-packets", 150);
-            MAX_POSTPONED_TICKS = file.getInt("postpone.max-postponed-execution-ticks", 100);
-            MAX_POSITION_TIME_REGISTER = file.getLong("max-position-time-register", 10L);
-            RATE_IGNORE_TERMINATOR = file.getDouble("postpone.rate-ignore-terminator", 10d);
-            MAX_PER_X_TICK = file.getDouble("postpone.max-per-x-tick", 75d);
-            MAX_PER_X_AMOUNT = file.getDouble("postpone.max-per-x-amount", 5);
-            MAX_RATE_5S = file.getDouble("postpone.max-rate-5s", 90d);
-            MAX_RATE_10S = file.getDouble("postpone.max-rate-10s", 75d);
-            MAX_RATE_ACCEL = file.getDouble("postpone.max-rate-accel", 150d);
-            MAX_RATE_ACCEL_QUOTIENT = file.getDouble("postpone.max-rate-accel-quotient", 12.5d);
-            MIN_RATE_5S_FOR_QUOTIENT = file.getDouble("postpone.min-rate-5s-for-quotient", 32.5d);
+            ENABLED = file.getBoolean("postpone.enabled");
+            MAX_POSTPONED_PACKETS = file.getInt("postpone.max-postponed-packets");
+            MAX_POSTPONED_TICKS = file.getInt("postpone.max-postponed-execution-ticks");
+            MAX_POSITION_TIME_REGISTER = file.getLong("max-position-time-register");
+            RATE_IGNORE_TERMINATOR = file.getDouble("postpone.rate-ignore-terminator");
+            MAX_PER_X_TICK = file.getDouble("postpone.max-per-x-tick");
+            MAX_PER_X_AMOUNT = file.getDouble("postpone.max-per-x-amount");
+            MAX_RATE_5S = file.getDouble("postpone.max-rate-5s");
+            MAX_RATE_10S = file.getDouble("postpone.max-rate-10s");
+            MAX_RATE_ACCEL = file.getDouble("postpone.max-rate-accel");
+            MAX_RATE_ACCEL_QUOTIENT = file.getDouble("postpone.max-rate-accel-quotient");
+            MIN_RATE_5S_FOR_QUOTIENT = file.getDouble("postpone.min-rate-5s-for-quotient");
         }
     }
 
@@ -587,8 +579,8 @@ public class ConfigurationOptions {
         public static List<String> IGNORED_PACKETS;
 
         public static void load() {
-            ENABLE_PACKET_LOGGER = file.getBoolean("monitor.enable-packet-logger", true);
-            MESSAGE_INTERVAL = file.getLong("monitor.message-interval", 500L);
+            ENABLE_PACKET_LOGGER = file.getBoolean("monitor.enable-packet-logger");
+            MESSAGE_INTERVAL = file.getLong("monitor.message-interval");
             IGNORED_PACKETS = file.getStringList("monitor.ignored-packets");
         }
     }
@@ -607,13 +599,13 @@ public class ConfigurationOptions {
         public static List<String> IGNORED_PACKETS;
 
         public static void load() {
-            ENABLED = file.getBoolean("packet-logger.enabled", false);
-            DETAILED = file.getBoolean("packet-logger.detailed", true);
-            FORMAT_ARRAYS = file.getBoolean("packet-logger.format-arrays", true);
-            FILTER_TOO_MUCH_DATA = file.getBoolean("packet-logger.filter-too-much-data", true);
-            EARLY = file.getBoolean("packet-logger.early", false);
-            DEBUG = file.getBoolean("packet-logger.debug-mode", false);
-            DEBUG_PACKETS_CANCELLED = file.getBoolean("packet-logger.debug-packets-cancelled", false);
+            ENABLED = file.getBoolean("packet-logger.enabled");
+            DETAILED = file.getBoolean("packet-logger.detailed");
+            FORMAT_ARRAYS = file.getBoolean("packet-logger.format-arrays");
+            FILTER_TOO_MUCH_DATA = file.getBoolean("packet-logger.filter-too-much-data");
+            EARLY = file.getBoolean("packet-logger.early");
+            DEBUG = file.getBoolean("packet-logger.debug-mode");
+            DEBUG_PACKETS_CANCELLED = file.getBoolean("packet-logger.debug-packets-cancelled");
             IGNORED_PLAYERS = file.getStringList("packet-logger.ignored-players");
             IGNORED_PACKETS = file.getStringList("packet-logger.ignored-packets");
         }
@@ -692,6 +684,7 @@ public class ConfigurationOptions {
             public static int MAX_BOOK_PAGES_MODERN;
             public static int MAX_BOOK_PAGES_LEGACY;
             public static int MAX_BOOK_PAGE_LENGTH;
+            public static int MAX_BOOK_FORMATTED_PAGE_LENGTH;
             public static int MAX_BOOK_AUTHOR_LENGTH;
             public static int MAX_BOOK_TITLE_LENGTH;
 
@@ -709,6 +702,7 @@ public class ConfigurationOptions {
                 MAX_BOOK_NBT_LENGTH_MODERN = file.getInt("item-analysis.nbt.max-book-nbt-length.modern");
                 MAX_BOOK_NBT_LENGTH_LEGACY = file.getInt("item-analysis.nbt.max-book-nbt-length.legacy");
                 MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length");
+                MAX_BOOK_FORMATTED_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-formatted-page-length");
                 MAX_BOOK_PAGES_MODERN = file.getInt("item-analysis.nbt.max-book-pages.modern");
                 MAX_BOOK_PAGES_LEGACY = file.getInt("item-analysis.nbt.max-book-pages.legacy");
                 MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length");

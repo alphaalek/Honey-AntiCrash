@@ -18,6 +18,7 @@ import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -97,6 +98,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
         try {
             packet = this.packetHandler.filterMark;
             type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, false);
+            Bukkit.getLogger().info("Read " + type);
             if (PacketTypes.isUnknown(type)) {
                 // invalid packet
                 throw new DecoderException("Invalid packet, state " + this.packetHandler.getProtocolState(PacketBound.SERVER) + ", id " + serializer.readerIndex(0).readVarInt());
@@ -113,9 +115,10 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
 
                 // calls listeners that was not called, due to some plugin invoking this packet in the eventloop after the filter
                 packet.callLateInitialByteListeners(serializer);
-
+            }
             // handle final byte state for packets that has not been rewritten
-            } else if (WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE)) {
+            if (packet.getCreatedPipelineState().equals(PacketContainer.PipelineState.INITIAL_BYTE)
+                    && WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE)) {
                 packet.callPreMinecraftDecode(serializer);
             }
 
@@ -123,7 +126,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
             packet.getEventloopStateTimings().stopTimings();
 
             // rewrite this packet if any implementation is present
-            if (packet.getPipelineState().equals(PacketContainer.PipelineState.FINAL_BYTE)) {
+            if (packet.getFinalByteWrapped() != null) {
                 serializer = packet.rewrite(serializer);
             } else {
                 serializer.retain();
@@ -142,8 +145,8 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
         }
     }
 
-    private void invokeRead(PacketContainer<?> earlyPacket, ChannelHandlerContext ctx, PacketDataSerializer serializer, List<Object> list) {
-        earlyPacket.getEventloopStateTimings().startTimings(LifecycleState.DECODE);
+    private void invokeRead(PacketContainer<?> packet, ChannelHandlerContext ctx, PacketDataSerializer serializer, List<Object> list) {
+        packet.getEventloopStateTimings().startTimings(LifecycleState.DECODE);
         try {
             Object decodedImpl;
             try {
@@ -153,7 +156,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
                     // explicit set variable, so Proguard recognizes the method
                     Object empty = this.decodeInvoker.invokeWithArguments(new Object[]{this.decoder, ctx, serializer, list});
                     if (list.isEmpty()) {
-                        stopTimings(earlyPacket);
+                        stopTimings(packet);
                         return;
                     }
                     decodedImpl = list.get(0);
@@ -162,46 +165,47 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
             } catch (Throwable ex) {
                 if (HoneyPlugin.get().getLogger().isDebug()) {
                     HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
-                            "Error occurred while decoding packet " + earlyPacket.getType() + " (id " + earlyPacket.getType().getID()
+                            "Error occurred while decoding packet " + packet.getType() + " (id " + packet.getType().getID()
                                     + ") sent by " + this.player.name + ", " + (serializer.readerIndex() + serializer.readableBytes()) + " bytes", ex);
                 }
                 list.clear();
-                this.player.failPacket(ex, earlyPacket);
+                this.player.failPacket(ex, packet);
                 return;
             }
             if (decodedImpl == null) {
-                stopTimings(earlyPacket);
+                stopTimings(packet);
                 return;
             }
-            earlyPacket.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
+            packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
 
             // link object instance with expected packet type
-            PacketContainer<?> finalPacket = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().readObjectPacket(player, decodedImpl, earlyPacket);
-            if (finalPacket == null) {
-                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to link object-instance to expected packet type, for " + earlyPacket.getType() + " sent by " + this.player.name + "; " + decodedImpl.getClass());
+            Optional<PacketType> typeOptional = PacketTypes.getPacketType(decodedImpl.getClass(), this.packetHandler.getProtocolState(PacketBound.SERVER));
+            if (!typeOptional.isPresent()) {
+                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to link object-instance to expected packet type, for " + packet.getType() + " sent by " + this.player.name + "; " + decodedImpl.getClass());
                 return;
             }
+            packet.callPostMinecraftDecode(decodedImpl, typeOptional.get());
 
             Runnable packetExecutorTask;
-            if (!finalPacket.isCancelled()) {
-                packetExecutorTask = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPacketExecutorTask(finalPacket);
+            if (!packet.isCancelled()) {
+                packetExecutorTask = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPacketExecutorTask(packet);
             } else {
                 packetExecutorTask = null;
             }
 
             // stop all timings associated with this packet
-            stopTimings(earlyPacket);
+            stopTimings(packet);
 
-            if (!this.packetHandler.read(finalPacket)) {
+            if (!this.packetHandler.read(packet)) {
                 return;
             }
-            finalPacket.handle();
-            this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(finalPacket);
+            packet.handle();
+            this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(packet);
 
             // check if this packet should be submitted to the main thread directly, and ignore the rest of the pipeline
             // and the player connection handler's implementation of handling this packet
             if (packetExecutorTask != null) {
-                PreMainThreadInterceptor.POST_TO_MAIN_THREAD.set(finalPacket);
+                PreMainThreadInterceptor.POST_TO_MAIN_THREAD.set(packet);
                 HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue().add(packetExecutorTask);
                 // drop the packet for the pipeline
                 return;
@@ -211,9 +215,9 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
             list.add(decodedImpl);
 
             // handle registered post actions
-            Callback postAction = finalPacket.getPostAction();
+            Callback postAction = packet.getPostAction();
             if (postAction != null) {
-                postAction.call(finalPacket);
+                postAction.call(packet);
             }
         } catch (Throwable ex) {
             try {
@@ -222,7 +226,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
                 // to do nothing
             }
 
-            stopTimings(earlyPacket);
+            stopTimings(packet);
         }
     }
 }

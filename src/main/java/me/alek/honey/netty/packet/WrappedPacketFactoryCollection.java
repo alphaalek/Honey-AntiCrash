@@ -35,7 +35,6 @@ public class WrappedPacketFactoryCollection {
         loadByteWrapper(PacketTypes.Play.Client.PLAYER_ROTATION, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInRotation::new);
         loadByteWrapper(PacketTypes.Play.Client.PLAYER_MOVEMENT, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInFlying.Flying::new);
         loadByteWrapper(PacketTypes.Play.Client.UPDATE_SIGN, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInUpdateSign::new);
-
         loadByteWrapper(PacketTypes.Play.Client.PICK_ITEM, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInPickItem::new);
 
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_DIGGING, WrappedPlayInBlockDig::new);

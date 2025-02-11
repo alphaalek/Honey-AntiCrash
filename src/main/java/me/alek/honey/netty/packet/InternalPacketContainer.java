@@ -19,6 +19,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.impl.NettyDecodeValidations;
+import org.bukkit.Bukkit;
 
 import java.util.Optional;
 
@@ -115,9 +116,10 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         if (!packet.getState().equals(PipelineState.OBJECT) && packet.isAbstract() && packet instanceof PacketRewriter) {
             PacketRewriter rewriter = (PacketRewriter) packet;
             if (rewriter.shouldRewrite()) {
+                int packetId = serializer.readVarInt();
                 // rewrite the buffer
                 serializer = new PacketDataSerializer();
-                serializer.writeVarInt(this.type.getMinecraftID().get());
+                serializer.writeVarInt(packetId);
                 rewriter.rewrite(serializer);
                 return serializer;
             }

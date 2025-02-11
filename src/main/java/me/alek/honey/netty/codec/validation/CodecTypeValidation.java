@@ -4,18 +4,17 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CodecTypeValidation<T, C extends DecodeContext> {
+public class CodecTypeValidation<T, C extends CodecContext> {
 
-    public static final CodecTypeValidation<WrappedImmutableItemStack, DecodeContext> ITEM_STACK = new CodecTypeValidation<>();
-    public static final CodecTypeValidation<ItemType, DecodeContext.StackContext> ITEM_STACK_PRE_TAG = new CodecTypeValidation<>();
+    public static final CodecTypeValidation<WrappedImmutableItemStack, CodecContext> ITEM_STACK = new CodecTypeValidation<>();
+    public static final CodecTypeValidation<ItemType, CodecContext.Transformer> ITEM_STACK_PRE_TAG = new CodecTypeValidation<>();
 
-    public static final CodecTypeValidation<WrappedImmutableItemStack, DecodeContext.BookEditContext<?>> BOOK_EDIT_ITEM_STACK = new CodecTypeValidation<>();
-    public static final CodecTypeValidation<CompoundTag, DecodeContext.BookEditContext<?>> BOOK_EDIT_TAG = new CodecTypeValidation<>();
+    public static final CodecTypeValidation<WrappedImmutableItemStack, CodecContext.BookValidationContext<?>> BOOK_EDIT_ITEM_STACK = new CodecTypeValidation<>();
+    public static final CodecTypeValidation<CompoundTag, CodecContext.BookValidationContext<?>> BOOK_EDIT_TAG = new CodecTypeValidation<>();
 
     private final List<PostDecodeValidation<T, C>> validations = new ArrayList<>();
 

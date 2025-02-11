@@ -2,6 +2,7 @@ package me.alek.honey.netty.packetwrappers.impl.play.client;
 
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.Rewritable;
+import me.alek.honey.netty.codec.validation.CodecContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
@@ -94,11 +95,11 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacketImpl.CacheRewri
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
             serializer.writeMap(this.slots,
                     serializer::writeShort,
-                    stack -> serializer.writeItemStack(protocol, WrappedImmutableItemStack.AIR)
+                    stack -> serializer.writeItemStack(getContainer(), WrappedImmutableItemStack.AIR)
             );
         }
 
-        serializer.writeItemStack(protocol, WrappedImmutableItemStack.AIR);
+        serializer.writeItemStack(getContainer(), WrappedImmutableItemStack.AIR);
     }
 
     public int getWindowId() {

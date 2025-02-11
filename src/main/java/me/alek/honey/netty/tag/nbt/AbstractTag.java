@@ -5,7 +5,7 @@ import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
-import me.alek.honey.netty.tag.nbt.visitor.TagVisitor;
+import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -56,7 +56,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter);
 
     @SuppressWarnings("unchecked")
-    public void write(DataOutputStream output, TagVisitor.Out visitor) throws IOException {
+    public void write(DataOutputStream output, NBTVisitor.Out visitor) throws IOException {
         getType().<TAG>getCodec().write(output, (TAG) this, visitor);
     }
 
@@ -76,11 +76,11 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
         return this.handle == null;
     }
 
-    public AbstractArrayTag<?, ?, ?> asArray() {
+    public <ARRAY extends AbstractArrayTag<?, ARRAY, ?>> ARRAY asArray() {
         if (getType().getDataTypeClass() != List.class) {
             return null;
         }
-        return (AbstractArrayTag<?, ?, ?>) this;
+        return (ARRAY) this;
     }
 
     public CompoundTag asCompound() {

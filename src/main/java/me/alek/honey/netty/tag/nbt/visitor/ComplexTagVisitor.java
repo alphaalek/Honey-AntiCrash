@@ -1,7 +1,9 @@
 package me.alek.honey.netty.tag.nbt.visitor;
 
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.CodecVisitor;
+import me.alek.honey.netty.tag.FallbackDefaultCodecException;
 import me.alek.honey.netty.tag.nbt.*;
 import me.alek.honey.util.protocol.NetProtocol;
 
@@ -11,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class ComplexTagVisitor extends TagVisitor.In.Adapter {
+public class ComplexTagVisitor extends NBTVisitor.In.Adapter {
 
     private final CodecVisitor delegate;
     private ComplexTagVisitor child;
@@ -69,6 +71,11 @@ public class ComplexTagVisitor extends TagVisitor.In.Adapter {
     }
 
     @Override
+    public ItemType type() {
+        return this.delegate.type();
+    }
+
+    @Override
     public NetProtocol protocol() {
         return this.delegate.protocol();
     }
@@ -76,11 +83,6 @@ public class ComplexTagVisitor extends TagVisitor.In.Adapter {
     @Override
     public NetProtocol protocolCreated() {
         return this.delegate.protocolCreated();
-    }
-
-    @Override
-    public boolean replacedByRegistered() {
-        return this.delegate.replacedByRegistered();
     }
 
     public ComplexTagVisitor child() {

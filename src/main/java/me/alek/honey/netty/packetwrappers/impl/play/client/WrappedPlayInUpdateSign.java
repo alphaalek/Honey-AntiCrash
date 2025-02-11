@@ -57,6 +57,12 @@ public class WrappedPlayInUpdateSign extends ByteInWrappedPacketImpl<WrappedPlay
                 Component component = GSON_COMPONENT_SERIALIZER.deserialize(this.text[i]);
                 if (!(component instanceof TextComponent)) {
                     this.text[i] = "{text:\"" + this.text[i] + "\"}";
+                } else {
+                    TextComponent text = (TextComponent) component;
+                    // make sure there are no other components than text content
+                    if (!text.children().isEmpty() || !text.style().isEmpty()) {
+                        this.text[i] = GSON_COMPONENT_SERIALIZER.serialize(Component.text(text.content()));
+                    }
                 }
             }
             serializer.writeString(this.text[i]);
