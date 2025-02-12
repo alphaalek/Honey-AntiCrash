@@ -22,6 +22,7 @@ import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -243,6 +244,8 @@ public class WrappedImmutableItemStack implements Cloneable {
             Rewritable.Result<TAG> result = rewriter.rewrite(context.protocol(), InTagRewriter.TagRewritingContext.of(itemTag, context));
             if (result != null && result.isRewritten()) {
                 TAG tag = result.get();
+                Bukkit.getLogger().info("Was " + itemTag);
+                Bukkit.getLogger().info("Rewrote " + tag);
                 return rewriteTag0(context, tag, type, preTagRidx, serializer);
             }
         }

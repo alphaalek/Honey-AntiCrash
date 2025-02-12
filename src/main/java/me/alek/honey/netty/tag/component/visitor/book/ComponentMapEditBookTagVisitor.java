@@ -21,6 +21,8 @@ public class ComponentMapEditBookTagVisitor extends ComponentMapBookTagVisitor i
         super(protocol, protocolCreated, signing ? ItemTypes.WRITTEN_BOOK : ItemTypes.WRITABLE_BOOK);
         this.signingUsername = signingUsername;
         this.signing = signing;
+
+        // Well, this implementation will never be used, because book content in edit context will never be represented as a component map
     }
 
     @Override

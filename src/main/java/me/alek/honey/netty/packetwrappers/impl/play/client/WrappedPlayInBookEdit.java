@@ -4,16 +4,20 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.types.VarInt;
-import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.CodecContext;
+import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.netty.packetwrappers.protocol.InteractionHand;
+import me.alek.honey.netty.tag.ComponentHelper;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.rewriter.impl.NBTWrittenBookRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +97,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteC
                 throw new IllegalStateException("Too many pages: " + pageCount + ", limit: " + maxPageCount);
             }
             for (int i = 0; i < pageCount; i++) {
-                this.pages.add(buf.readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH));
+                this.pages.add(buf.readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH));
             }
 
             this.signing = buf.readBoolean();
@@ -125,8 +129,25 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteC
     }
 
     @Override
-    public boolean shouldRecallInitialByte(NetProtocol newProtocol) {
-        return getProtocol().isNewerThanOrEqual(NetProtocol.v1_17_1) && newProtocol.isOlderThan(NetProtocol.v1_17_1);
+    public void rewrite(PacketDataSerializer serializer) {
+        if (getProtocol().isNewerThan(NetProtocol.v1_17)) {
+            // rewrite modern book-edit implementation manually, because here the book content is not presented as an item as in earlier protocols
+
+            serializer.writeVarInt(this.slot);
+
+            serializer.writeVarInt(this.pages.size());
+            for (String page : this.pages) {
+                TextComponent text = ComponentHelper.readText(page);
+                serializer.writeString(ComponentHelper.ensureOnlyDeserializableAsRawText(text.content()));
+            }
+
+            serializer.writeBoolean(this.signing);
+            if (this.signing) {
+                serializer.writeString(this.title);
+            }
+        } else {
+            super.rewrite(serializer);
+        }
     }
 
     public int getSlot() {

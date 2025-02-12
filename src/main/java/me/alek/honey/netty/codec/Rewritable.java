@@ -47,6 +47,14 @@ public interface Rewritable<T> extends Supplier<T> {
         }
 
         boolean isRewritten();
+
+        default T orElse(T val) {
+            if (isRewritten()) {
+                return get();
+            } else {
+                return val;
+            }
+        }
     }
 
     static <T> Rewritable<T> noAction(T val) {

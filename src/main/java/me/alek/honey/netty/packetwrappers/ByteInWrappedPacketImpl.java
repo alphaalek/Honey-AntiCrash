@@ -7,6 +7,7 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.ApiStatus;
 
 public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implements ByteInWrappedPacket<WP> {
 
@@ -31,6 +32,11 @@ public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implem
 
         public void handleRewritten(Rewritable<?> rewritable) {
             if (rewritable.rewritten().isRewritten()) {
+                if (!shouldRewrite(getContainer())) {
+                    rewritable.rewritten().get().release();
+                    return;
+                }
+
                 Bukkit.getLogger().info("Handle rewritten " + rewritable.get() + " " + rewritable.rewritten().get());
                 if (this.cachedRewrittenSerializer != null) {
                     // release prior cached rewritten serializers, as we have expanded the rewriting of the buffer
@@ -49,8 +55,8 @@ public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implem
         }
 
         @Override
-        public boolean shouldRewrite() {
-            return this.cachedRewrittenSerializer != null;
+        public boolean shouldRewrite(PacketContainer<?> packet) {
+            return packet.getLastRewrittenPipelineState() == null && this.cachedRewrittenSerializer != null;
         }
 
         @Override

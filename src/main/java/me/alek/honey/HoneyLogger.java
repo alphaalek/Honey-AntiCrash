@@ -259,8 +259,7 @@ public class HoneyLogger {
                .append(source.getState().toString().toLowerCase().split("_")[0].charAt(0))
                .append(")");
 
-        IDRegistry states = WrappedPacketFactoryCollection.getPipelineStates(packet.getType());
-        if (source.isAbstract() && !states.hasID(source.getState().ordinal())) {
+        if (!source.getContainer().getCreatedPipelineState().equals(PacketContainer.PipelineState.INITIAL_BYTE)) {
             message.append(" (invoked)");
         }
 

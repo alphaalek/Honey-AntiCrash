@@ -26,6 +26,7 @@ public class WrappedPacketFactoryCollection {
         loadByteWrapper(PacketTypes.Play.Client.CLICK_WINDOW, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInWindowClick::new);
         loadByteWrapper(PacketTypes.Play.Client.CUSTOM_PAYLOAD, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInCustomPayload::new);
         loadByteWrapper(PacketTypes.Play.Client.BOOK_EDIT, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInBookEdit::new);
+        loadByteWrapper(PacketTypes.Play.Client.UPDATE_SIGN, PacketContainer.PipelineState.INITIAL_BYTE, WrappedPlayInUpdateSign::new);
 
         loadByteWrapper(PacketTypes.Handshake.Client.SET_PROTOCOL, PacketContainer.PipelineState.INITIAL_BYTE, WrappedHandshakeInSetProtocol::new);
         loadByteWrapper(PacketTypes.Login.Client.HELLO, PacketContainer.PipelineState.INITIAL_BYTE, WrappedLoginInLoginStart::new);
@@ -34,7 +35,6 @@ public class WrappedPacketFactoryCollection {
         loadByteWrapper(PacketTypes.Play.Client.PLAYER_POS_ROT, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInPositionAndRotation::new);
         loadByteWrapper(PacketTypes.Play.Client.PLAYER_ROTATION, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInRotation::new);
         loadByteWrapper(PacketTypes.Play.Client.PLAYER_MOVEMENT, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInFlying.Flying::new);
-        loadByteWrapper(PacketTypes.Play.Client.UPDATE_SIGN, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInUpdateSign::new);
         loadByteWrapper(PacketTypes.Play.Client.PICK_ITEM, PacketContainer.PipelineState.FINAL_BYTE, WrappedPlayInPickItem::new);
 
         loadObjectWrapper(PacketTypes.Play.Client.PLAYER_DIGGING, WrappedPlayInBlockDig::new);

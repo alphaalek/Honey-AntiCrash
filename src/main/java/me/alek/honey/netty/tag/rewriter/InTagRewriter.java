@@ -26,7 +26,7 @@ public interface InTagRewriter<TAG extends ItemTag> {
                 }
 
                 @Override
-                public CodecContext codecContext() {
+                public CodecContext codec() {
                     return context;
                 }
             };
@@ -34,7 +34,7 @@ public interface InTagRewriter<TAG extends ItemTag> {
 
         TAG tag();
 
-        CodecContext codecContext();
+        CodecContext codec();
     }
 
     static void loadRegistry() {

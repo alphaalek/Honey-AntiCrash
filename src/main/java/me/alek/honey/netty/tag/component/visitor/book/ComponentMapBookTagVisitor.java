@@ -8,11 +8,13 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.tag.ComponentHelper;
 import me.alek.honey.netty.tag.component.visitor.CommonComponentMapInVisitor;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.rewriter.impl.NBTWrittenBookRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.Bukkit;
 
 import java.util.List;
@@ -45,7 +47,7 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
     }
 
     protected Component visitPage(Component page) {
-        Component component = NBTWrittenBookRewriter.readPage(page);
+        TextComponent component = ComponentHelper.readText(page);
         NBTWrittenBookRewriter.checkFormatted(component);
         return component;
     }
@@ -60,11 +62,8 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
             if (str.length() > maxPageCount) {
                 throw new DecoderException("Invalid book data: too long page: " + str.length() + " > " + maxPageCount);
             }
-            Bukkit.getLogger().info("Read page " + str);
 
-            Component page = NBTWrittenBookRewriter.deserializePage(str);
-
-            Bukkit.getLogger().info("Read page component " + page);
+            Component page = ComponentHelper.deserialize(str);
             return visitPage(page);
         }));
     }

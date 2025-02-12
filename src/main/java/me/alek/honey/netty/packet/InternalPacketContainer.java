@@ -6,6 +6,7 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -24,6 +25,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     private final PipelineState createdPipelineState;
     private PipelineState pipelineState;
+    private PipelineState lastRewrittenPipelineState;
     private PacketType type;
     private InternalObjectPacketStructure structure;
     private ObjectWrappedPacket<WP> objectWrapped;
@@ -82,7 +84,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
             if (byteWrappedPacket.isAbstract()) {
                 // check if any bytes has not been decoded
                 // if any is left, the protocol has not been followed properly
-                HoneyPacketCodec.checkReadable(getProtocolCreated(), type, Optional.ofNullable(this.objectWrapped).map(ObjectWrappedPacket::getHandle).orElse(null), serializer);
+                HoneyPacketCodec.checkReadable(getProtocolCreated(), type, null, serializer);
             }
         }
     }
@@ -101,27 +103,38 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         }
     }
 
-    @Override
-    public PacketDataSerializer rewrite(PacketDataSerializer serializer) {
+    private Rewritable.Result<PacketDataSerializer> rewrite0(PacketDataSerializer serializer) {
         if (this.pipelineState.equals(PipelineState.OBJECT)) {
             throw new IllegalStateException("Can't rewrite object");
         }
-
         WP packet = getCurrentWrapped();
         // check if this packet should be rewritten
-        if (!packet.getState().equals(PipelineState.OBJECT) && packet.isAbstract() && packet instanceof PacketRewriter) {
+        if (!packet.getState().equals(PipelineState.OBJECT) && packet.isAbstract() && packet instanceof PacketRewriter ) {
             PacketRewriter rewriter = (PacketRewriter) packet;
-            if (rewriter.shouldRewrite()) {
+            if (rewriter.shouldRewrite(this)) {
+                this.lastRewrittenPipelineState = this.pipelineState;
+
                 int packetId = serializer.readerIndex(0).readVarInt();
                 // rewrite the buffer
                 serializer = new PacketDataSerializer();
                 serializer.writeVarInt(packetId);
                 rewriter.rewrite(serializer);
-                return serializer;
+
+                return Rewritable.Result.rewritten(serializer);
             }
         }
 
-        return serializer.retain();
+        return Rewritable.Result.noRewritten();
+    }
+
+    @Override
+    public PacketDataSerializer rewrite(PacketDataSerializer serializer) {
+        Rewritable.Result<PacketDataSerializer> rewritable = rewrite0(serializer);
+        if (rewritable.isRewritten()) {
+            return rewritable.get();
+        } else {
+            return serializer.retain();
+        }
     }
 
     private void applyPostActions() {
@@ -132,7 +145,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
-    public void handleUnknownRewritten(PacketType type) {
+    public void handleRewrittenByPipeline(PacketType type) {
         if (!this.type.equals(type)) {
             // rewritten new type by ViaVersion
             this.type = type;
@@ -149,7 +162,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
 
     @Override
     public void callPostMinecraftDecode(Object handle, PacketType type) {
-        handleUnknownRewritten(type);
+        handleRewrittenByPipeline(type);
         this.pipelineState = PipelineState.OBJECT;
 
         if (PacketTypes.isUnknown(type)
@@ -167,35 +180,42 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     public void callPreMinecraftDecode(PacketDataSerializer serializer) {
         if (this.pipelineState == PipelineState.INITIAL_BYTE) {
             this.pipelineState = PipelineState.FINAL_BYTE;
-            if (this.finalByteWrapped == null) {
-                this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
 
-                if (this.finalByteWrapped.isAbstract()) {
+            if (WrappedPacketFactoryCollection.hasByteWrappedPacket(this.type, PipelineState.FINAL_BYTE)) {
+                if (this.finalByteWrapped == null) {
+                    this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, PipelineState.FINAL_BYTE, serializer, this);
+                    if (this.finalByteWrapped.isAbstract()) {
+                        // check if any bytes has not been decoded
+                        // if any is left, the protocol has not been followed properly
+                        HoneyPacketCodec.checkReadable(getProtocolCreated(), this.type, Optional.ofNullable(this.objectWrapped).map(ObjectWrappedPacket::getHandle).orElse(null), serializer);
+                    }
+                }
+                HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(this.player, this);
+            }
+        }
+    }
+
+    @Override
+    public Rewritable.Result<PacketDataSerializer> callLateInitialByteListeners(PacketDataSerializer serializer) {
+        Rewritable.Result<PacketDataSerializer> rewritableResult = Rewritable.Result.noRewritten();
+
+        if (this.pipelineState == PipelineState.FINAL_BYTE && WrappedPacketFactoryCollection.hasByteWrappedPacket(this.type, PacketContainer.PipelineState.INITIAL_BYTE)) {
+            this.callingLateInitialByteWrapped = true;
+            if (this.initialByteWrapped == null) {
+                this.initialByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(this.type, PipelineState.INITIAL_BYTE, serializer, this);
+                if (this.initialByteWrapped.isAbstract()) {
                     // check if any bytes has not been decoded
                     // if any is left, the protocol has not been followed properly
                     HoneyPacketCodec.checkReadable(getProtocolCreated(), this.type, Optional.ofNullable(this.objectWrapped).map(ObjectWrappedPacket::getHandle).orElse(null), serializer);
                 }
-            }
-            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(this.player, this);
-        }
-    }
-
-    @Override
-    public void callLateInitialByteListeners(PacketDataSerializer serializer) {
-        if (WrappedPacketFactoryCollection.hasByteWrappedPacket(this.type, PacketContainer.PipelineState.INITIAL_BYTE)) {
-            this.callingLateInitialByteWrapped = true;
-            if (this.initialByteWrapped == null) {
-                this.initialByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(this.type, PipelineState.INITIAL_BYTE, serializer, this);
+                // rewrite the packet
+                rewritableResult = rewrite0(serializer);
             }
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, this);
             this.callingLateInitialByteWrapped = false;
         }
-    }
 
-    @Override
-    public void recallLateInitialByteListeners(PacketDataSerializer serializer) {
-        this.initialByteWrapped = null;
-        callLateInitialByteListeners(serializer);
+        return rewritableResult;
     }
 
     @Override
@@ -247,6 +267,11 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     @Override
     public PipelineState getCreatedPipelineState() {
         return this.createdPipelineState;
+    }
+
+    @Override
+    public PipelineState getLastRewrittenPipelineState() {
+        return this.lastRewrittenPipelineState;
     }
 
     @Override
@@ -338,7 +363,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     public WP getCurrentWrapped() {
         if (this.pipelineState.equals(PipelineState.OBJECT)) {
             return this.objectWrapped.get();
-        } else if (this.pipelineState.equals(PipelineState.FINAL_BYTE)) {
+        } else if (this.pipelineState.equals(PipelineState.FINAL_BYTE) && !this.callingLateInitialByteWrapped) {
             return this.finalByteWrapped.get();
         } else if ((this.pipelineState.equals(PipelineState.INITIAL_BYTE) || this.callingLateInitialByteWrapped)) {
             return this.initialByteWrapped.get();

@@ -3,6 +3,7 @@ package me.alek.honey.netty.packet;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.handler.HoneyPacketHandler;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
@@ -21,7 +22,7 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
 
     PacketLifecycleTimings getEventloopStateTimings();
 
-    void handleUnknownRewritten(PacketType type);
+    void handleRewrittenByPipeline(PacketType type);
 
     PacketDataSerializer rewrite(PacketDataSerializer buf);
 
@@ -29,9 +30,7 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
 
     void callPreMinecraftDecode(PacketDataSerializer serializer);
 
-    void callLateInitialByteListeners(PacketDataSerializer serializer);
-
-    void recallLateInitialByteListeners(PacketDataSerializer serializer);
+    Rewritable.Result<PacketDataSerializer> callLateInitialByteListeners(PacketDataSerializer serializer);
 
     NetProtocol getProtocol();
 
@@ -60,6 +59,8 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
     PipelineState getPipelineState();
 
     PipelineState getCreatedPipelineState();
+
+    PipelineState getLastRewrittenPipelineState();
 
     ObjectWrappedPacket<WP> getObjectWrapped();
 

@@ -1,11 +1,13 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
-import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
+import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.netty.packetwrappers.PacketRewriter;
+import me.alek.honey.netty.tag.ComponentHelper;
+import me.alek.honey.netty.tag.rewriter.impl.NBTWrittenBookRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -14,9 +16,7 @@ import org.bukkit.Bukkit;
 public class WrappedPlayInUpdateSign extends ByteInWrappedPacketImpl<WrappedPlayInUpdateSign> implements PacketRewriter {
 
     public static final int LINES = 4;
-    public static final int MAX_LINE_LENGTH = 45;
-
-    private static final GsonComponentSerializer GSON_COMPONENT_SERIALIZER = GsonComponentSerializer.colorDownsamplingGson();
+    public static final int MAX_LINE_LENGTH = 450;
 
     @Property
     private final WrappedBlockPosition position;
@@ -39,6 +39,11 @@ public class WrappedPlayInUpdateSign extends ByteInWrappedPacketImpl<WrappedPlay
         this.text = new String[LINES];
         for (int i = 0; i < LINES; i++) {
             this.text[i] = buf.readString(MAX_LINE_LENGTH);
+
+            Component component = ComponentHelper.deserialize(this.text[i]);
+            if (!(component instanceof TextComponent)) {
+                throw new DecoderException("Tried to read line that was not text component");
+            }
         }
     }
 
@@ -52,20 +57,9 @@ public class WrappedPlayInUpdateSign extends ByteInWrappedPacketImpl<WrappedPlay
         }
 
         for (int i = 0; i < LINES; i++) {
-            if (protocol.isOlderThanOrEqual(NetProtocol.v1_8_8)) {
-                // force to text component
-                Component component = GSON_COMPONENT_SERIALIZER.deserialize(this.text[i]);
-                if (!(component instanceof TextComponent)) {
-                    this.text[i] = "{text:\"" + this.text[i] + "\"}";
-                } else {
-                    TextComponent text = (TextComponent) component;
-                    // make sure there are no other components than text content
-                    if (!text.children().isEmpty() || !text.style().isEmpty()) {
-                        this.text[i] = GSON_COMPONENT_SERIALIZER.serialize(Component.text(text.content()));
-                    }
-                }
-            }
-            serializer.writeString(this.text[i]);
+            // force to text component
+            TextComponent component = (TextComponent) ComponentHelper.deserialize(this.text[i]);
+            serializer.writeString(ComponentHelper.ensureOnlyDeserializableAsRawText(component.content()));
         }
     }
 

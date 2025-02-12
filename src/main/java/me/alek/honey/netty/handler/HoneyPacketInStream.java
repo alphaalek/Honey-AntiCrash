@@ -9,15 +9,14 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketContainer;
-import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.util.Callback;
-import me.alek.honey.util.protocol.NetProtocol;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -109,28 +108,25 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
                 if (packet == null) {
                     packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, type, null);
                 } else {
-                    packet.handleUnknownRewritten(type);
+                    packet.handleRewrittenByPipeline(type);
                     packet.callPreMinecraftDecode(serializer);
                 }
 
                 // calls listeners that was not called, due to some plugin invoking this packet in the eventloop after the filter
-                packet.callLateInitialByteListeners(serializer.readerIndex(ridx));
+                Rewritable.Result<PacketDataSerializer> rewritable = packet.callLateInitialByteListeners(serializer.readerIndex(ridx));
+                if (rewritable.isRewritten()) {
+                    // rewrite
+                    serializer = rewritable.get();
+                }
             } else {
-                // should the initial byte wrapper be recalled
-                if (packet.getInitialByteWrapped().shouldRecallInitialByte(NetProtocol.getProtocol())) {
-                    packet.recallLateInitialByteListeners(serializer);
-                }
-
-                if (WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE)) {
-                    packet.callPreMinecraftDecode(serializer.readerIndex(ridx));
-                }
+                packet.callPreMinecraftDecode(serializer.readerIndex(ridx));
             }
 
             // stops in-between timings
             packet.getEventloopStateTimings().stopTimings();
 
-            // rewrite this packet if any implementation is present
-            if (packet.getFinalByteWrapped() != null) {
+            // rewrite this packet if any implementation is present and if it hasn't already been rewritten
+            if (packet.getLastRewrittenPipelineState() == null && packet.getFinalByteWrapped() != null) {
                 serializer = packet.rewrite(serializer);
             } else {
                 serializer.retain();

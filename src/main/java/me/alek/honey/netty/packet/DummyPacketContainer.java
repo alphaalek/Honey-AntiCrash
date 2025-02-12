@@ -2,6 +2,7 @@ package me.alek.honey.netty.packet;
 
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
@@ -63,7 +64,7 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
     }
 
     @Override
-    public void handleUnknownRewritten(PacketType type) {
+    public void handleRewrittenByPipeline(PacketType type) {
 
     }
 
@@ -83,13 +84,8 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
     }
 
     @Override
-    public void callLateInitialByteListeners(PacketDataSerializer serializer) {
-
-    }
-
-    @Override
-    public void recallLateInitialByteListeners(PacketDataSerializer serializer) {
-
+    public Rewritable.Result<PacketDataSerializer> callLateInitialByteListeners(PacketDataSerializer serializer) {
+        return null;
     }
 
     @Override
@@ -99,6 +95,11 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
 
     @Override
     public PipelineState getCreatedPipelineState() {
+        return null;
+    }
+
+    @Override
+    public PipelineState getLastRewrittenPipelineState() {
         return null;
     }
 
