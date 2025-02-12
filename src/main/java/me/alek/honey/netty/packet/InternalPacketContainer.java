@@ -116,7 +116,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         if (!packet.getState().equals(PipelineState.OBJECT) && packet.isAbstract() && packet instanceof PacketRewriter) {
             PacketRewriter rewriter = (PacketRewriter) packet;
             if (rewriter.shouldRewrite()) {
-                int packetId = serializer.readVarInt();
+                int packetId = serializer.readerIndex(0).readVarInt();
                 // rewrite the buffer
                 serializer = new PacketDataSerializer();
                 serializer.writeVarInt(packetId);
@@ -169,14 +169,12 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         if (this.pipelineState == PipelineState.INITIAL_BYTE) {
             this.pipelineState = PipelineState.FINAL_BYTE;
             if (this.finalByteWrapped == null) {
-                serializer.markReaderIndex();
                 this.finalByteWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, this.pipelineState, serializer, this);
 
                 if (this.finalByteWrapped.isAbstract()) {
                     // check if any bytes has not been decoded
                     // if any is left, the protocol has not been followed properly
                     HoneyPacketCodec.checkReadable(getProtocolCreated(), this.type, Optional.ofNullable(this.objectWrapped).map(ObjectWrappedPacket::getHandle).orElse(null), serializer);
-                    serializer.resetReaderIndex();
                 }
             }
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callFinalBytePacketProcessListeners(this.player, this);

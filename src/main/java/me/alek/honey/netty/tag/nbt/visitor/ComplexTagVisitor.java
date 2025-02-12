@@ -4,7 +4,10 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.tag.FallbackDefaultCodecException;
-import me.alek.honey.netty.tag.nbt.*;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.NBTFactory;
+import me.alek.honey.netty.tag.nbt.TagLimiter;
+import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.io.DataInputStream;

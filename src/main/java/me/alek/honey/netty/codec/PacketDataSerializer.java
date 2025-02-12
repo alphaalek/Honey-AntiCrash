@@ -13,6 +13,9 @@ import me.alek.honey.netty.codec.validation.CodecContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
+import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
@@ -79,6 +82,31 @@ public class PacketDataSerializer extends ByteBuf {
     public PacketDataSerializer writeItemStack(CodecContext context, WrappedImmutableItemStack stack) throws EncoderException {
         return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(CodecVisitor.Dynamic.OUT_DEFAULT, context));
     }
+
+    public AbstractTag<?, ?, ?> readNBT(NBTVisitor.In visitor, boolean expectCompound) {
+        return Types.NBT.read(this, TypeSerializer.TypeContext.TwoArgs.of(visitor, expectCompound));
+    }
+
+    public AbstractTag<?, ?, ?> readNBT(NBTVisitor.In visitor) {
+        return readNBT(visitor, false);
+    }
+
+    public AbstractTag<?, ?, ?> readNBT(NetProtocol protocol, NetProtocol protocolCreated) {
+        return readNBT(NBTVisitor.In.createDefault(protocol, protocolCreated, null));
+    }
+
+    public PacketDataSerializer writeNBT(NBTVisitor.Out visitor, AbstractTag<?, ?, ?> tag, boolean expectCompound) {
+        return Types.NBT.write(this, tag, TypeSerializer.TypeContext.TwoArgs.of(visitor, expectCompound));
+    }
+
+    public PacketDataSerializer writeNBT(NBTVisitor.Out visitor, AbstractTag<?, ?, ?> tag) {
+        return writeNBT(visitor, tag, false);
+    }
+
+    public PacketDataSerializer writeNBT(NetProtocol protocol, NetProtocol protocolCreated, AbstractTag<?, ?, ?> tag) {
+        return writeNBT(NBTVisitor.Out.createDefault(protocol, protocolCreated, null), tag);
+    }
+
     public Rewritable<WrappedImmutableItemStack> readItemStack(CodecVisitor.Dynamic<?, ?> visitorFactory, CodecContext context) throws StackDecodingException {
         try {
             return Optional.ofNullable(Types.ITEM_STACK.readRewritable(this, TypeSerializer.TypeContext.TwoArgs.of(visitorFactory, context)))

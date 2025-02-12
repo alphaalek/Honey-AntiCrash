@@ -2,7 +2,6 @@ package me.alek.honey.netty.tag;
 
 import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
-import org.checkerframework.checker.units.qual.K;
 
 public interface ItemTag {
 

@@ -6,10 +6,9 @@ import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.tag.FallbackDefaultCodecException;
-import me.alek.honey.netty.tag.component.visitor.book.ComponentBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.*;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.visitor.ComplexTagVisitor;
-import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.io.DataInputStream;
@@ -49,8 +48,8 @@ public class NBTBookTagVisitor extends ComplexTagVisitor {
     public String visitCompoundKey(String key, TagType type) {
         if (isRootTag()) {
             if ((key.equals(BookTag.AUTHOR) || key.equals(BookTag.TITLE) || key.equals(BookTag.FILTERED_TITLE)) && !type.equals(TagType.STRING)
-                    || key.equals(BookTag.PAGES) && !type.equals(TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY))
-                    || key.equals(BookTag.FILTERED_PAGES) && !type.equals(TagTypeCollection.getFromCollection(TagTypeCollection.COMPOUND))) {
+                    || key.equals(BookTag.PAGES) && !type.equals(ArrayTag.TYPE.get())
+                    || key.equals(BookTag.FILTERED_PAGES) && !type.equals(CompoundTag.TYPE.get())) {
                 throw new DecoderException("Invalid book data: invalid tag type: " + key + ", " + type);
             }
         }

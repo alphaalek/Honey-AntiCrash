@@ -11,7 +11,10 @@ import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CodecTypes {
 
@@ -228,7 +231,7 @@ public class CodecTypes {
                 str = visitor.visitAtString(input, limiter);
             } catch (FallbackDefaultCodecException e) {
                 if (limiter instanceof TagLimiter.UTF8Limiter) {
-                    str = ((TagLimiter.UTF8Limiter)limiter).readString(input);
+                    str = ((TagLimiter.UTF8Limiter) limiter).readString(input);
                 } else {
                     str = Utf8String.readUTFInputStream(input, ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_STRING_LENGTH);
                 }

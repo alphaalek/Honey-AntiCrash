@@ -10,16 +10,16 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.codec.TypeSerializer;
 import me.alek.honey.netty.codec.types.Types;
-import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.CodecContext;
+import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.tag.ItemTag;
+import me.alek.honey.netty.tag.Visitors;
 import me.alek.honey.netty.tag.component.ComponentMap;
-import me.alek.honey.netty.tag.component.visitor.ComponentVisitor;
+import me.alek.honey.netty.tag.component.visitor.ComponentMapVisitor;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
-import me.alek.honey.netty.tag.Visitors;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
 import org.bukkit.inventory.ItemStack;
@@ -164,9 +164,9 @@ public class WrappedImmutableItemStack implements Cloneable {
         CodecVisitor visitor = visitorFactory.create(protocol, protocolCreated, type);
 
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-            Types.COMPONENT_MAP.write(serializer, tag.asComponentMap().orElse(ComponentMap.EMPTY), TypeSerializer.TypeContext.OneArg.of((ComponentVisitor) visitor));
+            Types.COMPONENT_MAP.write(serializer, tag.asComponentMap().orElse(ComponentMap.EMPTY), TypeSerializer.TypeContext.OneArg.of((ComponentMapVisitor) visitor));
         } else {
-            Types.NBT.write(serializer, tag.asNBT().orElse(CompoundTag.EMPTY), TypeSerializer.TypeContext.OneArg.of((NBTVisitor) visitor));
+            serializer.writeNBT((NBTVisitor.Out) visitor, tag.asNBT().get(), true);
         }
     }
 
@@ -194,11 +194,11 @@ public class WrappedImmutableItemStack implements Cloneable {
         ItemTag tag;
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
             // wrap component map
-            tag = Types.COMPONENT_MAP.read(serializer, TypeSerializer.TypeContext.OneArg.of((ComponentVisitor) visitor));
+            tag = Types.COMPONENT_MAP.read(serializer, TypeSerializer.TypeContext.OneArg.of((ComponentMapVisitor) visitor));
         } else {
             // wrap nbt
             tag = Optional.ofNullable(
-                            Types.NBT.read(serializer, TypeSerializer.TypeContext.OneArg.of((NBTVisitor) visitor)))
+                            serializer.readNBT((NBTVisitor.In) visitor, true))
                     .map(AbstractTag::asCompound)
                     .orElse(null);
         }
@@ -243,7 +243,7 @@ public class WrappedImmutableItemStack implements Cloneable {
             Rewritable.Result<TAG> result = rewriter.rewrite(context.protocol(), InTagRewriter.TagRewritingContext.of(itemTag, context));
             if (result != null && result.isRewritten()) {
                 TAG tag = result.get();
-                return rewriteTag0(context, tag,  type, preTagRidx, serializer);
+                return rewriteTag0(context, tag, type, preTagRidx, serializer);
             }
         }
 

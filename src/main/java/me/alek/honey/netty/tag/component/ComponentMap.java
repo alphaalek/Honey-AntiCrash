@@ -3,14 +3,18 @@ package me.alek.honey.netty.tag.component;
 import com.github.retrooper.packetevents.protocol.component.ComponentType;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.TypeSerializer;
 import me.alek.honey.netty.tag.FallbackDefaultCodecException;
 import me.alek.honey.netty.tag.ItemTag;
-import me.alek.honey.netty.tag.component.visitor.ComponentVisitor;
+import me.alek.honey.netty.tag.component.visitor.ComponentMapVisitor;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.PEConverter;
+import me.alek.honey.netty.tag.nbt.TagTypeCollection;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.HashMap;
@@ -21,11 +25,11 @@ import java.util.stream.Collectors;
 
 public class ComponentMap implements ItemTag {
 
-    public static class Serializer implements TypeSerializer<ComponentMap, TypeSerializer.TypeContext.OneArg<ComponentVisitor>> {
+    public static class Serializer implements TypeSerializer<ComponentMap, TypeSerializer.TypeContext.OneArg<ComponentMapVisitor>> {
 
         @SuppressWarnings("unchecked")
         @Override
-        public ComponentMap read(PacketDataSerializer serializer, TypeSerializer.TypeContext.OneArg<ComponentVisitor> context) {
+        public ComponentMap read(PacketDataSerializer serializer, TypeSerializer.TypeContext.OneArg<ComponentMapVisitor> context) {
             int present = serializer.readVarInt();
             int absent = serializer.readVarInt();
             if (present == 0 && absent == 0) {
@@ -35,7 +39,7 @@ public class ComponentMap implements ItemTag {
             if (absent < 0 || present < 0) {
                 throw new DecoderException("Invalid component map: absent " + absent + ", present " + present);
             }
-            ComponentVisitor.In visitor = (ComponentVisitor.In) context.get();
+            ComponentMapVisitor.In visitor = (ComponentMapVisitor.In) context.get();
             visitor.visitAt(serializer, present, absent);
 
             NetProtocol protocol = visitor.protocol();
@@ -53,9 +57,7 @@ public class ComponentMap implements ItemTag {
                 throw new DecoderException("Too many present tags: " + present + ", available " + (available.size() - bases.size()));
             }
 
-            PacketWrapper<?> wrapper = PacketWrapper.createUniversalPacketWrapper(serializer);
-            wrapper.setClientVersion(protocol.toPECVersion());
-            wrapper.setServerVersion(protocol.toPESVersion());
+            PacketWrapper<?> wrapper = visitor.createUniversalWrapper(serializer);
 
             ComponentMap map = new ComponentMap(bases);
             for (int i = 0; i < present; i++) {
@@ -65,15 +67,20 @@ public class ComponentMap implements ItemTag {
                                 .map(Val::source)
                                 .orElse(ComponentSource.BASE)
                                 .equals(ComponentSource.BASE)) {
-                    ComponentMap.validateComponentType(type, itemType);
-
                     WrapperComponentType<Object> wrapperType = (WrapperComponentType<Object>) WrapperComponentType.REGISTRY.get(type);
                     Object val;
                     try {
                         val = wrapperType.visitAt(visitor, serializer);
                     } catch (FallbackDefaultCodecException ex) {
                         val = type.read(wrapper);
-                        // TODO: convert tag
+                        // convert nbt to honey implementation, as it's superior ^_^
+                        if (val instanceof NBTCompound) {
+                            AbstractTag<?, ?, ?> tag = PEConverter.convertPETag((NBTCompound) val);
+                            if (tag.getType() == CompoundTag.TYPE.get()) {
+                                throw new DecoderException("Invalid nbt: expected compound tag, but got: " + tag.getType());
+                            }
+                            val = tag;
+                        }
                     }
                     wrapperType.visit(visitor, val);
                     map.set(type, val);
@@ -91,9 +98,7 @@ public class ComponentMap implements ItemTag {
                 }
             }
 
-            ComponentMap.validateComponentMap(map, itemType);
-
-            visitor.visitComponentMap(map);
+            visitor.visitFinal(map);
 
             return map;
         }
@@ -107,8 +112,8 @@ public class ComponentMap implements ItemTag {
 
         @SuppressWarnings("unchecked")
         @Override
-        public PacketDataSerializer write(PacketDataSerializer buf, ComponentMap map, TypeContext.OneArg<ComponentVisitor> context) {
-            ComponentVisitor.Out visitor = (ComponentVisitor.Out) context.get();
+        public PacketDataSerializer write(PacketDataSerializer buf, ComponentMap map, TypeContext.OneArg<ComponentMapVisitor> context) {
+            ComponentMapVisitor.Out visitor = (ComponentMapVisitor.Out) context.get();
             ItemType itemType = visitor.type();
             List<Val<?>> defaultBases = itemType.getComponents().getDelegate().entrySet().stream()
                     .map(e -> new ComponentMap.Val<>((ComponentType<Object>) e.getKey(), e.getValue(), ComponentSource.BASE))
@@ -152,7 +157,14 @@ public class ComponentMap implements ItemTag {
 
         private void writeType(PacketWrapper<?> wrapper, NetProtocol protocol, PacketDataSerializer buf, Val<Object> val) {
             buf.writeVarInt(val.type().getId(protocol.toPECVersion()));
-            val.type().write(wrapper, val.get());
+
+            // convert nbt back to PE implementation
+            Object del = val.get();
+            if (del instanceof CompoundTag) {
+                del = PEConverter.convertTag((CompoundTag) del);
+            }
+
+            val.type().write(wrapper, del);
         }
     }
 
@@ -248,191 +260,6 @@ public class ComponentMap implements ItemTag {
 
         public ComponentSource source() {
             return this.source;
-        }
-    }
-
-    public static void validateComponentMap(ComponentMap map, ItemType type) {
-        if (map.has(ComponentTypes.FOOD) && !map.has(ComponentTypes.CONSUMABLE) && !type.hasAttribute(ItemTypes.ItemAttribute.EDIBLE)) {
-            throw new IllegalStateException("Illegal food component");
-        }
-
-        if (map.has(ComponentTypes.MAX_DAMAGE) && map.has(ComponentTypes.MAX_STACK_SIZE) && map.get(ComponentTypes.MAX_STACK_SIZE).get() != 1) {
-            throw new IllegalStateException("Illegal combination of max_damage and max_stack_size components");
-        }
-    }
-
-    public static void validateComponentType(ComponentType<?> componentType, ItemType type) {
-        if (componentType.equals(ComponentTypes.BANNER_PATTERNS)
-                && !type.equals(ItemTypes.SHIELD)
-                && !type.equals(ItemTypes.BLACK_BANNER)
-                && !type.equals(ItemTypes.BLUE_BANNER)
-                && !type.equals(ItemTypes.BROWN_BANNER)
-                && !type.equals(ItemTypes.GRAY_BANNER)
-                && !type.equals(ItemTypes.CYAN_BANNER)
-                && !type.equals(ItemTypes.GREEN_BANNER)
-                && !type.equals(ItemTypes.LIME_BANNER)
-                && !type.equals(ItemTypes.LIGHT_BLUE_BANNER)
-                && !type.equals(ItemTypes.LIGHT_BLUE_BANNER)
-                && !type.equals(ItemTypes.MAGENTA_BANNER)
-                && !type.equals(ItemTypes.ORANGE_BANNER)
-                && !type.equals(ItemTypes.PINK_BANNER)
-                && !type.equals(ItemTypes.PURPLE_BANNER)
-                && !type.equals(ItemTypes.RED_BANNER)
-                && !type.equals(ItemTypes.WHITE_BANNER)
-                && !type.equals(ItemTypes.YELLOW_BANNER)) {
-            throw new IllegalStateException("Illegal banner_patterns component");
-        }
-
-        if (componentType.equals(ComponentTypes.BASE_COLOR) && !type.equals(ItemTypes.SHIELD)) {
-            throw new IllegalStateException("Illegal base_color component");
-        }
-
-        if (componentType.equals(ComponentTypes.BEES) && !type.equals(ItemTypes.BEEHIVE) && !type.equals(ItemTypes.BEE_NEST)) {
-            throw new IllegalStateException("Illegal bees component");
-        }
-
-        if (componentType.equals(ComponentTypes.BUCKET_ENTITY_DATA)
-                && !type.equals(ItemTypes.COD_BUCKET)
-                && !type.equals(ItemTypes.AXOLOTL_BUCKET)
-                && !type.equals(ItemTypes.PUFFERFISH_BUCKET)
-                && !type.equals(ItemTypes.SALMON_BUCKET)
-                && !type.equals(ItemTypes.TADPOLE_BUCKET)
-                && !type.equals(ItemTypes.TROPICAL_FISH_BUCKET)) {
-            throw new IllegalStateException("Illegal bucket_entity_data component");
-        }
-
-        if (componentType.equals(ComponentTypes.BUNDLE_CONTENTS)
-                && !type.equals(ItemTypes.BUNDLE)
-                && !type.equals(ItemTypes.BROWN_BUNDLE)
-                && !type.equals(ItemTypes.BLACK_BUNDLE)
-                && !type.equals(ItemTypes.BLUE_BUNDLE)
-                && !type.equals(ItemTypes.CYAN_BUNDLE)
-                && !type.equals(ItemTypes.GRAY_BUNDLE)
-                && !type.equals(ItemTypes.GREEN_BUNDLE)
-                && !type.equals(ItemTypes.LIGHT_BLUE_BUNDLE)
-                && !type.equals(ItemTypes.LIGHT_GRAY_BUNDLE)
-                && !type.equals(ItemTypes.LIME_BUNDLE)
-                && !type.equals(ItemTypes.MAGENTA_BUNDLE)
-                && !type.equals(ItemTypes.ORANGE_BUNDLE)
-                && !type.equals(ItemTypes.PINK_BUNDLE)
-                && !type.equals(ItemTypes.RED_BUNDLE)
-                && !type.equals(ItemTypes.WHITE_BUNDLE)
-                && !type.equals(ItemTypes.YELLOW_BUNDLE)
-                && !type.equals(ItemTypes.PURPLE_BUNDLE)) {
-            throw new IllegalStateException("Illegal bundle_contents component");
-        }
-
-        if (componentType.equals(ComponentTypes.CHARGED_PROJECTILES) && !type.equals(ItemTypes.CROSSBOW)) {
-            throw new IllegalStateException("Illegal charged_projectiles component");
-        }
-
-        if (componentType.equals(ComponentTypes.DEBUG_STICK_STATE) && !type.equals(ItemTypes.DEBUG_STICK)) {
-            throw new IllegalStateException("Illegal debug_stick component");
-        }
-
-        if (componentType.equals(ComponentTypes.DEATH_PROTECTION) && !type.equals(ItemTypes.TOTEM_OF_UNDYING)) {
-            throw new IllegalStateException("Illegal death_protection component");
-        }
-
-        if (componentType.equals(ComponentTypes.DYED_COLOR)
-                && !type.equals(ItemTypes.LEATHER_BOOTS)
-                && !type.equals(ItemTypes.LEATHER_LEGGINGS)
-                && !type.equals(ItemTypes.LEATHER_CHESTPLATE)
-                && !type.equals(ItemTypes.LEATHER_HELMET)
-                && !type.equals(ItemTypes.LEATHER_HORSE_ARMOR)) {
-            throw new IllegalStateException("Illegal dyed_color component");
-        }
-
-        if (componentType.equals(ComponentTypes.FIREWORK_EXPLOSION) && !type.equals(ItemTypes.FIREWORK_STAR)) {
-            throw new IllegalStateException("Illegal firework_explosion component");
-        }
-
-        if (componentType.equals(ComponentTypes.FIREWORKS) && !type.equals(ItemTypes.FIREWORK_ROCKET)) {
-            throw new IllegalStateException("Illegal fireworks component");
-        }
-
-        if (componentType.equals(ComponentTypes.INSTRUMENT) && !type.equals(ItemTypes.GOAT_HORN)) {
-            throw new IllegalStateException("Illegal instrument component");
-        }
-
-        if (componentType.equals(ComponentTypes.LODESTONE_TRACKER) && !type.equals(ItemTypes.COMPASS)) {
-            throw new IllegalStateException("Illegal lodestone_tracker component");
-        }
-
-        if ((componentType.equals(ComponentTypes.MAP_ID)
-                || componentType.equals(ComponentTypes.MAP_COLOR)
-                || componentType.equals(ComponentTypes.MAP_DECORATIONS)
-                )
-                && !type.equals(ItemTypes.MAP) && !type.equals(ItemTypes.FILLED_MAP)) {
-            throw new IllegalStateException("Illegal map component");
-        }
-
-        if (componentType.equals(ComponentTypes.OMINOUS_BOTTLE_AMPLIFIER) && !type.equals(ItemTypes.OMINOUS_BOTTLE)) {
-            throw new IllegalStateException("Illegal ominous_bottle_amplifier component");
-        }
-
-        if (componentType.equals(ComponentTypes.POT_DECORATIONS) && !type.equals(ItemTypes.DECORATED_POT)) {
-            throw new IllegalStateException("Illegal pot_decorations component");
-        }
-
-        if (componentType.equals(ComponentTypes.POTION_CONTENTS)
-                && !type.equals(ItemTypes.POTION)
-                && !type.equals(ItemTypes.SPLASH_POTION)
-                && !type.equals(ItemTypes.LINGERING_POTION)
-                && !type.equals(ItemTypes.TIPPED_ARROW)) {
-            throw new IllegalStateException("Illegal potion_contents component");
-        }
-
-        if (componentType.equals(ComponentTypes.PROFILE) && !type.equals(ItemTypes.PLAYER_HEAD)) {
-            throw new IllegalStateException("Illegal profile component");
-        }
-
-        if (componentType.equals(ComponentTypes.RECIPES) && !type.equals(ItemTypes.KNOWLEDGE_BOOK)) {
-            throw new IllegalStateException("Illegal recipes component");
-        }
-
-        if (componentType.equals(ComponentTypes.STORED_ENCHANTMENTS) && !type.equals(ItemTypes.ENCHANTED_BOOK)) {
-            throw new IllegalStateException("Illegal stored_enchantments component");
-        }
-
-        if (componentType.equals(ComponentTypes.SUSPICIOUS_STEW_EFFECTS) && !type.equals(ItemTypes.SUSPICIOUS_STEW)) {
-            throw new IllegalStateException("Illegal suspicious_stew_effects component");
-        }
-
-        if (componentType.equals(ComponentTypes.TRIM)
-                && !type.equals(ItemTypes.LEATHER_BOOTS)
-                && !type.equals(ItemTypes.LEATHER_LEGGINGS)
-                && !type.equals(ItemTypes.LEATHER_CHESTPLATE)
-                && !type.equals(ItemTypes.LEATHER_HELMET)
-                && !type.equals(ItemTypes.IRON_BOOTS)
-                && !type.equals(ItemTypes.IRON_LEGGINGS)
-                && !type.equals(ItemTypes.IRON_CHESTPLATE)
-                && !type.equals(ItemTypes.IRON_HELMET)
-                && !type.equals(ItemTypes.CHAINMAIL_BOOTS)
-                && !type.equals(ItemTypes.CHAINMAIL_LEGGINGS)
-                && !type.equals(ItemTypes.CHAINMAIL_CHESTPLATE)
-                && !type.equals(ItemTypes.CHAINMAIL_HELMET)
-                && !type.equals(ItemTypes.GOLDEN_BOOTS)
-                && !type.equals(ItemTypes.GOLDEN_LEGGINGS)
-                && !type.equals(ItemTypes.GOLDEN_CHESTPLATE)
-                && !type.equals(ItemTypes.GOLDEN_HELMET)
-                && !type.equals(ItemTypes.DIAMOND_BOOTS)
-                && !type.equals(ItemTypes.DIAMOND_LEGGINGS)
-                && !type.equals(ItemTypes.DIAMOND_CHESTPLATE)
-                && !type.equals(ItemTypes.DIAMOND_HELMET)
-                && !type.equals(ItemTypes.NETHERITE_BOOTS)
-                && !type.equals(ItemTypes.NETHERITE_LEGGINGS)
-                && !type.equals(ItemTypes.NETHERITE_CHESTPLATE)
-                && !type.equals(ItemTypes.NETHERITE_HELMET)) {
-            throw new IllegalStateException("Illegal trim component");
-        }
-
-        if (componentType.equals(ComponentTypes.WRITABLE_BOOK_CONTENT) && !type.equals(ItemTypes.WRITABLE_BOOK)) {
-            throw new IllegalStateException("Illegal writable_book_content component");
-        }
-
-        if (componentType.equals(ComponentTypes.WRITTEN_BOOK_CONTENT) && !type.equals(ItemTypes.WRITTEN_BOOK)) {
-            throw new IllegalStateException("Illegal written_book_content component");
         }
     }
 }

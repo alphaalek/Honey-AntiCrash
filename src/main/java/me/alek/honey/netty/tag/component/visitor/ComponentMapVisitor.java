@@ -15,9 +15,9 @@ import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.util.protocol.NetProtocol;
 import net.kyori.adventure.text.Component;
 
-public interface ComponentVisitor extends CodecVisitor {
+public interface ComponentMapVisitor extends CodecVisitor {
 
-    abstract class Adapter implements ComponentVisitor {
+    abstract class Adapter implements ComponentMapVisitor {
 
         @Override
         public void visitAbsent(ComponentType<?> type) {
@@ -25,7 +25,7 @@ public interface ComponentVisitor extends CodecVisitor {
         }
 
         @Override
-        public void visitComponentMap(ComponentMap map) {
+        public void visitFinal(ComponentMap map) {
 
         }
 
@@ -377,7 +377,7 @@ public interface ComponentVisitor extends CodecVisitor {
 
     void visitAbsent(ComponentType<?> type);
 
-    void visitComponentMap(ComponentMap map);
+    void visitFinal(ComponentMap map);
 
     void visitCustomData(CompoundTag val);
 
@@ -517,7 +517,7 @@ public interface ComponentVisitor extends CodecVisitor {
 
     void visitTooltipStyle(ItemTooltipStyle val);
 
-    interface In extends ComponentVisitor {
+    interface In extends ComponentMapVisitor {
 
         static In createDefault(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
             return new Adapter() {
@@ -538,7 +538,7 @@ public interface ComponentVisitor extends CodecVisitor {
             };
         }
 
-        abstract class Adapter extends ComponentVisitor.Adapter implements In {
+        abstract class Adapter extends ComponentMapVisitor.Adapter implements In {
 
             @Override
             public void visitAt(PacketDataSerializer serializer, int present, int absent) {
@@ -1033,9 +1033,9 @@ public interface ComponentVisitor extends CodecVisitor {
         ItemTooltipStyle visitAtTooltipStyle(PacketDataSerializer serializer) throws FallbackDefaultCodecException;
     }
 
-    interface Out extends ComponentVisitor {
+    interface Out extends ComponentMapVisitor {
 
-        abstract class Adapter extends ComponentVisitor.Adapter implements Out {
+        abstract class Adapter extends ComponentMapVisitor.Adapter implements Out {
 
         }
 

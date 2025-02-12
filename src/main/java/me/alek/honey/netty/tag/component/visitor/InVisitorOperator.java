@@ -5,5 +5,5 @@ import me.alek.honey.netty.tag.FallbackDefaultCodecException;
 
 public interface InVisitorOperator<T> {
 
-    T visitAt(ComponentVisitor.In in, PacketDataSerializer serializer) throws FallbackDefaultCodecException;
+    T visitAt(ComponentMapVisitor.In in, PacketDataSerializer serializer) throws FallbackDefaultCodecException;
 }

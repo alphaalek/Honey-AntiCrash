@@ -6,8 +6,8 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.Rewritable;
-import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.codec.validation.CodecContext;
+import me.alek.honey.netty.codec.validation.CodecTypeValidation;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.modelwrappers.WrappedObject;
 import me.alek.honey.netty.packet.PacketContainer;
@@ -15,7 +15,6 @@ import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.dynamic.EditBookTagVisitorFactory;
 import me.alek.honey.netty.tag.nbt.array.ArrayTag;
-import me.alek.honey.netty.tag.nbt.visitor.book.NBTEditBookTagVisitor;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 
 import java.util.Optional;
@@ -87,7 +86,7 @@ public class BookTag {
         ItemTag tag = item.getTag();
         if (tag.asNBT().isPresent()) {
             CompoundTag nbt = tag.asNBT().get();
-            if (nbt.hasKeyOfType(PAGES, TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY))) {
+            if (nbt.hasKeyOfType(PAGES, ArrayTag.TYPE.get())) {
                 ArrayTag<String> pages = nbt.getArrayOf(PAGES, TagType.STRING);
                 int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(context.protocolCreated());
                 if (pages.size() > max) {
@@ -123,7 +122,7 @@ public class BookTag {
     }
 
     public static void validateBookEdit(CompoundTag nbt, CodecContext.BookValidationContext<?> context) {
-        if (!nbt.hasKeyOfType(PAGES, TagTypeCollection.getFromCollection(TagTypeCollection.ARRAY))) {
+        if (!nbt.hasKeyOfType(PAGES, ArrayTag.TYPE.get())) {
             throw new DecoderException("Invalid book data: no pages tag");
         }
 
@@ -138,10 +137,10 @@ public class BookTag {
 
             if (nbt.getKeys().stream().anyMatch(k ->
                     !k.equals(PAGES)
-                 && !k.equals(FILTERED_PAGES)
-                 && !k.equals(TITLE)
-                 && !k.equals(FILTERED_TITLE)
-                 && !k.equals(AUTHOR))) {
+                            && !k.equals(FILTERED_PAGES)
+                            && !k.equals(TITLE)
+                            && !k.equals(FILTERED_TITLE)
+                            && !k.equals(AUTHOR))) {
                 throw new DecoderException("Invalid book data: extra tags");
             }
         } else if (nbt.getKeys().stream().anyMatch(k ->

@@ -11,7 +11,7 @@ public class Visitors {
     public static void load() {
         BookTag.loadValidations();
 
-        InTagRewriter.NBTRewriter.loadRegistry();
+        InTagRewriter.loadRegistry();
 
         CodecVisitor.Dynamic.IN_REGISTRY.put(ItemTypes.WRITTEN_BOOK, BookTagVisitorFactory.FACTORY);
         CodecVisitor.Dynamic.IN_REGISTRY.put(ItemTypes.WRITABLE_BOOK, BookTagVisitorFactory.FACTORY);

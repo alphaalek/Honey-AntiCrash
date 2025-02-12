@@ -2,11 +2,11 @@ package me.alek.honey.netty.tag.dynamic;
 
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import me.alek.honey.netty.codec.CodecVisitor;
-import me.alek.honey.netty.tag.component.visitor.book.ComponentBookTagVisitor;
+import me.alek.honey.netty.tag.component.visitor.book.ComponentMapBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.visitor.book.NBTBookTagVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
 
-public class BookTagVisitorFactory implements CodecVisitor.Dynamic<NBTBookTagVisitor, ComponentBookTagVisitor> {
+public class BookTagVisitorFactory implements CodecVisitor.Dynamic<NBTBookTagVisitor, ComponentMapBookTagVisitor> {
 
     public static final BookTagVisitorFactory FACTORY = new BookTagVisitorFactory(false);
 
@@ -22,8 +22,8 @@ public class BookTagVisitorFactory implements CodecVisitor.Dynamic<NBTBookTagVis
     }
 
     @Override
-    public ComponentBookTagVisitor createComponentVisitor(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
-        return new ComponentBookTagVisitor(protocol, protocolCreated, type);
+    public ComponentMapBookTagVisitor createComponentMapVisitor(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
+        return new ComponentMapBookTagVisitor(protocol, protocolCreated, type);
     }
 
     @Override

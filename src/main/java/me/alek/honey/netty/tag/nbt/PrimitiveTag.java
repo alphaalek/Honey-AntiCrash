@@ -4,8 +4,6 @@ import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.util.protocol.NetProtocol;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.util.function.Function;
 
 public class PrimitiveTag<T> extends AbstractTag<T, T, PrimitiveTag<T>> {

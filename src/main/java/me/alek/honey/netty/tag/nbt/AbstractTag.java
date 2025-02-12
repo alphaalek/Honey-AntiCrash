@@ -5,6 +5,7 @@ import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.ApplicableConverter;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 
 import java.io.DataOutputStream;
@@ -84,7 +85,7 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     }
 
     public CompoundTag asCompound() {
-        if (getType().getCollection() != TagTypeCollection.COMPOUND) {
+        if (getType() != CompoundTag.TYPE.get()) {
             return null;
         }
         return (CompoundTag) this;
@@ -146,11 +147,11 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
     }
 
     public boolean isArray() {
-        return getType().getCollection() == TagTypeCollection.ARRAY;
+        return getType() == ArrayTag.TYPE.get();
     }
 
     public boolean isCompound() {
-        return getType().getCollection() == TagTypeCollection.COMPOUND;
+        return getType() == CompoundTag.TYPE.get();
     }
 
     public boolean isIntArray() {

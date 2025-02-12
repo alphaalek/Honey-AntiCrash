@@ -46,7 +46,7 @@ public class NBTEditBookTagVisitor extends NBTBookTagVisitor implements EditBook
         if (isRootTag() && this.signing && key.equals(BookTag.AUTHOR)) {
             String author = tag.<String>asPrimitive().getValue();
             if (!author.equals(this.signingUsername)) {
-                throw new DecoderException("Invalid book data: invalid author tag: " + author + ", " + this.signingUsername + " (player)");
+                throw new DecoderException("Invalid book data: invalid author tag: was \"" + author + "\" but should be \"" + this.signingUsername + "\"");
             }
         }
 
