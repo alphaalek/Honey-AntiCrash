@@ -1,7 +1,5 @@
 package me.alek.honey.netty.packet;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
@@ -19,7 +17,6 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.impl.NettyDecodeValidations;
-import org.bukkit.Bukkit;
 
 import java.util.Optional;
 
@@ -86,7 +83,6 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
                 // check if any bytes has not been decoded
                 // if any is left, the protocol has not been followed properly
                 HoneyPacketCodec.checkReadable(getProtocolCreated(), type, Optional.ofNullable(this.objectWrapped).map(ObjectWrappedPacket::getHandle).orElse(null), serializer);
-                serializer.readerIndex(0);
             }
         }
     }
@@ -136,22 +132,25 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
-    public void handleUnknownRewritten(PacketType type, PipelineState state) {
+    public void handleUnknownRewritten(PacketType type) {
         if (!this.type.equals(type)) {
             // rewritten new type by ViaVersion
             this.type = type;
             this.handled = false;
             this.initialByteWrapped = null;
+            this.finalByteWrapped = null;
+            this.objectWrapped = null;
+            this.structure = null;
 
             this.postAction.clear();
             applyPostActions();
         }
-        this.pipelineState = state;
     }
 
     @Override
     public void callPostMinecraftDecode(Object handle, PacketType type) {
-        handleUnknownRewritten(type, PipelineState.OBJECT);
+        handleUnknownRewritten(type);
+        this.pipelineState = PipelineState.OBJECT;
 
         if (PacketTypes.isUnknown(type)
                 || !type.getNmsClass().equals(handle.getClass())) {
@@ -191,6 +190,12 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, this);
             this.callingLateInitialByteWrapped = false;
         }
+    }
+
+    @Override
+    public void recallLateInitialByteListeners(PacketDataSerializer serializer) {
+        this.initialByteWrapped = null;
+        callLateInitialByteListeners(serializer);
     }
 
     @Override

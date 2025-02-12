@@ -124,6 +124,11 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteC
         }
     }
 
+    @Override
+    public boolean shouldRecallInitialByte(NetProtocol newProtocol) {
+        return getProtocol().isNewerThanOrEqual(NetProtocol.v1_17_1) && newProtocol.isOlderThan(NetProtocol.v1_17_1);
+    }
+
     public int getSlot() {
         return this.slot;
     }

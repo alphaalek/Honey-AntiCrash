@@ -63,7 +63,7 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
     }
 
     @Override
-    public void handleUnknownRewritten(PacketType type, PipelineState state) {
+    public void handleUnknownRewritten(PacketType type) {
 
     }
 
@@ -84,6 +84,11 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
 
     @Override
     public void callLateInitialByteListeners(PacketDataSerializer serializer) {
+
+    }
+
+    @Override
+    public void recallLateInitialByteListeners(PacketDataSerializer serializer) {
 
     }
 

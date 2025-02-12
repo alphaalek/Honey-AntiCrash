@@ -16,6 +16,7 @@ import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.PEConverter;
 import me.alek.honey.netty.tag.nbt.TagTypeCollection;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.List;
@@ -97,6 +98,8 @@ public class ComponentMap implements ItemTag {
                     throw new DecoderException("Invalid absent component type: " + type);
                 }
             }
+
+            Bukkit.getLogger().info("Read map " + map.delegate);
 
             visitor.visitFinal(map);
 

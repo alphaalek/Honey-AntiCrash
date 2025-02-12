@@ -16,9 +16,8 @@ import me.alek.honey.netty.packet.WrappedPacketFactoryCollection;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
 import me.alek.honey.util.Callback;
-import org.bukkit.Bukkit;
+import me.alek.honey.util.protocol.NetProtocol;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -98,7 +97,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
         try {
             packet = this.packetHandler.filterMark;
             type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, false);
-            Bukkit.getLogger().info("Read " + type);
+            int ridx = serializer.readerIndex();
             if (PacketTypes.isUnknown(type)) {
                 // invalid packet
                 throw new DecoderException("Invalid packet, state " + this.packetHandler.getProtocolState(PacketBound.SERVER) + ", id " + serializer.readerIndex(0).readVarInt());
@@ -110,16 +109,21 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
                 if (packet == null) {
                     packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, type, null);
                 } else {
-                    packet.handleUnknownRewritten(type, PacketContainer.PipelineState.FINAL_BYTE);
+                    packet.handleUnknownRewritten(type);
+                    packet.callPreMinecraftDecode(serializer);
                 }
 
                 // calls listeners that was not called, due to some plugin invoking this packet in the eventloop after the filter
-                packet.callLateInitialByteListeners(serializer);
-            }
-            // handle final byte state for packets that has not been rewritten
-            if (packet.getCreatedPipelineState().equals(PacketContainer.PipelineState.INITIAL_BYTE)
-                    && WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE)) {
-                packet.callPreMinecraftDecode(serializer);
+                packet.callLateInitialByteListeners(serializer.readerIndex(ridx));
+            } else {
+                // should the initial byte wrapper be recalled
+                if (packet.getInitialByteWrapped().shouldRecallInitialByte(NetProtocol.getProtocol())) {
+                    packet.recallLateInitialByteListeners(serializer);
+                }
+
+                if (WrappedPacketFactoryCollection.hasByteWrappedPacket(packet.getType(), PacketContainer.PipelineState.FINAL_BYTE)) {
+                    packet.callPreMinecraftDecode(serializer.readerIndex(ridx));
+                }
             }
 
             // stops in-between timings
