@@ -60,7 +60,7 @@ public interface Rewritable<T> extends Supplier<T> {
     static <T> Rewritable<T> noAction(T val) {
         return new Rewritable<T>() {
             @Override
-            public Result<PacketDataSerializer> rewritten() {
+            public Result<PacketDataSerializer> result() {
                 return Result.noRewritten();
             }
 
@@ -74,7 +74,7 @@ public interface Rewritable<T> extends Supplier<T> {
     static <T> Rewritable<T> rewritten(T val, Result<PacketDataSerializer> rewritten) {
         return new Rewritable<T>() {
             @Override
-            public Result<PacketDataSerializer> rewritten() {
+            public Result<PacketDataSerializer> result() {
                 return rewritten;
             }
 
@@ -85,5 +85,5 @@ public interface Rewritable<T> extends Supplier<T> {
         };
     }
 
-    Result<PacketDataSerializer> rewritten();
+    Result<PacketDataSerializer> result();
 }

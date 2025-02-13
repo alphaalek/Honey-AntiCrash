@@ -18,11 +18,9 @@ import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.component.visitor.ComponentMapVisitor;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.BookTag;
-import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -214,7 +212,7 @@ public class WrappedImmutableItemStack implements Cloneable {
             // rewrite this tag
             Rewritable<ItemTag> rewritableTag = rewriteTag(context, type, preTagRidx, serializer, tag);
             tag = rewritableTag.get();
-            rewritten = rewritableTag.rewritten();
+            rewritten = rewritableTag.result();
         } else {
             rewritten = Rewritable.Result.noRewritten();
         }

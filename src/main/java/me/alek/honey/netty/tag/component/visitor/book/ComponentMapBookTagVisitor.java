@@ -55,18 +55,23 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
         return component;
     }
 
+    protected AbstractTag<?, ?, ?> visitAtSerializedPageTag(PacketDataSerializer serializer) {
+        return serializer.readNBT(this.protocol, this.protocolCreated,
+                new TagLimiter.Default(
+                        TagLimiter.THIRTY_TWO_KILOBYTES / 2,
+                        4, // root tag (1) (not expected) + the highest inner possible (3) (children -> child -> click/hover)
+                        ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_COMPONENT_NBT_COMPLEXITY,
+                        ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_COMPONENT_NBT_BASES
+                )
+        );
+    }
+
     protected List<Filterable<Component>> visitAtSerializedPages(PacketDataSerializer serializer, int maxPageCount) {
         // component map is only present in 1.20.5+, so we will ignore the codec for components prior to the 1.20.3 change
         // therefore, we will read components as nbt
         PacketWrapper<?> wrapper = createUniversalWrapper(serializer);
         return wrapper.readList(ew -> Filterable.read(wrapper, eew -> {
-            AbstractTag<?, ?, ?> tag = serializer.readNBT(this.protocol, this.protocolCreated,
-                    new TagLimiter.Default(
-                            TagLimiter.THIRTY_TWO_KILOBYTES / 2,
-                            4, // root tag (1) (not expected) + the highest inner possible (3) (children -> child -> click/hover)
-                            ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_COMPONENT_NBT_COMPLEXITY,
-                            ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_COMPONENT_NBT_BASES
-                    ));
+            AbstractTag<?, ?, ?> tag = visitAtSerializedPageTag(serializer);
             String str = ComponentHelper.jsonStringify(tag, "text");
             if (str.length() > maxPageCount) {
                 throw new DecoderException("Invalid book data: too long page: " + str.length() + " > " + maxPageCount);

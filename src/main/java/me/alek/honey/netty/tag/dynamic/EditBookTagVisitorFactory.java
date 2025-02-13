@@ -25,6 +25,7 @@ public class EditBookTagVisitorFactory implements CodecVisitor.Dynamic<NBTEditBo
 
     @Override
     public ComponentMapEditBookTagVisitor createComponentMapVisitor(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
+        // will never be used :-(
         return new ComponentMapEditBookTagVisitor(protocol, protocolCreated, this.signingUsername, this.signing);
     }
 

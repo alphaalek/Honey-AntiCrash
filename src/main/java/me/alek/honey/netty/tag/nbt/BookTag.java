@@ -49,7 +49,8 @@ public class BookTag {
 
         // in some versions the client sends a writable_book when signing books instead of written_book, but the server will
         // still serialize the pages and treat it as a written_book, so we have to make sure it has been rewritten, otherwise try again
-        if (!rewritable.rewritten().isRewritten() && signing && stack.getType().equals(ItemTypes.WRITABLE_BOOK)) {
+        if (!rewritable.result().isRewritten() && signing && stack.getType().equals(ItemTypes.WRITABLE_BOOK)) {
+            // item tag will always be NBT, because in no edit context will the book content ever be represented as component map
             CompoundTag tag = stack.getTag().asNBT().get();
             Rewritable.Result<CompoundTag> result = InTagRewriter.NBTRewriter.REGISTRY.get(ItemTypes.WRITTEN_BOOK).rewrite(packet.getProtocol(), InTagRewriter.TagRewritingContext.of(tag, bookEditContext));
             if (result.isRewritten()) {

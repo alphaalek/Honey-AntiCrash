@@ -27,9 +27,8 @@ public class PacketFactory {
             return type.getNmsClass().getDeclaredConstructor().newInstance();
         } catch (Exception ex) {
             ex.printStackTrace();
+            return null;
         }
-
-        return null;
     }
 
     public static Object createPacket(PacketType type, ByteBuf serializer) {
@@ -54,9 +53,8 @@ public class PacketFactory {
             }
         } catch (Exception ex) {
             ex.printStackTrace();
+            return null;
         }
-
-        return null;
     }
 
     public static synchronized <WP extends ObjectWrappedPacket<WP>> WP createNewPacket(PacketType type, HoneyPlayer player) {
@@ -82,11 +80,12 @@ public class PacketFactory {
             } else if (factory instanceof WrappedPacketFactory.ByteWrappedPacketFactory) {
                 Object handle = createPacket(type, buf);
                 return (TP) WrappedPacketFactoryCollection.initWrappedPacket(type, handle, new InternalPacketContainer<WP>(handle, player, type, postAction));
+            } else {
+                throw new IllegalArgumentException("Invalid wrapper factory");
             }
         } catch (Exception ex) {
             HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Error occurred when creating packet for type " + type, ex);
+            return null;
         }
-
-        return null;
     }
 }
