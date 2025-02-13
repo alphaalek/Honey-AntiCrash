@@ -79,8 +79,7 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
     }
 
     @SuppressWarnings("unchecked")
-    @Override
-    public ArrayTag<IN> asArray() {
+    public ArrayTag<IN> asPrimitiveArray() {
         if (getTypeOf() == ArrayTag.TYPE.get()
                 || getTypeOf() == CompoundTag.TYPE.get()) {
             return null;
@@ -90,7 +89,7 @@ public abstract class AbstractArrayTag<IN extends AbstractTag<?, ?, IN>, ARRAY e
     }
 
     @SuppressWarnings("unchecked")
-    public <R> ArrayTag<R> asArrayOf(Class<R> clazz) {
+    public <R> ArrayTag<R> asPrimitiveArrayOf(Class<R> clazz) {
         if (getTypeOf() == ArrayTag.TYPE.get()
                 || getTypeOf() == CompoundTag.TYPE.get()) {
             return null;

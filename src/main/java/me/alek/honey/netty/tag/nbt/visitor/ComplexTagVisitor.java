@@ -25,6 +25,7 @@ public class ComplexTagVisitor extends NBTVisitor.In.Adapter {
     private final List<String> keys = new ArrayList<>();
 
     public ComplexTagVisitor(CodecVisitor delegate) {
+        super(NBTFactory.createDefaultTagLimiter());
         this.delegate = delegate;
         if (delegate instanceof ComplexTagVisitor) {
             this.parent = (ComplexTagVisitor) delegate;

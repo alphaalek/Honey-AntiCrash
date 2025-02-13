@@ -2,15 +2,64 @@ package me.alek.honey.netty.tag;
 
 import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
 import io.netty.handler.codec.DecoderException;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class ComponentHelper {
 
     private static final GsonComponentSerializer GSON_COMPONENT_SERIALIZER = GsonComponentSerializer.colorDownsamplingGson();
+
+    public static String jsonStringify(AbstractTag<?, ?, ?> tag, String emptyKey) {
+        if (tag.getType() == CompoundTag.TYPE.get()) {
+            CompoundTag compound = tag.asCompound();
+            String inner = compound.getValue().getDelegatedMap().entrySet().stream()
+                    .map(entry -> "\"" + (entry.getKey().isEmpty() ? emptyKey : entry.getKey()) + "\":" + jsonStringify(entry.getValue(), emptyKey))
+                    .collect(Collectors.joining(","));
+            return "{" + inner + "}";
+        } else if (tag.getType().getDataTypeClass().equals(List.class)) {
+            AbstractArrayTag<?, ?, ?> array = tag.asArray();
+            String inner = array.getValues().stream()
+                    .map(innerTag -> jsonStringify(innerTag, emptyKey))
+                    .collect(Collectors.joining(","));
+            return "[" + inner + "]";
+        } else if (tag.getType() == TagType.ARRAY_OF_INT) {
+            return "[" + Arrays.stream(tag.<int[]>asPrimitive().getValue()).mapToObj(String::valueOf).collect(Collectors.joining("")) + "]";
+        } else if (tag.getType() == TagType.ARRAY_OF_LONG) {
+            return "[" + Arrays.stream(tag.<long[]>asPrimitive().getValue()).mapToObj(String::valueOf).collect(Collectors.joining("")) + "]";
+        } else if (tag.getType() == TagType.ARRAY_OF_BYTE) {
+            byte[] val = tag.<byte[]>asPrimitive().getValue();
+            return "[" + IntStream.range(0, val.length).map(i -> val[i]).mapToObj(String::valueOf).collect(Collectors.joining("")) + "]";
+        } else if (tag.getType() == TagType.STRING) {
+            return "\"" + tag.<String>asPrimitive().getValue()
+                    .replaceAll("\\\\", "\\\\\\\\")
+                    .replaceAll("\n", "\\\\n")
+                    .replaceAll("\r", "\\\\r")
+                    .replaceAll("\t", "\\\\t")
+                    .replaceAll("\b", "\\\\b")
+                    .replaceAll("\f", "\\\\f")
+                    .replaceAll("\"", "\\\\\"")
+                    + "\"";
+        } else if (tag.getType() == TagType.END) {
+            return "";
+        } else {
+            return String.valueOf(tag.asPrimitive().getValue());
+        }
+    }
+
+    public static String jsonStringify(AbstractTag<?, ?, ?> tag) {
+        return jsonStringify(tag, "");
+    }
 
     public static TextComponent readText(String page) {
         return readText(deserialize(page));

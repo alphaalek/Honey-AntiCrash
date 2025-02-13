@@ -37,8 +37,6 @@ public class NBTFactory {
 
     public static final String NAMED_COMPOUND_TAG_NAME = "";
 
-    private static final int THIRTY_TWO_KILOBYTES = 1024 * 320;
-
     public static class Serializer implements TypeSerializer<AbstractTag<?, ?, ?>, TypeSerializer.TypeContext.TwoArgs<NBTVisitor, Boolean>> {
 
         @Override
@@ -111,12 +109,15 @@ public class NBTFactory {
 
     @SuppressWarnings("unchecked")
     private static <TAG extends AbstractTag<?, ?, TAG>> TAG readTag(ByteBufInputStream stream, NBTVisitor.In visitor, TagType type) throws IOException {
-        return (TAG) type.getCodec().read(new DataInputStream(stream),
-                new TagLimiter.Default(
-                        THIRTY_TWO_KILOBYTES,
-                        ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING,
-                        ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_COMPLEXITY,
-                        ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES), visitor);
+        return (TAG) type.getCodec().read(new DataInputStream(stream), visitor.limiter(), visitor);
+    }
+
+    public static TagLimiter createDefaultTagLimiter() {
+        return new TagLimiter.Default(
+                TagLimiter.THIRTY_TWO_KILOBYTES,
+                ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_NESTING,
+                ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_COMPLEXITY,
+                ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_BASES);
     }
 
     private static ByteBufOutputStream writeCompoundTag(ByteBufOutputStream stream, CompoundTag tag, NBTVisitor.Out visitor) throws IOException {

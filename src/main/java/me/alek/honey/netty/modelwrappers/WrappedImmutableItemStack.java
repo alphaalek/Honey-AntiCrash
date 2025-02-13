@@ -244,8 +244,6 @@ public class WrappedImmutableItemStack implements Cloneable {
             Rewritable.Result<TAG> result = rewriter.rewrite(context.protocol(), InTagRewriter.TagRewritingContext.of(itemTag, context));
             if (result != null && result.isRewritten()) {
                 TAG tag = result.get();
-                Bukkit.getLogger().info("Was " + itemTag);
-                Bukkit.getLogger().info("Rewrote " + tag);
                 return rewriteTag0(context, tag, type, preTagRidx, serializer);
             }
         }

@@ -494,9 +494,6 @@ public class CodecTypes {
                         key = visitor.visitAtCompoundInsertKey(input, type);
                     } catch (FallbackDefaultCodecException ex2) {
                         key = Utf8String.readUTFInputStream(input, ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_KEY_LENGTH);
-                        if (key.isEmpty()) {
-                            throw new IOException("Empty key");
-                        }
                     }
                     try {
                         tag = visitor.visitAtCompoundInsertTag(input, limiter, type, key);

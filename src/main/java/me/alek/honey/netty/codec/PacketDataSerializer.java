@@ -14,6 +14,7 @@ import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.TagLimiter;
 import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.util.LazyInit;
@@ -89,6 +90,10 @@ public class PacketDataSerializer extends ByteBuf {
 
     public AbstractTag<?, ?, ?> readNBT(NBTVisitor.In visitor) {
         return readNBT(visitor, false);
+    }
+
+    public AbstractTag<?, ?, ?> readNBT(NetProtocol protocol, NetProtocol protocolCreated, TagLimiter limiter) {
+        return readNBT(NBTVisitor.In.createDefault(limiter, protocol, protocolCreated, null));
     }
 
     public AbstractTag<?, ?, ?> readNBT(NetProtocol protocol, NetProtocol protocolCreated) {

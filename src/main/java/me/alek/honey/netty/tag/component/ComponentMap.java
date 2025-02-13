@@ -77,7 +77,7 @@ public class ComponentMap implements ItemTag {
                         // convert nbt to honey implementation, as it's superior ^_^
                         if (val instanceof NBTCompound) {
                             AbstractTag<?, ?, ?> tag = PEConverter.convertPETag((NBTCompound) val);
-                            if (tag.getType() == CompoundTag.TYPE.get()) {
+                            if (tag.getType() != CompoundTag.TYPE.get()) {
                                 throw new DecoderException("Invalid nbt: expected compound tag, but got: " + tag.getType());
                             }
                             val = tag;
@@ -98,8 +98,6 @@ public class ComponentMap implements ItemTag {
                     throw new DecoderException("Invalid absent component type: " + type);
                 }
             }
-
-            Bukkit.getLogger().info("Read map " + map.delegate);
 
             visitor.visitFinal(map);
 

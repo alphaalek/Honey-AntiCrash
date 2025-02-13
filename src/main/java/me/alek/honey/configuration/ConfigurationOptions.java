@@ -687,6 +687,8 @@ public class ConfigurationOptions {
             public static int MAX_BOOK_FORMATTED_PAGE_LENGTH;
             public static int MAX_BOOK_AUTHOR_LENGTH;
             public static int MAX_BOOK_TITLE_LENGTH;
+            public static int MAX_BOOK_PAGE_COMPONENT_NBT_BASES;
+            public static int MAX_BOOK_PAGE_COMPONENT_NBT_COMPLEXITY;
 
             public static int MAX_NBT_LENGTH_MODERN;
             public static int MAX_NBT_LENGTH_LEGACY;
@@ -707,6 +709,9 @@ public class ConfigurationOptions {
                 MAX_BOOK_PAGES_LEGACY = file.getInt("item-analysis.nbt.max-book-pages.legacy");
                 MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length");
                 MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length");
+                MAX_BOOK_PAGE_COMPONENT_NBT_BASES = file.getInt("item-analysis.nbt.component-book-page.max-bases");
+                MAX_BOOK_PAGE_COMPONENT_NBT_COMPLEXITY = file.getInt("item-analysis.nbt.component-book-page.max-complexity");
+
 
                 MAX_NBT_LENGTH_MODERN = file.getInt("item-analysis.nbt.max-nbt-length.modern");
                 MAX_NBT_LENGTH_LEGACY = file.getInt("item-analysis.nbt.max-nbt-length.legacy");

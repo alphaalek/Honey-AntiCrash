@@ -247,6 +247,12 @@ item-analysis:
     max-book-title-length: 32
     # How long name may the author of a book be.
     max-book-author-length: 16
+    # Book pages as text component serialized by nbt (client-side 1.20.5+)
+    component-book-page:
+      # How many NBT bases may be in a text component.
+      max-bases: 128
+      # How complex may NBT of a text component be.
+      max-complexity: 64
 
     # How many bytes may the NBT of an item be.
     max-nbt-length:

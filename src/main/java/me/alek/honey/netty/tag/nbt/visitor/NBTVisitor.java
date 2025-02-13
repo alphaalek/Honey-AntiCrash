@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.tag.FallbackDefaultCodecException;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.NBTFactory;
 import me.alek.honey.netty.tag.nbt.TagLimiter;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -106,8 +107,8 @@ public interface NBTVisitor extends CodecVisitor {
 
     interface In extends NBTVisitor {
 
-        static NBTVisitor.In createDefault(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
-            return new Adapter() {
+        static NBTVisitor.In createDefault(TagLimiter limiter, NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
+            return new Adapter(limiter) {
                 @Override
                 public ItemType type() {
                     return type;
@@ -125,7 +126,22 @@ public interface NBTVisitor extends CodecVisitor {
             };
         }
 
+        static NBTVisitor.In createDefault(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
+            return createDefault(NBTFactory.createDefaultTagLimiter(), protocol, protocolCreated, type);
+        }
+
         abstract class Adapter extends NBTVisitor.Adapter implements In {
+
+            private final TagLimiter limiter;
+
+            public Adapter(TagLimiter limiter) {
+                this.limiter = limiter;
+            }
+
+            @Override
+            public TagLimiter limiter() {
+                return this.limiter;
+            }
 
             @Override
             public void visitAtEnd(DataInputStream stream, TagLimiter limiter) {
@@ -212,6 +228,8 @@ public interface NBTVisitor extends CodecVisitor {
                 throw new FallbackDefaultCodecException();
             }
         }
+
+        TagLimiter limiter();
 
         void visitAtEnd(DataInputStream stream, TagLimiter limiter);
 

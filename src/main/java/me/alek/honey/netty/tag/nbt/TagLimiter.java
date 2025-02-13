@@ -8,6 +8,8 @@ import java.io.IOException;
 
 public interface TagLimiter {
 
+    int THIRTY_TWO_KILOBYTES = 1024 * 320;
+
     class UTF8Limiter implements TagLimiter {
 
         private final TagLimiter delegate;

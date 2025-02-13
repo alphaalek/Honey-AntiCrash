@@ -4,6 +4,7 @@ import com.github.retrooper.packetevents.protocol.component.builtin.item.Writabl
 import com.github.retrooper.packetevents.protocol.component.builtin.item.WrittenBookContent;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.util.Filterable;
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -11,10 +12,12 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.tag.ComponentHelper;
 import me.alek.honey.netty.tag.component.visitor.CommonComponentMapInVisitor;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.TagLimiter;
 import me.alek.honey.netty.tag.rewriter.impl.NBTWrittenBookRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.gson.impl.JSONComponentSerializerProviderImpl;
 import org.bukkit.Bukkit;
 
 import java.util.List;
@@ -57,8 +60,14 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
         // therefore, we will read components as nbt
         PacketWrapper<?> wrapper = createUniversalWrapper(serializer);
         return wrapper.readList(ew -> Filterable.read(wrapper, eew -> {
-            AbstractTag<?, ?, ?> tag = serializer.readNBT(this.protocol, this.protocolCreated);
-            String str = tag.toString();
+            AbstractTag<?, ?, ?> tag = serializer.readNBT(this.protocol, this.protocolCreated,
+                    new TagLimiter.Default(
+                            TagLimiter.THIRTY_TWO_KILOBYTES / 2,
+                            4, // root tag (1) (not expected) + the highest inner possible (3) (children -> child -> click/hover)
+                            ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_COMPONENT_NBT_COMPLEXITY,
+                            ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_COMPONENT_NBT_BASES
+                    ));
+            String str = ComponentHelper.jsonStringify(tag, "text");
             if (str.length() > maxPageCount) {
                 throw new DecoderException("Invalid book data: too long page: " + str.length() + " > " + maxPageCount);
             }

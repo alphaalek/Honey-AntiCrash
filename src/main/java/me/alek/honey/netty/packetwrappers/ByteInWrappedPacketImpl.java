@@ -37,7 +37,6 @@ public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implem
                     return;
                 }
 
-                Bukkit.getLogger().info("Handle rewritten " + rewritable.get() + " " + rewritable.rewritten().get());
                 if (this.cachedRewrittenSerializer != null) {
                     // release prior cached rewritten serializers, as we have expanded the rewriting of the buffer
                     this.cachedRewrittenSerializer.release();
