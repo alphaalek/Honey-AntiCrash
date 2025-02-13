@@ -2,13 +2,13 @@ package me.alek.honey.util;
 
 public interface Provider<T, P extends Provider<T, P, A>, A extends RemoteProviderBridge<T, P, A>> {
 
-    A createRemoveBridge();
+    A createRemoteBridge();
 
     interface ProviderNoInput<T> extends Provider<T, ProviderNoInput<T>, RemoteProviderBridge.ProviderNoInput<T>> {
 
         T get();
 
-        default RemoteProviderBridge.ProviderNoInput<T> createRemoveBridge() {
+        default RemoteProviderBridge.ProviderNoInput<T> createRemoteBridge() {
             return (RemoteProviderBridge.ProviderNoInput<T>) RemoteProviderBridge.Factory.<T>createWithNoInput();
         }
     }
@@ -17,7 +17,7 @@ public interface Provider<T, P extends Provider<T, P, A>, A extends RemoteProvid
 
         T get(I1 i1);
 
-        default RemoteProviderBridge.ProviderOneInput<T, I1> createRemoveBridge() {
+        default RemoteProviderBridge.ProviderOneInput<T, I1> createRemoteBridge() {
             return (RemoteProviderBridge.ProviderOneInput<T, I1>) RemoteProviderBridge.Factory.<T, I1>createWithOneInput();
         }
     }
@@ -26,7 +26,7 @@ public interface Provider<T, P extends Provider<T, P, A>, A extends RemoteProvid
 
         T get(I1 i1, I2 i2);
 
-        default RemoteProviderBridge.ProviderTwoInput<T, I1, I2> createRemoveBridge() {
+        default RemoteProviderBridge.ProviderTwoInput<T, I1, I2> createRemoteBridge() {
             return (RemoteProviderBridge.ProviderTwoInput<T, I1, I2>) RemoteProviderBridge.Factory.<T, I1, I2>createWithTwoInput();
         }
     }
@@ -35,7 +35,7 @@ public interface Provider<T, P extends Provider<T, P, A>, A extends RemoteProvid
 
         T get(Object[] array);
 
-        default RemoteProviderBridge.ProviderGenericInput<T> createRemoveBridge() {
+        default RemoteProviderBridge.ProviderGenericInput<T> createRemoteBridge() {
             return (RemoteProviderBridge.ProviderGenericInput<T>) RemoteProviderBridge.Factory.<T>createWithGenericInput();
         }
     }

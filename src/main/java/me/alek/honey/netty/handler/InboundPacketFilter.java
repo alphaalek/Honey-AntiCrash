@@ -212,7 +212,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             // start in-between timings - stopped in decode preparation handler
             packet.getEventloopStateTimings().startTimings(LifecycleState.IN_BETWEEN);
         } catch (StackDecodingException ex) {
-            ex.printStackTrace();
             this.packetHandler.filterMark = null;
             MARK.remove();
 

@@ -13,6 +13,7 @@ import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import org.bukkit.Bukkit;
 
 public class NBTWrittenBookRewriter implements InTagRewriter.NBTRewriter {
 

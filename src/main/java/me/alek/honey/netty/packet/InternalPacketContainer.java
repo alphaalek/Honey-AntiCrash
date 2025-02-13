@@ -18,6 +18,7 @@ import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.impl.NettyDecodeValidations;
+import org.bukkit.Bukkit;
 
 import java.util.Optional;
 

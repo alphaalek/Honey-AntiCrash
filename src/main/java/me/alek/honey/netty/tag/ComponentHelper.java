@@ -113,6 +113,7 @@ public class ComponentHelper {
     }
 
     public static String ensureOnlyDeserializableAsRawText(String text) {
+        // I hope there are no risk of json injection, I believe doing this is enough
         text = text.trim();
         if (text.startsWith("{") && text.startsWith("}")) {
             return "{text:\"" + text + "\"}";

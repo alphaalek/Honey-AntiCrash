@@ -1,5 +1,7 @@
 package me.alek.honey.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Iterator;
 import java.util.function.Function;
 
@@ -14,7 +16,7 @@ public class EnhancedInitialIterator<T, I extends Iterable<T>> implements Iterab
     }
 
     @Override
-    public Iterator<T> iterator() {
+    public @NotNull Iterator<T> iterator() {
         return new Iterator<T>() {
 
             private volatile boolean hasCalledInitial;

@@ -5,6 +5,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
+import org.bukkit.Bukkit;
 
 public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implements ByteInWrappedPacket<WP> {
 
@@ -29,7 +30,7 @@ public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implem
 
         public void handleRewritten(Rewritable<?> rewritable) {
             if (rewritable.result().isRewritten()) {
-                if (!shouldRewrite(getContainer())) {
+                if (!acceptsRewriting(getContainer())) {
                     rewritable.result().get().release();
                     return;
                 }
@@ -50,9 +51,13 @@ public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implem
             }
         }
 
+        private boolean acceptsRewriting(PacketContainer<?> packet) {
+            return packet.getLastRewrittenPipelineState() == null;
+        }
+
         @Override
         public boolean shouldRewrite(PacketContainer<?> packet) {
-            return packet.getLastRewrittenPipelineState() == null && this.cachedRewrittenSerializer != null;
+            return acceptsRewriting(packet) && this.cachedRewrittenSerializer != null;
         }
 
         @Override
