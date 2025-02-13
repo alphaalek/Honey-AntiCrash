@@ -1,15 +1,15 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.Rewritable;
-import me.alek.honey.netty.codec.validation.CodecContext;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
-import me.alek.honey.netty.packetwrappers.PacketRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class WrappedPlayInWindowClick extends ByteInWrappedPacketImpl.CacheRewriteCaller<WrappedPlayInWindowClick> {
 
@@ -73,7 +73,27 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacketImpl.CacheRewri
         this.carriedItemStack = rewritable.get();
     }
 
-    public void rewrite0(PacketDataSerializer serializer) {
+    @Override
+    protected boolean acceptsRewriting(PacketContainer<?> packet) {
+        return !ConfigurationOptions.Decoder.DISABLE_ITEM_TAG_WINDOW_CLICK && super.acceptsRewriting(packet);
+    }
+
+    @Override
+    public boolean shouldRewrite(PacketContainer<?> packet) {
+        return ConfigurationOptions.Decoder.DISABLE_ITEM_TAG_WINDOW_CLICK && packet.getLastRewrittenPipelineState() == null
+                || super.shouldRewrite(packet);
+    }
+
+    @Override
+    public void rewrite(PacketDataSerializer serializer) {
+        if (ConfigurationOptions.Decoder.DISABLE_ITEM_TAG_WINDOW_CLICK) {
+            rewriteSanitized(serializer);
+        } else {
+            super.rewrite(serializer);
+        }
+    }
+
+    private void rewriteSanitized(PacketDataSerializer serializer) {
         NetProtocol protocol = getProtocol();
 
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_21_2)) {
@@ -93,13 +113,16 @@ public class WrappedPlayInWindowClick extends ByteInWrappedPacketImpl.CacheRewri
 
         serializer.writeVarInt(this.windowClickType.ordinal());
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_17)) {
-            serializer.writeMap(this.slots,
+            Map<Integer, WrappedImmutableItemStack> sanitizedSlots = this.slots.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey,
+                            entry -> new WrappedImmutableItemStack(getProtocol(), entry.getValue().getType())));
+            serializer.writeMap(sanitizedSlots,
                     serializer::writeShort,
-                    stack -> serializer.writeItemStack(getContainer(), WrappedImmutableItemStack.AIR)
+                    stack -> serializer.writeItemStack(getContainer(), stack)
             );
         }
 
-        serializer.writeItemStack(getContainer(), WrappedImmutableItemStack.AIR);
+        serializer.writeItemStack(getContainer(), new WrappedImmutableItemStack(getProtocol(), this.carriedItemStack.getType()));
     }
 
     public int getWindowId() {

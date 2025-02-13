@@ -29,7 +29,7 @@ public class WrappedPlayInUpdateSign extends ByteInWrappedPacketImpl<WrappedPlay
         super(buf, packet);
         NetProtocol protocol = packet.getProtocol();
 
-        this.position = WrappedBlockPosition.fromLong(buf.readLong());
+        this.position = serializer().readBlockPosition();
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20)) {
             this.isFrontText = buf.readBoolean();
         } else {
@@ -51,7 +51,7 @@ public class WrappedPlayInUpdateSign extends ByteInWrappedPacketImpl<WrappedPlay
     public void rewrite(PacketDataSerializer serializer) {
         NetProtocol protocol = getProtocol();
 
-        serializer.writeLong(this.position.asLong());
+        serializer.writeBlockPosition(this.position);
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20)) {
             serializer.writeBoolean(this.isFrontText);
         }

@@ -69,9 +69,10 @@ decoder:
     # PacketPlayInBlockPlace (pre 1.9)
     block-place: true
     # PacketPlayInWindowClick
+    # Note, can cause some inventory interaction de-sync issues in lower versions. If this is not wanted, set to "disabled".
     window-click: true
 
-  # Should PacketPlayInSetCreativeSlot packets not be decoded if the player is not in creative mode.
+  # Should CREATIVE_INVENTORY_ACTION packets not be decoded if the player is not in creative mode.
   disable-creative-slot-for-non-creative: true
 
 # Formatting for messages sent by Honey

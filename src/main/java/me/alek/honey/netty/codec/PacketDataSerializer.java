@@ -70,6 +70,10 @@ public class PacketDataSerializer extends ByteBuf {
         return WrappedBlockPosition.fromLong(readLong());
     }
 
+    public PacketDataSerializer writeBlockPosition(WrappedBlockPosition position) {
+        return writeLong(position.asLong());
+    }
+
     public int readVarInt() {
         return Types.VAR_INT.read(this);
     }

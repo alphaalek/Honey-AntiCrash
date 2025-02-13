@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class WrappedPlayInCustomPayload extends ByteInWrappedPacketImpl.CacheRewriteCaller<WrappedPlayInCustomPayload> {
 
-    int MAX_CHANNEL_LENGTH = 20;
+    int MAX_CHANNEL_LENGTH = 32;
 
     private final PayloadData data;
 

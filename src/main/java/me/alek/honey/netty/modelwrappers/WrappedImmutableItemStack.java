@@ -2,6 +2,7 @@ package me.alek.honey.netty.modelwrappers;
 
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -19,9 +20,13 @@ import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.component.visitor.ComponentMapVisitor;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.BookTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
@@ -131,6 +136,35 @@ public class WrappedImmutableItemStack implements Cloneable {
         if (item.getType() == ItemTypes.WRITABLE_BOOK || item.getType() == ItemTypes.WRITTEN_BOOK) {
             BookTag.validateBook(item, context);
         }
+
+        if (item.getProtocol().isBetween(NetProtocol.v1_13, NetProtocol.v1_20_4) && !item.getTag().isEmpty()) {
+            CompoundTag tag = item.getTag().asNBT().get();
+            if (tag.hasKeyOfType("display", CompoundTag.TYPE.get())) {
+                CompoundTag display = tag.getCompound("display");
+
+                String name = display.getString("Name");
+                if (name != null) {
+                    try {
+                        ComponentHelper.readText(name); // try to serialize name as json
+                    } catch (DecoderException ex) {
+                        throw new DecoderException("Invalid name", ex);
+                    }
+                }
+
+                if (item.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
+                    ArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
+                    if (lore != null) {
+                        for (String line : lore) {
+                            try {
+                                ComponentHelper.readText(line); // try to serialize lore as json
+                            } catch (DecoderException ex) {
+                                throw new DecoderException("Invalid lore", ex);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public static void validatePreTag(ItemType type, CodecContext.Transformer context) {
@@ -165,9 +199,17 @@ public class WrappedImmutableItemStack implements Cloneable {
         CodecVisitor visitor = visitorFactory.create(protocol, protocolCreated, type);
 
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_20_5)) {
-            Types.COMPONENT_MAP.write(serializer, tag.asComponentMap().orElse(ComponentMap.EMPTY), TypeSerializer.TypeContext.OneArg.of((ComponentMapVisitor) visitor));
+            if (tag.isEmpty()) {
+                serializer.writeShort(0);
+            } else {
+                Types.COMPONENT_MAP.write(serializer, tag.asComponentMap().orElse(ComponentMap.EMPTY), TypeSerializer.TypeContext.OneArg.of((ComponentMapVisitor) visitor));
+            }
         } else {
-            serializer.writeNBT((NBTVisitor.Out) visitor, tag.asNBT().get(), true);
+            if (tag.isEmpty()) {
+                serializer.writeByte(TagType.END.getId());
+            } else {
+                serializer.writeNBT((NBTVisitor.Out) visitor, tag.asNBT().get(), true);
+            }
         }
     }
 
@@ -299,6 +341,10 @@ public class WrappedImmutableItemStack implements Cloneable {
         if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
             throw new UnsupportedOperationException();
         }
+    }
+
+    public WrappedImmutableItemStack(NetProtocol protocol, ItemType type) {
+        this(protocol, type, 1, null);
     }
 
     private WrappedImmutableItemStack() {

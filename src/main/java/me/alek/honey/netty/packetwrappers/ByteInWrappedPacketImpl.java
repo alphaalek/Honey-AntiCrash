@@ -51,13 +51,13 @@ public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implem
             }
         }
 
-        private boolean acceptsRewriting(PacketContainer<?> packet) {
+        protected boolean acceptsRewriting(PacketContainer<?> packet) {
             return packet.getLastRewrittenPipelineState() == null;
         }
 
         @Override
         public boolean shouldRewrite(PacketContainer<?> packet) {
-            return acceptsRewriting(packet) && this.cachedRewrittenSerializer != null;
+            return packet.getLastRewrittenPipelineState() == null && this.cachedRewrittenSerializer != null;
         }
 
         @Override

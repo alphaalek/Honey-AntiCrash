@@ -1,5 +1,6 @@
 package me.alek.honey.netty.tag;
 
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import io.github.retrooper.packetevents.adventure.serializer.gson.GsonComponentSerializer;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
@@ -17,8 +18,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ComponentHelper {
-
-    private static final GsonComponentSerializer GSON_COMPONENT_SERIALIZER = GsonComponentSerializer.colorDownsamplingGson();
 
     public static String jsonStringify(AbstractTag<?, ?, ?> tag, String emptyKey) {
         if (tag.getType() == CompoundTag.TYPE.get()) {
@@ -96,8 +95,12 @@ public class ComponentHelper {
         }
     }
 
-    public static Component deserialize(String page) {
-        return GSON_COMPONENT_SERIALIZER.deserialize(page);
+    public static Component deserialize(String json) {
+        try {
+            return AdventureSerializer.parseComponent(json);
+        } catch (Exception ex) {
+            throw new DecoderException("Malformed json as component");
+        }
     }
 
     public static boolean isRawText(TextComponent text) {
@@ -108,7 +111,7 @@ public class ComponentHelper {
         if (isRawText(text)) {
             return ensureOnlyDeserializableAsRawText(text.content());
         } else {
-            return GSON_COMPONENT_SERIALIZER.serialize(text);
+            return AdventureSerializer.toJson(text);
         }
     }
 
@@ -118,7 +121,7 @@ public class ComponentHelper {
         if (text.startsWith("{") && text.startsWith("}")) {
             return "{text:\"" + text + "\"}";
         } else {
-            return text;
+            return "\"" + text + "\"";
         }
     }
 }

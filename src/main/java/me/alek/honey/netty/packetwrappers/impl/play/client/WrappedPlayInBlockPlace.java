@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
@@ -79,6 +80,36 @@ public class WrappedPlayInBlockPlace extends ByteInWrappedPacketImpl.CacheRewrit
                 this.sequence = serializer.readVarInt();
             }
         }
+    }
+
+    @Override
+    protected boolean acceptsRewriting(PacketContainer<?> packet) {
+        return !ConfigurationOptions.Decoder.DISABLE_ITEM_TAG_BLOCK_PLACE && super.acceptsRewriting(packet);
+    }
+
+    @Override
+    public boolean shouldRewrite(PacketContainer<?> packet) {
+        return ConfigurationOptions.Decoder.DISABLE_ITEM_TAG_BLOCK_PLACE && packet.getLastRewrittenPipelineState() == null && getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)
+                || super.shouldRewrite(packet);
+    }
+
+    @Override
+    public void rewrite(PacketDataSerializer serializer) {
+        if (ConfigurationOptions.Decoder.DISABLE_ITEM_TAG_WINDOW_CLICK) {
+            rewriteSanitized(serializer);
+        } else {
+            super.rewrite(serializer);
+        }
+    }
+
+    private void rewriteSanitized(PacketDataSerializer serializer) {
+        // only for pre 1.9
+        serializer.writeBlockPosition(this.blockPosition);
+        serializer.writeByte(this.faceId);
+        serializer.writeItemStack(getContainer(), new WrappedImmutableItemStack(getProtocol(), this.itemStack.getType()));
+        serializer.writeByte((byte) (this.cursorPosition.getX() * 16.0F));
+        serializer.writeByte((byte) (this.cursorPosition.getY() * 16.0F));
+        serializer.writeByte((byte) (this.cursorPosition.getZ() * 16.0F));
     }
 
     public InteractionHand getInteractionHand() {

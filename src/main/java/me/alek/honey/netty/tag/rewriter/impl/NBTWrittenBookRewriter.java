@@ -1,6 +1,7 @@
 package me.alek.honey.netty.tag.rewriter.impl;
 
 import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
+import com.google.gson.stream.MalformedJsonException;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.Rewritable;
