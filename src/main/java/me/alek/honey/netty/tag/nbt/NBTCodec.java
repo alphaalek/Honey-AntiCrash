@@ -6,7 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public interface NBTCodec<T extends AbstractTag<?, ?, T>> {
+public interface NBTCodec<T extends AbstractTag<?, T>> {
 
     void write(DataOutputStream output, T tag, NBTVisitor.Out visitor) throws IOException;
 

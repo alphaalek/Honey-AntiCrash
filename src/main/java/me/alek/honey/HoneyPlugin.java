@@ -83,6 +83,7 @@ public class HoneyPlugin implements HoneyAPI {
     private CraftScheduledTPSTracker TPSTracker;
     private MonitorManager monitorManager;
     private boolean isRunning;
+    private boolean isServerStarted;
     private PacketLibrary packetLibrary;
     private Thread serverThread;
 
@@ -112,47 +113,6 @@ public class HoneyPlugin implements HoneyAPI {
         } else {
             this.isUsingOldVersion = false;
         }
-    }
-
-    private void registerFailedHoneyLoadEvents() {
-        HandlerList handlerList = PlayerJoinEvent.getHandlerList();
-        Plugin fakePlugin = new DummyPlugin();
-        handlerList.register(new RegisteredListener(new Listener() {
-        }, (listener, event) -> {
-            if (!(event instanceof PlayerJoinEvent)) {
-                return;
-            }
-
-            Player player = ((PlayerJoinEvent) event).getPlayer();
-            if (player.isOp()) {
-                player.sendMessage(Lang.get("failed.load.session.error"));
-            }
-
-            Channel channel = MinecraftReflection.getChannelFromPlayer(player);
-            if (channel == null) {
-                return;
-            }
-
-            channel.pipeline().addBefore(MinecraftHandlers.CONNECTION, "honey-invalid-session", new ChannelInboundHandlerAdapter() {
-
-                @Override
-                public void channelRead(ChannelHandlerContext ctx, Object msg) {
-                    if (player.isOp() && msg.getClass().equals(PacketTypes.Play.Client.CHAT_MESSAGE.getNmsClass())) {
-                        String message = ReflectStructure.Provider.acquireStructure(msg.getClass())
-                                .withType(String.class).withTarget(msg)
-                                .readField(0);
-
-                        if (message.startsWith("/honey")) {
-                            player.sendMessage(Lang.get("failed.load.session.error"));
-                            return;
-                        }
-                    }
-
-                    ctx.fireChannelRead(msg);
-                }
-            });
-
-        }, EventPriority.LOWEST, fakePlugin, true));
     }
 
     private static class InvalidLicenseException extends RuntimeException {
@@ -297,6 +257,8 @@ public class HoneyPlugin implements HoneyAPI {
         }
 
         getLogger().getLogger().info(Lang.getFormatted("loaded", this.plugin.getDescription().getVersion()));
+
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this.plugin, () -> this.isServerStarted = true);
     }
 
     @Override
@@ -439,6 +401,11 @@ public class HoneyPlugin implements HoneyAPI {
 
     public boolean isRunning() {
         return this.isRunning;
+    }
+
+    @Override
+    public boolean isServerStarted() {
+        return this.isServerStarted;
     }
 
     public Thread getServerThread() {

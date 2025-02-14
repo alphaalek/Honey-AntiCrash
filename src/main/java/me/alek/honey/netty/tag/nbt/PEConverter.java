@@ -1,8 +1,6 @@
 package me.alek.honey.netty.tag.nbt;
 
 import com.github.retrooper.packetevents.protocol.nbt.*;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
-import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 
 import java.util.List;
 import java.util.Map;
@@ -10,15 +8,15 @@ import java.util.stream.Collectors;
 
 public class PEConverter {
 
-    public static NBT convertTag(AbstractTag<?, ?, ?> tag) {
-        if (tag.getType().getDataTypeClass().equals(List.class)) {
-            List<NBT> array = tag.asArray().getValues().stream()
-                    .map(PEConverter::convertTag).
-                    collect(Collectors.toList());
+    public static NBT convertTag(AbstractTag<?, ?> tag) {
+        if (tag.getType() == ArrayTag.TYPE.get()) {
+            List<NBT> array = tag.asArray().getTags().stream()
+                    .map(PEConverter::convertTag)
+                    .collect(Collectors.toList());
             return new NBTList<>(getPEType(tag.getType()), array);
         } else if (tag.getType() == CompoundTag.TYPE.get()) {
             NBTCompound compoundTag = new NBTCompound();
-            for (Map.Entry<String, AbstractTag<?, ?, ?>> entry : tag.asCompound().getValue().getDelegatedMap().entrySet()) {
+            for (Map.Entry<String, AbstractTag<?, ?>> entry : tag.asCompound().entrySet()) {
                 compoundTag.setTag(entry.getKey(), convertTag(entry.getValue()));
             }
             return compoundTag;
@@ -40,7 +38,7 @@ public class PEConverter {
             return new NBTIntArray(tag.<int[]>asPrimitive().getValue());
         } else if (tag.getType() == TagType.ARRAY_OF_LONG) {
             return new NBTLongArray(tag.<long[]>asPrimitive().getValue());
-        } else if (tag.getValue() == TagType.ARRAY_OF_BYTE) {
+        } else if (tag.getType() == TagType.ARRAY_OF_BYTE) {
             return new NBTByteArray(tag.<byte[]>asPrimitive().getValue());
         } else if (tag.getType() == TagType.END) {
             return new NBTEnd();
@@ -49,22 +47,21 @@ public class PEConverter {
         }
     }
 
-    public static AbstractTag<?, ?, ?> convertPETag(NBT nbt) {
+    public static AbstractTag<?, ?> convertPETag(NBT nbt) {
         if (nbt.getType() == NBTType.LIST) {
             NBTList<?> array = (NBTList<?>) nbt;
-            List<AbstractTag<?, ?, ?>> tags = array.getTags().stream()
+            List<AbstractTag<?, ?>> tags = array.getTags().stream()
                     .map(PEConverter::convertPETag)
                     .collect(Collectors.toList());
-            if (array.getTagsType() == NBTType.COMPOUND) {
-                return new GeneticArrayTypes.ArrayOfCompoundTag(tags);
-            } else if (array.getTagsType() == NBTType.LIST) {
-                return new GeneticArrayTypes.ArrayOfArrayTag<>(tags);
+            TagType typeOf = getType(array.getTagsType());
+            if (typeOf == CompoundTag.TYPE.get() || typeOf == ArrayTag.TYPE.get()) {
+                return new ArrayTag<>(typeOf, tags);
             } else {
-                return new ArrayTag<>(getType(array.getTagsType()), tags);
+                return new PrimitiveArrayTag<>(typeOf, tags);
             }
         } else if (nbt.getType() == NBTType.COMPOUND) {
             NBTCompound compound = (NBTCompound) nbt;
-            Map<String, AbstractTag<?, ?, ?>> tag = compound.getTags().entrySet().stream()
+            Map<String, AbstractTag<?, ?>> tag = compound.getTags().entrySet().stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, entry -> convertPETag(entry.getValue())));
             return new CompoundTag(tag);
         } else if (nbt.getType() == NBTType.STRING) {
@@ -96,7 +93,7 @@ public class PEConverter {
 
     public static TagType getType(NBTType<?> type) {
         if (type == NBTType.LIST) {
-            return ArrayTag.TYPE.get();
+            return PrimitiveArrayTag.TYPE.get();
         } else if (type == NBTType.COMPOUND) {
             return CompoundTag.TYPE.get();
         } else if (type == NBTType.STRING) {

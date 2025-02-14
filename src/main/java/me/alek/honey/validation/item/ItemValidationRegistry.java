@@ -24,7 +24,6 @@ public enum ItemValidationRegistry {
     CUSTOM_POTION_EFFECTS(ItemValidations.CustomPotionEffectsItemValidation::new,
             ItemTypes.POTION, ItemTypes.LINGERING_POTION, ItemTypes.SPLASH_POTION),
     ATTRIBUTE_MODIFIERS(ItemValidations.AttributeModifiersItemValidation::new),
-    BOOK_NO_TEXT_COMPONENT(ItemValidations.BookComponentsValidation::new, ItemTypes.WRITABLE_BOOK, ItemTypes.WRITTEN_BOOK),
     MAP_RANGE(ItemValidations.MapRangeItemValidation::new, ItemTypes.MAP, ItemTypes.FILLED_MAP),
 
     // nbt

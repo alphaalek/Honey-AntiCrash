@@ -57,6 +57,8 @@ public interface HoneyAPI {
 
     boolean isRunning();
 
+    boolean isServerStarted();
+
     Thread getServerThread();
 
     void onLoad();

@@ -14,9 +14,7 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.dynamic.EditBookTagVisitorFactory;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
-import org.bukkit.Bukkit;
 
 import java.util.Optional;
 
@@ -78,8 +76,8 @@ public class BookTag {
         ItemTag tag = item.getTag();
         if (tag.asNBT().isPresent()) {
             CompoundTag nbt = tag.asNBT().get();
-            if (nbt.hasKeyOfType(PAGES, ArrayTag.TYPE.get())) {
-                ArrayTag<String> pages = nbt.getArrayOf(PAGES, TagType.STRING);
+            if (nbt.hasKeyOfType(PAGES, PrimitiveArrayTag.TYPE.get())) {
+                PrimitiveArrayTag<String> pages = nbt.getPrimitiveArrayOf(PAGES, TagType.STRING);
                 int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(context.protocolCreated());
                 if (pages.size() > max) {
                     throw new DecoderException("Too many pages: " + pages.size() + ", limit: " + max);
@@ -114,7 +112,7 @@ public class BookTag {
     }
 
     public static void validateBookEdit(CompoundTag nbt, CodecContext.BookValidationContext<?> context) {
-        if (!nbt.hasKeyOfType(PAGES, ArrayTag.TYPE.get())) {
+        if (!nbt.hasKeyOfType(PAGES, PrimitiveArrayTag.TYPE.get())) {
             throw new DecoderException("Invalid book data: no pages tag");
         }
 

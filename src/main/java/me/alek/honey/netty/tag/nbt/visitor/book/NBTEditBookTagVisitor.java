@@ -42,7 +42,7 @@ public class NBTEditBookTagVisitor extends NBTBookTagVisitor implements EditBook
     }
 
     @Override
-    public void visitCompoundElement(String key, AbstractTag<?, ?, ?> tag) {
+    public void visitCompoundElement(String key, AbstractTag<?, ?> tag) {
         if (isRootTag() && this.signing && key.equals(BookTag.AUTHOR)) {
             String author = tag.<String>asPrimitive().getValue();
             if (!author.equals(this.signingUsername)) {
@@ -59,7 +59,7 @@ public class NBTEditBookTagVisitor extends NBTBookTagVisitor implements EditBook
 
     @Override
     @SuppressWarnings("unchecked")
-    protected <TAG extends AbstractTag<?, ?, TAG>> TAG visitPage(DataInputStream stream, TagLimiter limiter, TagType type) throws IOException {
+    protected <TAG extends AbstractTag<?, TAG>> TAG visitPage(DataInputStream stream, TagLimiter limiter, TagType type) throws IOException {
         // always read using the formatted text limit, because we will not allow formatting whatever components by
         // the client when editing a book
         return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH), this);

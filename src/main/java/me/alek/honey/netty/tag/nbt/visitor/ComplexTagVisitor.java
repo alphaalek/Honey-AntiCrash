@@ -4,10 +4,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.tag.FallbackDefaultCodecException;
-import me.alek.honey.netty.tag.nbt.AbstractTag;
-import me.alek.honey.netty.tag.nbt.NBTFactory;
-import me.alek.honey.netty.tag.nbt.TagLimiter;
-import me.alek.honey.netty.tag.nbt.TagType;
+import me.alek.honey.netty.tag.nbt.*;
 import me.alek.honey.util.protocol.NetProtocol;
 
 import java.io.DataInputStream;
@@ -33,7 +30,7 @@ public class ComplexTagVisitor extends NBTVisitor.In.Adapter {
     }
 
     @Override
-    public AbstractTag<?, ?, ?> visitAtCompoundInsertTag(DataInputStream stream, TagLimiter limiter, TagType type, String key) throws FallbackDefaultCodecException, IOException {
+    public AbstractTag<?, ?> visitAtCompoundInsertTag(DataInputStream stream, TagLimiter limiter, TagType type, String key) throws FallbackDefaultCodecException, IOException {
         if (this.child != null) {
             return this.child.visitAtCompoundInsertTag(stream, limiter, type, key);
         }
@@ -43,8 +40,7 @@ public class ComplexTagVisitor extends NBTVisitor.In.Adapter {
         }
         this.keys.add(key);
 
-        // tag collections only exists for complex tag types
-        if (type.hasCollection()) {
+        if (type.equals(CompoundTag.TYPE.get()) || type.equals(ArrayTag.TYPE.get())) {
             this.child = new ComplexTagVisitor(this);
             this.child.pointer = key;
         }
@@ -53,7 +49,7 @@ public class ComplexTagVisitor extends NBTVisitor.In.Adapter {
     }
 
     @Override
-    public void visitCompound(Map<String, AbstractTag<?, ?, ?>> compound) {
+    public void visitCompound(Map<String, AbstractTag<?, ?>> compound) {
         if (this.child != null) {
             this.child.visitCompound(compound);
         } else if (this.parent != null) {
@@ -64,7 +60,7 @@ public class ComplexTagVisitor extends NBTVisitor.In.Adapter {
     }
 
     @Override
-    public <TAG extends AbstractTag<?, ?, TAG>> void visitArray(List<TAG> array, TagType type) {
+    public <TAG extends AbstractTag<?, TAG>> void visitArray(List<TAG> array, TagType type) {
         if (this.child != null) {
             this.child.visitArray(array, type);
         } else if (this.parent != null) {

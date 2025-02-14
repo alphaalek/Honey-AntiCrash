@@ -8,7 +8,6 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.tag.dynamic.EditBookTagVisitor;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.TagType;
-import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.util.protocol.NetProtocol;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -66,8 +65,8 @@ public class ComponentMapEditBookTagVisitor extends ComponentMapBookTagVisitor i
     }
 
     @Override
-    protected AbstractTag<?, ?, ?> visitAtSerializedPageTag(PacketDataSerializer serializer) {
-        AbstractTag<?, ?, ?> tag = super.visitAtSerializedPageTag(serializer);
+    protected AbstractTag<?, ?> visitAtSerializedPageTag(PacketDataSerializer serializer) {
+        AbstractTag<?, ?> tag = super.visitAtSerializedPageTag(serializer);
         if (tag.getType() != TagType.STRING) {
             throw new DecoderException("Invalid book data: expected string tag type, but got " + tag.getType());
         }

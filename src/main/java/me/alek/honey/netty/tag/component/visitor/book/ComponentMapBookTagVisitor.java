@@ -12,6 +12,7 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.tag.ComponentHelper;
 import me.alek.honey.netty.tag.component.visitor.CommonComponentMapInVisitor;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.TagLimiter;
 import me.alek.honey.netty.tag.rewriter.impl.NBTWrittenBookRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
@@ -55,7 +56,7 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
         return component;
     }
 
-    protected AbstractTag<?, ?, ?> visitAtSerializedPageTag(PacketDataSerializer serializer) {
+    protected AbstractTag<?, ?> visitAtSerializedPageTag(PacketDataSerializer serializer) {
         return serializer.readNBT(this.protocol, this.protocolCreated,
                 new TagLimiter.Default(
                         TagLimiter.THIRTY_TWO_KILOBYTES / 2,
@@ -71,8 +72,13 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
         // therefore, we will read components as nbt
         PacketWrapper<?> wrapper = createUniversalWrapper(serializer);
         return wrapper.readList(ew -> Filterable.read(wrapper, eew -> {
-            AbstractTag<?, ?, ?> tag = visitAtSerializedPageTag(serializer);
-            String str = ComponentHelper.jsonStringify(tag, "text");
+            AbstractTag<?, ?> tag = visitAtSerializedPageTag(serializer);
+            String str;
+            if (tag.getType() == CompoundTag.TYPE.get()) {
+                str = tag.asCompound().toString("text");
+            } else {
+                str = tag.toString();
+            }
             if (str.length() > maxPageCount) {
                 throw new DecoderException("Invalid book data: too long page: " + str.length() + " > " + maxPageCount);
             }

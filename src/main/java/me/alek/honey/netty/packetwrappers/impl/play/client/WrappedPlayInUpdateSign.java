@@ -40,9 +40,8 @@ public class WrappedPlayInUpdateSign extends ByteInWrappedPacketImpl<WrappedPlay
         for (int i = 0; i < LINES; i++) {
             this.text[i] = buf.readString(MAX_LINE_LENGTH);
 
-            Component component = ComponentHelper.deserialize(this.text[i]);
-            if (!(component instanceof TextComponent)) {
-                throw new DecoderException("Tried to read line that was not text component");
+            if (getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
+                ComponentHelper.readText(this.text[i]);
             }
         }
     }
@@ -57,9 +56,13 @@ public class WrappedPlayInUpdateSign extends ByteInWrappedPacketImpl<WrappedPlay
         }
 
         for (int i = 0; i < LINES; i++) {
-            // force to text component
-            TextComponent component = (TextComponent) ComponentHelper.deserialize(this.text[i]);
-            serializer.writeString(ComponentHelper.ensureOnlyDeserializableAsRawText(component.content()));
+            if (getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)) {
+                // force to text component
+                TextComponent component = (TextComponent) ComponentHelper.deserialize(this.text[i]);
+                serializer.writeString(ComponentHelper.ensureOnlyDeserializableAsRawText(component.content()));
+            } else {
+                serializer.writeString(this.text[i]);
+            }
         }
     }
 

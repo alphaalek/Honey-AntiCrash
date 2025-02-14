@@ -637,8 +637,6 @@ public class ConfigurationOptions {
         public static boolean CHECK_CUSTOM_POTION_EFFECTS;
         public static boolean CHECK_UNBREAKABLE_ITEMS;
         public static boolean CHECK_ATTRIBUTE_MODIFIERS;
-        public static boolean CHECK_BOOK_NO_TEXT_COMPONENTS;
-
         public static void load() {
             MAX_ENCHANTMENT_LEVEL = file.getInt("item-analysis.max-enchantment-level");
             MAX_AMOUNT = file.getInt("item-analysis.max-amount");
@@ -653,7 +651,6 @@ public class ConfigurationOptions {
             CHECK_CUSTOM_POTION_EFFECTS = file.getBoolean("item-analysis.disable-custom-potion-effects");
             CHECK_UNBREAKABLE_ITEMS = file.getBoolean("item-analysis.disable-unbreakable-items");
             CHECK_ATTRIBUTE_MODIFIERS = file.getBoolean("item-analysis.check-attribute-modifiers");
-            CHECK_BOOK_NO_TEXT_COMPONENTS = file.getBoolean("item-analysis.disable-book-no-text-components");
         }
 
         @Setting

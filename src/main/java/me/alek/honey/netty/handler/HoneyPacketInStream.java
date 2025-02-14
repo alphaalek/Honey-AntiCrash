@@ -63,13 +63,13 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
             packet = this.packetHandler.filterMark;
             int startRidx = serializer.readerIndex();
             type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, false);
-            int ridx = serializer.readerIndex();
             if (PacketTypes.isUnknown(type)) {
                 // invalid packet
                 throw new DecoderException("Invalid packet, state " + this.packetHandler.getProtocolState(PacketBound.SERVER) + ", id " + serializer.readerIndex(0).readVarInt());
             }
 
             if (packet == null || !packet.getType().equals(type)) {
+                int ridx = serializer.readerIndex();
                 // this packet is not sent by the client (because it was not received by the filter),
                 // but instead invoked by some plugin (most likely ViaVersion)
                 if (packet == null) {
@@ -86,7 +86,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
                     serializer = rewritable.get();
                 }
             } else {
-                packet.callPreMinecraftDecode(serializer.readerIndex(ridx));
+                packet.callPreMinecraftDecode(serializer);
             }
 
             // stops in-between timings

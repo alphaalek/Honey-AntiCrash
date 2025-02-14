@@ -9,7 +9,6 @@ import me.alek.honey.netty.modelwrappers.objects.WrappedRenderData;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestion;
 import me.alek.honey.netty.modelwrappers.suggestion.WrappedSuggestions;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
-import me.alek.honey.netty.tag.nbt.TagConverter;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.wrapper.SimpleListConverter;
@@ -115,15 +114,6 @@ public class Converters {
 
     public static JavaConverter<Object, WrappedSuggestion> getSuggestionConverter() {
         return getConverter(WrappedSuggestion.class, (clazz) -> new SimpleWrapperConverter<>(WrappedSuggestion.class));
-    }
-
-    public static MapConverter<String, Object, AbstractTag<?, ?, ?>> getNBTCompoundConverter() {
-        return getMapConverterWithoutCache(TagConverter.CONVERTER);
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> ListConverter<Object, T> getNBTListConverter() {
-        return (ListConverter<Object, T>) getListConverterWithoutCache(TagConverter.CONVERTER);
     }
 
     public static <K, T> ListConverter<K, T> getListConverterOf(Class<?> clazz, JavaConverter<K, T> converter) {

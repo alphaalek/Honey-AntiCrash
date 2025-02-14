@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + This configuration file is generated using version v2.6.5
+#   + This configuration file is generated using version v2.6.6
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -199,7 +199,7 @@ item-analysis:
   # How high an amount may an item have.
   max-amount: 64
   # How long of a name may an item have.
-  max-displayname-length: 100
+  max-displayname-length: 192
   # How long may the sum of all the lines in the lore of an item have.
   max-total-lore-length: 2500
   # How many explosions may a firework have.
@@ -215,8 +215,6 @@ item-analysis:
   disable-unbreakable-items: false
   # May items not have attribute modifiers. Can be bugged through creative mode.
   disable-attribute-modifiers: false
-  # May books have translation components as pages.
-  disable-book-no-text-components: true
   # NBT
   nbt:
     # How many bytes may the NBT of a firework have. This is also for firework charges.

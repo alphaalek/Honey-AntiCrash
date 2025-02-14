@@ -15,14 +15,12 @@ import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.TagLimiter;
-import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.ConstructorInvoker;
 import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.util.reflection.Reflection;
-import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,31 +87,31 @@ public class PacketDataSerializer extends ByteBuf {
         return Types.ITEM_STACK.write(this, stack, TypeSerializer.TypeContext.TwoArgs.of(CodecVisitor.Dynamic.OUT_DEFAULT, context));
     }
 
-    public AbstractTag<?, ?, ?> readNBT(NBTVisitor.In visitor, boolean expectCompound) {
+    public AbstractTag<?, ?> readNBT(NBTVisitor.In visitor, boolean expectCompound) {
         return Types.NBT.read(this, TypeSerializer.TypeContext.TwoArgs.of(visitor, expectCompound));
     }
 
-    public AbstractTag<?, ?, ?> readNBT(NBTVisitor.In visitor) {
+    public AbstractTag<?, ?> readNBT(NBTVisitor.In visitor) {
         return readNBT(visitor, false);
     }
 
-    public AbstractTag<?, ?, ?> readNBT(NetProtocol protocol, NetProtocol protocolCreated, TagLimiter limiter) {
+    public AbstractTag<?, ?> readNBT(NetProtocol protocol, NetProtocol protocolCreated, TagLimiter limiter) {
         return readNBT(NBTVisitor.In.createDefault(limiter, protocol, protocolCreated, null));
     }
 
-    public AbstractTag<?, ?, ?> readNBT(NetProtocol protocol, NetProtocol protocolCreated) {
+    public AbstractTag<?, ?> readNBT(NetProtocol protocol, NetProtocol protocolCreated) {
         return readNBT(NBTVisitor.In.createDefault(protocol, protocolCreated, null));
     }
 
-    public PacketDataSerializer writeNBT(NBTVisitor.Out visitor, AbstractTag<?, ?, ?> tag, boolean expectCompound) {
+    public PacketDataSerializer writeNBT(NBTVisitor.Out visitor, AbstractTag<?, ?> tag, boolean expectCompound) {
         return Types.NBT.write(this, tag, TypeSerializer.TypeContext.TwoArgs.of(visitor, expectCompound));
     }
 
-    public PacketDataSerializer writeNBT(NBTVisitor.Out visitor, AbstractTag<?, ?, ?> tag) {
+    public PacketDataSerializer writeNBT(NBTVisitor.Out visitor, AbstractTag<?, ?> tag) {
         return writeNBT(visitor, tag, false);
     }
 
-    public PacketDataSerializer writeNBT(NetProtocol protocol, NetProtocol protocolCreated, AbstractTag<?, ?, ?> tag) {
+    public PacketDataSerializer writeNBT(NetProtocol protocol, NetProtocol protocolCreated, AbstractTag<?, ?> tag) {
         return writeNBT(NBTVisitor.Out.createDefault(protocol, protocolCreated, null), tag);
     }
 

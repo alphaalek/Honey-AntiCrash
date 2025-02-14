@@ -3,15 +3,22 @@ package me.alek.honey.util.reflection;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import me.alek.honey.compat.UnsupportedCompatabilityException;
 import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.tag.ItemTag;
+import me.alek.honey.netty.tag.nbt.AbstractTag;
+import me.alek.honey.netty.tag.nbt.CompoundTag;
+import me.alek.honey.netty.tag.nbt.NBTFactory;
 import me.alek.honey.util.protocol.NetProtocol;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
+import java.util.Optional;
 
 public class ItemFactory {
 
@@ -116,6 +123,40 @@ public class ItemFactory {
         return MinecraftReflection.getCraftItemStackClass().isInstance(item);
     }
 
+    public static CompoundTag getOrCreateTag(ItemStack item) {
+        if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_20_5)) {
+            throw new UnsupportedOperationException("Trying to get NBT of item in modern version");
+        }
+        ItemTag tag = getTag(item);
+        if (tag.isEmpty()) {
+            return new CompoundTag();
+        } else {
+            return tag.asNBT().get();
+        }
+    }
+
+    public static ItemTag getTag(ItemStack item) {
+        return getTag(ItemFactory.getHandleItem(item));
+    }
+
+    public static ItemTag getTag(Object item) {
+        if (NetProtocol.getProtocol().isNewerThan(NetProtocol.v1_20_5)) {
+            // TODO: fix
+            return ItemTag.EMPTY;
+        } else {
+            Object literal =  ReflectStructure.Provider.acquireStructure(MinecraftReflection.getItemStackClass())
+                    .withType(MinecraftReflection.getNBTTagCompoundClass()).withTarget(item)
+                    .readField(0);
+            if (literal != null) {
+                AbstractTag<?, ?> tag = NBTFactory.fromLiteral(literal);
+                if (tag != null) {
+                    return (CompoundTag) tag;
+                }
+            }
+            return ItemTag.EMPTY;
+        }
+    }
+
     public static void setItemTag(ItemStack item, ItemTag tag) {
         setItemTag(ItemFactory.getHandleItem(item), tag);
     }
@@ -124,9 +165,10 @@ public class ItemFactory {
         if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_20_5)) {
             // TODO: fix
         } else {
+            Object literal = NBTFactory.toLiteral(tag.asNBT().get());
             ReflectStructure.Provider.acquireStructure(MinecraftReflection.getItemStackClass())
                     .withType(MinecraftReflection.getNBTTagCompoundClass()).withTarget(item)
-                    .writeField(0, tag.asNBT().get().getHandle());
+                    .writeField(0, literal);
         }
     }
 }

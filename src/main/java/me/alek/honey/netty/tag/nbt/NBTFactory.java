@@ -4,24 +4,13 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
-import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.TypeSerializer;
-import me.alek.honey.netty.structure.IStructureModifier;
 import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.converters.Converters;
-import me.alek.honey.netty.structure.converters.ListConverter;
-import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
-import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.util.protocol.NetProtocol;
-import me.alek.honey.util.reflection.ConstructorInvoker;
-import me.alek.honey.util.reflection.ItemFactory;
-import me.alek.honey.util.reflection.MinecraftReflection;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.Bukkit;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -29,18 +18,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class NBTFactory {
 
     public static final String NAMED_COMPOUND_TAG_NAME = "";
 
-    public static class Serializer implements TypeSerializer<AbstractTag<?, ?, ?>, TypeSerializer.TypeContext.TwoArgs<NBTVisitor, Boolean>> {
+    public static class Serializer implements TypeSerializer<AbstractTag<?, ?>, TypeSerializer.TypeContext.TwoArgs<NBTVisitor, Boolean>> {
 
         @Override
-        public AbstractTag<?, ?, ?> read(PacketDataSerializer buf, TypeContext.TwoArgs<NBTVisitor, Boolean> context) throws DecoderException {
+        public AbstractTag<?, ?> read(PacketDataSerializer buf, TypeContext.TwoArgs<NBTVisitor, Boolean> context) throws DecoderException {
             try (ByteBufInputStream stream = new ByteBufInputStream(buf)) {
                 if (context.getSecond()) {
                     return NBTFactory.readCompoundTag(stream, (NBTVisitor.In) context.getFirst());
@@ -53,12 +40,12 @@ public class NBTFactory {
         }
 
         @Override
-        public PacketDataSerializer write(PacketDataSerializer buf, AbstractTag<?, ?, ?> val, TypeContext.TwoArgs<NBTVisitor, Boolean> context) throws EncoderException {
+        public PacketDataSerializer write(PacketDataSerializer buf, AbstractTag<?, ?> val, TypeContext.TwoArgs<NBTVisitor, Boolean> context) throws EncoderException {
             return write0(buf, val, context);
         }
 
         @SuppressWarnings("unchecked")
-        public <TAG extends AbstractTag<?, ?, TAG>> PacketDataSerializer write0(PacketDataSerializer buf, AbstractTag<?, ?, ?> tag, TypeContext.TwoArgs<NBTVisitor, Boolean> context) throws EncoderException {
+        public <TAG extends AbstractTag<?, TAG>> PacketDataSerializer write0(PacketDataSerializer buf, AbstractTag<?, ?> tag, TypeContext.TwoArgs<NBTVisitor, Boolean> context) throws EncoderException {
             try (ByteBufOutputStream stream = new ByteBufOutputStream(buf)) {
                 if (context.getSecond()) {
                     return (PacketDataSerializer) NBTFactory.writeCompoundTag(stream, (CompoundTag) tag, (NBTVisitor.Out) context.getFirst()).buffer();
@@ -90,7 +77,7 @@ public class NBTFactory {
         return readTag(stream, visitor, type);
     }
 
-    private static AbstractTag<?, ?, ?> readTag(ByteBufInputStream stream, NBTVisitor.In visitor) throws IOException {
+    private static AbstractTag<?, ?> readTag(ByteBufInputStream stream, NBTVisitor.In visitor) throws IOException {
         stream.mark(0);
         byte id = stream.readByte();
         TagType type = TagType.getFromTypeId(id);
@@ -108,7 +95,7 @@ public class NBTFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private static <TAG extends AbstractTag<?, ?, TAG>> TAG readTag(ByteBufInputStream stream, NBTVisitor.In visitor, TagType type) throws IOException {
+    private static <TAG extends AbstractTag<?, TAG>> TAG readTag(ByteBufInputStream stream, NBTVisitor.In visitor, TagType type) throws IOException {
         return (TAG) type.getCodec().read(new DataInputStream(stream), visitor.limiter(), visitor);
     }
 
@@ -133,7 +120,7 @@ public class NBTFactory {
         return stream;
     }
 
-    private static <TAG extends AbstractTag<?, ?, TAG>> ByteBufOutputStream writeTag(ByteBufOutputStream stream, TAG tag, NBTVisitor.Out visitor) throws IOException {
+    private static <TAG extends AbstractTag<?, TAG>> ByteBufOutputStream writeTag(ByteBufOutputStream stream, TAG tag, NBTVisitor.Out visitor) throws IOException {
         TagType type = tag.getType();
         if (type == CompoundTag.TYPE.get()) {
             return writeCompoundTag(stream, (CompoundTag) tag, visitor);
@@ -145,16 +132,16 @@ public class NBTFactory {
         return stream;
     }
 
-    public static int getAmountOfTags(AbstractTag<?, ?, ?> tag) {
-        if (tag instanceof AbstractArrayTag) {
+    public static int getAmountOfTags(AbstractTag<?, ?> tag) {
+        if (tag instanceof ArrayTag) {
             int i = 0;
-            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?, ?>) tag).getValues()) {
+            for (AbstractTag<?, ?> tagIn : ((ArrayTag<?, ?, ?>) tag).getTags()) {
                 i += getAmountOfTags(tagIn);
             }
             return i;
         } else if (tag instanceof CompoundTag) {
             int i = 0;
-            for (AbstractTag<?, ?, ?> tagIn : ((CompoundTag) tag).getBases()) {
+            for (AbstractTag<?, ?> tagIn : ((CompoundTag) tag).getValues()) {
                 i += getAmountOfTags(tagIn);
             }
             return i;
@@ -163,14 +150,14 @@ public class NBTFactory {
         }
     }
 
-    public static int getComplexityOfTag(AbstractTag<?, ?, ?> tag) {
+    public static int getComplexityOfTag(AbstractTag<?, ?> tag) {
         return getComplexityOfTag0(tag, 0);
     }
 
-    private static int getComplexityOfTag0(AbstractTag<?, ?, ?> tag, int complexity) {
-        if (tag instanceof AbstractArrayTag) {
+    private static int getComplexityOfTag0(AbstractTag<?, ?> tag, int complexity) {
+        if (tag instanceof ArrayTag) {
             int max = complexity;
-            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?, ?>) tag).getValues()) {
+            for (AbstractTag<?, ?> tagIn : ((ArrayTag<?, ?, ?>) tag).getTags()) {
                 int complexity0 = getComplexityOfTag0(tagIn, complexity + 1);
                 if (complexity0 > max) {
                     max = complexity0;
@@ -179,7 +166,7 @@ public class NBTFactory {
             return max;
         } else if (tag instanceof CompoundTag) {
             int max = complexity;
-            for (AbstractTag<?, ?, ?> tagIn : ((CompoundTag) tag).getBases()) {
+            for (AbstractTag<?, ?> tagIn : ((CompoundTag) tag).getValues()) {
                 int complexity0 = getComplexityOfTag0(tagIn, complexity + 1);
                 if (complexity0 > max) {
                     max = complexity0;
@@ -191,20 +178,20 @@ public class NBTFactory {
         }
     }
 
-    public static <T extends AbstractTag<?, ?, ?>> List<T> getAllTagsAs(AbstractTag<?, ?, ?> tag, TagType type) {
+    public static <T extends AbstractTag<?, ?>> List<T> getAllTagsAs(AbstractTag<?, ?> tag, TagType type) {
         List<T> tags = new ArrayList<>();
         getAllTagsAs0(tag, type, tags);
         return tags;
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends AbstractTag<?, ?, ?>> void getAllTagsAs0(AbstractTag<?, ?, ?> tag, TagType type, List<T> tags) {
-        if (tag instanceof AbstractArrayTag) {
-            for (AbstractTag<?, ?, ?> tagIn : ((AbstractArrayTag<?, ?, ?>) tag).getValues()) {
+    private static <T extends AbstractTag<?, ?>> void getAllTagsAs0(AbstractTag<?, ?> tag, TagType type, List<T> tags) {
+        if (tag instanceof ArrayTag) {
+            for (AbstractTag<?, ?> tagIn : ((ArrayTag<?, ?, ?>) tag).getTags()) {
                 getAllTagsAs0(tagIn, type, tags);
             }
         } else if (tag instanceof CompoundTag) {
-            for (AbstractTag<?, ?, ?> tagIn : ((CompoundTag) tag).getBases()) {
+            for (AbstractTag<?, ?> tagIn : ((CompoundTag) tag).getValues()) {
                 getAllTagsAs0(tagIn, type, tags);
             }
         }
@@ -214,158 +201,112 @@ public class NBTFactory {
         }
     }
 
-    private static final ReflectStructure<Object, ?> ITEM_STACK_STRUCTURE = new ReflectStructure<>(MinecraftReflection.getItemStackClass());
-    private static final ReflectStructure<Object, AbstractTag<?, ?, ?>> TAG_STRUCTURE = ITEM_STACK_STRUCTURE
-            .withType(MinecraftReflection.getNBTTagCompoundClass(), TagConverter.CONVERTER);
+    public static Object toLiteral(AbstractTag<?, ?> tag) {
+        TagType type = tag.getType();
+        if (type == TagType.ARRAY_LEGACY || type == TagType.ARRAY_MODERN) {
+            ArrayTag<?, ?, ?> array = tag.asArray();
+            List<Object> tags = array.getTags().stream()
+                    .map(NBTFactory::toLiteral)
+                    .collect(Collectors.toList());
 
-    public static CompoundTag fromItem(ItemStack item, boolean createIfNone) {
-        if (item.getType() == Material.AIR) {
-            return null;
-        }
+            if (type == TagType.ARRAY_LEGACY) {
+                Object literal = type.getInternalInvoker().invoke();
 
-        Object nmsItem;
-        try {
-            nmsItem = ItemFactory.getHandleItem(item);
-            if (nmsItem == null) {
-                return null;
+                ReflectStructure<?, ?> structure = ReflectStructure.Provider.acquireStructure(literal.getClass());
+                structure.withType(List.class).withTarget(literal).writeField(0, tags);
+                structure.withBytes().withTarget(literal).writeField(0, array.getTypeOf().getId());
+
+                return literal;
+            } else {
+                return type.getInternalInvoker().invoke(tags, array.getTypeOf().getId());
             }
-        } catch (Exception ex) {
-            HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to get handle item", ex);
-            return null;
-        }
+        } else if (type == TagType.COMPOUND_LEGACY || type == TagType.COMPOUND_MODERN) {
+            CompoundTag compound = tag.asCompound();
+            Map<String, Object> tags = compound.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> toLiteral(entry.getValue())));
 
-        IStructureModifier<AbstractTag<?, ?, ?>> structureModifier = TAG_STRUCTURE.withTarget(nmsItem);
-        AbstractTag<?, ?, ?> base = structureModifier.readField(0);
-        if (base == null && createIfNone) {
-            try {
-                CompoundTag nbt = new CompoundTag();
-                structureModifier.writeField(0, nbt);
-                return nbt;
-            } catch (Exception ex) {
-                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to create tag", ex);
-                return null;
+            if (type == TagType.COMPOUND_LEGACY) {
+                Object literal = type.getInternalInvoker().invoke();
+
+                ReflectStructure.Provider.acquireStructure(literal.getClass())
+                        .withType(Map.class).withTarget(literal)
+                        .writeField(0, tags);
+
+                return literal;
+            } else {
+                return type.getInternalInvoker().invoke(tags);
             }
-        }
-
-        if (base != null && base.getType() != CompoundTag.TYPE.get()) {
-            throw new IllegalStateException("Item with invalid compound tag");
-        }
-
-        return (CompoundTag) base;
-    }
-
-    public static <T extends AbstractTag<K, V, T>, K, V> T fromDelegate(Object handle) {
-        return copyFromType(getType(handle, false), handle);
-    }
-
-    public static <T extends AbstractTag<K, V, T>, K, V> T copyBase(T base) {
-        return copyFromType(base.getType(), base.getHandle());
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T extends AbstractTag<K, V, T>, K, V> T copyFromType(TagType type, Object handle) {
-        ConstructorInvoker<? extends AbstractTag<?, ?, ?>> constructorInvoker = type.getBridgeWrapperInvoker();
-        if (type == ArrayTag.TYPE.get()) {
-            return (T) constructorInvoker.invoke(handle, getArrayType(handle));
+        } else if (type == TagType.END) {
+            return type.getInternalInvoker().invoke();
         } else {
-            return (T) constructorInvoker.invoke(handle);
+            return type.getInternalInvoker().invoke(tag.asPrimitive().getValue());
         }
     }
 
-    public static TagType getArrayType(Object handle) {
-        IStructureModifier<Byte> byteModifier = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getNBTTagListClass())
-                .withBytes()
-                .withTarget(handle);
-        byte typeId = byteModifier.readField(0);
-        if (typeId != 0) {
-            return TagType.getFromTypeId(typeId);
+    public static AbstractTag<?, ?> fromLiteral(Object literal) {
+        TagType type = TagType.getFromInternalClass(literal.getClass());
+        if (type == null) {
+            return null; // not a nbt tag
         }
 
-        IStructureModifier<ListConverter<Object, AbstractTag<?, ?, ?>>> arrayStructure = ReflectStructure.Provider.acquireStructure(handle.getClass())
-                .withWeakType(List.class, Converters.<AbstractTag<?, ?, ?>>getNBTListConverter())
-                .withTarget(handle);
-        List<? extends AbstractTag<?, ?, ?>> array = arrayStructure.readFieldAndApplyMapping(0)
-                .getDelegatedList();
-        if (array.isEmpty()) {
-            return null;
+        Object val = ReflectStructure.Provider.acquireStructure(literal.getClass())
+                .withType(type.getDataTypeClass()).withTarget(literal)
+                .readField(0);
+        if (val == null) {
+            return null; // no value, and we don't want tags with null value
         }
 
-        AbstractTag<?, ?, ?> value = array.get(0);
-        if (value == null) {
-            return null;
-        }
-
-        return value.getType();
+        return createTagOfExpectedType(type, val);
     }
 
-    public static TagType getType(Object handle, boolean ignoreNestedArrays) {
-        IStructureModifier<Byte> structureModifier = ReflectStructure.Provider.acquireStructure(MinecraftReflection.getNBTBaseClass())
-                .withBytes()
-                .withTarget(handle);
-        byte typeId;
-        if (NetProtocol.getProtocol().isOlderThan(NetProtocol.v1_17)) {
-            typeId = structureModifier.invokeMethod(null, "getTypeId", 0);
-        } else {
-            typeId = structureModifier.invokeMethod(null,
-                    (index, invoker) -> invoker.getHandle().getDeclaringClass().equals(MinecraftReflection.getNBTBaseClass()));
-        }
-
-        TagType type = TagType.getFromTypeId(typeId);
-        if (type != null && type == ArrayTag.TYPE.get() && !ignoreNestedArrays) {
-            TagType arrayType = getArrayType(handle);
-            if (arrayType.hasCollection()) {
-                switch (arrayType.getCollection()) {
-                    case COMPOUND:
-                        return GeneticArrayTypes.ArrayOfCompoundTag.TYPE.get();
-                    case ARRAY:
-                        return GeneticArrayTypes.ArrayOfArrayTag.TYPE.get();
-                }
-            }
-        }
-
-        return type;
-    }
-
-    public static AbstractTag<?, ?, ?> createTag(Object value) {
+    public static AbstractTag<?, ?> createTag(Object value) {
         if (AbstractTag.class.isAssignableFrom(value.getClass())) {
-            return (AbstractTag<?, ?, ?>) value;
+            return (AbstractTag<?, ?>) value;
         }
 
         TagType type = TagType.getFromClass(value.getClass());
         if (type == null) {
             return null;
+        } else {
+            return createTag(type, value);
         }
-        return createTag(type, value);
     }
 
-    public static AbstractTag<?, ?, ?> createTag(TagType type, Object value) {
+    public static AbstractTag<?, ?> createTagOfExpectedType(TagType type, Object value) {
+        if (AbstractTag.class.isAssignableFrom(value.getClass())) {
+            return (AbstractTag<?, ?>) value;
+        }
+
+        TagType got = TagType.getFromClass(value.getClass());
+        if (got == null || !got.equals(type)) {
+            return null;
+        } else {
+            return createTag(type, value);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static AbstractTag<?, ?> createTag(TagType type, Object value) {
         if (type == ArrayTag.TYPE.get()) {
             List<?> array = (List<?>) value;
             TagType of = null;
             if (!array.isEmpty()) {
                 Object first = array.get(0);
-                if (List.class.isAssignableFrom(first.getClass())) {
-                    type = GeneticArrayTypes.ArrayOfArrayTag.TYPE.get();
-                } else if (Map.class.isAssignableFrom(first.getClass())) {
-                    type = GeneticArrayTypes.ArrayOfCompoundTag.TYPE.get();
-                } else {
-                    of = TagType.getFromClass(first.getClass());
-                }
+                of = TagType.getFromClass(first.getClass());
+            }
+            if (of == null) {
+                of = TagType.END;
             }
 
-            if (type == ArrayTag.TYPE.get()) {
-                return type.getWrapperInvoker().invoke(of, array);
+            if (of == CompoundTag.TYPE.get() || of == ArrayTag.TYPE.get()) {
+                return new ArrayTag<>(of, array);
             } else {
-                List<?> converted = array.stream()
-                        .map(NBTFactory::createTag)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
-                return type.getWrapperInvoker().invoke(converted);
+                return new PrimitiveArrayTag<>(of, array);
             }
         } else if (type == CompoundTag.TYPE.get()) {
-            return type.getWrapperInvoker().invoke(value);
+            return new CompoundTag((Map<String, Object>) value);
         } else {
-            return type.getWrapperInvoker().invoke(type, value);
+            return new PrimitiveTag<>(type, value);
         }
     }
 }

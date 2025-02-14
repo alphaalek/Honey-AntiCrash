@@ -11,10 +11,6 @@ public enum TagTypeCollection {
     COMPOUND,
 
     ARRAY,
-
-    ARRAY_OF_COMPOUND,
-
-    ARRAY_OF_ARRAY
     ;
 
     @Retention(RetentionPolicy.RUNTIME)

@@ -1,7 +1,6 @@
 package me.alek.honey.netty.tag.rewriter.impl;
 
 import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
-import com.google.gson.stream.MalformedJsonException;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.Rewritable;
@@ -9,7 +8,7 @@ import me.alek.honey.netty.codec.validation.CodecContext;
 import me.alek.honey.netty.tag.ComponentHelper;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.TagType;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.PrimitiveArrayTag;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
 import net.kyori.adventure.text.Component;
@@ -68,10 +67,12 @@ public class NBTWrittenBookRewriter implements InTagRewriter.NBTRewriter {
     @Override
     public Rewritable.Result<CompoundTag> rewrite(NetProtocol protocol, TagRewritingContext<CompoundTag> context) {
         CompoundTag tag = context.tag();
-        ArrayTag<String> pages = new ArrayTag<>(TagType.STRING);
+        PrimitiveArrayTag<String> pages = new PrimitiveArrayTag<>(TagType.STRING);
+
+        Bukkit.getLogger().info("Tag " + tag);
 
         int normalpages = 0;
-        for (String page : tag.<String>getArrayOf("pages", TagType.STRING)) {
+        for (String page : tag.<String>getPrimitiveArrayOf("pages", TagType.STRING)) {
             Rewritable.Result<TextComponent> rewritable = readRewritablePage(page, context);
             if (rewritable.isRewritten()) {
                 pages.add(serializePage(rewritable.get(), context));

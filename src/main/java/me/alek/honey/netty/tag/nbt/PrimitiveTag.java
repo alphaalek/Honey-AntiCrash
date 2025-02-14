@@ -1,42 +1,55 @@
 package me.alek.honey.netty.tag.nbt;
 
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.converters.ApplicableConverter;
-import me.alek.honey.util.protocol.NetProtocol;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import java.util.function.Function;
-
-public class PrimitiveTag<T> extends AbstractTag<T, T, PrimitiveTag<T>> {
+public class PrimitiveTag<T> extends AbstractTag<T, PrimitiveTag<T>> {
 
     public static final PrimitiveTag<Void> END = new PrimitiveTag<>(TagType.END);
 
-    public PrimitiveTag(Object base) {
-        super(base);
-    }
+    private T value;
 
     public PrimitiveTag(TagType type) {
-        super(createRaw(type));
-    }
-
-    private static Object createRaw(TagType type) {
-        if (NetProtocol.getProtocol().isNewerThanOrEqual(NetProtocol.v1_15) && !type.equals(TagType.END)) {
-            throw new IllegalStateException("Can only create raw types up to 1.14.4");
-        }
-        return type.getNMSInvoker().invoke();
+        super(type);
     }
 
     public PrimitiveTag(TagType type, T value) {
-        super(type.getNMSInvoker().invoke(value));
+        this(type);
+        this.value = value;
+    }
+
+    public T getValue() {
+        return this.value;
+    }
+
+    public void setValue(T val) {
+        this.value = val;
     }
 
     @Override
-    public ApplicableConverter<T, T> getNBTConverter() {
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Function<ReflectStructure<Object, ?>, ReflectStructure<T, T>> applyStructure(ApplicableConverter<T, T> converter) {
-        return (structure) -> structure.withType((Class<T>) getType().getDataTypeClass());
+    public String toString() {
+        if (this.type.equals(TagType.STRING)) {
+            return "\"" + ((String) this.value)
+                    .replaceAll("\\\\", "\\\\\\\\")
+                    .replaceAll("\n", "\\\\n")
+                    .replaceAll("\r", "\\\\r")
+                    .replaceAll("\t", "\\\\t")
+                    .replaceAll("\b", "\\\\b")
+                    .replaceAll("\f", "\\\\f")
+                    .replaceAll("\"", "\\\\\"")
+                    + "\"";
+        } else if (this.type.equals(TagType.ARRAY_OF_INT)) {
+            return "[" + Arrays.stream((int[]) this.value).mapToObj(String::valueOf).collect(Collectors.joining("")) + "]";
+        } else if (this.type.equals(TagType.ARRAY_OF_LONG)) {
+            return "[" + Arrays.stream((long[]) this.value).mapToObj(String::valueOf).collect(Collectors.joining("")) + "]";
+        } else if (this.type.equals(TagType.ARRAY_OF_BYTE)) {
+            byte[] array = (byte[]) this.value;
+            return "[" + IntStream.range(0, array.length).map(i -> array[i]).mapToObj(String::valueOf).collect(Collectors.joining("")) + "]";
+        } else if (this.type.equals(TagType.END)) {
+            return "";
+        } else {
+            return String.valueOf(this.value);
+        }
     }
 }

@@ -78,7 +78,7 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteC
 
             // will always represent nbt as we are before 1.17.1
             CompoundTag tag = stack.getTag().asNBT().get();
-            for (String page : tag.<String>getArrayOf(BookTag.PAGES, TagType.STRING)) {
+            for (String page : tag.<String>getPrimitiveArrayOf(BookTag.PAGES, TagType.STRING)) {
                 this.pages.add(page);
             }
             if (this.signing) {

@@ -2,7 +2,6 @@ package me.alek.honey.netty.modelwrappers;
 
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
-import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -22,12 +21,10 @@ import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.BookTag;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.TagType;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
+import me.alek.honey.netty.tag.nbt.PrimitiveArrayTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -152,7 +149,7 @@ public class WrappedImmutableItemStack implements Cloneable {
                 }
 
                 if (item.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
-                    ArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
+                    PrimitiveArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
                     if (lore != null) {
                         for (String line : lore) {
                             try {

@@ -3,9 +3,6 @@ package me.alek.honey.netty.tag.nbt;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.types.Utf8String;
 import me.alek.honey.netty.tag.FallbackDefaultCodecException;
-import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
-import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 
 import java.io.DataInputStream;
@@ -320,14 +317,14 @@ public class CodecTypes {
         }
     }
 
-    public static class ArrayCodec<T extends AbstractTag<?, ?, T>, R extends AbstractArrayTag<T, R, ?>> implements NBTCodec<R> {
+    public static class ArrayCodec<T extends AbstractTag<?, T>, R extends ArrayTag<T, ?, R>> implements NBTCodec<R> {
 
         private static final int ARRAY_BYTES = 24;
         private static final int ARRAY_ELEMENT_BYTES = 4;
 
         @Override
         public void write(DataOutputStream output, R arrayTag, NBTVisitor.Out visitor) throws IOException {
-            List<T> array = arrayTag.getValues();
+            List<T> array = arrayTag.getTags();
             TagType type = arrayTag.getTypeOf();
 
             output.writeByte(type.getId());
@@ -370,19 +367,10 @@ public class CodecTypes {
             limiter.setNestingDepthLevel(depth);
 
             R wrappedArray;
-            if (type.hasCollection()) {
-                switch (type.getCollection()) {
-                    case ARRAY:
-                        wrappedArray = (R) createArrayOfArray(array);
-                        break;
-                    case COMPOUND:
-                        wrappedArray = (R) new GeneticArrayTypes.ArrayOfCompoundTag(array);
-                        break;
-                    default:
-                        throw new IOException("Wrong array type");
-                }
-            } else {
+            if (type == CompoundTag.TYPE.get() || type == ArrayTag.TYPE.get()) {
                 wrappedArray = (R) new ArrayTag<>(type, array);
+            } else {
+                wrappedArray = (R) new PrimitiveArrayTag<>(type, array);
             }
 
             visitor.visitArray(array, type);
@@ -408,10 +396,6 @@ public class CodecTypes {
             }
             return array;
         }
-
-        private <ARRAY extends GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN, C>, IN extends AbstractArrayTag<C, IN, ?>, C extends AbstractTag<?, ?, C>> GeneticArrayTypes.ArrayOfArrayTag<?, IN, C> createArrayOfArray(Iterable<T> array) {
-            return new GeneticArrayTypes.ArrayOfArrayTag<ARRAY, IN, C>(array);
-        }
     }
 
     public static class CompoundCodec implements NBTCodec<CompoundTag> {
@@ -420,9 +404,8 @@ public class CodecTypes {
         private static final int COMPOUND_ELEMENT_BYTES = 8;
 
         @Override
-        public void write(DataOutputStream output, CompoundTag compoundTag, NBTVisitor.Out visitor) throws IOException {
-            Map<String, AbstractTag<?, ?, ?>> compound = compoundTag.getValue().getDelegatedMap();
-            for (Map.Entry<String, AbstractTag<?, ?, ?>> entry : compound.entrySet()) {
+        public void write(DataOutputStream output, CompoundTag compound, NBTVisitor.Out visitor) throws IOException {
+            for (Map.Entry<String, AbstractTag<?, ?>> entry : compound.entrySet()) {
                 if (entry.getValue().getType() == TagType.END) {
                     continue;
                 }
@@ -436,25 +419,25 @@ public class CodecTypes {
                 }
 
                 String key = entry.getKey();
-                AbstractTag<?, ?, ?> tag = entry.getValue();
+                AbstractTag<?, ?> tag = entry.getValue();
                 visitor.visitCompoundElement(key, tag);
 
                 output.writeByte(tag.getType().getId());
                 output.writeUTF(key);
                 tag.write(output, visitor);
             }
-            visitor.visitCompound(compound);
+            visitor.visitCompound(compound.getDelegate());
             output.writeByte(TagType.END.getId());
         }
 
         @Override
         public CompoundTag read(DataInputStream input, TagLimiter limiter, NBTVisitor.In visitor) throws IOException {
-            Map<String, AbstractTag<?, ?, ?>> compound;
+            Map<String, AbstractTag<?, ?>> compound;
             int depth = limiter.incrementNestingDepth();
             try {
                 compound = visitor.visitAtCompound(input, limiter);
-                for (Map.Entry<String, AbstractTag<?, ?, ?>> entry : compound.entrySet()) {
-                    AbstractTag<?, ?, ?> tag = entry.getValue();
+                for (Map.Entry<String, AbstractTag<?, ?>> entry : compound.entrySet()) {
+                    AbstractTag<?, ?> tag = entry.getValue();
                     if (tag.getType().equals(TagType.END)) {
                         throw new IOException("Illegal type");
                     }
@@ -474,8 +457,8 @@ public class CodecTypes {
                     .incrementBytes(limiter, COMPOUND_ELEMENT_BYTES * (compound.size() + 1));
         }
 
-        private Map<String, AbstractTag<?, ?, ?>> readComponent(DataInputStream input, TagLimiter limiter, NBTVisitor.In visitor) throws IOException {
-            Map<String, AbstractTag<?, ?, ?>> compound = new HashMap<>();
+        private Map<String, AbstractTag<?, ?>> readComponent(DataInputStream input, TagLimiter limiter, NBTVisitor.In visitor) throws IOException {
+            Map<String, AbstractTag<?, ?>> compound = new HashMap<>();
             byte b;
             while ((b = input.readByte()) != TagType.END.getId()) {
                 TagType type = TagType.getFromTypeId(b);
@@ -484,9 +467,9 @@ public class CodecTypes {
                 }
 
                 String key;
-                AbstractTag<?, ?, ?> tag;
+                AbstractTag<?, ?> tag;
                 try {
-                    Map.Entry<String, AbstractTag<?, ?, ?>> entry = visitor.visitAtCompoundInsert(input, type);
+                    Map.Entry<String, AbstractTag<?, ?>> entry = visitor.visitAtCompoundInsert(input, type);
                     key = entry.getKey();
                     tag = entry.getValue();
                 } catch (FallbackDefaultCodecException ex) {

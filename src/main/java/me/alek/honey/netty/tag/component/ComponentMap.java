@@ -76,7 +76,7 @@ public class ComponentMap implements ItemTag {
                         val = type.read(wrapper);
                         // convert nbt to honey implementation, as it's superior ^_^
                         if (val instanceof NBTCompound) {
-                            AbstractTag<?, ?, ?> tag = PEConverter.convertPETag((NBTCompound) val);
+                            AbstractTag<?, ?> tag = PEConverter.convertPETag((NBTCompound) val);
                             if (tag.getType() != CompoundTag.TYPE.get()) {
                                 throw new DecoderException("Invalid nbt: expected compound tag, but got: " + tag.getType());
                             }

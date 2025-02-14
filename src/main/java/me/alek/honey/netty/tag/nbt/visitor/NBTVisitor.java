@@ -80,22 +80,22 @@ public interface NBTVisitor extends CodecVisitor {
         }
 
         @Override
-        public <TAG extends AbstractTag<?, ?, TAG>> void visitArray(List<TAG> array, TagType type) {
+        public <TAG extends AbstractTag<?, TAG>> void visitArray(List<TAG> array, TagType type) {
 
         }
 
         @Override
-        public void visitArrayElement(AbstractTag<?, ?, ?> val) {
+        public void visitArrayElement(AbstractTag<?, ?> val) {
 
         }
 
         @Override
-        public void visitCompound(Map<String, AbstractTag<?, ?, ?>> compound) {
+        public void visitCompound(Map<String, AbstractTag<?, ?>> compound) {
 
         }
 
         @Override
-        public void visitCompoundElement(String key, AbstractTag<?, ?, ?> tag) {
+        public void visitCompoundElement(String key, AbstractTag<?, ?> tag) {
 
         }
 
@@ -199,22 +199,22 @@ public interface NBTVisitor extends CodecVisitor {
             }
 
             @Override
-            public <TAG extends AbstractTag<?, ?, TAG>> List<TAG> visitAtArray(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException {
+            public <TAG extends AbstractTag<?, TAG>> List<TAG> visitAtArray(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException {
                 throw new FallbackDefaultCodecException();
             }
 
             @Override
-            public Map<String, AbstractTag<?, ?, ?>> visitAtCompound(DataInputStream stream, TagLimiter limiter) throws FallbackDefaultCodecException, IOException {
+            public Map<String, AbstractTag<?, ?>> visitAtCompound(DataInputStream stream, TagLimiter limiter) throws FallbackDefaultCodecException, IOException {
                 throw new FallbackDefaultCodecException();
             }
 
             @Override
-            public Map.Entry<String, AbstractTag<?, ?, ?>> visitAtCompoundInsert(DataInputStream stream, TagType type) throws FallbackDefaultCodecException, IOException {
+            public Map.Entry<String, AbstractTag<?, ?>> visitAtCompoundInsert(DataInputStream stream, TagType type) throws FallbackDefaultCodecException, IOException {
                 throw new FallbackDefaultCodecException();
             }
 
             @Override
-            public AbstractTag<?, ?, ?> visitAtCompoundInsertTag(DataInputStream stream, TagLimiter limiter, TagType type, String key) throws FallbackDefaultCodecException, IOException {
+            public AbstractTag<?, ?> visitAtCompoundInsertTag(DataInputStream stream, TagLimiter limiter, TagType type, String key) throws FallbackDefaultCodecException, IOException {
                 throw new FallbackDefaultCodecException();
             }
 
@@ -224,7 +224,7 @@ public interface NBTVisitor extends CodecVisitor {
             }
 
             @Override
-            public <TAG extends AbstractTag<?, ?, TAG>> TAG visitAtArrayInsert(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException {
+            public <TAG extends AbstractTag<?, TAG>> TAG visitAtArrayInsert(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException {
                 throw new FallbackDefaultCodecException();
             }
         }
@@ -253,17 +253,17 @@ public interface NBTVisitor extends CodecVisitor {
 
         String visitAtString(DataInputStream stream, TagLimiter limiter) throws FallbackDefaultCodecException, IOException;
 
-        <TAG extends AbstractTag<?, ?, TAG>> List<TAG> visitAtArray(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException;
+        <TAG extends AbstractTag<?, TAG>> List<TAG> visitAtArray(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException;
 
-        Map<String, AbstractTag<?, ?, ?>> visitAtCompound(DataInputStream stream, TagLimiter limiter) throws FallbackDefaultCodecException, IOException;
+        Map<String, AbstractTag<?, ?>> visitAtCompound(DataInputStream stream, TagLimiter limiter) throws FallbackDefaultCodecException, IOException;
 
-        Map.Entry<String, AbstractTag<?, ?, ?>> visitAtCompoundInsert(DataInputStream stream, TagType type) throws FallbackDefaultCodecException, IOException, IOException;
+        Map.Entry<String, AbstractTag<?, ?>> visitAtCompoundInsert(DataInputStream stream, TagType type) throws FallbackDefaultCodecException, IOException, IOException;
 
-        AbstractTag<?, ?, ?> visitAtCompoundInsertTag(DataInputStream stream, TagLimiter limiter, TagType type, String key) throws FallbackDefaultCodecException, IOException;
+        AbstractTag<?, ?> visitAtCompoundInsertTag(DataInputStream stream, TagLimiter limiter, TagType type, String key) throws FallbackDefaultCodecException, IOException;
 
         String visitAtCompoundInsertKey(DataInputStream stream, TagType type) throws FallbackDefaultCodecException, IOException;
 
-        <TAG extends AbstractTag<?, ?, TAG>> TAG visitAtArrayInsert(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException, IOException;
+        <TAG extends AbstractTag<?, TAG>> TAG visitAtArrayInsert(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException, IOException;
     }
 
     interface Out extends NBTVisitor {
@@ -290,19 +290,19 @@ public interface NBTVisitor extends CodecVisitor {
         abstract class Adapter extends NBTVisitor.Adapter implements Out {
 
             @Override
-            public <TAG extends AbstractTag<?, ?, TAG>> TAG visitAtArrayFlush(DataOutputStream stream, TAG tag) throws FallbackDefaultCodecException {
+            public <TAG extends AbstractTag<?, TAG>> TAG visitAtArrayFlush(DataOutputStream stream, TAG tag) throws FallbackDefaultCodecException {
                 throw new FallbackDefaultCodecException();
             }
 
             @Override
-            public Map.Entry<String, AbstractTag<?, ?, ?>> visitAtCompoundFlush(DataOutputStream stream, String key, AbstractTag<?, ?, ?> tag) throws FallbackDefaultCodecException {
+            public Map.Entry<String, AbstractTag<?, ?>> visitAtCompoundFlush(DataOutputStream stream, String key, AbstractTag<?, ?> tag) throws FallbackDefaultCodecException {
                 throw new FallbackDefaultCodecException();
             }
         }
 
-        <TAG extends AbstractTag<?, ?, TAG>> TAG visitAtArrayFlush(DataOutputStream stream, TAG tag) throws FallbackDefaultCodecException, IOException;
+        <TAG extends AbstractTag<?, TAG>> TAG visitAtArrayFlush(DataOutputStream stream, TAG tag) throws FallbackDefaultCodecException, IOException;
 
-        Map.Entry<String, AbstractTag<?, ?, ?>> visitAtCompoundFlush(DataOutputStream stream, String key, AbstractTag<?, ?, ?> tag) throws FallbackDefaultCodecException, IOException;
+        Map.Entry<String, AbstractTag<?, ?>> visitAtCompoundFlush(DataOutputStream stream, String key, AbstractTag<?, ?> tag) throws FallbackDefaultCodecException, IOException;
     }
 
     <T> void visitType(TagType type, T val);
@@ -329,13 +329,13 @@ public interface NBTVisitor extends CodecVisitor {
 
     void visitString(String val);
 
-    <TAG extends AbstractTag<?, ?, TAG>> void visitArray(List<TAG> array, TagType type);
+    <TAG extends AbstractTag<?, TAG>> void visitArray(List<TAG> array, TagType type);
 
-    void visitArrayElement(AbstractTag<?, ?, ?> val);
+    void visitArrayElement(AbstractTag<?, ?> val);
 
-    void visitCompound(Map<String, AbstractTag<?, ?, ?>> compound);
+    void visitCompound(Map<String, AbstractTag<?, ?>> compound);
 
-    void visitCompoundElement(String key, AbstractTag<?, ?, ?> tag);
+    void visitCompoundElement(String key, AbstractTag<?, ?> tag);
 
     String visitCompoundKey(String key, TagType type);
 }

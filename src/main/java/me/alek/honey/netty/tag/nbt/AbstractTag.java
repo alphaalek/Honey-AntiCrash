@@ -1,37 +1,16 @@
 package me.alek.honey.netty.tag.nbt;
 
-import me.alek.honey.netty.modelwrappers.WrappedObject;
-import me.alek.honey.netty.structure.IStructureModifier;
-import me.alek.honey.netty.structure.ReflectStructure;
-import me.alek.honey.netty.structure.converters.ApplicableConverter;
-import me.alek.honey.netty.tag.nbt.array.AbstractArrayTag;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 
-public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> extends WrappedObject<AbstractTag<T, V, TAG>> implements Cloneable, Serializable {
+public abstract class AbstractTag<T, TAG extends AbstractTag<T, TAG>> implements Cloneable {
 
-    protected final Object handle;
-    protected final IStructureModifier<V> valueStructureModifier;
+    protected final TagType type;
 
-    private TagType type;
-    private V value;
-
-    public AbstractTag(Object handle) {
-        super(handle);
-        this.handle = handle;
-
-        this.valueStructureModifier = applyStructure(getNBTConverter())
-                .apply(getReflectionStructure())
-                .withTarget(handle);
-
-        getValue();
+    public AbstractTag(TagType type) {
+        this.type = type;
     }
 
     @SuppressWarnings("unchecked")
@@ -52,58 +31,27 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
         return (TAG) this;
     }
 
-    public abstract ApplicableConverter<T, V> getNBTConverter();
-
-    public abstract Function<ReflectStructure<Object, ?>, ReflectStructure<T, V>> applyStructure(ApplicableConverter<T, V> converter);
-
     @SuppressWarnings("unchecked")
     public void write(DataOutputStream output, NBTVisitor.Out visitor) throws IOException {
         getType().<TAG>getCodec().write(output, (TAG) this, visitor);
     }
 
-    public V getValue() {
-        if (this.value == null) {
-            this.value = this.valueStructureModifier.readFieldAndApplyMapping(0);
-        }
-        return this.value;
-    }
-
-    public void setValue(V value) {
-        this.value = value;
-        this.valueStructureModifier.writeField(0, value);
-    }
-
-    public boolean isNull() {
-        return this.handle == null;
-    }
-
-    public <ARRAY extends AbstractArrayTag<?, ARRAY, ?>> ARRAY asArray() {
-        if (getType().getDataTypeClass() != List.class) {
-            return null;
-        }
+    @SuppressWarnings("unchecked")
+    public <ARRAY extends ArrayTag<?, ?, ARRAY>> ARRAY asArray() {
         return (ARRAY) this;
-    }
-
-    public CompoundTag asCompound() {
-        if (getType() != CompoundTag.TYPE.get()) {
-            return null;
-        }
-        return (CompoundTag) this;
     }
 
     @SuppressWarnings("unchecked")
     public <C> PrimitiveTag<C> asPrimitive() {
-        if (getType().hasCollection()) {
-            return null;
-        }
         return (PrimitiveTag<C>) this;
     }
 
+    public CompoundTag asCompound() {
+        return (CompoundTag) this;
+    }
+
     public TagType getType() {
-        if (this.type == null) {
-            this.type = NBTFactory.getType(this.handle, false);
-        }
-        return type;
+        return this.type;
     }
 
     private boolean isType(TagType type) {
@@ -138,16 +86,12 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
         return isType(TagType.DOUBLE);
     }
 
-    public boolean isByteArray() {
-        return isType(TagType.ARRAY_OF_BYTE);
-    }
-
     public boolean isString() {
         return isType(TagType.STRING);
     }
 
     public boolean isArray() {
-        return getType() == ArrayTag.TYPE.get();
+        return getType() == PrimitiveArrayTag.TYPE.get();
     }
 
     public boolean isCompound() {
@@ -162,25 +106,19 @@ public abstract class AbstractTag<T, V, TAG extends AbstractTag<T, V, TAG>> exte
         return isType(TagType.ARRAY_OF_LONG);
     }
 
-    @Override
-    public String toString() {
-        return handle.toString();
+    public boolean isByteArray() {
+        return isType(TagType.ARRAY_OF_BYTE);
     }
 
-    @Override
-    public boolean equals(Object object) {
-        if (!(object instanceof AbstractTag)) {
-            return false;
-        }
-        AbstractTag<?, ?, ?> base = (AbstractTag<?, ?, ?>) object;
-        if (!base.getType().equals(getType())) {
-            return false;
-        }
-        return Objects.equals(getValue(), base.getValue());
-    }
+    public abstract String toString();
 
+    @SuppressWarnings("unchecked")
     @Override
     public TAG clone() {
-        return NBTFactory.copyBase((TAG) this);
+        try {
+            return (TAG) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

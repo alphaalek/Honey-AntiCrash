@@ -18,5 +18,5 @@ public class Types {
 
     public static Rewritable.Serializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.TwoArgs<CodecVisitor.Dynamic<?, ?>, CodecContext>> ITEM_STACK = new WrappedImmutableItemStack.Serializer();
     public static TypeSerializer<ComponentMap, TypeSerializer.TypeContext.OneArg<ComponentMapVisitor>> COMPONENT_MAP = new ComponentMap.Serializer();
-    public static TypeSerializer<AbstractTag<?, ?, ?>, TypeSerializer.TypeContext.TwoArgs<NBTVisitor, Boolean>> NBT = new NBTFactory.Serializer();
+    public static TypeSerializer<AbstractTag<?, ?>, TypeSerializer.TypeContext.TwoArgs<NBTVisitor, Boolean>> NBT = new NBTFactory.Serializer();
 }

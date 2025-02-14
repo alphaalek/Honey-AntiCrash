@@ -5,8 +5,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.modelwrappers.objects.WrappedRenderData;
 import me.alek.honey.netty.tag.nbt.*;
-import me.alek.honey.netty.tag.nbt.array.ArrayTag;
-import me.alek.honey.netty.tag.nbt.array.GeneticArrayTypes;
+import me.alek.honey.netty.tag.nbt.PrimitiveArrayTag;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.structure.converters.Converters;
 import me.alek.honey.netty.structure.converters.MapConverter;
@@ -48,9 +47,9 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (nbt.hasKeyOfType("Enchantments", GeneticArrayTypes.ArrayOfCompoundTag.TYPE.get())) {
-                GeneticArrayTypes.ArrayOfCompoundTag enchantments = nbt.getArrayOfCompound("Enchantments");
-                for (CompoundTag enchantment : enchantments.getValues()) {
+            if (nbt.hasKeyOfType("Enchantments", ArrayTag.TYPE.get())) {
+                ArrayTag<CompoundTag, CompoundTag, ?> enchantments = nbt.getArrayOfCompound("Enchantments");
+                for (CompoundTag enchantment : enchantments.get()) {
                     short level = enchantment.getShort("lvl");
                     if (level > ConfigurationOptions.ItemAnalysis.MAX_ENCHANTMENT_LEVEL) {
                         return true;
@@ -93,8 +92,8 @@ public class ItemValidations {
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             if (nbt.hasKeyOfType("display", CompoundTag.TYPE.get())) {
                 CompoundTag display = nbt.getCompound("display");
-                if (display.hasKeyOfType("Lore", ArrayTag.TYPE.get())) {
-                    ArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
+                if (display.hasKeyOfType("Lore", PrimitiveArrayTag.TYPE.get())) {
+                    PrimitiveArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
                     int counter = 0;
 
                     for (String line : lore) {
@@ -126,7 +125,7 @@ public class ItemValidations {
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_ATTRIBUTE_MODIFIERS
-                    && nbt.hasKeyOfType("AttributeModifiers", GeneticArrayTypes.ArrayOfCompoundTag.TYPE.get());
+                    && nbt.hasKeyOfType("AttributeModifiers", ArrayTag.TYPE.get());
         }
     }
 
@@ -135,43 +134,7 @@ public class ItemValidations {
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
             return ConfigurationOptions.ItemAnalysis.CHECK_CUSTOM_POTION_EFFECTS
-                    && nbt.hasKeyOfType("CustomPotionEffects", GeneticArrayTypes.ArrayOfCompoundTag.TYPE.get());
-        }
-    }
-
-    public static class BookComponentsValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            // TODO: fix
-            /*
-            List<Object> pages = ItemFactory.getPages((BookMeta) item.getSpecificMeta());
-            if (pages == null) {
-                return false;
-            }
-
-            try {
-                for (Object page : pages) {
-                    if (NMS.getIChatBaseComponentClass().isAssignableFrom(page.getClass())) {
-                        JsonElement json = ItemFactory.chatComponentToJson(page);
-                        if (!json.getAsJsonObject().has("text")) {
-                            return true;
-                        }
-                        JsonElement siblings = json.getAsJsonObject().get("extra");
-                        for (JsonElement sibling : siblings.getAsJsonArray()) {
-                            if (!sibling.getAsJsonObject().has("text") || sibling.getAsJsonObject().get("siblings").getAsJsonArray().size() > 0) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            } catch (Exception ex) {
-                // malformed json structure ?
-                return true;
-            }
-            */
-
-            return false;
+                    && nbt.hasKeyOfType("CustomPotionEffects", ArrayTag.TYPE.get());
         }
     }
 
@@ -187,8 +150,8 @@ public class ItemValidations {
                         return true;
                     }
                 }
-                if (display.hasKeyOfType("Lore", ArrayTag.TYPE.get())) {
-                    ArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
+                if (display.hasKeyOfType("Lore", PrimitiveArrayTag.TYPE.get())) {
+                    PrimitiveArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
                     for (String line : lore) {
                         if (checkBadCharacter(line)) {
                             return true;
@@ -242,12 +205,12 @@ public class ItemValidations {
             }
 
             CompoundTag propertiesCompound = skullOwnerCompound.getCompound("Properties");
-            if (!propertiesCompound.hasKeyOfType("textures", GeneticArrayTypes.ArrayOfCompoundTag.TYPE.get())) {
+            if (!propertiesCompound.hasKeyOfType("textures", ArrayTag.TYPE.get())) {
                 return false;
             }
 
-            GeneticArrayTypes.ArrayOfCompoundTag textures = propertiesCompound.getArrayOfCompound("textures");
-            for (CompoundTag texture : textures.getValues()) {
+            ArrayTag<CompoundTag, CompoundTag, ?> textures = propertiesCompound.getArrayOfCompound("textures");
+            for (CompoundTag texture : textures.get()) {
                 if (!texture.hasKeyOfType("Value", TagType.STRING)) {
                     return false;
                 }
@@ -295,7 +258,7 @@ public class ItemValidations {
             }
 
             CompoundTag fireworksCompound = nbt.getCompound("Fireworks");
-            if (!fireworksCompound.hasKeyOfType("Explosions", GeneticArrayTypes.ArrayOfCompoundTag.TYPE.get())) {
+            if (!fireworksCompound.hasKeyOfType("Explosions", ArrayTag.TYPE.get())) {
                 return false;
             }
 
@@ -307,7 +270,7 @@ public class ItemValidations {
 
         @Override
         public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            return nbt.hasKeyOfType("Patterns", GeneticArrayTypes.ArrayOfCompoundTag.TYPE.get())
+            return nbt.hasKeyOfType("Patterns", ArrayTag.TYPE.get())
                     && nbt.getArrayOfCompound("Patterns").size() > ConfigurationOptions.ItemAnalysis.MAX_BANNER_PATTERNS;
         }
     }

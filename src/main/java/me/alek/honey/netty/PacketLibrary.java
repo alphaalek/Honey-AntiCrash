@@ -13,6 +13,7 @@ import me.alek.honey.netty.processor.InternalPacketProcessor;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.processor.PacketProcessor;
 import me.alek.honey.netty.processor.TypeProcessors;
+import me.alek.honey.netty.tag.nbt.TagType;
 import org.bukkit.Bukkit;
 
 import java.util.Arrays;
@@ -56,8 +57,9 @@ public class PacketLibrary {
             Bukkit.getScheduler().scheduleSyncDelayedTask(HoneyPlugin.get().getPlugin(), this.serverInjector::inject);
         }
 
-        PostActions.setup();
+        TagType.load();
 
+        PostActions.setup();
         TypeProcessors.loadImpl();
     }
 

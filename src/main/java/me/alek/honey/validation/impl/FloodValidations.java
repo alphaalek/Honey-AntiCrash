@@ -5,9 +5,11 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.PacketLibrary;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.tag.component.ComponentMap;
 import me.alek.honey.netty.tag.nbt.CompoundTag;
 import me.alek.honey.netty.tag.nbt.NBTFactory;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -17,6 +19,7 @@ import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCreativeInventoryAction;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.IDRegistry;
+import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MinecraftReflection;
 import me.alek.honey.validation.*;
 import me.alek.honey.validation.KeyedVlValidation;
@@ -144,27 +147,30 @@ public class FloodValidations<WP extends SourcedWrappedPacket<WP>> extends Abstr
         private static final int id = IDRegistry.VALIDATION.acquire();
         private static final IDRegistry packetTypes = new IDRegistry();
 
-        static {
-            for (PacketType type : PacketTypes.getTypesAvailable()) {
-                if (!ReflectStructure.Provider.acquireStructure(type.getNmsClass())
-                        .withType(MinecraftReflection.getItemStackClass())
-                        .getAccessors()
-                        .isEmpty()) {
-                    packetTypes.add(type.getHoneyID());
-                }
-            }
-        }
-
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WP packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()
                     && !PacketTypes.isUnknown(packet.getType())
                     && packetTypes.hasID(packet.getType().getHoneyID())) {
 
-                for (ItemStack item : packet.getContainer().getStructure().getItems().readFieldValues()) {
-                    CompoundTag nbt = NBTFactory.fromItem(item, false);
-                    if (nbt != null && !nbt.isEmpty()) {
-                        return ValidationViolationContext.Builder.validate().flag(NBTFactory.getAmountOfTags(nbt)).build();
+                for (Object property : packet.getContainer().getAnyByteWrapped().getProperties().values()) {
+                    if (property instanceof WrappedImmutableItemStack) {
+                        WrappedImmutableItemStack stack = (WrappedImmutableItemStack) property;
+                        if (stack.getTag().isEmpty()) {
+                            continue;
+                        }
+
+                        if (stack.getProtocol().isOlderThan(NetProtocol.v1_20_5)) {
+                            CompoundTag nbt = stack.getTag().asNBT().get();
+                            if (nbt != null) {
+                                return ValidationViolationContext.Builder.validate().flag(NBTFactory.getAmountOfTags(nbt)).build();
+                            }
+                        } else {
+                            ComponentMap componentMap = stack.getTag().asComponentMap().get();
+                            if (componentMap != null) {
+                                return ValidationViolationContext.Builder.validate().flag(componentMap.size()).build();
+                            }
+                        }
                     }
                 }
             }
