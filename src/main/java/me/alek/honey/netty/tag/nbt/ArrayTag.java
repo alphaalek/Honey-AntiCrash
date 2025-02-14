@@ -37,13 +37,9 @@ public class ArrayTag<IN extends AbstractTag<?, IN>, IN_F, ARRAY extends ArrayTa
     }
 
     @Override
-    public String toString() {
-        return toString("");
-    }
-
-    public String toString(String emptyKey) {
+    public String serializeJson(String emptyKey) {
         String inner = this.delegate.stream()
-                .map(tag -> (tag instanceof CompoundTag ? ((CompoundTag) tag).toString(emptyKey) : tag.toString()))
+                .map(tag -> tag.serializeJson(emptyKey))
                 .collect(Collectors.joining(","));
         return "[" + inner + "]";
     }

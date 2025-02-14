@@ -75,7 +75,7 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
             AbstractTag<?, ?> tag = visitAtSerializedPageTag(serializer);
             String str;
             if (tag.getType() == CompoundTag.TYPE.get()) {
-                str = tag.asCompound().toString("text");
+                str = tag.asCompound().serializeJson("text");
             } else {
                 str = tag.toString();
             }

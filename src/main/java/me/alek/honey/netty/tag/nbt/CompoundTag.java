@@ -37,14 +37,9 @@ public class CompoundTag extends AbstractTag<Map<String, AbstractTag<?, ?>>, Com
     }
 
     @Override
-    public String toString() {
-        return toString("");
-    }
-
-    public String toString(String emptyKey) {
+    public String serializeJson(String emptyKey) {
         String inner = this.delegate.entrySet().stream()
-                .map(entry -> "\"" + (entry.getKey().isEmpty() ? emptyKey : entry.getKey()) + "\":"
-                        + (entry.getValue() instanceof CompoundTag ? ((CompoundTag) entry.getValue()).toString(emptyKey) : entry.getValue().toString()))
+                .map(entry -> "\"" + (entry.getKey().isEmpty() ? emptyKey : entry.getKey()) + "\":" + entry.getValue().serializeJson(emptyKey))
                 .collect(Collectors.joining(","));
         return "{" + inner + "}";
     }

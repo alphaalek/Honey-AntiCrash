@@ -110,7 +110,16 @@ public abstract class AbstractTag<T, TAG extends AbstractTag<T, TAG>> implements
         return isType(TagType.ARRAY_OF_BYTE);
     }
 
-    public abstract String toString();
+    @Override
+    public String toString() {
+        // to be overridden
+        return serializeJson("");
+    }
+
+    public String serializeJson(String emptyKey) {
+        // to be overridden
+        return toString();
+    }
 
     @SuppressWarnings("unchecked")
     @Override

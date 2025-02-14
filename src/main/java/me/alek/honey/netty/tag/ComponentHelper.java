@@ -59,7 +59,7 @@ public class ComponentHelper {
         try {
             return AdventureSerializer.parseComponent(json);
         } catch (Exception ex) {
-            throw new DecoderException("Malformed json as component");
+            throw new DecoderException("Malformed json as component", ex);
         }
     }
 

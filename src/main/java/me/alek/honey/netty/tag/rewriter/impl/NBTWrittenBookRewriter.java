@@ -69,8 +69,6 @@ public class NBTWrittenBookRewriter implements InTagRewriter.NBTRewriter {
         CompoundTag tag = context.tag();
         PrimitiveArrayTag<String> pages = new PrimitiveArrayTag<>(TagType.STRING);
 
-        Bukkit.getLogger().info("Tag " + tag);
-
         int normalpages = 0;
         for (String page : tag.<String>getPrimitiveArrayOf("pages", TagType.STRING)) {
             Rewritable.Result<TextComponent> rewritable = readRewritablePage(page, context);
