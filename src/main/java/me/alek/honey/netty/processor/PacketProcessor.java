@@ -13,10 +13,6 @@ import java.util.List;
 
 public interface PacketProcessor {
 
-    <WP extends SourcedWrappedPacket<WP>> PacketContainer<WP> readObjectPacket(HoneyPlayer player, Object objectPacket, PacketContainer<WP> packet);
-
-    <WP extends SourcedWrappedPacket<WP>> PacketContainer<WP> writeObjectPacket(HoneyPlayer player, Object objectPacket);
-
     void addPostAction(PacketType type, Callback.Action callback);
 
     Callback getPostAction(PacketType type);

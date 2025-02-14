@@ -479,16 +479,12 @@ public class ConfigurationOptions {
     @Setting
     public static class Decoder {
 
-        public static boolean USE_DEFAULT;
         public static boolean DISABLE_ITEM_TAG_BLOCK_PLACE;
         public static boolean DISABLE_ITEM_TAG_WINDOW_CLICK;
-        public static boolean DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE;
 
         public static void load() {
-            USE_DEFAULT = file.getBoolean("decoder.use-default");
             DISABLE_ITEM_TAG_BLOCK_PLACE = file.getBoolean("decoder.disable-tag.block-place");
             DISABLE_ITEM_TAG_WINDOW_CLICK = file.getBoolean("decoder.disable-tag.window-click");
-            DISABLE_CREATIVE_SLOT_FOR_NON_CREATIVE = file.getBoolean("decoder.disable-creative-slot-for-non-creative");
         }
     }
     @Setting

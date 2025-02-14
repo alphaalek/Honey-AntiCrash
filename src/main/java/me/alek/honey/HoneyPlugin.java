@@ -15,7 +15,6 @@ import me.alek.honey.listeners.TabCompleteListener;
 import me.alek.honey.listeners.TeleportListener;
 import me.alek.honey.monitor.MonitorManager;
 import me.alek.honey.netty.PacketLibrary;
-import me.alek.honey.netty.PacketLibrarySettings;
 import me.alek.honey.netty.handler.MinecraftHandlers;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketExecutors;
@@ -63,12 +62,12 @@ import java.util.logging.Level;
 
 public class HoneyPlugin implements HoneyAPI {
 
-    public static final String HONEY_CONNECTION_CHANNEL_NAME = "honey-connection";
-    public static final String HONEY_CHANNEL_INITIALIZER_CHANNEL_NAME = "honey-channel-initializer";
-    public static final String HONEY_DEBUGGER_CHANNEL_NAME = "honey-debugger";
-    public static final String HONEY_DECODER_CHANNEL_NAME = "honey-decoder";
-    public static final String HONEY_ENCODER_CHANNEL_NAME = "honey-encoder";
-    public static final String HONEY_FILTER_CHANNEL_NAME = "honey-filter";
+    public static final String HONEY_CONNECTION_HANDLER_NAME = "honey-connection";
+    public static final String HONEY_CHANNEL_INITIALIZER_HANDLER_NAME = "honey-channel-initializer";
+    public static final String HONEY_DEBUGGER_HANDLER_NAME = "honey-debugger";
+    public static final String HONEY_DECODER_HANDLER_NAME = "honey-decoder";
+    public static final String HONEY_ENCODER_HANDLER_NAME = "honey-encoder";
+    public static final String HONEY_FILTER_HANDLER_NAME = "honey-filter";
 
     private static HoneyPlugin INSTANCE;
 
@@ -241,8 +240,7 @@ public class HoneyPlugin implements HoneyAPI {
             return;
         }
 
-        // setup packet library
-        setupPacketLibrary();
+        PacketLibrary.load();
 
         if (!Bukkit.getServer().getPluginManager().isPluginEnabled(this.plugin)) {
             this.plugin.getLogger().severe(Lang.get("conflict.packet.library.setup"));
@@ -309,20 +307,6 @@ public class HoneyPlugin implements HoneyAPI {
             getPacketLibrary().disable();
 
             getLogger().getLogger().info(Lang.get("unloaded"));
-        }
-    }
-
-    private void setupPacketLibrary() {
-        if (this.packetLibrary == null) {
-            this.packetLibrary = PacketLibrary.set(
-                    new PacketLibrarySettings(this.plugin,
-                            HONEY_FILTER_CHANNEL_NAME,
-                            HONEY_CONNECTION_CHANNEL_NAME,
-                            HONEY_CHANNEL_INITIALIZER_CHANNEL_NAME,
-                            HONEY_DECODER_CHANNEL_NAME,
-                            HONEY_ENCODER_CHANNEL_NAME,
-                            HONEY_DEBUGGER_CHANNEL_NAME)
-            );
         }
     }
 

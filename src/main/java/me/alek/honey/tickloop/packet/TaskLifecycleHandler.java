@@ -124,7 +124,7 @@ public class TaskLifecycleHandler {
             packet.dump();
 
             if (!PacketTypes.isUnknown(packet.getType())) {
-                loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getID() + ", State: " + packet.getProtocolState());
+                loggerService.getLogger().severe("Packet: " + packet.getType() + ", Id: " + packet.getType().getID() + ", State: " + packet.getState());
                 loggerService.getLogger().severe("Properties: " + HoneyPlugin.get().getLogger().formatPacketEntries(packet));
             } else {
                 loggerService.getLogger().severe("Packet data unknown.");

@@ -3,7 +3,6 @@ package me.alek.honey.netty.codec;
 import me.alek.honey.util.reflection.MinecraftReflection;
 
 public class Protocols {
-
     public static Class<Object> GAME_CLASS = MinecraftReflection.getGameProtocolsClass();
     public static Class<Object> LOGIN_CLASS = MinecraftReflection.getLoginProtocolsClass();
     public static Class<Object> HANDSHAKE_CLASS = MinecraftReflection.getHandshakeProtocolsClass();

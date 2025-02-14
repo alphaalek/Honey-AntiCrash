@@ -5,7 +5,6 @@ import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketType;
-import org.bukkit.Bukkit;
 
 public class ByteInWrappedPacketImpl<WP extends SourcedWrappedPacket<WP>> implements ByteInWrappedPacket<WP> {
 

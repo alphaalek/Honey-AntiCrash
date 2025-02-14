@@ -1,6 +1,5 @@
 package me.alek.honey.netty.injector;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
@@ -19,31 +18,15 @@ public class ChannelManager {
         out.writePacket(packet.getHandle());
     }
 
-    public void sendPackets(Channel channel, ByteBuf buf) {
-        channel.writeAndFlush(buf);
-    }
-
-    public void receivePacketSilently(Channel channel, Object obj) {
-        channel.pipeline().context(MinecraftHandlers.DECODER).fireChannelRead(obj);
-    }
-
-    public boolean bothStreamBoundsHandlersExists(Channel channel) {
-        return getInStream(channel) != null && getOutStream(channel) != null;
-    }
-
     public InboundPacketFilter getFilter(Channel channel) {
-        return (InboundPacketFilter) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getFilterName());
+        return (InboundPacketFilter) channel.pipeline().get(HoneyPlugin.HONEY_FILTER_HANDLER_NAME);
     }
 
     public HoneyPacketInStream getInStream(Channel channel) {
-        return (HoneyPacketInStream) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getInStreamName());
+        return (HoneyPacketInStream) channel.pipeline().get(HoneyPlugin.HONEY_DECODER_HANDLER_NAME);
     }
 
     public HoneyPacketOutStream getOutStream(Channel channel) {
-        return (HoneyPacketOutStream) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getOutStreamName());
-    }
-
-    public HoneyDebugger getDebugger(Channel channel) {
-        return (HoneyDebugger) channel.pipeline().get(HoneyPlugin.get().getPacketLibrary().getDebuggerName());
+        return (HoneyPacketOutStream) channel.pipeline().get(HoneyPlugin.HONEY_ENCODER_HANDLER_NAME);
     }
 }

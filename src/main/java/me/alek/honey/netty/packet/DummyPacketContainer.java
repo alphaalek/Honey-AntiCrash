@@ -84,7 +84,7 @@ public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends P
     }
 
     @Override
-    public Rewritable.Result<PacketDataSerializer> callLateInitialByteListeners(PacketDataSerializer serializer) {
+    public Rewritable.Result<PacketDataSerializer> callLateInitialByteListeners(PacketDataSerializer serializer, int startRidx) {
         return null;
     }
 

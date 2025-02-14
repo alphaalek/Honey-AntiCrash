@@ -30,7 +30,7 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
 
     void callPreMinecraftDecode(PacketDataSerializer serializer);
 
-    Rewritable.Result<PacketDataSerializer> callLateInitialByteListeners(PacketDataSerializer serializer);
+    Rewritable.Result<PacketDataSerializer> callLateInitialByteListeners(PacketDataSerializer serializer, int startRidx);
 
     NetProtocol getProtocol();
 
@@ -50,10 +50,6 @@ public interface PacketContainer<WP extends SourcedWrappedPacket<WP>> extends Ca
 
     default PacketState getState() {
         return getType().getState();
-    }
-
-    default PacketState getProtocolState() {
-        return getPacketHandler().getProtocolState(getType().getBound());
     }
 
     PipelineState getPipelineState();

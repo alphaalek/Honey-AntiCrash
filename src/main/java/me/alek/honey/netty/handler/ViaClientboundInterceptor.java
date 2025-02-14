@@ -25,11 +25,6 @@ public class ViaClientboundInterceptor extends MessageToMessageEncoder<ByteBuf> 
 
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
-        if (this.packetHandler.isResolving(PacketBound.CLIENT)) {
-            list.add(buf.retain());
-            return;
-        }
-
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketType type = this.packetHandler.getPacketType(serializer, true, this.packetHandler.getSimulatedClientboundProtocolState(), PacketBound.CLIENT, true);
         if (!PacketTypes.isRegistered(type)) {

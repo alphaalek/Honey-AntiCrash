@@ -1,5 +1,6 @@
 package me.alek.honey.netty;
 
+import me.alek.honey.HoneyPlugin;
 import me.alek.honey.netty.bukkit.BukkitEventInternal;
 import me.alek.honey.netty.injector.ChannelManager;
 import me.alek.honey.netty.injector.SpigotPipelineInjector;
@@ -20,7 +21,6 @@ import java.util.stream.Collectors;
 
 public class PacketLibrary {
 
-    private final PacketLibrarySettings settings;
     private final PacketProcessor packetProcessor;
     private final SpigotPipelineInjector pipelineInjector;
     private final SpigotServerInjector serverInjector;
@@ -29,22 +29,17 @@ public class PacketLibrary {
 
     private static PacketLibrary INSTANCE;
 
-    public static PacketLibrary set(PacketLibrarySettings settings) {
-        if (INSTANCE != null) {
-            return INSTANCE;
-        }
-
-        return new PacketLibrary(settings);
+    public static void load() {
+        INSTANCE = new PacketLibrary();
     }
 
     public static PacketLibrary get() {
         return INSTANCE;
     }
 
-    private PacketLibrary(PacketLibrarySettings settings) {
+    private PacketLibrary() {
         INSTANCE = this;
-        this.settings = settings;
-        Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), settings.getPlugin());
+        Bukkit.getServer().getPluginManager().registerEvents(new BukkitEventInternal(), HoneyPlugin.get().getPlugin());
 
         PacketTypes.load();
         WrappedPacketFactoryCollection.loadWrappers();
@@ -58,7 +53,7 @@ public class PacketLibrary {
             this.serverInjector.inject();
         } else {
             // late bind, so we inject a bit later
-            Bukkit.getScheduler().scheduleSyncDelayedTask(settings.getPlugin(), this.serverInjector::inject);
+            Bukkit.getScheduler().scheduleSyncDelayedTask(HoneyPlugin.get().getPlugin(), this.serverInjector::inject);
         }
 
         PostActions.setup();
@@ -76,34 +71,6 @@ public class PacketLibrary {
 
     public ChannelManager getChannelManager() {
         return this.channelManager;
-    }
-
-    public String getFilterName() {
-        return this.settings.getFilterName();
-    }
-
-    public String getConnectorName() {
-        return this.settings.getConnectorName();
-    }
-
-    public String getChannelInitName() {
-        return this.settings.getChannelInitName();
-    }
-
-    public String getInStreamName() {
-        return this.settings.getInStreamName();
-    }
-
-    public String getOutStreamName() {
-        return this.settings.getOutStreamName();
-    }
-
-    public String getDebuggerName() {
-        return this.settings.getDebuggerName();
-    }
-
-    public PacketLibrarySettings getSettings() {
-        return this.settings;
     }
 
     public PacketProcessor getPacketProcessor() {

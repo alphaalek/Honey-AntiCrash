@@ -144,6 +144,7 @@ public class HoneyPlayer implements IntIdentifiable {
     }
 
     public void initBukkitPlayer(Player player) {
+        register(this, player);
         this.bukkit = player;
         this.phase = Phase.ONLINE;
 

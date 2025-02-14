@@ -1,26 +1,19 @@
 package me.alek.honey.netty.handler;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.codec.HoneyPacketCodec;
-import me.alek.honey.netty.codec.PacketDataSerializer;
+import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
+import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.Callback;
-import me.alek.honey.util.reflection.MinecraftReflection;
-import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 
 @ChannelHandler.Sharable
@@ -28,27 +21,14 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
 
     private final HoneyPacketHandler packetHandler;
     private final HoneyPlayer player;
-    private ChannelHandler encoder;
-    private MethodHandle encodeInvoker;
 
-    public HoneyPacketOutStream(Channel channel, HoneyPacketHandler packetHandler) {
+    public HoneyPacketOutStream(HoneyPacketHandler packetHandler) {
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();
-        setupMethodInvoke(channel.pipeline());
     }
 
     public HoneyPacketHandler getPacketHandler() {
         return packetHandler;
-    }
-
-    private void setupMethodInvoke(ChannelPipeline pipeline) {
-        try {
-            this.encoder = pipeline.get(PacketInterceptorResolver.getEncoderPosition(pipeline));
-            Method method = Reflection.getMethod(this.encoder.getClass(), 0, ChannelHandlerContext.class, MinecraftReflection.getPacketClass(), ByteBuf.class).getHandle();
-            this.encodeInvoker = MethodHandles.lookup().unreflect(method);
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to setup packet encoder environment!", ex);
-        }
     }
 
     @Override
@@ -71,61 +51,34 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
             this.packetHandler.setProtocolState(PacketBound.CLIENT, PacketState.LOGIN);
         }
 
-        PacketContainer<WP> packet = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().writeObjectPacket(this.player, msg);
-        if (packet == null) {
+        Optional<PacketType> typeFromClass = PacketTypes.getPacketType(msg.getClass(), this.packetHandler.getProtocolState(PacketBound.CLIENT));
+        if (!typeFromClass.isPresent()) {
             promise.setSuccess();
             return;
         }
-        if (packet.isHandled()) {
-            ctx.write(packet.getObjectWrapped().getHandle(), promise);
-            return;
+
+        PacketContainer<WP> packet = new InternalPacketContainer<>(msg, this.player, typeFromClass.get(), null);
+        try {
+            HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callObjectPacketProcessListeners(this.player, packet);
+        } catch (Exception ex) {
+            if (HoneyPlugin.get().getLogger().isDebug()) {
+                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Error occurred while handling packet " + packet.getType() + " sent by " + this.player.name, ex);
+            }
+            packet.cancel();
         }
-        packet.handle();
 
         if (!this.packetHandler.write(packet)) {
             promise.setSuccess();
             return;
         }
-        PacketDataSerializer buf = null;
-        try {
-            try {
-                // serialize before swap protocol
-                if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
-                    buf = HoneyPacketCodec.encodePacket(this.player, msg);
-                } else {
-                    List<Object> list = new ArrayList<>();
-                    // explicit set variable, so Proguard recognizes the method
-                    Object empty = this.encodeInvoker.invokeWithArguments(new Object[]{this.encoder, ctx, buf, list});
-                    if (list.isEmpty()) {
-                        promise.setSuccess();
-                        return;
-                    }
-                    buf = new PacketDataSerializer((ByteBuf) list.get(0));
-                }
-            } catch (Throwable ex) {
-                if (HoneyPlugin.get().getLogger().isDebug()) {
-                    HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
-                            "Error occurred while encoding packet " + packet.getType() + " (id " + packet.getType().getID()
-                                    + ") sent by " + this.player.name, ex);
-                }
-                promise.setSuccess();
-                return;
-            }
 
-            this.packetHandler.getProtocolSwapHandler().swapProtocolOutbound(packet);
-            ctx.write(buf, promise);
-            this.packetHandler.getProtocolSwapHandler().swapProtocolOutboundPostPipeline(packet);
+        this.packetHandler.getProtocolSwapHandler().swapProtocolOutbound(packet);
+        ctx.write(msg, promise);
+        this.packetHandler.getProtocolSwapHandler().swapProtocolOutboundPostPipeline(packet);
 
-            Callback postAction = packet.getPostAction();
-            if (postAction != null) {
-                postAction.call(packet);
-            }
-        } catch (Exception ex) {
-            try {
-                super.exceptionCaught(ctx, ex);
-            } catch (Exception ignored) {
-                // to do nothing
-            }
+        Callback postAction = packet.getPostAction();
+        if (postAction != null) {
+            postAction.call(packet);
         }
     }
 

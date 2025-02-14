@@ -3,6 +3,7 @@ package me.alek.honey.netty.packetwrappers.impl.handshake;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
+import me.alek.honey.netty.packetwrappers.protocol.ClientIntention;
 
 public class WrappedHandshakeInSetProtocol extends ByteInWrappedPacketImpl<WrappedHandshakeInSetProtocol> {
 
@@ -13,14 +14,14 @@ public class WrappedHandshakeInSetProtocol extends ByteInWrappedPacketImpl<Wrapp
     @Property
     private final int port;
     @Property
-    private final int intent;
+    private final ClientIntention intention;
 
     public WrappedHandshakeInSetProtocol(PacketDataSerializer serializer, PacketContainer<WrappedHandshakeInSetProtocol> packetContainer) {
         super(serializer, packetContainer);
         this.protocolVersion = serializer.readVarInt();
         this.host = serializer.readString();
         this.port = serializer.readUnsignedShort();
-        this.intent = serializer.readVarInt();
+        this.intention = ClientIntention.values()[serializer.readVarInt() - 1];
     }
 
     public int getProtocolVersion() {
@@ -35,7 +36,7 @@ public class WrappedHandshakeInSetProtocol extends ByteInWrappedPacketImpl<Wrapp
         return this.port;
     }
 
-    public int getIntent() {
-        return this.intent;
+    public ClientIntention getIntention() {
+        return this.intention;
     }
 }

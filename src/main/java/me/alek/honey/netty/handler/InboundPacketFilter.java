@@ -12,8 +12,6 @@ import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
 import me.alek.honey.netty.ChannelCloseInspection;
-import me.alek.honey.netty.ChannelLookupSynchronizer;
-import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.StackDecodingException;
 import me.alek.honey.netty.packet.InternalPacketContainer;
@@ -23,7 +21,6 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.HoneyValidation;
@@ -127,7 +124,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         }
         this.hasCalledChannelInactive = true;
 
-        ChannelLookupSynchronizer.removeChannelLookup(this.player.name);
         HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ejectChannel(ctx.channel());
     }
 
@@ -150,7 +146,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             return;
         }
 
-        if (!buf.isReadable() || this.packetHandler.isResolving(PacketBound.SERVER)) {
+        if (!buf.isReadable()) {
             ctx.fireChannelRead(buf);
             return;
         }

@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packet;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.HoneyPlayer;
@@ -115,13 +116,18 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
             if (rewriter.shouldRewrite(this)) {
                 this.lastRewrittenPipelineState = this.pipelineState;
 
-                int packetId = serializer.readerIndex(0).readVarInt();
+                int ridx = serializer.readerIndex();
+                ByteBuf sliced = serializer.slice(0, ridx);
+
+                int packetId = serializer.readVarInt();
+
                 // rewrite the buffer
                 serializer = new PacketDataSerializer();
+                serializer.writeBytes(sliced);
                 serializer.writeVarInt(packetId);
                 rewriter.rewrite(serializer);
 
-                return Rewritable.Result.rewritten(serializer);
+                return Rewritable.Result.rewritten(serializer.readerIndex(ridx));
             }
         }
 
@@ -175,6 +181,8 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
         this.structure = new InternalObjectPacketStructure(handle, structure);
 
         this.objectWrapped = WrappedPacketFactoryCollection.initWrappedPacket(type, handle, this);
+
+        HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callObjectPacketProcessListeners(this.player, this);
     }
 
     @Override
@@ -197,7 +205,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     }
 
     @Override
-    public Rewritable.Result<PacketDataSerializer> callLateInitialByteListeners(PacketDataSerializer serializer) {
+    public Rewritable.Result<PacketDataSerializer> callLateInitialByteListeners(PacketDataSerializer serializer, int startRidx) {
         Rewritable.Result<PacketDataSerializer> rewritableResult = Rewritable.Result.noRewritten();
 
         if (this.pipelineState == PipelineState.FINAL_BYTE && WrappedPacketFactoryCollection.hasByteWrappedPacket(this.type, PacketContainer.PipelineState.INITIAL_BYTE)) {
@@ -210,7 +218,7 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
                     HoneyPacketCodec.checkReadable(getProtocolCreated(), this.type, Optional.ofNullable(this.objectWrapped).map(ObjectWrappedPacket::getHandle).orElse(null), serializer);
                 }
                 // rewrite the packet
-                rewritableResult = rewrite0(serializer);
+                rewritableResult = rewrite0(serializer.readerIndex(startRidx));
             }
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callInitialBytePacketProcessListeners(this.player, this);
             this.callingLateInitialByteWrapped = false;
@@ -273,11 +281,6 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
     @Override
     public PipelineState getLastRewrittenPipelineState() {
         return this.lastRewrittenPipelineState;
-    }
-
-    @Override
-    public PacketState getProtocolState() {
-        return getPacketHandler().getProtocolState(this.type.getBound());
     }
 
     @Override

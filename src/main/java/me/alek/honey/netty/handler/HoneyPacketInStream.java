@@ -1,13 +1,12 @@
 package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.*;
+import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
-import me.alek.honey.configuration.ConfigurationOptions;
-import me.alek.honey.netty.codec.HoneyPacketCodec;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.packet.InternalPacketContainer;
@@ -16,11 +15,8 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.util.Callback;
+import org.bukkit.Bukkit;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -30,44 +26,14 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
 
     private final HoneyPacketHandler packetHandler;
     private final HoneyPlayer player;
-    private MethodHandle decodeInvoker;
-    private ChannelHandler decoder;
 
-    public HoneyPacketInStream(Channel channel, HoneyPacketHandler packetHandler) {
+    public HoneyPacketInStream(HoneyPacketHandler packetHandler) {
         this.packetHandler = packetHandler;
         this.player = packetHandler.getPlayer();
-        setupMethodInvoke(channel.pipeline());
     }
 
     public HoneyPacketHandler getPacketHandler() {
         return this.packetHandler;
-    }
-
-    private void setupMethodInvoke(ChannelPipeline pipeline) {
-        try {
-            this.decoder = pipeline.get(PacketInterceptorResolver.getDecoderPosition(pipeline));
-            Method method = this.decoder.getClass().getDeclaredMethod("decode", ChannelHandlerContext.class, ByteBuf.class, List.class);
-            method.setAccessible(true);
-            this.decodeInvoker = MethodHandles.lookup().unreflect(method);
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to setup packet decoder environment!", ex);
-        }
-    }
-
-    private void stopTimings(PacketContainer<?> packet) {
-        if (packet.getEventloopStateTimings().getCurrentState() == LifecycleState.NO_STATE) {
-            return;
-        }
-
-        packet.getEventloopStateTimings().stopTimings();
-
-        if (this.player.linkedBukkit()) {
-            HoneyPlugin.get().getNettyPacketTracker().registerTime(player,
-                    packet.getEventloopStateTimings().getTimeFor(LifecycleState.HONEY_HANDLE)
-                            + packet.getEventloopStateTimings().getTimeFor(LifecycleState.IN_BETWEEN)
-                            + packet.getEventloopStateTimings().getTimeFor(LifecycleState.DECODE)
-            );
-        }
     }
 
     @Override
@@ -81,7 +47,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
             return;
         }
 
-        internalRead(ctx, buf, list);
+        internalRead(buf, list);
         if (this.packetHandler.filterMark != null) {
             this.packetHandler.filterMark.releaseIfAutoReleasable();
             this.packetHandler.filterMark = null;
@@ -89,12 +55,13 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
         }
     }
 
-    private void internalRead(ChannelHandlerContext ctx, ByteBuf buf, List<Object> list) {
+    private void internalRead(ByteBuf buf, List<Object> list) {
         PacketDataSerializer serializer = new PacketDataSerializer(buf);
         PacketContainer<?> packet = null;
         PacketType type = null;
         try {
             packet = this.packetHandler.filterMark;
+            int startRidx = serializer.readerIndex();
             type = this.packetHandler.getPacketType(serializer, false, PacketBound.SERVER, false);
             int ridx = serializer.readerIndex();
             if (PacketTypes.isUnknown(type)) {
@@ -113,7 +80,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
                 }
 
                 // calls listeners that was not called, due to some plugin invoking this packet in the eventloop after the filter
-                Rewritable.Result<PacketDataSerializer> rewritable = packet.callLateInitialByteListeners(serializer.readerIndex(ridx));
+                Rewritable.Result<PacketDataSerializer> rewritable = packet.callLateInitialByteListeners(serializer.readerIndex(ridx), startRidx);
                 if (rewritable.isRewritten()) {
                     // rewrite
                     serializer = rewritable.get();
@@ -125,6 +92,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
             // stops in-between timings
             packet.getEventloopStateTimings().stopTimings();
 
+            serializer.readerIndex(startRidx);
             // rewrite this packet if any implementation is present and if it hasn't already been rewritten
             if (packet.getLastRewrittenPipelineState() == null && packet.getFinalByteWrapped() != null) {
                 serializer = packet.rewrite(serializer);
@@ -132,8 +100,17 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
                 serializer.retain();
             }
 
-            // set reader index back to 0 for the invoking process
-            invokeRead(packet, ctx, serializer.readerIndex(0), list);
+            this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(packet);
+            if (!this.packetHandler.read(packet)) {
+                return;
+            }
+
+            // starts decode timings
+            packet.getEventloopStateTimings().startTimings(LifecycleState.DECODE);
+
+            // we are finally ready for this packet to be decoded, so invoke the serializer to the pipeline
+            list.add(serializer);
+
         } catch (Exception ex) {
             if (HoneyPlugin.get().getLogger().isDebug()) {
                 type = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);
@@ -142,91 +119,6 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
                                 + ") sent by " + this.player.name + ", " + (serializer.readerIndex() + serializer.readableBytes()) + " bytes", ex);
             }
             this.player.failPacket(ex, packet);
-        }
-    }
-
-    private void invokeRead(PacketContainer<?> packet, ChannelHandlerContext ctx, PacketDataSerializer serializer, List<Object> list) {
-        packet.getEventloopStateTimings().startTimings(LifecycleState.DECODE);
-        try {
-            Object decodedImpl;
-            try {
-                if (!ConfigurationOptions.Decoder.USE_DEFAULT) {
-                    decodedImpl = HoneyPacketCodec.decodePacket(this.player, serializer);
-                } else {
-                    // explicit set variable, so Proguard recognizes the method
-                    Object empty = this.decodeInvoker.invokeWithArguments(new Object[]{this.decoder, ctx, serializer, list});
-                    if (list.isEmpty()) {
-                        stopTimings(packet);
-                        return;
-                    }
-                    decodedImpl = list.get(0);
-                    list.clear();
-                }
-            } catch (Throwable ex) {
-                if (HoneyPlugin.get().getLogger().isDebug()) {
-                    HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
-                            "Error occurred while decoding packet " + packet.getType() + " (id " + packet.getType().getID()
-                                    + ") sent by " + this.player.name + ", " + (serializer.readerIndex() + serializer.readableBytes()) + " bytes", ex);
-                }
-                list.clear();
-                this.player.failPacket(ex, packet);
-                return;
-            }
-            if (decodedImpl == null) {
-                stopTimings(packet);
-                return;
-            }
-            packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);
-
-            // link object instance with expected packet type
-            Optional<PacketType> typeOptional = PacketTypes.getPacketType(decodedImpl.getClass(), this.packetHandler.getProtocolState(PacketBound.SERVER));
-            if (!typeOptional.isPresent()) {
-                HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Failed to link object-instance to expected packet type, for " + packet.getType() + " sent by " + this.player.name + "; " + decodedImpl.getClass());
-                return;
-            }
-            packet.callPostMinecraftDecode(decodedImpl, typeOptional.get());
-
-            Runnable packetExecutorTask;
-            if (!packet.isCancelled()) {
-                packetExecutorTask = HoneyPlugin.get().getPacketLibrary().getPacketProcessor().getPacketExecutorTask(packet);
-            } else {
-                packetExecutorTask = null;
-            }
-
-            // stop all timings associated with this packet
-            stopTimings(packet);
-
-            if (!this.packetHandler.read(packet)) {
-                return;
-            }
-            packet.handle();
-            this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(packet);
-
-            // check if this packet should be submitted to the main thread directly, and ignore the rest of the pipeline
-            // and the player connection handler's implementation of handling this packet
-            if (packetExecutorTask != null) {
-                PreMainThreadInterceptor.POST_TO_MAIN_THREAD.set(packet);
-                HoneyPlugin.get().getExecutionQueueProxy().getExecutionQueue().add(packetExecutorTask);
-                // drop the packet for the pipeline
-                return;
-            }
-
-            // fire the decoded packet to the rest of the pipeline and finally submit it to the player connection handler
-            list.add(decodedImpl);
-
-            // handle registered post actions
-            Callback postAction = packet.getPostAction();
-            if (postAction != null) {
-                postAction.call(packet);
-            }
-        } catch (Throwable ex) {
-            try {
-                super.exceptionCaught(ctx, ex);
-            } catch (Exception ignored) {
-                // to do nothing
-            }
-
-            stopTimings(packet);
         }
     }
 }

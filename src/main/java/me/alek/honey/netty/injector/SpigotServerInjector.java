@@ -76,17 +76,16 @@ public class SpigotServerInjector {
     private void injectServerChannel(Channel serverChannel) {
         ChannelPipeline pipeline = serverChannel.pipeline();
 
-        String connectorName = HoneyPlugin.get().getPacketLibrary().getConnectorName();
-        if (pipeline.get(connectorName) != null) {
+        if (pipeline.get(HoneyPlugin.HONEY_CONNECTION_HANDLER_NAME) != null) {
             return;
         }
 
         ChannelHandler initInjector = new BeginInitProtocolInjector();
         String prioritizedHandler = getPrioritizedHandler(pipeline);
         if (prioritizedHandler != null) {
-            pipeline.addAfter(prioritizedHandler, connectorName, initInjector);
+            pipeline.addAfter(prioritizedHandler, HoneyPlugin.HONEY_CONNECTION_HANDLER_NAME, initInjector);
         } else {
-            pipeline.addFirst(connectorName, initInjector);
+            pipeline.addFirst(HoneyPlugin.HONEY_CONNECTION_HANDLER_NAME, initInjector);
         }
 
         List<Object> connectedChannels = connectedChannelsAccessor.get(this.serverConnection);
