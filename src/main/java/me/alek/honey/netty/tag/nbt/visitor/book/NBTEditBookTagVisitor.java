@@ -62,7 +62,7 @@ public class NBTEditBookTagVisitor extends NBTBookTagVisitor implements EditBook
     protected <TAG extends AbstractTag<?, TAG>> TAG visitPage(DataInputStream stream, TagLimiter limiter, TagType type) throws IOException {
         // always read using the formatted text limit, because we will not allow formatting whatever components by
         // the client when editing a book
-        return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH), this);
+        return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.BOOK_MAX_FORMATTED_PAGE_LENGTH), this);
     }
 
     @Override

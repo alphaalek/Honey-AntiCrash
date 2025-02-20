@@ -77,13 +77,13 @@ public class ComponentMapEditBookTagVisitor extends ComponentMapBookTagVisitor i
     protected List<Filterable<Component>> visitAtSerializedPages(PacketDataSerializer serializer, int maxPageLength) {
         // although it's reading serialized content because it's a written book, we will not allow it, because it comes
         // from the client editing the book, and we will not allow formatting whatever components
-        return super.visitAtSerializedPages(serializer, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH);
+        return super.visitAtSerializedPages(serializer, ConfigurationOptions.ItemAnalysis.BOOK_MAX_FORMATTED_PAGE_LENGTH);
     }
 
     @Override
     protected List<Filterable<String>> visitAtFormattedPages(PacketDataSerializer serializer, int maxPageLength) {
         // always read using the formatted text limit, because we will not allow formatting whatever components by
         // the client when editing a book
-        return super.visitAtFormattedPages(serializer, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH);
+        return super.visitAtFormattedPages(serializer, ConfigurationOptions.ItemAnalysis.BOOK_MAX_FORMATTED_PAGE_LENGTH);
     }
 }

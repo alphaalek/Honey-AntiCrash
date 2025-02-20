@@ -241,7 +241,7 @@ public class ConfigurationOptions {
     }
 
     public enum ViolationSettingType {
-        MAX_PER_INTERVAL, INTERVAL, MIN_VLS, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, MIN, MAX, ENABLED, THROTTLE_AFTER;
+        MAX_PER_INTERVAL, INTERVAL, MIN_VLS, VLS_AMOUNT, THRESHOLD, UNTIL, DECAY, DECAY_AMOUNT, MIN, MAX, ENABLED, THROTTLE_AFTER, CUSTOM;
 
         public String getPathName() {
             return name().toLowerCase().replace("_", "-");
@@ -382,15 +382,14 @@ public class ConfigurationOptions {
             for (Field field : getClass().getFields()) {
                 try {
                     ConfigurationOptions.VlSettingImpl settingImpl = field.getAnnotation(ConfigurationOptions.VlSettingImpl.class);
-                    boolean isViolationSetting = field.getDeclaringClass() == ViolationSetting.class;
-                    if (settingImpl == null && isViolationSetting) {
+                    if (field.getDeclaringClass() != ViolationSetting.class) {
                         continue;
                     }
 
                     Object value = field.get(this);
                     // check if this field is associated with a setting value from this check
                     if (value != null) {
-                        if (isViolationSetting && !getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())){
+                        if (settingImpl.value() != ViolationSettingType.CUSTOM && !getPacketLimitHandlerType().getVlSettingImplTypes().contains(settingImpl.value())){
                             continue;
                         }
 
@@ -627,10 +626,24 @@ public class ConfigurationOptions {
     @Setting
     public static class ItemAnalysis {
 
+        public static int DISPLAY_MAX_NAME;
+        public static int DISPLAY_MAX_FORMATTED_NAME;
+        public static int DISPLAY_MAX_LORE_LINE;
+        public static int DISPLAY_MAX_LORE_FORMATTED_LINE;
+        public static int DISPLAY_MAX_LORE_LINES;
+
+        public static int BOOK_MAX_PAGES_MODERN;
+        public static int BOOK_MAX_PAGES_LEGACY;
+        public static int BOOK_MAX_PAGE_LENGTH;
+        public static int BOOK_MAX_FORMATTED_PAGE_LENGTH;
+        public static int BOOK_MAX_AUTHOR_LENGTH;
+        public static int BOOK_MAX_TITLE_LENGTH;
+        public static int BOOK_MAX_PAGE_COMPONENT_NBT_BASES;
+        public static int BOOK_MAX_PAGE_COMPONENT_NBT_COMPLEXITY;
+
+
         public static int MAX_ENCHANTMENT_LEVEL;
         public static int MAX_AMOUNT;
-        public static int MAX_DISPLAYNAME_LENGTH;
-        public static int MAX_TOTAL_LORE_LENGTH;
         public static int MAX_FIREWORK_EXPLOSIONS;
         public static int MAX_BANNER_PATTERNS;
         public static boolean CHECK_ILLEGAL_SKULL_TEXTURES;
@@ -638,11 +651,23 @@ public class ConfigurationOptions {
         public static boolean CHECK_UNBREAKABLE_ITEMS;
         public static boolean CHECK_ATTRIBUTE_MODIFIERS;
         public static void load() {
+            DISPLAY_MAX_NAME = file.getInt("item-analysis.display.name.max-length");
+            DISPLAY_MAX_FORMATTED_NAME = file.getInt("item-analysis.display.name.max-formatted-length");
+            DISPLAY_MAX_LORE_LINE = file.getInt("item-analysis.display.lore.max-line");
+            DISPLAY_MAX_LORE_FORMATTED_LINE = file.getInt("item-analysis.lore.max-formatted-line");
+            DISPLAY_MAX_LORE_LINES = file.getInt("item-analysis.display.lore.max-lines");
+
+            BOOK_MAX_PAGES_MODERN = file.getInt("item-analysis.book.max-pages.modern");
+            BOOK_MAX_PAGES_LEGACY = file.getInt("item-analysis.book.max-pages.legacy");
+            BOOK_MAX_PAGE_LENGTH = file.getInt("item-analysis.book.max-page-length");
+            BOOK_MAX_FORMATTED_PAGE_LENGTH = file.getInt("item-analysis.book.max-formatted-page-length");
+            BOOK_MAX_AUTHOR_LENGTH = file.getInt("item-analysis.book.max-author-length");
+            BOOK_MAX_TITLE_LENGTH = file.getInt("item-analysis.book.max-title-length");
+            BOOK_MAX_PAGE_COMPONENT_NBT_BASES = file.getInt("item-analysis.book.page-component.max-bases");
+            BOOK_MAX_PAGE_COMPONENT_NBT_COMPLEXITY = file.getInt("item-analysis.book.page-component.max-complexity");
+
             MAX_ENCHANTMENT_LEVEL = file.getInt("item-analysis.max-enchantment-level");
             MAX_AMOUNT = file.getInt("item-analysis.max-amount");
-
-            MAX_DISPLAYNAME_LENGTH = file.getInt("item-analysis.max-displayname-length");
-            MAX_TOTAL_LORE_LENGTH = file.getInt("item-analysis.max-total-lore-length");
 
             MAX_FIREWORK_EXPLOSIONS = file.getInt("item-analysis.max-firework-explosions");
             MAX_BANNER_PATTERNS = file.getInt("item-analysis.max-banner-patterns");
@@ -651,6 +676,18 @@ public class ConfigurationOptions {
             CHECK_CUSTOM_POTION_EFFECTS = file.getBoolean("item-analysis.disable-custom-potion-effects");
             CHECK_UNBREAKABLE_ITEMS = file.getBoolean("item-analysis.disable-unbreakable-items");
             CHECK_ATTRIBUTE_MODIFIERS = file.getBoolean("item-analysis.check-attribute-modifiers");
+        }
+
+        public static int getMaxDisplayNameLength(NetProtocol protocol) {
+            return protocol.isNewerThanOrEqual(NetProtocol.v1_13) ? DISPLAY_MAX_NAME : DISPLAY_MAX_FORMATTED_NAME;
+        }
+
+        public static int getMaxDisplayLoreLineLength(NetProtocol protocol) {
+            return protocol.isNewerThanOrEqual(NetProtocol.v1_13) ? DISPLAY_MAX_LORE_LINE : DISPLAY_MAX_LORE_FORMATTED_LINE;
+        }
+
+        public static int getMaxBookPages(NetProtocol protocol) {
+            return protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? BOOK_MAX_PAGES_LEGACY : BOOK_MAX_PAGES_MODERN;
         }
 
         @Setting
@@ -674,14 +711,6 @@ public class ConfigurationOptions {
 
             public static int MAX_BOOK_NBT_LENGTH_MODERN;
             public static int MAX_BOOK_NBT_LENGTH_LEGACY;
-            public static int MAX_BOOK_PAGES_MODERN;
-            public static int MAX_BOOK_PAGES_LEGACY;
-            public static int MAX_BOOK_PAGE_LENGTH;
-            public static int MAX_BOOK_FORMATTED_PAGE_LENGTH;
-            public static int MAX_BOOK_AUTHOR_LENGTH;
-            public static int MAX_BOOK_TITLE_LENGTH;
-            public static int MAX_BOOK_PAGE_COMPONENT_NBT_BASES;
-            public static int MAX_BOOK_PAGE_COMPONENT_NBT_COMPLEXITY;
 
             public static int MAX_NBT_LENGTH_MODERN;
             public static int MAX_NBT_LENGTH_LEGACY;
@@ -690,33 +719,24 @@ public class ConfigurationOptions {
             public static int MAX_NBT_BASES;
             public static int MAX_NBT_NESTING;
             public static int MAX_NBT_COMPLEXITY;
+            public static int MAX_NBT_COMPOUND_ENTRIES;
+            public static int MAX_NBT_ARRAY_ENTRIES;
 
             public static void load() {
-                MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-nbt-length");
+                MAX_FIREWORK_NBT_LENGTH = file.getInt("item-analysis.nbt.max-firework-length");
 
-                MAX_BOOK_NBT_LENGTH_MODERN = file.getInt("item-analysis.nbt.max-book-nbt-length.modern");
-                MAX_BOOK_NBT_LENGTH_LEGACY = file.getInt("item-analysis.nbt.max-book-nbt-length.legacy");
-                MAX_BOOK_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-page-length");
-                MAX_BOOK_FORMATTED_PAGE_LENGTH = file.getInt("item-analysis.nbt.max-book-formatted-page-length");
-                MAX_BOOK_PAGES_MODERN = file.getInt("item-analysis.nbt.max-book-pages.modern");
-                MAX_BOOK_PAGES_LEGACY = file.getInt("item-analysis.nbt.max-book-pages.legacy");
-                MAX_BOOK_AUTHOR_LENGTH = file.getInt("item-analysis.nbt.max-book-author-length");
-                MAX_BOOK_TITLE_LENGTH = file.getInt("item-analysis.nbt.max-book-title-length");
-                MAX_BOOK_PAGE_COMPONENT_NBT_BASES = file.getInt("item-analysis.nbt.component-book-page.max-bases");
-                MAX_BOOK_PAGE_COMPONENT_NBT_COMPLEXITY = file.getInt("item-analysis.nbt.component-book-page.max-complexity");
+                MAX_BOOK_NBT_LENGTH_MODERN = file.getInt("item-analysis.nbt.max-book-length.modern");
+                MAX_BOOK_NBT_LENGTH_LEGACY = file.getInt("item-analysis.nbt.max-book-length.legacy");
 
-
-                MAX_NBT_LENGTH_MODERN = file.getInt("item-analysis.nbt.max-nbt-length.modern");
-                MAX_NBT_LENGTH_LEGACY = file.getInt("item-analysis.nbt.max-nbt-length.legacy");
-                MAX_NBT_STRING_LENGTH = file.getInt("item-analysis.nbt.max-nbt-string-length");
-                MAX_NBT_KEY_LENGTH = file.getInt("item-analysis.nbt.max-nbt-key-length");
-                MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-nbt-bases");
-                MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nbt-nesting");
-                MAX_NBT_COMPLEXITY = file.getInt("item-analysis.nbt.max-nbt-complexity");
-            }
-
-            public static int getMaxBookPages(NetProtocol protocol) {
-                return protocol.isNewerThanOrEqual(NetProtocol.v1_14) ? MAX_BOOK_PAGES_MODERN : MAX_BOOK_PAGES_LEGACY;
+                MAX_NBT_LENGTH_MODERN = file.getInt("item-analysis.nbt.max-length.modern");
+                MAX_NBT_LENGTH_LEGACY = file.getInt("item-analysis.nbt.max-length.legacy");
+                MAX_NBT_STRING_LENGTH = file.getInt("item-analysis.nbt.max-string-length");
+                MAX_NBT_KEY_LENGTH = file.getInt("item-analysis.nbt.max-key-length");
+                MAX_NBT_BASES = file.getInt("item-analysis.nbt.max-bases");
+                MAX_NBT_NESTING = file.getInt("item-analysis.nbt.max-nesting");
+                MAX_NBT_COMPLEXITY = file.getInt("item-analysis.nbt.max-complexity");
+                MAX_NBT_COMPOUND_ENTRIES = file.getInt("item-analysis.nbt.max-compound-entries");
+                MAX_NBT_ARRAY_ENTRIES = file.getInt("item-analysis.nbt.max-array-entries");
             }
 
             public static int getMaxBookNBTLength(NetProtocol protocol) {

@@ -78,20 +78,20 @@ public class BookTag {
             CompoundTag nbt = tag.asNBT().get();
             if (nbt.hasKeyOfType(PAGES, PrimitiveArrayTag.TYPE.get())) {
                 PrimitiveArrayTag<String> pages = nbt.getPrimitiveArrayOf(PAGES, TagType.STRING);
-                int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(context.protocolCreated());
+                int max = ConfigurationOptions.ItemAnalysis.getMaxBookPages(context.protocolCreated());
                 if (pages.size() > max) {
-                    throw new DecoderException("Too many pages: " + pages.size() + ", limit: " + max);
+                    throw new DecoderException("Too many pages: " + pages.size() + " > " + max);
                 }
             }
 
             if (nbt.hasKeyOfType(TITLE, TagType.STRING)
-                    && (nbt.getString(TITLE).isEmpty() || nbt.getString(TITLE).length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH)) {
-                throw new DecoderException("Invalid book data! Too long title: " + nbt.getString(TITLE).length() + ", limit: " + ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH);
+                    && (nbt.getString(TITLE).isEmpty() || nbt.getString(TITLE).length() > ConfigurationOptions.ItemAnalysis.BOOK_MAX_TITLE_LENGTH)) {
+                throw new DecoderException("Invalid book data! Too long title: " + nbt.getString(TITLE).length() + " > " + ConfigurationOptions.ItemAnalysis.BOOK_MAX_TITLE_LENGTH);
             }
 
             if (nbt.hasKeyOfType(AUTHOR, TagType.STRING)
-                    && (nbt.getString(AUTHOR).isEmpty() || nbt.getString(AUTHOR).length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH)) {
-                throw new DecoderException("Invalid book data! Too long author: " + nbt.getString(AUTHOR).length() + ", limit: " + ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH);
+                    && (nbt.getString(AUTHOR).isEmpty() || nbt.getString(AUTHOR).length() > ConfigurationOptions.ItemAnalysis.BOOK_MAX_AUTHOR_LENGTH)) {
+                throw new DecoderException("Invalid book data! Too long author: " + nbt.getString(AUTHOR).length() + " > " + ConfigurationOptions.ItemAnalysis.BOOK_MAX_TITLE_LENGTH);
             }
         }
     }

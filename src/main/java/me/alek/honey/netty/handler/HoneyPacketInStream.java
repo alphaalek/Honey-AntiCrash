@@ -15,7 +15,6 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import org.bukkit.Bukkit;
 
 import java.util.List;
 import java.util.Optional;
@@ -74,6 +73,10 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
                 // but instead invoked by some plugin (most likely ViaVersion)
                 if (packet == null) {
                     packet = new InternalPacketContainer<>(PacketContainer.PipelineState.FINAL_BYTE, serializer, this.player, type, null);
+                    if (this.packetHandler.isCancelled(packet)) {
+                        // cancelled during initializing
+                        return;
+                    }
                 } else {
                     packet.handleRewrittenByPipeline(type);
                     packet.callPreMinecraftDecode(serializer);
@@ -101,7 +104,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
             }
 
             this.packetHandler.getProtocolSwapHandler().swapProtocolInbound(packet);
-            if (!this.packetHandler.read(packet)) {
+            if (!this.packetHandler.readPacketAtFinalByte(packet)) {
                 return;
             }
 
@@ -110,7 +113,6 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
 
             // we are finally ready for this packet to be decoded, so invoke the serializer to the pipeline
             list.add(serializer);
-
         } catch (Exception ex) {
             if (HoneyPlugin.get().getLogger().isDebug()) {
                 type = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);

@@ -61,9 +61,9 @@ public class NBTBookTagVisitor extends ComplexTagVisitor {
     public AbstractTag<?, ?> visitAtCompoundInsertTag(DataInputStream stream, TagLimiter limiter, TagType type, String key) throws FallbackDefaultCodecException, IOException {
         if (isRootTag() && this.type.equals(ItemTypes.WRITTEN_BOOK)) {
             if (key.equals(BookTag.AUTHOR)) {
-                return type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH), this);
+                return type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.BOOK_MAX_AUTHOR_LENGTH), this);
             } else if (key.equals(BookTag.TITLE)) {
-                return type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH), this);
+                return type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.BOOK_MAX_TITLE_LENGTH), this);
             }
         }
 
@@ -73,7 +73,7 @@ public class NBTBookTagVisitor extends ComplexTagVisitor {
     @Override
     public <TAG extends AbstractTag<?, TAG>> TAG visitAtArrayInsert(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException {
         if (currentGrandChild().equals(BookTag.PAGES)) {
-            if (++this.pages > ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(protocolCreated())) {
+            if (++this.pages > ConfigurationOptions.ItemAnalysis.getMaxBookPages(protocolCreated())) {
                 throw new DecoderException("Invalid book data: too many pages: " + this.pages);
             }
 
@@ -90,9 +90,9 @@ public class NBTBookTagVisitor extends ComplexTagVisitor {
     @SuppressWarnings("unchecked")
     protected <TAG extends AbstractTag<?, TAG>> TAG visitPage(DataInputStream stream, TagLimiter limiter, TagType type) throws IOException {
         if (this.type.equals(ItemTypes.WRITTEN_BOOK)) {
-            return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH), this);
+            return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.BOOK_MAX_PAGE_LENGTH), this);
         } else {
-            return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH), this);
+            return (TAG) type.<PrimitiveTag<String>>getCodec().read(stream, new TagLimiter.UTF8Limiter(limiter, ConfigurationOptions.ItemAnalysis.BOOK_MAX_FORMATTED_PAGE_LENGTH), this);
         }
     }
 }

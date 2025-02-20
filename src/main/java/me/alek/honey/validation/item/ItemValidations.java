@@ -69,47 +69,6 @@ public class ItemValidations {
         }
     }
 
-    public static class MaxDisplayNameLengthItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (nbt.hasKeyOfType("display", CompoundTag.TYPE.get())) {
-                CompoundTag display = nbt.getCompound("display");
-                if (display.hasKeyOfType("Name", TagType.STRING)) {
-                    String name = display.getString("Name");
-                    // TODO: deserialize json
-                    return name.length() > ConfigurationOptions.ItemAnalysis.MAX_DISPLAYNAME_LENGTH;
-                }
-            }
-
-            return false;
-        }
-    }
-
-    public static class MaxTotalLoreLengthItemValidation implements ItemAnalysis.ItemValidation {
-
-        @Override
-        public boolean validate(HoneyPlayer player, WrappedImmutableItemStack item, CompoundTag nbt) {
-            if (nbt.hasKeyOfType("display", CompoundTag.TYPE.get())) {
-                CompoundTag display = nbt.getCompound("display");
-                if (display.hasKeyOfType("Lore", PrimitiveArrayTag.TYPE.get())) {
-                    PrimitiveArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
-                    int counter = 0;
-
-                    for (String line : lore) {
-                        // TODO: deserialize json
-                        counter += line.length();
-                        if (counter > ConfigurationOptions.ItemAnalysis.MAX_TOTAL_LORE_LENGTH) {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-    }
-
     public static class UnbreakableItemItemValidation implements ItemAnalysis.ItemValidation {
 
         @Override

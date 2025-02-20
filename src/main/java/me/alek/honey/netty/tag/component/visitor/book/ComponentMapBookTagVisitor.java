@@ -29,25 +29,28 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
         super(protocol, protocolCreated, type);
     }
 
-    protected List<Filterable<String>> visitAtFormattedPages(PacketDataSerializer serializer, int maxPageLength) {
+    protected void validatePageCount(PacketDataSerializer serializer) {
         serializer.markReaderIndex();
         int pageCount = serializer.readVarInt();
-        if (pageCount > ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(this.protocolCreated)) {
+        if (pageCount > ConfigurationOptions.ItemAnalysis.getMaxBookPages(this.protocolCreated)) {
             throw new DecoderException("Invalid book data: too many pages: " + pageCount);
         }
         serializer.resetReaderIndex();
+    }
 
+    protected List<Filterable<String>> visitAtFormattedPages(PacketDataSerializer serializer, int maxPageLength) {
+        validatePageCount(serializer);
         PacketWrapper<?> wrapper = createUniversalWrapper(serializer);
         return wrapper.readList(ew -> Filterable.read(wrapper, eew -> wrapper.readString(maxPageLength)));
     }
 
     @Override
     public WritableBookContent visitAtWritableBookContent(PacketDataSerializer serializer) {
-        return new WritableBookContent(visitAtFormattedPages(serializer, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH));
+        return new WritableBookContent(visitAtFormattedPages(serializer, ConfigurationOptions.ItemAnalysis.BOOK_MAX_FORMATTED_PAGE_LENGTH));
     }
 
     protected String visitAtAuthor(PacketDataSerializer serializer) {
-        return serializer.readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_AUTHOR_LENGTH);
+        return serializer.readString(ConfigurationOptions.ItemAnalysis.BOOK_MAX_AUTHOR_LENGTH);
     }
 
     protected Component visitPage(Component page) {
@@ -61,13 +64,14 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
                 new TagLimiter.Default(
                         TagLimiter.THIRTY_TWO_KILOBYTES / 2,
                         4, // root tag (1) (not expected) + the highest inner possible (3) (children -> child -> click/hover)
-                        ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_COMPONENT_NBT_COMPLEXITY,
-                        ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_COMPONENT_NBT_BASES
+                        ConfigurationOptions.ItemAnalysis.BOOK_MAX_PAGE_COMPONENT_NBT_COMPLEXITY,
+                        ConfigurationOptions.ItemAnalysis.BOOK_MAX_PAGE_COMPONENT_NBT_BASES
                 )
         );
     }
 
     protected List<Filterable<Component>> visitAtSerializedPages(PacketDataSerializer serializer, int maxPageCount) {
+        validatePageCount(serializer);
         // component map is only present in 1.20.5+, so we will ignore the codec for components prior to the 1.20.3 change
         // therefore, we will read components as nbt
         PacketWrapper<?> wrapper = createUniversalWrapper(serializer);
@@ -92,10 +96,10 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
     public WrittenBookContent visitAtWrittenBookContent(PacketDataSerializer serializer) {
         PacketWrapper<?> wrapper = createUniversalWrapper(serializer);
 
-        Filterable<String> title = Filterable.read(wrapper, ew -> ew.readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH));
+        Filterable<String> title = Filterable.read(wrapper, ew -> ew.readString(ConfigurationOptions.ItemAnalysis.BOOK_MAX_TITLE_LENGTH));
         String author = visitAtAuthor(serializer);
         int generation = wrapper.readVarInt();
-        List<Filterable<Component>> pages = visitAtSerializedPages(serializer, ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_PAGE_LENGTH);
+        List<Filterable<Component>> pages = visitAtSerializedPages(serializer, ConfigurationOptions.ItemAnalysis.BOOK_MAX_PAGE_LENGTH);
         boolean resolved = wrapper.readBoolean();
 
         return new WrittenBookContent(title, author, generation, pages, resolved);

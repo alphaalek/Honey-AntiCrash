@@ -169,7 +169,7 @@ public class HoneyPacketHandler {
         return MinecraftReflection.getPacketClass().isInstance(raw);
     }
 
-    public synchronized boolean read(PacketContainer<?> packet) {
+    public synchronized boolean readPacketAtFinalByte(PacketContainer<?> packet) {
         executeDelayedTasks(PacketBound.SERVER);
 
         if (isCancelled(packet)) {

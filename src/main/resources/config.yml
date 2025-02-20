@@ -67,7 +67,7 @@ decoder:
     # Note, items are only used in this packets in pre 1.9 protocols
     block-place: true
     # Note, can cause some inventory interaction de-sync issues in lower versions. If this is not wanted, set to "disabled".
-    window-click: true
+    window-click: false
 
 # Formatting for messages sent by Honey
 messages:
@@ -198,10 +198,42 @@ item-analysis:
   max-enchantment-level: 256
   # How high an amount may an item have.
   max-amount: 64
-  # How long of a name may an item have.
-  max-displayname-length: 192
-  # How long may the sum of all the lines in the lore of an item have.
-  max-total-lore-length: 2500
+  # Item Display
+  display:
+    name:
+      # How long may the name of an item be.
+      max-length: 256
+      # How long may the formatted name of an item be.
+      max-formatted-length: 96
+    lore:
+      # How long may a line within the lore of an item be.
+      max-line: 384
+      # How long may a formatted line within the lore of an item be.
+      max-formatted-line: 128
+      # How many lines may be in the lore of an item.
+      max-lines: 64
+  # Books
+  book:
+    # How many pages may a book have.
+    max-pages:
+      # (1.14+)
+      modern: 100
+      # (pre 1.14)
+      legacy: 50
+    # How long may the page of a book be.
+    max-page-length: 1024
+    # How long may the formatted page of a book be.
+    max-formatted-page-length: 320
+    # How long title may a book have.
+    max-title-length: 32
+    # How long name may the author of a book be.
+    max-author-length: 16
+    # Book pages as text component serialized by nbt (client-side 1.20.5+)
+    page-component:
+      # How many NBT bases may be in a text component.
+      max-bases: 128
+      # How complex may NBT of a text component be.
+      max-complexity: 64
   # How many explosions may a firework have.
   max-firework-explosions: 17
   # How many banner patterns may a banner have.
@@ -218,51 +250,33 @@ item-analysis:
   # NBT
   nbt:
     # How many bytes may the NBT of a firework have. This is also for firework charges.
-    max-firework-nbt-length: 5000
-
+    max-firework-length: 5000
     # How many bytes may the NBT of a book be.
-    max-book-nbt-length:
+    max-book-length:
       # (1.14+)
       modern: 32000
       # (pre 1.14)
       legacy: 16000
-    # How many pages may a book have.
-    max-book-pages:
-      # (1.14+)
-      modern: 100
-      # (pre 1.14)
-      legacy: 50
-    # How long may the page of a book be.
-    max-book-page-length: 1024
-    # How long may the formatted page of a book be.
-    max-book-formatted-page-length: 320
-    # How long title may a book have.
-    max-book-title-length: 32
-    # How long name may the author of a book be.
-    max-book-author-length: 16
-    # Book pages as text component serialized by nbt (client-side 1.20.5+)
-    component-book-page:
-      # How many NBT bases may be in a text component.
-      max-bases: 128
-      # How complex may NBT of a text component be.
-      max-complexity: 64
-
     # How many bytes may the NBT of an item be.
-    max-nbt-length:
+    max-length:
       # (1.14+)
       modern: 36000
       # (pre 1.14)
       legacy: 18000
     # How many NBT bases may an item have. (the general representation of NBT data, covers lists, strings, doubles etc...)
-    max-nbt-bases: 512
+    max-bases: 512
     # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)
-    max-nbt-nesting: 6
+    max-nesting: 6
     # How complex may an NBT be.
-    max-nbt-complexity: 16
+    max-complexity: 16
     # How many bytes may a NBT string be.
-    max-nbt-string-length: 1250
+    max-string-length: 1250
     # How many bytes may a NBT Compound Key be.
-    max-nbt-key-length: 64
+    max-key-length: 64
+    # How many entries may be in a NBT Compound.
+    max-compound-entries: 64
+    # How many entries may be in a NBT Array.
+    max-array-entries: 128
 
 ############################################################
 # +------------------------------------------------------+ #
@@ -312,15 +326,15 @@ netty:
     threshold: 40000
   e:
     enabled: true
-    until: 85000
+    until: 100000
     threshold: 50000
-    decay: 650
-    decay-amount: 8000
+    decay: 500
+    decay-amount: 10000
   f:
     enabled: true
-    until: 5000000
+    until: 8000000
     threshold: 4000000
-    decay: 650
+    decay: 500
     decay-amount: 1000000
   g:
     enabled: true

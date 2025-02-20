@@ -15,6 +15,7 @@ import me.alek.honey.netty.packetwrappers.*;
 import me.alek.honey.netty.structure.ObjectPacketStructure;
 import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
+import me.alek.honey.util.id.Identifiable;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationPipelineContext;
@@ -72,7 +73,11 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
                     } else if (createdState.equals(PipelineState.FINAL_BYTE)) {
                         this.finalByteWrapped = pre;
                     }
+
                     validateBytePacket(pre);
+                    if (this.cancelled) {
+                        return;
+                    }
                 }
             }
             // construct the wrapped packet buffer
@@ -100,9 +105,6 @@ public final class InternalPacketContainer<WP extends SourcedWrappedPacket<WP>> 
                 context,
                 (validation, __) -> validation.validate(this.player, packet, context),
                 this);
-        if (this.cancelled) {
-            throw new DecoderException("Failed byte filter validation");
-        }
     }
 
     private Rewritable.Result<PacketDataSerializer> rewrite0(PacketDataSerializer serializer) {

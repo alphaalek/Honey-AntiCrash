@@ -92,17 +92,17 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteC
             this.slot = buf.readVarInt();
 
             int pageCount = buf.readVarInt();
-            int maxPageCount = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookPages(getProtocol());
+            int maxPageCount = ConfigurationOptions.ItemAnalysis.getMaxBookPages(getProtocol());
             if (pageCount > maxPageCount) {
                 throw new IllegalStateException("Too many pages: " + pageCount + ", limit: " + maxPageCount);
             }
             for (int i = 0; i < pageCount; i++) {
-                this.pages.add(buf.readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH));
+                this.pages.add(buf.readString(ConfigurationOptions.ItemAnalysis.BOOK_MAX_FORMATTED_PAGE_LENGTH));
             }
 
             this.signing = buf.readBoolean();
             if (this.signing) {
-                this.title = buf.readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_TITLE_LENGTH);
+                this.title = buf.readString(ConfigurationOptions.ItemAnalysis.BOOK_MAX_TITLE_LENGTH);
                 this.author = packet.getPlayer().name;
             }
 

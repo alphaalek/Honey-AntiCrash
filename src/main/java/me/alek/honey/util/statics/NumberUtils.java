@@ -2,14 +2,6 @@ package me.alek.honey.util.statics;
 
 public class NumberUtils {
 
-    public static boolean isInfinite(double value) {
-        return Double.isInfinite(value);
-    }
-
-    public static boolean isInfinite(float value) {
-        return Float.isInfinite(value);
-    }
-
     public static boolean isNaN(double value) {
         return Double.isNaN(value);
     }
@@ -19,7 +11,7 @@ public class NumberUtils {
     }
 
     public static boolean isInvalid(double value) {
-        return value >= Integer.MAX_VALUE || value <= Integer.MIN_VALUE || isInfinite(value) || isNaN(value);
+        return value == Double.MAX_VALUE || value == Double.MIN_VALUE || isNaN(value);
     }
 
     public static boolean isInvalid(double... values) {
@@ -32,7 +24,7 @@ public class NumberUtils {
     }
 
     public static boolean isInvalid(float value) {
-        return value == Float.MAX_VALUE || value == Integer.MIN_VALUE || isInfinite(value) || isNaN(value);
+        return value == Float.MAX_VALUE || value == Integer.MIN_VALUE || isNaN(value);
     }
 
     public static boolean isInvalid(float... values) {

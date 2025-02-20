@@ -120,21 +120,7 @@ public class CreativeValidations extends AbstractValidationPacketListener<Wrappe
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCreativeInventoryAction packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
-                return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context)
-                        .builder().onViolation(generateKey(), (keyInner, onViolation) -> {
-                            if (onViolation != null) {
-                                onViolation.run();
-                            }
-                            if (player.bukkit.getGameMode() == GameMode.CREATIVE) {
-                                try {
-                                    ItemStack item = player.bukkit.getInventory().getItem(packet.getSlot());
-                                    if (item != null && packet.getItemStack().isSimilar(item)) {
-                                        item.setType(Material.AIR);
-                                    }
-                                } catch (Exception ignored) {
-                                }
-                            }
-                        }).build();
+                return ItemAnalysis.flagIf(player, packet.getItemStack(), generateKey(), context);
             }
 
             return ValidationViolationContext.PASS;

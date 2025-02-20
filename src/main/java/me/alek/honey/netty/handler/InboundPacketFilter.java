@@ -189,6 +189,10 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                 throw new DecoderException("Invalid packet, state " + this.packetHandler.getSimulatedServerboundProtocolState() + ", id " + serializer.readerIndex(0).readVarInt());
             }
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
+            if (this.packetHandler.isCancelled(packet)) {
+                // cancelled during initializing
+                return;
+            }
             this.packetHandler.filterMark = packet;
 
             packet.getEventloopStateTimings().startTimings(LifecycleState.HONEY_HANDLE);

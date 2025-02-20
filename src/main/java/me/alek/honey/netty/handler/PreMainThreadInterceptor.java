@@ -51,6 +51,9 @@ public class PreMainThreadInterceptor extends ChannelInboundHandlerAdapter {
             return;
         }
         packet.callPostMinecraftDecode(decodedImpl, typeOptional.get());
+        if (this.packetHandler.isCancelled(packet)) {
+            return;
+        }
 
         // stop honey-handle timings and register timings for all states
         packet.getEventloopStateTimings().stopTimings();

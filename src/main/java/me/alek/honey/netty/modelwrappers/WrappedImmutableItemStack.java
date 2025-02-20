@@ -2,6 +2,7 @@ package me.alek.honey.netty.modelwrappers;
 
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.util.adventure.AdventureSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.configuration.ConfigurationOptions;
@@ -25,6 +26,7 @@ import me.alek.honey.netty.tag.nbt.PrimitiveArrayTag;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
+import net.kyori.adventure.text.TextComponent;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;
@@ -129,35 +131,65 @@ public class WrappedImmutableItemStack implements Cloneable {
         Visitors.load();
     }
 
-    public static void validate(WrappedImmutableItemStack item, CodecContext context) {
-        if (item.getType() == ItemTypes.WRITABLE_BOOK || item.getType() == ItemTypes.WRITTEN_BOOK) {
-            BookTag.validateBook(item, context);
+    public static void validate(WrappedImmutableItemStack stack, CodecContext context) {
+        if (stack.getType() == ItemTypes.WRITABLE_BOOK || stack.getType() == ItemTypes.WRITTEN_BOOK) {
+            BookTag.validateBook(stack, context);
         }
 
-        if (item.getProtocol().isBetween(NetProtocol.v1_13, NetProtocol.v1_20_4) && !item.getTag().isEmpty()) {
-            CompoundTag tag = item.getTag().asNBT().get();
+        if (stack.getTag().asNBT().isPresent()) {
+            CompoundTag tag = stack.getTag().asNBT().get();
             if (tag.hasKeyOfType("display", CompoundTag.TYPE.get())) {
                 CompoundTag display = tag.getCompound("display");
+                validateDisplay(stack, display);
+            }
+        }
+    }
 
-                String name = display.getString("Name");
-                if (name != null) {
-                    try {
-                        ComponentHelper.readText(name); // try to serialize name as json
-                    } catch (DecoderException ex) {
-                        throw new DecoderException("Invalid name", ex);
+    public static void validateDisplay(WrappedImmutableItemStack stack, CompoundTag display) {
+        NetProtocol protocol = stack.getProtocol();
+        String name = display.getString("Name");
+        if (name != null) {
+            int max = ConfigurationOptions.ItemAnalysis.getMaxDisplayNameLength(protocol);
+            if (name.length() > max) {
+                throw new DecoderException("Too long name: " + name.length() + " > " + max);
+            }
+
+            if (protocol.isNewerThanOrEqual(NetProtocol.v1_13)) {
+                try {
+                    TextComponent text = ComponentHelper.readText(name); // try to serialize name as json
+
+                    String formatted = AdventureSerializer.asVanilla(text);
+                    if (formatted.length() > ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_FORMATTED_NAME) {
+                        throw new DecoderException("Too long formatted name: " + formatted.length() + " > " + ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_FORMATTED_NAME);
                     }
+                } catch (DecoderException ex) {
+                    throw new DecoderException("Invalid name", ex);
+                }
+            }
+        }
+
+        PrimitiveArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
+        if (lore != null) {
+            if (lore.size() > ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_LINES) {
+                throw new DecoderException("Too long lore, " + lore.size() + " > " + ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_LINES);
+            }
+
+            for (String line : lore) {
+                int max = ConfigurationOptions.ItemAnalysis.getMaxDisplayLoreLineLength(protocol);
+                if (line.length() > max) {
+                    throw new DecoderException("Too long lore line: " + line.length() + " > " + max);
                 }
 
-                if (item.getProtocol().isNewerThanOrEqual(NetProtocol.v1_14)) {
-                    PrimitiveArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
-                    if (lore != null) {
-                        for (String line : lore) {
-                            try {
-                                ComponentHelper.readText(line); // try to serialize lore as json
-                            } catch (DecoderException ex) {
-                                throw new DecoderException("Invalid lore", ex);
-                            }
+                if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
+                    try {
+                        TextComponent text = ComponentHelper.readText(line); // try to serialize lore as json
+
+                        String formatted = AdventureSerializer.asVanilla(text);
+                        if (formatted.length() > ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_FORMATTED_LINE) {
+                            throw new DecoderException("Too long formatted lore line: " + formatted.length() + " > " + ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_FORMATTED_LINE);
                         }
+                    } catch (DecoderException ex) {
+                        throw new DecoderException("Invalid lore", ex);
                     }
                 }
             }
@@ -168,13 +200,15 @@ public class WrappedImmutableItemStack implements Cloneable {
         if (context.maxMissingBytes() != -1) {
             int forTag = context.serializer().readableBytes() - context.maxMissingBytes();
             if (type == ItemTypes.WRITABLE_BOOK || type == ItemTypes.WRITTEN_BOOK) {
-                if (forTag > ConfigurationOptions.ItemAnalysis.NBT.getMaxBookNBTLength(context.protocolCreated())) {
-                    throw new DecoderException("Tried to read a book with too big nbt: " + forTag + " (at max)");
+                int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxBookNBTLength(context.protocolCreated());
+                if (forTag > max) {
+                    throw new DecoderException("Tried to read a book with too big nbt: " + forTag + " (at max) > " + max);
                 }
             }
 
-            if (forTag > ConfigurationOptions.ItemAnalysis.NBT.getMaxItemNBTLength(context.protocolCreated())) {
-                throw new DecoderException("Tried to read too big nbt: " + forTag + " (at max)");
+            int max = ConfigurationOptions.ItemAnalysis.NBT.getMaxItemNBTLength(context.protocolCreated());
+            if (forTag > max) {
+                throw new DecoderException("Tried to read too big nbt: " + forTag + " (at max) > " + max);
             }
         }
     }
@@ -383,19 +417,9 @@ public class WrappedImmutableItemStack implements Cloneable {
         return durability;
     }
 
-    public boolean isSimilar(ItemStack stack) {
-        // TODO: fix
-        return false;
-    }
-
-    public boolean isSimilar(WrappedImmutableItemStack stack) {
-        return this.type.equals(stack.getType()) && (!hasTag() && !stack.hasTag() || this.tag.isSimilar(stack.getTag()));
-    }
-
     @Override
     public String toString() {
-        // TODO: format
-        return super.toString();
+        return this.type.getName().getKey();
     }
 
     @Override

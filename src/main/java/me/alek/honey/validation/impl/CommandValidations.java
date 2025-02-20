@@ -126,7 +126,7 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
 
         for (String prohibitedCommand : prohibitedCommandsLiteral) {
             if (match(prohibitedCommand, message)) {
-                return ValidationViolationContext.Builder.validate().cancel().flag()
+                return ValidationViolationContext.FLAG.builder()
                         .onViolation(ViolationKey.of(this), onViolationConsumer)
                         .build();
             }
@@ -134,7 +134,7 @@ public class CommandValidations extends AbstractValidationPacketListener<Wrapped
 
         for (String prohibitedCommand : prohibitedCommandsRegex) {
             if (matchRegex(prohibitedCommand, message)) {
-                return ValidationViolationContext.Builder.validate().cancel().flag()
+                return ValidationViolationContext.FLAG.builder()
                         .onViolation(ViolationKey.of(this), onViolationConsumer)
                         .build();
             }

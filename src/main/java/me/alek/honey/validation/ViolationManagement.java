@@ -10,6 +10,7 @@ import me.alek.honey.netty.packet.Cancellable;
 import me.alek.honey.util.Array;
 import me.alek.honey.util.discord.DiscordWebhook;
 import me.alek.honey.util.statics.NumberUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -272,36 +273,51 @@ public class ViolationManagement {
         private final HoneyPlayer player;
         private ConfigurationOptions.ViolationSetting setting;
 
-        private long lastViolationClear;
-        private int violations;
+        private long lastViolationReset;
+        private int vls;
 
         public AbstractPacketLimitHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
             this.player = player;
             this.setting = setting;
 
-            this.lastViolationClear = System.currentTimeMillis();
+            this.lastViolationReset = System.currentTimeMillis();
         }
 
-        public HoneyPlayer getPlayer() {
-            return player;
-        }
+        public boolean violate(Cancellable cancellable, HoneyValidation<?> validation, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
+            if (System.currentTimeMillis() - this.lastViolationReset >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
+                this.vls = 0;
+                this.lastViolationReset = System.currentTimeMillis();
+            }
 
-        public ConfigurationOptions.ViolationSetting getSetting() {
-            return setting;
+            if (onViolation != null) {
+                onViolation.run();
+            }
+            cancellable.cancel();
+
+            if (++this.vls >= this.setting.minVls) {
+                doFormatStuff(validation, developmentData, violationKey);
+            }
+
+            if (this.vls < this.setting.vlsAmount) {
+                return false;
+            }
+
+            INSTANCE.punish(onPunish, this.player, validation, violationKey);
+            return true;
         }
 
         public void doFormatStuff(HoneyValidation<?> validation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
             if (developmentData != null) {
-                HoneyPlugin.get().getNotificationService().applyQuotients(player, developmentData);
+                HoneyPlugin.get().getNotificationService().applyQuotients(this.player, developmentData);
                 applySettingsToDevelopmentData(developmentData);
             }
 
             HoneyPlugin.get().getNotificationService().notify(
-                    player, validation.getName(), violationKey, getSetting(), this, developmentData);
+                    this.player, validation.getName(), violationKey, getSetting(), this, developmentData);
 
             if (DiscordWebhook.enabled()) {
                 DiscordWebhook.postViolation(
-                        player, validation,
+                        this.player, validation,
                         ChatColor.stripColor(AbstractPacketLimitHandler.this.format()),
                         developmentData);
             }
@@ -320,46 +336,31 @@ public class ViolationManagement {
             }.runTaskAsynchronously(HoneyPlugin.get().getPlugin());
         }
 
-        public boolean violate(Cancellable cancellable, HoneyValidation<?> validation, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
-            if (System.currentTimeMillis() - lastViolationClear >= ConfigurationOptions.General.CLEAR_OLD_VIOLATIONS_TIMESTAMP) {
-                violations = 0;
-                lastViolationClear = System.currentTimeMillis();
-            }
-
-            if (onViolation != null) {
-                onViolation.run();
-            }
-            cancellable.cancel();
-
-            if (++violations >= setting.minVls) {
-                doFormatStuff(validation, developmentData, violationKey);
-            }
-
-            if (violations < getSetting().vlsAmount) {
-                return false;
-            }
-
-            INSTANCE.punish(onPunish, player, validation, violationKey);
-            return true;
-        }
-
         private void applySettingsToDevelopmentData(ValidationPipelineContext.DevelopmentData developmentData) {
             developmentData.addEmpty();
 
-            PacketLimitHandlerType handlerType = setting.getPacketLimitHandlerType();
-            developmentData.addHeader("Settings", (handlerType == PacketLimitHandlerType.SIMPLE ? null : setting.getPacketLimitHandlerType().name().toLowerCase().replace("_", " ")));
+            PacketLimitHandlerType handlerType = this.setting.getPacketLimitHandlerType();
+            developmentData.addHeader("Settings", (handlerType == PacketLimitHandlerType.SIMPLE ? null : this.setting.getPacketLimitHandlerType().name().toLowerCase().replace("_", " ")));
 
-            for (Map.Entry<String, Object> valueEntry : setting.getValues()) {
+            for (Map.Entry<String, Object> valueEntry : this.setting.getValues()) {
                 developmentData.addLine(valueEntry.getKey() + ": " + valueEntry.getValue());
             }
         }
 
-        public int getViolations() {
-            return violations;
+        public String format() {
+            return "§7flags: §e" + getViolations() + "§7vls/§e" + this.setting.vlsAmount + "§7vls";
         }
 
-        public String format() {
-            return "§7flags: §e" + getViolations() + "§7vls/§e" + setting.vlsAmount + "§7vls";
+        public int getViolations() {
+            return this.vls;
+        }
+
+        public HoneyPlayer getPlayer() {
+            return this.player;
+        }
+
+        public ConfigurationOptions.ViolationSetting getSetting() {
+            return setting;
         }
 
         public abstract boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey);
@@ -478,11 +479,10 @@ public class ViolationManagement {
 
     public static abstract class PacketBufferHandler extends AbstractPacketLimitHandler {
 
-        protected double bufferIndexCopy;
         protected boolean hasDecayed;
 
         protected long lastDecay = System.currentTimeMillis();
-        protected double bufferIndex;
+        protected double buffer;
 
 
         public PacketBufferHandler(HoneyPlayer player, ConfigurationOptions.ViolationSetting setting) {
@@ -491,36 +491,32 @@ public class ViolationManagement {
 
         // put into its own method, so it can be overwritten by the buffer throttle
         public void decay() {
-            bufferIndex -= getSetting().decayAmount;
+            this.buffer -= getSetting().decayAmount;
         }
 
         @Override
         public boolean flag(Cancellable cancellable, HoneyValidation<?> validation, double amount, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
             this.hasDecayed = false;
             long diff = System.currentTimeMillis() - this.lastDecay;
-            while (this.bufferIndex > 0 && (diff -= getSetting().decay) > 0) {
+            while (this.buffer > 0 && (diff -= getSetting().decay) > 0) {
                 this.hasDecayed = true;
                 this.lastDecay = System.currentTimeMillis();
                 decay();
             }
 
-            if (this.bufferIndex < 0) {
-                this.bufferIndex = 0;
+            if (this.buffer < 0) {
+                this.buffer = 0;
             }
-            this.bufferIndex += amount;
+            this.buffer += amount;
 
-            if (this.bufferIndex < getSetting().threshold) {
+            if (this.buffer < getSetting().threshold) {
                 return false;
             }
-
-            this.bufferIndexCopy = this.bufferIndex;
-            this.bufferIndex = 0;
 
             return handle(cancellable, validation, onPunish, onViolation, developmentData, violationKey);
         }
 
         public abstract boolean handle(Cancellable cancellable, HoneyValidation<?> validation, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey);
-
     }
 
     public static class PacketBufferThrottleHandler extends PacketBufferHandler {
@@ -531,7 +527,7 @@ public class ViolationManagement {
 
         @Override
         public String format() {
-            return "§7buffer: §e" + NumberUtils.format(bufferIndexCopy, 2) + "§7/§e" + getSetting().until + "§7/§e" + getSetting().threshold + "§7, §e"
+            return "§7buffer: §e" + NumberUtils.format(this.buffer, 2) + "§7/§e" + getSetting().until + "§7/§e" + getSetting().threshold + "§7, §e"
                     + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
         }
 
@@ -542,21 +538,21 @@ public class ViolationManagement {
 
         @Override
         public void decay() {
-            if (this.bufferIndex < getSetting().threshold) {
+            if (this.buffer < getSetting().threshold) {
                 super.decay();
                 return;
             }
-            double ratio = (int) ((this.bufferIndex - getSetting().threshold) / (getSetting().decayAmount * 1.8));
+            double ratio = (int) ((this.buffer - getSetting().threshold) / (getSetting().decayAmount * 1.8));
             double amount = getSetting().decayAmount * Math.pow(1.4, ratio);
 
-            this.bufferIndex -= amount;
+            this.buffer -= amount;
         }
 
         @Override
         public boolean handle(Cancellable cancellable, HoneyValidation<?> validation, Runnable onPunish, Runnable onViolation, ValidationPipelineContext.DevelopmentData developmentData, HoneyKey violationKey) {
             cancellable.cancel();
 
-            if (this.bufferIndex > getSetting().until && getSetting().isEnabled()) {
+            if (this.buffer > getSetting().until && getSetting().isEnabled()) {
                 violate(cancellable, validation, onPunish, onViolation, developmentData, violationKey);
             }
 
@@ -572,7 +568,7 @@ public class ViolationManagement {
 
         @Override
         public String format() {
-            return "§7buffer: §e" + NumberUtils.format(this.bufferIndexCopy, 2) + "§7/§e" + getSetting().threshold +
+            return "§7buffer: §e" + NumberUtils.format(this.buffer, 2) + "§7/§e" + getSetting().threshold +
                     "§7, §e" + getViolations() + "§7vls/§e" + getSetting().vlsAmount + "§7vls";
         }
 

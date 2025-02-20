@@ -4,6 +4,7 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.types.Utf8String;
 import me.alek.honey.netty.tag.FallbackDefaultCodecException;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
+import me.alek.honey.util.statics.NumberUtils;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -146,6 +147,9 @@ public class CodecTypes {
                 val = visitor.visitAtFloat(input, limiter);
             } catch (FallbackDefaultCodecException e) {
                 val = input.readFloat();
+                if (NumberUtils.isInvalid(val)) {
+                    throw new IOException("Invalid float");
+                }
             }
             visitor.visitFloat(val);
             return new PrimitiveTag<>(TagType.FLOAT, val)
@@ -170,6 +174,9 @@ public class CodecTypes {
                 val = visitor.visitAtDouble(input, limiter);
             } catch (FallbackDefaultCodecException ex) {
                 val = input.readDouble();
+                if (NumberUtils.isInvalid(val)) {
+                    throw new IOException("Invalid double");
+                }
             }
             visitor.visitDouble(val);
             return new PrimitiveTag<>(TagType.DOUBLE, val)
@@ -384,6 +391,9 @@ public class CodecTypes {
         private List<T> readArray(TagType type, DataInputStream input, TagLimiter limiter, NBTVisitor.In visitor) throws IOException {
             List<T> array = new ArrayList<>();
             int length = input.readInt();
+            if (length > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_ARRAY_ENTRIES) {
+                throw new IOException("Too many array entries: " + length + " > " + ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_ARRAY_ENTRIES);
+            }
             for (int i = 0; i < length; i++) {
                 T val;
                 try {
@@ -459,11 +469,15 @@ public class CodecTypes {
 
         private Map<String, AbstractTag<?, ?>> readComponent(DataInputStream input, TagLimiter limiter, NBTVisitor.In visitor) throws IOException {
             Map<String, AbstractTag<?, ?>> compound = new HashMap<>();
+            int i = 0;
             byte b;
             while ((b = input.readByte()) != TagType.END.getId()) {
                 TagType type = TagType.getFromTypeId(b);
                 if (type == null) {
                     throw new IOException("Invalid type");
+                }
+                if (++i > ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_COMPOUND_ENTRIES) {
+                    throw new IOException("Too many compound entries: " + i + " > " + ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_COMPOUND_ENTRIES);
                 }
 
                 String key;
@@ -486,8 +500,8 @@ public class CodecTypes {
                 }
 
                 key = visitor.visitCompoundKey(key, type);
-                compound.put(key, tag);
                 visitor.visitCompoundElement(key, tag);
+                compound.put(key, tag);
             }
             return compound;
         }

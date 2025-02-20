@@ -19,8 +19,8 @@ public class NBTWrittenBookRewriter implements InTagRewriter.NBTRewriter {
 
     public static void checkFormatted(Component component) {
         String formatted = AdventureSerializer.asVanilla(component);
-        if (formatted.length() > ConfigurationOptions.ItemAnalysis.NBT.MAX_BOOK_FORMATTED_PAGE_LENGTH) {
-            throw new DecoderException("Invalid book data: too long formatted page: " + formatted.length());
+        if (formatted.length() > ConfigurationOptions.ItemAnalysis.BOOK_MAX_FORMATTED_PAGE_LENGTH) {
+            throw new DecoderException("Invalid book data: too long formatted page: " + formatted.length() + " > " + ConfigurationOptions.ItemAnalysis.BOOK_MAX_FORMATTED_PAGE_LENGTH);
         }
     }
 

@@ -10,8 +10,6 @@ import java.util.function.Supplier;
 public enum ItemValidationRegistry {
     MAX_ENCHANTMENT_LEVEL(ItemValidations.MaxEnchantmentLevelItemValidation::new),
     MAX_AMOUNT(ItemValidations.MaxAmountItemValidation::new),
-    MAX_DISPLAYNAME_LENGTH(ItemValidations.MaxDisplayNameLengthItemValidation::new),
-    MAX_TOTAL_LORE_LENGTH(ItemValidations.MaxTotalLoreLengthItemValidation::new),
     ILLEGAL_CHARACTER(ItemValidations.IllegalCharacterItemValidation::new),
     ILLEGAL_ENCHANTMENTS(ItemValidations.IllegalEnchantmentsItemValidation::new),
     MAX_FIREWORK_EXPLOSIONS(ItemValidations.MaxFireworkExplosionsItemValidation::new, ItemTypes.FIREWORK_ROCKET),
