@@ -95,7 +95,7 @@ public class WrappedPlayInBlockPlace extends ByteInWrappedPacketImpl.CacheRewrit
 
     @Override
     public void rewrite(PacketDataSerializer serializer) {
-        if (ConfigurationOptions.Decoder.DISABLE_ITEM_TAG_WINDOW_CLICK) {
+        if (ConfigurationOptions.Decoder.DISABLE_ITEM_TAG_BLOCK_PLACE) {
             rewriteSanitized(serializer);
         } else {
             super.rewrite(serializer);

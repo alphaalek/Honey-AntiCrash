@@ -351,7 +351,7 @@ public class CodecTypes {
             visitor.visitArray(array, type);
         }
 
-        @SuppressWarnings({"unchecked", "DataFlowIssue"})
+        @SuppressWarnings("unchecked")
         @Override
         public R read(DataInputStream input, TagLimiter limiter, NBTVisitor.In visitor) throws IOException {
             TagType type = TagType.getFromTypeId(input.readByte());

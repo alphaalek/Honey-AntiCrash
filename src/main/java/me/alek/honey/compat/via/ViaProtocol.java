@@ -7,7 +7,6 @@ import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.util.Array;
-import me.alek.honey.util.LazyInit;
 import me.alek.honey.util.LibraryVersion;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.Reflection;
@@ -284,16 +283,9 @@ public enum ViaProtocol {
         Name[] value();
     }
 
-    public static class ViaValidator implements ServiceValidator {
+    public static class ValidatorInstances {
 
-        public static final ServiceValidator VALIDATOR = new ViaValidator();
-
-        private final LazyInit<Boolean> find = new LazyInit<>(() -> HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ViaVersion") != null
-                && HoneyPlugin.get().getPlugin().getServer().getPluginManager().getPlugin("ViaVersion").isEnabled());
-
-        @Override
-        public LazyInit<Boolean> find() {
-            return find;
-        }
+        public static final ServiceValidator VIA_VALIDATOR = ServiceValidator.of("ViaVersion");
+        public static final ServiceValidator VIA_BACKWARDS_VALIDATOR = ServiceValidator.of("ViaBackwards");
     }
 }

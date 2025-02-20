@@ -1,6 +1,8 @@
 package me.alek.honey.netty.tag.nbt.visitor;
 
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import me.alek.honey.compat.via.ViaProtocol;
 import me.alek.honey.netty.codec.CodecVisitor;
 import me.alek.honey.netty.tag.FallbackDefaultCodecException;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
@@ -8,6 +10,7 @@ import me.alek.honey.netty.tag.nbt.NBTFactory;
 import me.alek.honey.netty.tag.nbt.TagLimiter;
 import me.alek.honey.netty.tag.nbt.TagType;
 import me.alek.honey.util.protocol.NetProtocol;
+import me.alek.honey.util.reflection.ItemFactory;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -127,7 +130,17 @@ public interface NBTVisitor extends CodecVisitor {
         }
 
         static NBTVisitor.In createDefault(NetProtocol protocol, NetProtocol protocolCreated, ItemType type) {
-            return createDefault(NBTFactory.createDefaultTagLimiter(), protocol, protocolCreated, type);
+            TagLimiter limiter;
+            if (type.getName().getKey().contains("shulker_box")
+                    // assume emulated shulker box
+                    || ViaProtocol.ValidatorInstances.VIA_BACKWARDS_VALIDATOR.find().get() && protocol.isOlderThan(NetProtocol.v1_11) && type.equals(ItemTypes.DROPPER)) {
+                // TODO
+                limiter = new TagLimiter.NoOp();
+            } else {
+                limiter = NBTFactory.createDefaultTagLimiter();
+            }
+
+            return createDefault(limiter, protocol, protocolCreated, type);
         }
 
         abstract class Adapter extends NBTVisitor.Adapter implements In {

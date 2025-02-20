@@ -73,8 +73,9 @@ public class NBTBookTagVisitor extends ComplexTagVisitor {
     @Override
     public <TAG extends AbstractTag<?, TAG>> TAG visitAtArrayInsert(DataInputStream stream, TagLimiter limiter, TagType type) throws FallbackDefaultCodecException, IOException {
         if (currentGrandChild().equals(BookTag.PAGES)) {
-            if (++this.pages > ConfigurationOptions.ItemAnalysis.getMaxBookPages(protocolCreated())) {
-                throw new DecoderException("Invalid book data: too many pages: " + this.pages);
+            int max = ConfigurationOptions.ItemAnalysis.getMaxBookPages(protocolCreated());
+            if (++this.pages > max) {
+                throw new DecoderException("Invalid book data: too many pages: " + this.pages + " > " + max);
             }
 
             if (!type.equals(TagType.STRING)) {

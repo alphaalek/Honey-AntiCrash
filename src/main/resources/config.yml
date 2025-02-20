@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + This configuration file is generated using version v2.6.6
+#   + This configuration file is generated using version v2.6.7
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -263,19 +263,20 @@ item-analysis:
       modern: 36000
       # (pre 1.14)
       legacy: 18000
+    # How many bytes may a NBT string be.
+    max-string-length: 1250
+    # How many bytes may a NBT Compound Key be.
+    max-key-length: 64
+    # The following config-options does not exist for shulker boxes.
     # How many NBT bases may an item have. (the general representation of NBT data, covers lists, strings, doubles etc...)
     max-bases: 512
     # How much NBT nesting may an item have. (lists inside of lists inside of compounds etc...)
     max-nesting: 6
     # How complex may an NBT be.
     max-complexity: 16
-    # How many bytes may a NBT string be.
-    max-string-length: 1250
-    # How many bytes may a NBT Compound Key be.
-    max-key-length: 64
-    # How many entries may be in a NBT Compound.
+    # How many entries may be in a NBT Compound (except shulker boxes, but still items in).
     max-compound-entries: 64
-    # How many entries may be in a NBT Array.
+    # How many entries may be in a NBT Array (except shulker boxes).
     max-array-entries: 128
 
 ############################################################

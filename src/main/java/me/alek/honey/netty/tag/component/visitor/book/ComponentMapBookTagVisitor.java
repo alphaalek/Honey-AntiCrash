@@ -32,8 +32,9 @@ public class ComponentMapBookTagVisitor extends CommonComponentMapInVisitor {
     protected void validatePageCount(PacketDataSerializer serializer) {
         serializer.markReaderIndex();
         int pageCount = serializer.readVarInt();
-        if (pageCount > ConfigurationOptions.ItemAnalysis.getMaxBookPages(this.protocolCreated)) {
-            throw new DecoderException("Invalid book data: too many pages: " + pageCount);
+        int max = ConfigurationOptions.ItemAnalysis.getMaxBookPages(this.protocolCreated);
+        if (pageCount > max) {
+            throw new DecoderException("Invalid book data: too many pages: " + pageCount + " > " + max);
         }
         serializer.resetReaderIndex();
     }

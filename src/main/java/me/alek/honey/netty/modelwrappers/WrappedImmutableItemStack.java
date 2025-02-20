@@ -27,6 +27,7 @@ import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
 import me.alek.honey.netty.tag.rewriter.InTagRewriter;
 import me.alek.honey.util.protocol.NetProtocol;
 import net.kyori.adventure.text.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.IOException;

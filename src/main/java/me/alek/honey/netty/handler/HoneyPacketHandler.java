@@ -122,7 +122,7 @@ public class HoneyPacketHandler {
         // check if the client protocol version is not the same as the server protocol version
         // if it is not the same, then we will acquire the packet type with ViaVersion
         if (useVia
-                && ViaProtocol.ViaValidator.VALIDATOR.find().get()
+                && ViaProtocol.ValidatorInstances.VIA_VALIDATOR.find().get()
                 && !state.equals(PacketState.HANDSHAKE)
                 && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())) {
 
@@ -141,7 +141,7 @@ public class HoneyPacketHandler {
 
     public int getPacketId(PacketType type, boolean useVia) {
         if (useVia
-                && ViaProtocol.ViaValidator.VALIDATOR.find().get()
+                && ViaProtocol.ValidatorInstances.VIA_VALIDATOR.find().get()
                 && type.getState() != PacketState.HANDSHAKE
                 && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())) {
 
@@ -207,7 +207,7 @@ public class HoneyPacketHandler {
     }
 
     public void handleViaClientboundInterceptor() {
-        if (ViaProtocol.ViaValidator.VALIDATOR.find().get()
+        if (ViaProtocol.ValidatorInstances.VIA_VALIDATOR.find().get()
                 && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())
                 && this.channel.pipeline().get(ViaHandlers.ENCODER) != null
                 && this.channel.pipeline().get(ViaClientboundInterceptor.NAME) == null) {

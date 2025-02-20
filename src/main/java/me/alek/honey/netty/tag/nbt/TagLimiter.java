@@ -50,6 +50,34 @@ public interface TagLimiter {
         }
     }
 
+    class NoOp implements TagLimiter {
+
+        @Override
+        public void incrementBase() {
+
+        }
+
+        @Override
+        public void incrementBytes(int bytes) {
+
+        }
+
+        @Override
+        public int incrementNestingDepth() {
+            return 0;
+        }
+
+        @Override
+        public void incrementComplexity() {
+
+        }
+
+        @Override
+        public void setNestingDepthLevel(int depth) {
+
+        }
+    }
+
     class Default implements TagLimiter {
 
         private final int maxBytes;
@@ -73,7 +101,7 @@ public interface TagLimiter {
             this.bases++;
 
             if (this.bases > this.maxBases) {
-                throw new DecoderException("Tried to read nbt with too many bases: " + this.bases);
+                throw new DecoderException("Tried to read nbt with too many bases: " + this.bases + " > " + this.maxBases);
             }
         }
 
@@ -82,7 +110,7 @@ public interface TagLimiter {
             this.bytes += bytes;
 
             if (this.bytes > this.maxBytes) {
-                throw new DecoderException("Tried to read too complex nbt: " + this.bytes);
+                throw new DecoderException("Tried to read too complex nbt: " + this.bytes + " > " + this.maxBytes);
             }
         }
 
@@ -91,7 +119,7 @@ public interface TagLimiter {
             this.depth++;
 
             if (this.depth > this.maxDepth) {
-                throw new DecoderException("Tried to read nbt which is too deep: " + this.depth);
+                throw new DecoderException("Tried to read nbt which is too deep: " + this.depth + " > " + this.maxDepth);
             }
 
             return this.depth - 1;
@@ -102,7 +130,7 @@ public interface TagLimiter {
             this.complexity++;
 
             if (this.complexity > this.maxComplexity) {
-                throw new DecoderException("Tried to read nbt which is too complex: " + this.complexity);
+                throw new DecoderException("Tried to read nbt which is too complex: " + this.complexity + " > " + this.maxComplexity);
             }
         }
 
