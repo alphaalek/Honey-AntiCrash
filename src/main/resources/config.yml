@@ -60,7 +60,6 @@ webhook:
   # Should the embed notification contain detailed data.
   detailed: true
 
-# Decoder settings
 decoder:
   # Disable item tag decoding
   disable-tag:
@@ -68,6 +67,11 @@ decoder:
     block-place: true
     # Note, can cause some inventory interaction de-sync issues in lower versions. If this is not wanted, set to "disabled".
     window-click: false
+
+validation:
+  # Max bytes used for the handshake field in the handshake packet. Set to -1 to disable.
+  # If you embed data within this packet field by a proxy, it is recommended to increase the threshold depending on what is embedded.
+  max-handshake-host-bytes: 512
 
 # Formatting for messages sent by Honey
 messages:
@@ -92,7 +96,6 @@ messages:
     cancel: "Cancelling... (%amount%)"
     postpone: "Postponing... (%amount%) (current: %current_amount%)"
 
-# Tick loop packet task postpone modifications
 postpone:
   # Should packet postponing be enabled.
   enabled: true
@@ -120,7 +123,6 @@ postpone:
   max-rate-accel-quotient: 12.5
   min-rate-5s-for-quotient: 32.5
 
-# Packet dump
 packet-dump:
   heavy-packet:
     # Should packet dump for heavy handled packets be enabled.

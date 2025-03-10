@@ -15,6 +15,7 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import org.bukkit.Bukkit;
 
 import java.util.List;
 import java.util.Optional;

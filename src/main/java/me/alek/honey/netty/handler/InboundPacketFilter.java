@@ -21,6 +21,7 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.HoneyValidation;
@@ -189,6 +190,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
                 throw new DecoderException("Invalid packet, state " + this.packetHandler.getSimulatedServerboundProtocolState() + ", id " + serializer.readerIndex(0).readVarInt());
             }
             packet = new InternalPacketContainer<>(PacketContainer.PipelineState.INITIAL_BYTE, serializer, this.player, type, null);
+
             if (this.packetHandler.isCancelled(packet)) {
                 // cancelled during initializing
                 return;
@@ -223,6 +225,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
             management.flag(this.player, STACK_PROCESS_VALIDATION, STACK_PROCESS_SETTING, data);
         } catch (Exception ex) {
+            ex.printStackTrace();
             this.packetHandler.filterMark = null;
             MARK.remove();
             if (this.player.pinging || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {

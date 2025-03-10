@@ -1,6 +1,7 @@
 package me.alek.honey;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -163,7 +164,9 @@ public class HoneyPlugin implements HoneyAPI {
 
     @Override
     public void onLoad() {
-        PacketEvents.setAPI(new DummyPacketEventsAPI());
+        if (PacketEvents.getAPI() == null) {
+            PacketEvents.setAPI(new DummyPacketEventsAPI());
+        }
     }
 
     @Override

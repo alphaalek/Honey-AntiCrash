@@ -548,7 +548,8 @@ public class MovementValidations<WP extends WrappedPlayInFlying.Positional<WP>> 
                     double delta2D = LocationUtils.calculate2DDistance(loc, lastLoc);
                     double deltaY = LocationUtils.calculateYDistance(loc, lastLoc);
                     if (delta2D == 0 && deltaY == 0
-                            || player.isInLiquid()
+                            // TODO: fix (server sync)
+                            // || player.isInLiquid()
                             || deltaY % 0.375 < Math.pow(10, -3)) {
                         return ValidationViolationContext.PASS;
                     }

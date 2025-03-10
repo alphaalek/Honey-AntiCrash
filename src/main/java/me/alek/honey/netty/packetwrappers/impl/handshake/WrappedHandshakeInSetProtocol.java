@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packetwrappers.impl.handshake;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacketImpl;
@@ -19,7 +20,7 @@ public class WrappedHandshakeInSetProtocol extends ByteInWrappedPacketImpl<Wrapp
     public WrappedHandshakeInSetProtocol(PacketDataSerializer serializer, PacketContainer<WrappedHandshakeInSetProtocol> packetContainer) {
         super(serializer, packetContainer);
         this.protocolVersion = serializer.readVarInt();
-        this.host = serializer.readString();
+        this.host = serializer.readString(ConfigurationOptions.Validations.MAX_HANDSHAKE_HOST_BYTES);
         this.port = serializer.readUnsignedShort();
         this.intention = ClientIntention.values()[serializer.readVarInt() - 1];
     }

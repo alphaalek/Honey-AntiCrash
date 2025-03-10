@@ -624,6 +624,16 @@ public class ConfigurationOptions {
     }
 
     @Setting
+    public static class Validations {
+
+        public static int MAX_HANDSHAKE_HOST_BYTES;
+
+        public static void load() {
+            MAX_HANDSHAKE_HOST_BYTES = file.getInt("validation.max-handshake-host-bytes");
+        }
+    }
+
+    @Setting
     public static class ItemAnalysis {
 
         public static int DISPLAY_MAX_NAME;
@@ -814,75 +824,6 @@ public class ConfigurationOptions {
         @Violation(prefixPaths = "netty.i", packetHandler = PacketLimitHandlerType.BUFFER_THROTTLE)
         public static class NettyI extends ViolationSetting implements VlBufferThrottleRequiredContentsSetting {
 
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.k", packetHandler = PacketLimitHandlerType.TRIGGER_THROTTLE)
-        @Keyed(amount = 2)
-        public static class NettyK extends ViolationSetting implements VlTriggerThrottleRequiredContentsSetting {
-
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.l", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class NettyL extends ViolationSetting implements VlIntervalRequiredContentsSetting {
-
-            @Override
-            public Set<ViolationSettingType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        ViolationSettingType.MAX_PER_INTERVAL,
-                        ViolationSettingType.INTERVAL,
-                        ViolationSettingType.VLS_AMOUNT,
-                        ViolationSettingType.MAX,
-                        ViolationSettingType.MIN
-                );
-            }
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.m", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class NettyM extends ViolationSetting implements VlIntervalRequiredContentsSetting {
-
-            @Override
-            public Set<ViolationSettingType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        ViolationSettingType.MAX_PER_INTERVAL,
-                        ViolationSettingType.INTERVAL,
-                        ViolationSettingType.VLS_AMOUNT,
-                        ViolationSettingType.MIN
-                );
-            }
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.n", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class NettyN extends ViolationSetting implements VlIntervalRequiredContentsSetting {
-
-            @Override
-            public Set<ViolationSettingType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        ViolationSettingType.MAX_PER_INTERVAL,
-                        ViolationSettingType.INTERVAL,
-                        ViolationSettingType.VLS_AMOUNT,
-                        ViolationSettingType.MIN
-                );
-            }
-        }
-
-        @Setting
-        @Violation(prefixPaths = "netty.o", packetHandler = PacketLimitHandlerType.INTERVAL)
-        public static class NettyO extends ViolationSetting implements VlIntervalRequiredContentsSetting {
-
-            @Override
-            public Set<ViolationSettingType> getRequiredTypes() {
-                return Sets.newHashSet(
-                        ViolationSettingType.MAX_PER_INTERVAL,
-                        ViolationSettingType.INTERVAL,
-                        ViolationSettingType.VLS_AMOUNT,
-                        ViolationSettingType.MAX,
-                        ViolationSettingType.MIN
-                );
-            }
         }
     }
 

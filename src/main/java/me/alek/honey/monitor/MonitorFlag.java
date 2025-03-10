@@ -65,19 +65,19 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
         }
 
         public MonitorFlag<?> createNew() {
-            return monitorFlagSupplier.get();
+            return this.monitorFlagSupplier.get();
         }
 
-        private static final Map<String, Flag> flagsLookup = new HashMap<>();
+        private static final Map<String, Flag> FLAGS = new HashMap<>();
 
         static {
             for (Flag flag : Flag.values()) {
-                flagsLookup.put(flag.getName(), flag);
+                FLAGS.put(flag.getName(), flag);
             }
         }
 
         public static Flag getFlagByName(String name) {
-            return flagsLookup.get(name);
+            return FLAGS.get(name);
         }
 
         public static void checkSyntax(Array<String> args, MonitorFlag<?> flag, int takes) throws WrongMonitorFlagSyntaxException {

@@ -26,7 +26,6 @@ public class ComponentHelper {
             throw new DecoderException("Invalid component: tried to read page that is not text component");
         } else {
             TextComponent text = (TextComponent) component;
-
             List<Component> children = new ArrayList<>();
             for (Component child : text.children()) {
                 if (!(child instanceof TextComponent)) {

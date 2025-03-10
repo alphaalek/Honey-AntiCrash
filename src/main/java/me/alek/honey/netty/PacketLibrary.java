@@ -50,12 +50,7 @@ public class PacketLibrary {
 
         this.pipelineInjector = new SpigotPipelineInjector();
         this.serverInjector = new SpigotServerInjector();
-        if (serverInjector.hasAnyListeningChannel()) {
-            this.serverInjector.inject();
-        } else {
-            // late bind, so we inject a bit later
-            Bukkit.getScheduler().scheduleSyncDelayedTask(HoneyPlugin.get().getPlugin(), this.serverInjector::inject);
-        }
+        Bukkit.getScheduler().scheduleSyncDelayedTask(HoneyPlugin.get().getPlugin(), this.serverInjector::inject);
 
         TagType.load();
 

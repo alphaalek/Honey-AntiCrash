@@ -5,6 +5,7 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypes;
 import me.alek.honey.netty.processor.TypeProcessor;
 import me.alek.honey.netty.packetwrappers.impl.handshake.WrappedHandshakeInSetProtocol;
+import org.bukkit.Bukkit;
 
 public class HandshakeProcessor extends TypeProcessor<WrappedHandshakeInSetProtocol> {
 
