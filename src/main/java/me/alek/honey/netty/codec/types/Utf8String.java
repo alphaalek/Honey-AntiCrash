@@ -14,7 +14,8 @@ public class Utf8String implements TypeSerializer<String, TypeSerializer.TypeCon
     @Override
     public String read(PacketDataSerializer buf, TypeSerializer.TypeContext.OneArg<Integer> context) {
         int stringByteLength = buf.readVarInt();
-        if (stringByteLength > context.get()) {
+        int maxByteLength = context.get();
+        if (maxByteLength != -1 && stringByteLength > maxByteLength) {
             throw new DecoderException("The received encoded string buffer length is longer than maximum allowed (" + stringByteLength + " > " + context.get() + ")");
         }
 
@@ -30,7 +31,7 @@ public class Utf8String implements TypeSerializer<String, TypeSerializer.TypeCon
         String decodedString = buf.toString(buf.readerIndex(), stringByteLength, StandardCharsets.UTF_8);
         buf.skipBytes(stringByteLength);
 
-        if (decodedString.length() > context.get()) {
+        if (decodedString.length() > maxByteLength) {
             throw new DecoderException("The received string length is longer than maximum allowed (" + decodedString.length() + " > " + context.get() + ")");
         }
 
