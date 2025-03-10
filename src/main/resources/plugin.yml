@@ -3,7 +3,7 @@ description: One of the most advanced and revolutionary AntiCrash-solutions secu
 author: Alek05
 website: https://discord.gg/veAtFHG65u
 softdepend: [ViaVersion, Geyser-Spigot, floodgate, packetevents]
-version: 2.6.7
+version: 2.6.8
 api-version: 1.13
 main: me.alek.honey.HoneyPluginInitializer
 commands:

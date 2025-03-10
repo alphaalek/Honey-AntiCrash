@@ -152,7 +152,7 @@ public class WrappedImmutableItemStack implements Cloneable {
         if (name != null) {
             int max = ConfigurationOptions.ItemAnalysis.getMaxDisplayNameLength(protocol);
             if (name.length() > max) {
-                throw new DecoderException("Too long name: " + name.length() + " > " + max);
+                throw new DecoderException("Invalid display: Too long name: " + name.length() + " > " + max);
             }
 
             if (protocol.isNewerThanOrEqual(NetProtocol.v1_13)) {
@@ -161,10 +161,10 @@ public class WrappedImmutableItemStack implements Cloneable {
 
                     String formatted = AdventureSerializer.asVanilla(text);
                     if (formatted.length() > ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_FORMATTED_NAME) {
-                        throw new DecoderException("Too long formatted name: " + formatted.length() + " > " + ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_FORMATTED_NAME);
+                        throw new DecoderException("Invalid display: Too long formatted name: " + formatted.length() + " > " + ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_FORMATTED_NAME);
                     }
                 } catch (DecoderException ex) {
-                    throw new DecoderException("Invalid name", ex);
+                    throw new DecoderException("Invalid display: Invalid name", ex);
                 }
             }
         }
@@ -172,13 +172,13 @@ public class WrappedImmutableItemStack implements Cloneable {
         PrimitiveArrayTag<String> lore = display.getArrayOf("Lore", TagType.STRING);
         if (lore != null) {
             if (lore.size() > ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_LINES) {
-                throw new DecoderException("Too long lore, " + lore.size() + " > " + ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_LINES);
+                throw new DecoderException("Invalid display: Too long lore, " + lore.size() + " > " + ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_LINES);
             }
 
             for (String line : lore) {
                 int max = ConfigurationOptions.ItemAnalysis.getMaxDisplayLoreLineLength(protocol);
                 if (line.length() > max) {
-                    throw new DecoderException("Too long lore line: " + line.length() + " > " + max);
+                    throw new DecoderException("Invalid display: Too long lore line: " + line.length() + " > " + max);
                 }
 
                 if (protocol.isNewerThanOrEqual(NetProtocol.v1_14)) {
@@ -187,10 +187,10 @@ public class WrappedImmutableItemStack implements Cloneable {
 
                         String formatted = AdventureSerializer.asVanilla(text);
                         if (formatted.length() > ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_FORMATTED_LINE) {
-                            throw new DecoderException("Too long formatted lore line: " + formatted.length() + " > " + ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_FORMATTED_LINE);
+                            throw new DecoderException("Invalid display: Too long formatted lore line: " + formatted.length() + " > " + ConfigurationOptions.ItemAnalysis.DISPLAY_MAX_LORE_FORMATTED_LINE);
                         }
                     } catch (DecoderException ex) {
-                        throw new DecoderException("Invalid lore", ex);
+                        throw new DecoderException("Invalid display: Invalid lore", ex);
                     }
                 }
             }
