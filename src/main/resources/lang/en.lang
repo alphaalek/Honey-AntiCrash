@@ -77,10 +77,10 @@ validation.netty.g=Too high accumulated packet size
 validation.netty.h=Too long decode time
 validation.netty.i=Buffer of decode time exceeded
 
-validation.payload.a=Empty serializer for payload
+validation.payload.a=Too many registered plugin channels
 validation.payload.b=Too big serializer for payload
 validation.payload.c=Illegal item in payload
-validation.payload.d=Too many registered plugin channels
+validation.payload.d=Using blocked plugin channel
 
 validation.book-edit.a=Illegal book
 

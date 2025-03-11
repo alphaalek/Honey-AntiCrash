@@ -45,7 +45,6 @@ public class PayloadValidations extends AbstractValidationPacketListener<Wrapped
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public ValidationPipeline<PacketValidation<WrappedPlayInCustomPayload>> createValidationPipeline() {
         return ValidationPipeline.from(new PayloadA(), new PayloadB(), new PayloadC(), new PayloadD());
@@ -53,10 +52,18 @@ public class PayloadValidations extends AbstractValidationPacketListener<Wrapped
 
     public static class PayloadA implements PacketValidation<WrappedPlayInCustomPayload>, ViolationValidation<WrappedPlayInCustomPayload> {
 
+        public static final String REGISTER_CHANNEL = "REGISTER";
         private static final int id = IDRegistry.VALIDATION.acquire();
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
+            if (getSetting().isEnabled()) {
+                String channel = packet.getPayloadData().getChannel();
+                if (channel.equals(REGISTER_CHANNEL) && player.bukkit.getListeningPluginChannels().size() > ConfigurationOptions.Validations.MAX_CHANNELS) {
+                    return ValidationViolationContext.FLAG;
+                }
+            }
+
             return ValidationViolationContext.PASS;
         }
 
@@ -87,8 +94,8 @@ public class PayloadValidations extends AbstractValidationPacketListener<Wrapped
 
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
-            if (getSetting().isEnabled()) {
-                return ValidationViolationContext.Builder.validate().flag(packet.getPayloadData().getSerializer().readableBytes()).build();
+            if (getSetting().isEnabled() && packet.getPayloadData().getSerializer().readableBytes() > ConfigurationOptions.Validations.MAX_PAYLOAD_BYTES) {
+                return ValidationViolationContext.FLAG;
             }
 
             return ValidationViolationContext.PASS;
@@ -160,15 +167,8 @@ public class PayloadValidations extends AbstractValidationPacketListener<Wrapped
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInCustomPayload packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
                 String channel = packet.getPayloadData().getChannel();
-                if (channel.equalsIgnoreCase("register") &&
-                        player.bukkit.getListeningPluginChannels().size() > getSetting().max) {
-                    return ValidationViolationContext.Builder.validate().cancel().flag()
-                            .onViolation(ViolationKey.of(this), (key, onViolation) -> {
-                                if (onViolation != null) onViolation.run();
-
-                                context.getDevelopmentData(key).addPoint("Plugin Channels", player.bukkit.getListeningPluginChannels().size());
-                            })
-                            .build();
+                if (ConfigurationOptions.Validations.BLOCKED_CHANNELS.contains(channel)) {
+                    return ValidationViolationContext.FLAG;
                 }
             }
 

@@ -225,7 +225,6 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
 
             management.flag(this.player, STACK_PROCESS_VALIDATION, STACK_PROCESS_SETTING, data);
         } catch (Exception ex) {
-            ex.printStackTrace();
             this.packetHandler.filterMark = null;
             MARK.remove();
             if (this.player.pinging || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {

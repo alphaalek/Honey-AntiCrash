@@ -628,8 +628,18 @@ public class ConfigurationOptions {
 
         public static int MAX_HANDSHAKE_HOST_BYTES;
 
+        public static int MAX_CHANNEL_BYTES;
+        public static int MAX_PAYLOAD_BYTES;
+        public static int MAX_CHANNELS;
+        public static List<String> BLOCKED_CHANNELS;
+
         public static void load() {
             MAX_HANDSHAKE_HOST_BYTES = file.getInt("validation.max-handshake-host-bytes");
+
+            MAX_CHANNEL_BYTES = file.getInt("validation.custom-payload.max-channel-bytes");
+            MAX_PAYLOAD_BYTES = file.getInt("validation.custom-payload.max-payload-bytes");
+            MAX_CHANNELS = file.getInt("validation.custom-payload.max-channels");
+            BLOCKED_CHANNELS = file.getStringList("validation.custom-payload.blocked-channels");
         }
     }
 
@@ -837,8 +847,8 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "custom-payload.b", packetHandler = PacketLimitHandlerType.SINGLE_OVERFLOW)
-        public static class PayloadB extends ViolationSetting implements VlSingleOverflowRequiredContentsSetting {
+        @Violation(prefixPaths = "custom-payload.b", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class PayloadB extends ViolationSetting {
 
         }
 
@@ -849,8 +859,8 @@ public class ConfigurationOptions {
         }
 
         @Setting
-        @Violation(prefixPaths = "custom-payload.d", packetHandler = PacketLimitHandlerType.MAX)
-        public static class PayloadD extends ViolationSetting implements VlSimpleMaxRequiredContentsSetting {
+        @Violation(prefixPaths = "custom-payload.d", packetHandler = PacketLimitHandlerType.SIMPLE)
+        public static class PayloadD extends ViolationSetting {
 
         }
     }

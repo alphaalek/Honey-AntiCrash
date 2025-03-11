@@ -65,13 +65,25 @@ decoder:
   disable-tag:
     # Note, items are only used in this packets in pre 1.9 protocols
     block-place: true
-    # Note, can cause some inventory interaction de-sync issues in lower versions. If this is not wanted, set to "disabled".
+    # Note, can cause some inventory interaction de-sync issues in lower versions.
     window-click: false
 
 validation:
-  # Max bytes used for the handshake field in the handshake packet. Set to -1 to disable.
-  # If you embed data within this packet field by a proxy, it is recommended to increase the threshold depending on what is embedded.
+  # Max bytes used for the host field in the handshake packet. Set to -1 to disable.
+  # If you embed data to this field by a proxy, it is recommended to increase the threshold depending on what is embedded.
   max-handshake-host-bytes: 512
+  # Custom payload
+  custom-payload:
+    # Max bytes of a plugin channel name.
+    max-channel-bytes: 32
+    # Max bytes of a payload.
+    max-payload-bytes: 45000
+    # Max plugin channels.
+    max-channels: 64
+    # Blocked channels
+    blocked-channels:
+      - "WDL|init"
+      - "WDL:init"
 
 # Formatting for messages sent by Honey
 messages:
@@ -108,7 +120,7 @@ postpone:
   max-position-time-register: 10
   # The following values are execution checks, checked before a packet task is sent to the server to be executed.
   # If the check flags, the packet will be postponed to nest tick loop to try to be executed again.
-  # (Set to -1 to disable.)
+  # (Set to -1 to disable)
   # What should the rate ignore terminator be. This will cancel all the following checks if it's below this value.
   rate-ignore-terminator: 10.0
   # Max packet task handle time per x ticks. You need to restart the server to make changes take effect.
@@ -136,6 +148,7 @@ packet-dump:
     min-server-handle: 750
 
 monitor:
+  # Settings for command /honey monitor
   # Packets which the player monitor should ignore.
   ignored-packets:
     - "KEEP_ALIVE"
@@ -403,12 +416,8 @@ custom-payload:
     enabled: true
   b:
     enabled: true
-    threshold: 35000
   c:
     enabled: true
-  d:
-    enabled: true
-    max: 100
 
 held-item:
   a:

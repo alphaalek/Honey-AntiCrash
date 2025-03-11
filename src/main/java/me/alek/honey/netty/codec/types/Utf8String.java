@@ -31,7 +31,7 @@ public class Utf8String implements TypeSerializer<String, TypeSerializer.TypeCon
         String decodedString = buf.toString(buf.readerIndex(), stringByteLength, StandardCharsets.UTF_8);
         buf.skipBytes(stringByteLength);
 
-        if (decodedString.length() > maxByteLength) {
+        if (maxByteLength != -1 && decodedString.length() > maxByteLength) {
             throw new DecoderException("The received string length is longer than maximum allowed (" + decodedString.length() + " > " + context.get() + ")");
         }
 
