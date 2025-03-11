@@ -173,7 +173,6 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
                 tickLoopExecutionDone();
                 return null;
             }
-
             HoneyPlugin.get().getLogger().registerQueueExecutionPacket();
 
             if (task.isPostponed()) {

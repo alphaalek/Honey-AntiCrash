@@ -53,7 +53,7 @@ public class HoneyPacketHandler {
         return this.player;
     }
 
-    public void hasCompression() {
+    public void setCompressionEnabled() {
         this.hasCompression = true;
     }
 

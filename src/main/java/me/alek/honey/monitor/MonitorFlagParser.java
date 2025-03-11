@@ -228,18 +228,19 @@ public class MonitorFlagParser {
 
     @SuppressWarnings("unchecked")
     private static <WP extends SourcedWrappedPacket<WP>> void applyFlagsWithin(Array<Object> elements, Array<FlagRunner.Condition<WP>> conditions) {
-        Array<FlagRunner.Chipstate<PacketContainer<WP>>> flags = new Array<>();
+        Array<FlagRunner.Chipstate<PacketContainer<WP>>> chipstates = new Array<>();
         Array<Object> postElements = new Array<>();
 
+        Bukkit.getLogger().info("Apply flags " + elements);
         for (int i = 0; i < elements.size(); i++) {
             Object elem = elements.get(i);
             if (elem instanceof MonitorFlag) {
-                flags.add((MonitorFlag<PacketContainer<WP>>) elem);
+                chipstates.add((MonitorFlag<PacketContainer<WP>>) elem);
             } else if (elem.equals(LogicalOperator.NOT) || elem.equals(LogicalOperator.PARANTHESIS_START)) {
                 Array<Object> nextChipstateElements = getElementsInNextChipstate(elements, i);
                 // skip elements in next chipstate for parent parser
                 i += nextChipstateElements.size();
-                if (nextChipstateElements.size() > 1) {
+                if (nextChipstateElements.size() > 1 || elem.equals(LogicalOperator.PARANTHESIS_START)) {
                     i++; // for paranthesis end
                 }
 
@@ -251,9 +252,9 @@ public class MonitorFlagParser {
                 if (elem.equals(LogicalOperator.NOT)) {
                     Array<FlagRunner.Condition<WP>> notCondition = Array.just(new FlagRunner.Condition<>(Array.just(env), FlagRunner.Condition.Match.NOT));
                     FlagRunner.Env<WP> notEnv = new FlagRunner.Env<>(notCondition);
-                    flags.add(notEnv);
+                    chipstates.add(notEnv);
                 } else {
-                    flags.add(env);
+                    chipstates.add(env);
                 }
             } else if (elem.equals(LogicalOperator.PARANTHESIS_END)) {
                 break;
@@ -263,13 +264,15 @@ public class MonitorFlagParser {
         }
 
         // add logical operators to chipstates
-        LinkedList<FlagRunner.Chipstate<PacketContainer<WP>>> flagsQueue = Arrays.stream(flags.getHandle())
+        LinkedList<FlagRunner.Chipstate<PacketContainer<WP>>> chipstateQueue = Arrays.stream(chipstates.getHandle())
                 .map(o -> (FlagRunner.Chipstate<PacketContainer<WP>>) o)
                 .collect(Collectors.toCollection(LinkedList::new));
+        Bukkit.getLogger().info(chipstateQueue + " " + postElements + ", ELEMENTS " + elements);
         for (int i = 0; i < postElements.size(); i++) {
             Object elem = postElements.get(i);
-            FlagRunner.Chipstate<PacketContainer<WP>> flag1 = flagsQueue.pollFirst();
-            FlagRunner.Chipstate<PacketContainer<WP>> flag2 = flagsQueue.pollFirst();
+            FlagRunner.Chipstate<PacketContainer<WP>> flag1 = chipstateQueue.pollFirst();
+            FlagRunner.Chipstate<PacketContainer<WP>> flag2 = chipstateQueue.pollFirst();
+            Bukkit.broadcastMessage(flag1 + " " + flag2);
 
             FlagRunner.Condition<WP> condition = new FlagRunner.Condition<>(Array.fromElements(flag1, flag2),
                     elem.equals(LogicalOperator.AND) ? FlagRunner.Condition.Match.AND : FlagRunner.Condition.Match.OR);
@@ -277,12 +280,12 @@ public class MonitorFlagParser {
 
             // add new env from this condition
             FlagRunner.Env<WP> env = new FlagRunner.Env<>(Array.just(condition));
-            flagsQueue.addFirst(env);
+            chipstateQueue.addFirst(env);
         }
 
-        // if no conditions was added, fallback to and for all flags
+        // if no conditions were added, fallback to "and" for all flags
         if (conditions.isEmpty()) {
-            conditions.add(new FlagRunner.Condition<>(flags, FlagRunner.Condition.Match.AND));
+            conditions.add(new FlagRunner.Condition<>(chipstates, FlagRunner.Condition.Match.AND));
         }
     }
 
@@ -294,13 +297,14 @@ public class MonitorFlagParser {
                 if (nextIdx == elements.size()) {
                     return;
                 }
-                if (elements.get(nextIdx).equals(LogicalOperator.NOT)) {
-                    nextIdx++;
-                    if (nextIdx == elements.size()) {
-                        return;
+                Object next = elements.get(nextIdx);
+                if (next.equals(LogicalOperator.NOT)) {
+                    if (nextIdx + 1 == elements.size()) {
+                        return; // will verbosely throw later
                     }
+                    next = elements.get(nextIdx + 1);
                 }
-                if (elements.get(nextIdx).equals(LogicalOperator.PARANTHESIS_START) || elements.get(nextIdx) instanceof MonitorFlag) {
+                if (next.equals(LogicalOperator.PARANTHESIS_START) || next.equals(LogicalOperator.NOT) || next instanceof MonitorFlag) {
                     elements.insert(nextIdx, LogicalOperator.AND);
                 }
             }
@@ -331,6 +335,7 @@ public class MonitorFlagParser {
         } else if (next.equals(LogicalOperator.NOT)) {
             return getElementsInNextChipstate(remaining, 1);
         } else {
+            // has to be flag
             return Array.just(next);
         }
     }

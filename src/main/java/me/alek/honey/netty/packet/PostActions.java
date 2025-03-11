@@ -25,7 +25,7 @@ public class PostActions {
         }));
 
         packetProcessor.addPostAction(PacketTypes.Login.Server.SET_COMPRESSION, Callback.Action.<PacketContainer<?>>from(packet -> {
-            packet.getPacketHandler().hasCompression();
+            packet.getPacketHandler().setCompressionEnabled();
         }));
 
         packetProcessor.addPostAction(PacketTypes.Login.Server.LOGIN_SUCCESS, Callback.Action.<PacketContainer<?>>from(packet -> {

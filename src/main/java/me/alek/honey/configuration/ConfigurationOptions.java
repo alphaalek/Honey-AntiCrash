@@ -675,7 +675,7 @@ public class ConfigurationOptions {
         public static void load() {
             DISPLAY_MAX_NAME = file.getInt("item-analysis.display.name.max-length");
             DISPLAY_MAX_FORMATTED_NAME = file.getInt("item-analysis.display.name.max-formatted-length");
-            DISPLAY_MAX_LORE_LINE = file.getInt("item-analysis.display.display.lore.max-line");
+            DISPLAY_MAX_LORE_LINE = file.getInt("item-analysis.display.lore.max-line");
             DISPLAY_MAX_LORE_FORMATTED_LINE = file.getInt("item-analysis.display.lore.max-formatted-line");
             DISPLAY_MAX_LORE_LINES = file.getInt("item-analysis.display.lore.max-lines");
 

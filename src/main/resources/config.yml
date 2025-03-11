@@ -420,6 +420,8 @@ custom-payload:
     enabled: true
   c:
     enabled: true
+  d:
+    enabled: true
 
 held-item:
   a:
