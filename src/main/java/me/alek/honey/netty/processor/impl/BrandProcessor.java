@@ -1,6 +1,7 @@
 package me.alek.honey.netty.processor.impl;
 
 import me.alek.honey.HoneyPlayer;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketTypes;
@@ -21,7 +22,7 @@ public class BrandProcessor extends TypeProcessor<WrappedPlayInCustomPayload> {
         if (channel.equals("MC|Brand") || channel.equals("minecraft:brand")) {
             PacketDataSerializer serializer = data.getSerializer();
             serializer.markReaderIndex();
-            String band = serializer.readString();
+            String band = serializer.readString(ConfigurationOptions.Validations.MAX_CLIENT_BRAND_BYTES);
             player.clientInfo.setBrand(band);
             serializer.resetReaderIndex();
         }

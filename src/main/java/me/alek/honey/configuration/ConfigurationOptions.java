@@ -629,6 +629,7 @@ public class ConfigurationOptions {
         public static int MAX_HANDSHAKE_HOST_BYTES;
 
         public static int MAX_CHANNEL_BYTES;
+        public static int MAX_CLIENT_BRAND_BYTES;
         public static int MAX_PAYLOAD_BYTES;
         public static int MAX_CHANNELS;
         public static List<String> BLOCKED_CHANNELS;
@@ -637,6 +638,7 @@ public class ConfigurationOptions {
             MAX_HANDSHAKE_HOST_BYTES = file.getInt("validation.max-handshake-host-bytes");
 
             MAX_CHANNEL_BYTES = file.getInt("validation.custom-payload.max-channel-bytes");
+            MAX_CLIENT_BRAND_BYTES = file.getInt("validation.custom-payload.max-client-brand-bytes");
             MAX_PAYLOAD_BYTES = file.getInt("validation.custom-payload.max-payload-bytes");
             MAX_CHANNELS = file.getInt("validation.custom-payload.max-channels");
             BLOCKED_CHANNELS = file.getStringList("validation.custom-payload.blocked-channels");

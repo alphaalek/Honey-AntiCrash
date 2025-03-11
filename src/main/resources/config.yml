@@ -76,6 +76,8 @@ validation:
   custom-payload:
     # Max bytes of a plugin channel name.
     max-channel-bytes: 32
+    # Max bytes of a client brand.
+    max-client-brand-bytes: 32
     # Max bytes of a payload.
     max-payload-bytes: 45000
     # Max plugin channels.

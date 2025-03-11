@@ -1,5 +1,6 @@
 package me.alek.honey.netty.packetwrappers.impl.play.client;
 
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
@@ -14,13 +15,11 @@ import java.util.Map;
 
 public class WrappedPlayInCustomPayload extends ByteInWrappedPacketImpl.CacheRewriteCaller<WrappedPlayInCustomPayload> {
 
-    int MAX_CHANNEL_LENGTH = 32;
-
     private final PayloadData data;
 
     public WrappedPlayInCustomPayload(PacketDataSerializer buf, PacketContainer<WrappedPlayInCustomPayload> packet) {
         super(buf, packet, false);
-        String channel = buf.readString(MAX_CHANNEL_LENGTH);
+        String channel = buf.readString(ConfigurationOptions.Validations.MAX_CHANNEL_BYTES);
         PacketDataSerializer serializer = new PacketDataSerializer(buf.readBytes(buf.readableBytes()));
         this.data = new PayloadData(this, packet, channel, serializer);
     }

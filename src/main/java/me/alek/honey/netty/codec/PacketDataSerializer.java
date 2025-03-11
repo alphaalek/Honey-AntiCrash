@@ -174,10 +174,6 @@ public class PacketDataSerializer extends ByteBuf {
         return new UUID(this.readLong(), this.readLong());
     }
 
-    public String readString() {
-        return readString(ConfigurationOptions.ItemAnalysis.NBT.MAX_NBT_STRING_LENGTH);
-    }
-
     public String readString(int i) {
         return Types.UTF8.read(this, TypeSerializer.TypeContext.OneArg.of(i));
     }
