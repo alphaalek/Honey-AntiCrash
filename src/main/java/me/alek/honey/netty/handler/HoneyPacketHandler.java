@@ -2,6 +2,7 @@ package me.alek.honey.netty.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.compat.via.ViaHandlers;
@@ -12,9 +13,12 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.util.Callback;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.reflection.MinecraftReflection;
+import me.alek.honey.util.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 
@@ -31,9 +35,6 @@ public class HoneyPacketHandler {
     private final ProtocolSwapHandler protocolSwapHandler = new ProtocolSwapHandler();
     private final Channel channel;
     private final HoneyPlayer player;
-    private boolean hasCompression;
-    private boolean dependentOnVia;
-    private boolean relocatedViaInterceptor;
     private ViaProtocol viaProtocol;
     private PacketState clientboundProtocolState = PacketState.HANDSHAKE;
     private PacketState serverboundProtocolState = PacketState.HANDSHAKE;
@@ -51,10 +52,6 @@ public class HoneyPacketHandler {
 
     public HoneyPlayer getPlayer() {
         return this.player;
-    }
-
-    public void setCompressionEnabled() {
-        this.hasCompression = true;
     }
 
     public ProtocolSwapHandler getProtocolSwapHandler() {
@@ -188,22 +185,9 @@ public class HoneyPacketHandler {
     }
 
     public boolean write(PacketContainer<?> packet) {
-        checkViaCompressionOrder();
         executeDelayedTasks(PacketBound.CLIENT);
 
         return !isCancelled(packet);
-    }
-
-    private void checkViaCompressionOrder() {
-        if (this.dependentOnVia && !this.relocatedViaInterceptor && this.hasCompression) {
-            List<String> handlers = this.channel.pipeline().names();
-            if (handlers.indexOf(ViaClientboundInterceptor.NAME) < handlers.indexOf(MinecraftHandlers.COMPRESS)) {
-                this.channel.pipeline().addAfter(MinecraftHandlers.COMPRESS, ViaHandlers.ENCODER, this.channel.pipeline().remove(ViaHandlers.ENCODER));
-                this.channel.pipeline().addAfter(MinecraftHandlers.DECOMPRESS, ViaHandlers.DECODER, this.channel.pipeline().remove(ViaHandlers.DECODER));
-                this.channel.pipeline().addBefore(ViaHandlers.ENCODER, ViaClientboundInterceptor.NAME, this.channel.pipeline().remove(ViaClientboundInterceptor.NAME));
-                this.relocatedViaInterceptor = true;
-            }
-        }
     }
 
     public void handleViaClientboundInterceptor() {
@@ -211,7 +195,6 @@ public class HoneyPacketHandler {
                 && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())
                 && this.channel.pipeline().get(ViaHandlers.ENCODER) != null
                 && this.channel.pipeline().get(ViaClientboundInterceptor.NAME) == null) {
-            this.dependentOnVia = true;
             this.channel.pipeline().addBefore(ViaHandlers.ENCODER, ViaClientboundInterceptor.NAME, new ViaClientboundInterceptor(this));
         }
     }

@@ -47,7 +47,6 @@ validation.flood.d=Packet flood for specific packet type
 validation.flood.e=Flood for marked packets that ended too early
 
 validation.held.item.a=Switching to exceeding item slot
-validation.held.item.b=Switching to illegal item
 
 validation.movement.a=Switching between ground and air too quickly
 validation.movement.b=Too high delta movement

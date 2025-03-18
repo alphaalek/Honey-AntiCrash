@@ -138,10 +138,13 @@ public class WindowValidations extends AbstractValidationPacketListener<WrappedP
         @Override
         public ValidationViolationContext validate(HoneyPlayer player, WrappedPlayInWindowClick packet, ValidationPipelineContext context) {
             if (getSetting().isEnabled()) {
+                // TODO: fix
+                /*
                 if (player.bukkit.getOpenInventory().getType().name().equals("LECTERN")
                         && packet.getWindowClickType() == WrappedPlayInWindowClick.WindowClickType.QUICK_MOVE) {
                     return ValidationViolationContext.FLAG;
                 }
+                */
             }
 
             return ValidationViolationContext.PASS;

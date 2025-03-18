@@ -37,7 +37,7 @@ public interface WrapperComponentType<T> extends InVisitorOperator<T> {
     WrapperComponentType<ItemAttributeModifiers> ATTRIBUTE_MODIFIERS = define(ComponentTypes.ATTRIBUTE_MODIFIERS, ComponentMapVisitor.In::visitAtAttributeModifiers, ComponentMapVisitor::visitAttributeModifiers);
     WrapperComponentType<ItemCustomModelData> CUSTOM_MODEL_DATA_LISTS = define(ComponentTypes.CUSTOM_MODEL_DATA_LISTS, ComponentMapVisitor.In::visitAtCustomModelDataLists, ComponentMapVisitor::visitCustomModelDataLists);
     @Deprecated
-    WrapperComponentType<Integer> CUSTOM_MODEL_DATA = define(ComponentTypes.CUSTOM_MODEL_DATA, ComponentMapVisitor.In::visitAtCustomModelData, ComponentMapVisitor::visitCustomModelData);
+    WrapperComponentType<ItemCustomModelData> CUSTOM_MODEL_DATA = define(ComponentTypes.CUSTOM_MODEL_DATA, ComponentMapVisitor.In::visitAtCustomModelData, ComponentMapVisitor::visitCustomModelData);
     WrapperComponentType<Dummy> HIDE_ADDITIONAL_TOOLTIP = define(ComponentTypes.HIDE_ADDITIONAL_TOOLTIP, ComponentMapVisitor.In::visitAtHideAdditionalTooltip, ComponentMapVisitor::visitHideAdditionalTooltip);
     WrapperComponentType<Dummy> HIDE_TOOLTIP = define(ComponentTypes.HIDE_TOOLTIP, ComponentMapVisitor.In::visitAtHideTooltip, ComponentMapVisitor::visitHideTooltip);
     WrapperComponentType<Dummy> REPAIR_COST = define(ComponentTypes.REPAIR_COST, ComponentMapVisitor.In::visitAtRepairCost, ComponentMapVisitor::visitRepairCost);

@@ -100,7 +100,7 @@ public interface ComponentMapVisitor extends CodecVisitor {
         }
 
         @Override
-        public void visitCustomModelData(int val) {
+        public void visitCustomModelData(ItemCustomModelData val) {
 
         }
 
@@ -407,7 +407,7 @@ public interface ComponentMapVisitor extends CodecVisitor {
 
     void visitCustomModelDataLists(ItemCustomModelData val);
 
-    void visitCustomModelData(int val);
+    void visitCustomModelData(ItemCustomModelData val);
 
     void visitHideAdditionalTooltip(Dummy val);
 
@@ -616,7 +616,7 @@ public interface ComponentMapVisitor extends CodecVisitor {
             }
 
             @Override
-            public int visitAtCustomModelData(PacketDataSerializer serializer) throws FallbackDefaultCodecException {
+            public ItemCustomModelData visitAtCustomModelData(PacketDataSerializer serializer) throws FallbackDefaultCodecException {
                 throw new FallbackDefaultCodecException();
             }
 
@@ -922,7 +922,7 @@ public interface ComponentMapVisitor extends CodecVisitor {
         ItemCustomModelData visitAtCustomModelDataLists(PacketDataSerializer serializer) throws FallbackDefaultCodecException;
 
         @Deprecated
-        int visitAtCustomModelData(PacketDataSerializer serializer) throws FallbackDefaultCodecException;
+        ItemCustomModelData visitAtCustomModelData(PacketDataSerializer serializer) throws FallbackDefaultCodecException;
 
         Dummy visitAtHideAdditionalTooltip(PacketDataSerializer serializer) throws FallbackDefaultCodecException;
 

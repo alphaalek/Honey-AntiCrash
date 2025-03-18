@@ -24,10 +24,6 @@ public class PostActions {
             packet.getPacketHandler().handleViaClientboundInterceptor();
         }));
 
-        packetProcessor.addPostAction(PacketTypes.Login.Server.SET_COMPRESSION, Callback.Action.<PacketContainer<?>>from(packet -> {
-            packet.getPacketHandler().setCompressionEnabled();
-        }));
-
         packetProcessor.addPostAction(PacketTypes.Login.Server.LOGIN_SUCCESS, Callback.Action.<PacketContainer<?>>from(packet -> {
             HoneyPlugin.get().getPacketLibrary().getPipelineInjector().ensureCorrectPipelineOrder(packet.getChannel());
         }));

@@ -381,8 +381,11 @@ public class ConfigurationOptions {
             Map<String, Object> valueMap = new HashMap<>();
             for (Field field : getClass().getFields()) {
                 try {
-                    ConfigurationOptions.VlSettingImpl settingImpl = field.getAnnotation(ConfigurationOptions.VlSettingImpl.class);
                     if (field.getDeclaringClass() != ViolationSetting.class) {
+                        continue;
+                    }
+                    ConfigurationOptions.VlSettingImpl settingImpl = field.getAnnotation(ConfigurationOptions.VlSettingImpl.class);
+                    if (settingImpl == null) {
                         continue;
                     }
 

@@ -1,6 +1,6 @@
 #
 # This is the configuration file for the AntiCrash plugin Honey made by Alek.
-#   + This configuration file is generated using version v2.6.8
+#   + This configuration file is generated using version v2.6.9
 #   + One of the best Anti-Netty Crashers / Anti-Exploit plugins out there, and constantly evolving!
 #
 # Note! If you discover any errors or bugs, write to me on the discord server. (see below)
@@ -367,40 +367,6 @@ netty:
     decay: 150
     decay-amount: 500
     vls-amount: 5
-  k:
-    enabled: true
-    throttle-after: 500
-    vls-amount: 4
-  l:
-    enabled: true # size categorized
-    min: 50 # difference in received packets. Should be min. this to get into a category
-    max: 100 # difference in delta packet timespans. Can be max. this to get into the compared entry
-    interval: 3000
-    threshold: 3000
-    max-per-interval: 20
-    vls-amount: 3
-  m:
-    enabled: true # size flood
-    min: 50 # difference in received packets. Should be min. this to flag
-    interval: 3000
-    threshold: 5000
-    max-per-interval: 14
-    vls-amount: 3
-  n:
-    enabled: true # size flood
-    min: 40 # difference in received packets. Should be min. this to flag
-    interval: 7500
-    threshold: 3000
-    max-per-interval: 30
-    vls-amount: 3
-  o:
-    enabled: true # timed categorized
-    min: 50 # difference in received packets. Should be min. this to get into a category
-    max: 75 # difference in delta packet timespans. Can be max. this to get into the compared entry
-    interval: 4000
-    threshold: 2500
-    max-per-interval: 14
-    vls-amount: 3
 
 print:
   block-message-on-flag: false
@@ -427,8 +393,6 @@ held-item:
   a:
     enabled: true
     vls-amount: 5
-  b:
-    enabled: true
 
 position:
   a:

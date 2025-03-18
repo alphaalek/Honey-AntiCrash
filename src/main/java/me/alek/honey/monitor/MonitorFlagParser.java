@@ -231,7 +231,6 @@ public class MonitorFlagParser {
         Array<FlagRunner.Chipstate<PacketContainer<WP>>> chipstates = new Array<>();
         Array<Object> postElements = new Array<>();
 
-        Bukkit.getLogger().info("Apply flags " + elements);
         for (int i = 0; i < elements.size(); i++) {
             Object elem = elements.get(i);
             if (elem instanceof MonitorFlag) {
@@ -267,12 +266,10 @@ public class MonitorFlagParser {
         LinkedList<FlagRunner.Chipstate<PacketContainer<WP>>> chipstateQueue = Arrays.stream(chipstates.getHandle())
                 .map(o -> (FlagRunner.Chipstate<PacketContainer<WP>>) o)
                 .collect(Collectors.toCollection(LinkedList::new));
-        Bukkit.getLogger().info(chipstateQueue + " " + postElements + ", ELEMENTS " + elements);
         for (int i = 0; i < postElements.size(); i++) {
             Object elem = postElements.get(i);
             FlagRunner.Chipstate<PacketContainer<WP>> flag1 = chipstateQueue.pollFirst();
             FlagRunner.Chipstate<PacketContainer<WP>> flag2 = chipstateQueue.pollFirst();
-            Bukkit.broadcastMessage(flag1 + " " + flag2);
 
             FlagRunner.Condition<WP> condition = new FlagRunner.Condition<>(Array.fromElements(flag1, flag2),
                     elem.equals(LogicalOperator.AND) ? FlagRunner.Condition.Match.AND : FlagRunner.Condition.Match.OR);
