@@ -4,10 +4,12 @@ import com.github.retrooper.packetevents.protocol.component.ComponentType;
 import com.github.retrooper.packetevents.protocol.component.ComponentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.util.mappings.VersionedRegistry;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.netty.handler.codec.DecoderException;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.TypeSerializer;
+import me.alek.honey.netty.structure.ReflectStructure;
 import me.alek.honey.netty.tag.FallbackDefaultCodecException;
 import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.component.visitor.ComponentMapVisitor;
@@ -170,6 +172,14 @@ public class ComponentMap implements ItemTag {
     }
 
     public static final ComponentMap EMPTY = new ComponentMap();
+    private static final Map<String, ComponentType<?>> TYPE_BY_KEY_MAP;
+
+    static {
+        VersionedRegistry<ComponentType<?>> registry = ReflectStructure.Provider.acquireStructure(ComponentTypes.class)
+                .<VersionedRegistry<ComponentType<?>>>withWeakType(VersionedRegistry.class).withTarget(null).readField(0);
+        TYPE_BY_KEY_MAP = ReflectStructure.Provider.acquireStructure(VersionedRegistry.class)
+                .<Map<String, ComponentType<?>>>withWeakType(Map.class).withTarget(registry).readField(null, "typeMap", 0);
+    }
 
     private final Map<ComponentType<?>, Val<?>> delegate = new HashMap<>();
 
@@ -237,6 +247,32 @@ public class ComponentMap implements ItemTag {
 
     public void remove(ComponentType<?> type) {
         this.delegate.remove(type);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder text = new StringBuilder("{");
+        for (Val<?> val : this.delegate.values()) {
+            String key = getKeyByType(val.type());
+            if (key != null) {
+                text.append(key)
+                        .append(":")
+                        .append(val.get())
+                        .append(" (")
+                        .append(val.source().equals(ComponentSource.BASE) ? "base" : "patch")
+                        .append(")");
+            }
+        }
+        return text.append("}").toString();
+    }
+
+    private static String getKeyByType(ComponentType<?> type) {
+        for (Map.Entry<String, ComponentType<?>> entry : TYPE_BY_KEY_MAP.entrySet()) {
+            if (entry.getValue() == type) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     public static class Val<T> {

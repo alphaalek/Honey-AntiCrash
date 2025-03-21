@@ -2,20 +2,21 @@ package me.alek.honey.monitor;
 
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInBookEdit;
+import me.alek.honey.netty.packetwrappers.impl.play.client.WrappedPlayInCustomPayload;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.util.Array;
+import me.alek.honey.util.protocol.NetProtocol;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
@@ -26,6 +27,7 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
         STATE("state", "--state [packet state]", false, StateFlag::new),
         CANCELLED("cancelled", "--cancelled", false, CancelledFlag::new),
         DETAILED("detailed", "--detailed", false, DetailedFlag::new),
+        DUMP_TAG("dump-tag", "--dump-tag", false, DumpTagFlag::new),
         BYTE_SIZE("bytes", "--bytes", false, BytesFlag::new),
         ACCUMULATED_BYTE_SIZE("accumulated-bytes", "--accumulated-bytes", false, AccumulatedBytesFlag::new),
         BYTE_DOUBLE_SEQUENCES("byte-sequences", "--byte-sequences", false, ByteSequenceSFlag::new),
@@ -290,6 +292,55 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
         @Override
         public void append(PacketContainer<?> input, List<String> data) {
             data.add(HoneyPlugin.get().getLogger().formatPacketEntries(input));
+        }
+    }
+
+    @FlagAnnotation(Flag.DUMP_TAG)
+    class DumpTagFlag implements NoArgumentMonitorFlag<PacketContainer<?>> {
+
+        @Override
+        public boolean test(PacketContainer<?> input) {
+            if (input.getInitialByteWrapped() != null) {
+
+                return input.getType() == PacketTypes.Play.Client.CLICK_WINDOW
+                        || input.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION
+                        || input.getType() == PacketTypes.Play.Client.BLOCK_PLACE && input.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)
+                        || input.getType() == PacketTypes.Play.Client.CUSTOM_PAYLOAD && input.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && ((WrappedPlayInCustomPayload) (input.getAnyWrapped())).getPayloadData().isBookChannel()
+                        || input.getType() == PacketTypes.Play.Client.BOOK_EDIT && input.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1);
+            }
+
+            return false;
+        }
+
+        @Override
+        public void append(PacketContainer<?> input, List<String> data) {
+            WrappedImmutableItemStack stack;
+            if (input.getType() == PacketTypes.Play.Client.CUSTOM_PAYLOAD) {
+                WrappedPlayInCustomPayload payload = (WrappedPlayInCustomPayload) input.getAnyWrapped();
+                stack = payload.getPayloadData().getBookChannelItemStack();
+            } else if (input.getType() == PacketTypes.Play.Client.BOOK_EDIT) {
+                WrappedPlayInBookEdit bookEdit = (WrappedPlayInBookEdit) input.getAnyWrapped();
+                stack = bookEdit.getDecodedStack();
+            } else {
+                stack = (WrappedImmutableItemStack)
+                        input.getAnyByteWrapped().getProperties().values().stream()
+                        .filter(Objects::nonNull)
+                        .filter(v -> v instanceof WrappedImmutableItemStack)
+                        .findFirst()
+                        .orElse(null);
+            }
+
+            String tag;
+            if (stack != null) {
+                if (stack.getTag().isEmpty()) {
+                    tag = "tag:<empty tag>";
+                } else {
+                    tag = "tag:" + stack.getTag().toString();
+                }
+            } else {
+                tag = "tag:<error processing>";
+            }
+            data.add(tag);
         }
     }
 

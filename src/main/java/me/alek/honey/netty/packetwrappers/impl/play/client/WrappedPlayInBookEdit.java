@@ -39,6 +39,8 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteC
     @Property.IgnoreIfNull
     private String title;
 
+    private WrappedImmutableItemStack decodedStack;
+
     public WrappedPlayInBookEdit(PacketDataSerializer buf, PacketContainer<WrappedPlayInBookEdit> packet) {
         super(buf, packet);
         NetProtocol protocol = getProtocol();
@@ -73,11 +75,11 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteC
             this.signing = buf.getByte(buf.readableBytes() - 1) != 0;
             PacketDataSerializer itemBuf = new PacketDataSerializer(buf.readBytes(buf.readableBytes() - 2));
 
-            WrappedImmutableItemStack stack = BookTag.decodeBookEditStack(this, packet, this.signing, itemBuf);
+            this.decodedStack = BookTag.decodeBookEditStack(this, packet, this.signing, itemBuf);
             itemBuf.release();
 
             // will always represent nbt as we are before 1.17.1
-            CompoundTag tag = stack.getTag().asNBT().get();
+            CompoundTag tag = this.decodedStack.getTag().asNBT().get();
             for (String page : tag.<String>getPrimitiveArrayOf(BookTag.PAGES, TagType.STRING)) {
                 this.pages.add(page);
             }
@@ -172,5 +174,9 @@ public class WrappedPlayInBookEdit extends ByteInWrappedPacketImpl.CacheRewriteC
 
     public List<String> getPages() {
         return this.pages;
+    }
+
+    public WrappedImmutableItemStack getDecodedStack() {
+        return this.decodedStack;
     }
 }
