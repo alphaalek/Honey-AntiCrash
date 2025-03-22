@@ -187,8 +187,8 @@ debug:
   packets-cancelled: false
   # Should error parsing handshake packet be dumped (would otherwise just be ignored due to scanners).
   handshake-error: false
-  # Should post pinging errors be dumped.
-  post-ping-error: false
+  # Should remote pinging errors be dumped.
+  remote-ping-error: false
 
 mysql:
   # Should storing of data in mysql database be enabled

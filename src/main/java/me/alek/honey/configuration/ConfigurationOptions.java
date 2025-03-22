@@ -611,13 +611,13 @@ public class ConfigurationOptions {
         public static boolean DEBUG;
         public static boolean DEBUG_PACKETS_CANCELLED;
         public static boolean DEBUG_HANDSHAKE_ERROR;
-        public static boolean POST_PING_ERROR;
+        public static boolean REMOTE_PING_ERROR;
 
         public static void load() {
             DEBUG = file.getBoolean("debug.debug-mode");
             DEBUG_PACKETS_CANCELLED = file.getBoolean("debug.packets-cancelled");
             DEBUG_HANDSHAKE_ERROR = file.getBoolean("debug.handshake-error");
-            POST_PING_ERROR = file.getBoolean("debug.post-ping-error");
+            REMOTE_PING_ERROR = file.getBoolean("debug.remote-ping-error");
         }
     }
 

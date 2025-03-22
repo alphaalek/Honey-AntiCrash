@@ -234,7 +234,7 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         } catch (Exception ex) {
             this.packetHandler.filterMark = null;
             MARK.remove();
-            if (this.player.pinging && !ConfigurationOptions.Debug.POST_PING_ERROR
+            if (this.player.pinging && !ConfigurationOptions.Debug.REMOTE_PING_ERROR
                     || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE && !ConfigurationOptions.Debug.DEBUG_HANDSHAKE_ERROR) {
                 // failed to handle handshake packet
                 // most likely something pinging this server without following the Minecraft protocol
