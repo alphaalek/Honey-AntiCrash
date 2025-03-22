@@ -185,7 +185,7 @@ public class ExecutionQueueProxy extends TempIntervalTrackerManager {
             }
 
             if (shouldDropTask(task)) {
-                if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
+                if (ConfigurationOptions.Debug.DEBUG_PACKETS_CANCELLED) {
                     HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: packet cancelled due to postpone overload: "
                             + task.getPacket().getType() + ", "
                             + task.getPacket().getPacketHandler().getProtocolState(task.getPacket().getType().getBound()) + ", "

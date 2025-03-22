@@ -121,7 +121,8 @@ public class HoneyPacketHandler {
         if (useVia
                 && ViaProtocol.ValidatorInstances.VIA_VALIDATOR.find().get()
                 && !state.equals(PacketState.HANDSHAKE)
-                && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())) {
+                && !this.player.clientInfo.getProtocol().equals(NetProtocol.getProtocol())
+                && !this.player.pinging) {
 
             if (this.viaProtocol == null) {
                 this.viaProtocol = ViaProtocol.getViaProtocolFrom(this.player.clientInfo.getProtocol());
@@ -153,7 +154,7 @@ public class HoneyPacketHandler {
 
     public boolean isCancelled(PacketContainer<?> packet) {
         if (packet.isCancelled()) {
-            if (ConfigurationOptions.PacketLogger.DEBUG_PACKETS_CANCELLED) {
+            if (ConfigurationOptions.Debug.DEBUG_PACKETS_CANCELLED) {
                 HoneyPlugin.get().getPlugin().getLogger().info("DEBUG: Packet cancelled: " + packet.getType() + ", " + getProtocolState(packet.getType().getBound()) + ", " + packet.getType().getBound() + ", " + packet.getPlayerName());
             }
             return true;

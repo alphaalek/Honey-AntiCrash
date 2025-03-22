@@ -217,12 +217,12 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
             this.packetHandler.filterMark = null;
             MARK.remove();
 
-            if (packet == null) {
-                packet = new DummyPacketContainer.StackDump<>(type, this.player, ex.getStack());
-            } else {
+            if (packet == null && ex.getStack() != null) {
+                HoneyPlugin.get().getMonitorManager().sendPacketInfo(new DummyPacketContainer.StackDump<>(type, this.player, ex.getStack()), SendProperty.STACK_DUMP);
+            } else if (packet != null) {
                 packet.cancel();
+                HoneyPlugin.get().getMonitorManager().sendPacketInfo(packet, SendProperty.STACK_DUMP);
             }
-            HoneyPlugin.get().getMonitorManager().sendPacketInfo(packet, SendProperty.ITEM_DUMP);
 
             ViolationManagement management = HoneyPlugin.get().getViolationManagement();
 
@@ -234,14 +234,15 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         } catch (Exception ex) {
             this.packetHandler.filterMark = null;
             MARK.remove();
-            if (this.player.pinging || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE) {
+            if (this.player.pinging && !ConfigurationOptions.Debug.POST_PING_ERROR
+                    || this.packetHandler.getProtocolState(PacketBound.SERVER) == PacketState.HANDSHAKE && !ConfigurationOptions.Debug.DEBUG_HANDSHAKE_ERROR) {
                 // failed to handle handshake packet
                 // most likely something pinging this server without following the Minecraft protocol
                 ChannelCloseInspection.close(ctx.channel());
                 return;
             }
 
-            if (HoneyPlugin.get().getLogger().isDebug()) {
+            if (ConfigurationOptions.Debug.DEBUG) {
                 PacketType type0 = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);
                 HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
                         "Error occurred while handling packet " + type0 + " (id " + type0.getID()

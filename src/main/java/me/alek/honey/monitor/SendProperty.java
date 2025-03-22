@@ -6,5 +6,5 @@ public enum SendProperty {
 
     AFTER_SERVER_HANDLE,
 
-    ITEM_DUMP
+    STACK_DUMP
 }

@@ -179,10 +179,16 @@ packet-logger:
   ignored-packets:
     - "KEEP_ALIVE"
     - "PLAYER_MOVEMENT"
+
+debug:
   # Should debug mode be enabled or not. Only makes sense to be used for development and troubleshooting, I don't recommend to toggle this on.
   debug-mode: false
-  # Should debug mode also cover cancelled packets.
-  debug-packets-cancelled: false
+  # Should cancelled packets be dumped.
+  packets-cancelled: false
+  # Should error parsing handshake packet be dumped (would otherwise just be ignored due to scanners).
+  handshake-error: false
+  # Should post pinging errors be dumped.
+  post-ping-error: false
 
 mysql:
   # Should storing of data in mysql database be enabled

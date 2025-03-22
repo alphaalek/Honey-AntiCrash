@@ -104,7 +104,7 @@ public class ItemAnalysis {
             callback.addAction(Callback.Action.<ValidationPipelineContext.DevelopmentData>from(context -> context.addPoint("Type", flagged.toString())));
         }
 
-        if (ConfigurationOptions.PacketLogger.DEBUG) {
+        if (ConfigurationOptions.Debug.DEBUG) {
             HoneyPlugin.get().getLogger().getLogger().info("DEBUG: item analysis flagged " + player.name + ", " + flagged);
         }
 

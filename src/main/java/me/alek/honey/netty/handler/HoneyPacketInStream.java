@@ -7,6 +7,7 @@ import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.Rewritable;
 import me.alek.honey.netty.packet.InternalPacketContainer;
@@ -115,7 +116,7 @@ public class HoneyPacketInStream extends MessageToMessageDecoder<ByteBuf> {
             // we are finally ready for this packet to be decoded, so invoke the serializer to the pipeline
             list.add(serializer);
         } catch (Exception ex) {
-            if (HoneyPlugin.get().getLogger().isDebug()) {
+            if (ConfigurationOptions.Debug.DEBUG) {
                 type = Optional.ofNullable(type).orElse(PacketType.UNKNOWN);
                 HoneyPlugin.get().getLogger().getLogger().log(Level.WARNING,
                         "Error occurred while handling packet " + type + " (id " + type.getID()

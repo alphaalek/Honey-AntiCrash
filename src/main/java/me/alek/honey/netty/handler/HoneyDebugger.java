@@ -6,6 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.timeout.ReadTimeoutException;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.packet.PacketContainer;
 
@@ -58,7 +59,7 @@ public class HoneyDebugger extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        if (HoneyPlugin.get().getLogger().isDebug()
+        if (ConfigurationOptions.Debug.DEBUG
                 && /* Java */ !(throwable instanceof ReadTimeoutException)
                 && /* Java */ !(throwable instanceof IOException)
                 && /* Netty */ !message.equals(NETTY_NATIVE_READ_RESET)

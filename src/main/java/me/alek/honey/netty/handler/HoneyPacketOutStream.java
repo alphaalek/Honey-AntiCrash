@@ -3,6 +3,7 @@ package me.alek.honey.netty.handler;
 import io.netty.channel.*;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
+import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketBound;
@@ -61,7 +62,7 @@ public class HoneyPacketOutStream extends ChannelOutboundHandlerAdapter {
         try {
             HoneyPlugin.get().getPacketLibrary().getPacketProcessor().callObjectPacketProcessListeners(this.player, packet);
         } catch (Exception ex) {
-            if (HoneyPlugin.get().getLogger().isDebug()) {
+            if (ConfigurationOptions.Debug.DEBUG) {
                 HoneyPlugin.get().getLogger().getLogger().log(Level.SEVERE, "Error occurred while handling packet " + packet.getType() + " sent by " + this.player.name, ex);
             }
             packet.cancel();

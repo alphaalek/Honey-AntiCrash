@@ -28,7 +28,7 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
         STATE("state", "--state [packet state]", SendProperty.AFTER_HONEY_HANDLE, StateFlag::new),
         CANCELLED("cancelled", "--cancelled", SendProperty.AFTER_HONEY_HANDLE, CancelledFlag::new),
         DETAILED("detailed", "--detailed", SendProperty.AFTER_HONEY_HANDLE, DetailedFlag::new),
-        DUMP_TAG("dump-tag", "--dump-tag", Arrays.asList(SendProperty.AFTER_HONEY_HANDLE, SendProperty.ITEM_DUMP), DumpTagFlag::new),
+        DUMP_TAG("dump-tag", "--dump-tag", Arrays.asList(SendProperty.AFTER_HONEY_HANDLE, SendProperty.STACK_DUMP), DumpTagFlag::new),
         BYTE_SIZE("bytes", "--bytes", SendProperty.AFTER_HONEY_HANDLE, BytesFlag::new),
         ACCUMULATED_BYTE_SIZE("accumulated-bytes", "--accumulated-bytes", SendProperty.AFTER_HONEY_HANDLE, AccumulatedBytesFlag::new),
         BYTE_DOUBLE_SEQUENCES("byte-sequences", "--byte-sequences", SendProperty.AFTER_HONEY_HANDLE, ByteSequenceSFlag::new),

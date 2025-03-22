@@ -590,8 +590,6 @@ public class ConfigurationOptions {
         public static boolean DETAILED;
         public static boolean FILTER_TOO_MUCH_DATA;
         public static boolean EARLY;
-        public static boolean DEBUG;
-        public static boolean DEBUG_PACKETS_CANCELLED;
         public static boolean FORMAT_ARRAYS;
         public static List<String> IGNORED_PLAYERS;
         public static List<String> IGNORED_PACKETS;
@@ -602,10 +600,24 @@ public class ConfigurationOptions {
             FORMAT_ARRAYS = file.getBoolean("packet-logger.format-arrays");
             FILTER_TOO_MUCH_DATA = file.getBoolean("packet-logger.filter-too-much-data");
             EARLY = file.getBoolean("packet-logger.early");
-            DEBUG = file.getBoolean("packet-logger.debug-mode");
-            DEBUG_PACKETS_CANCELLED = file.getBoolean("packet-logger.debug-packets-cancelled");
             IGNORED_PLAYERS = file.getStringList("packet-logger.ignored-players");
             IGNORED_PACKETS = file.getStringList("packet-logger.ignored-packets");
+        }
+    }
+
+    @Setting
+    public static class Debug {
+
+        public static boolean DEBUG;
+        public static boolean DEBUG_PACKETS_CANCELLED;
+        public static boolean DEBUG_HANDSHAKE_ERROR;
+        public static boolean POST_PING_ERROR;
+
+        public static void load() {
+            DEBUG = file.getBoolean("debug.debug-mode");
+            DEBUG_PACKETS_CANCELLED = file.getBoolean("debug.packets-cancelled");
+            DEBUG_HANDSHAKE_ERROR = file.getBoolean("debug.handshake-error");
+            POST_PING_ERROR = file.getBoolean("debug.post-ping-error");
         }
     }
 

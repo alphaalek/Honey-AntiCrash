@@ -41,7 +41,6 @@ public class HoneyLogger {
 
     private boolean enabled;
     private boolean detailed;
-    private boolean debug;
     private List<String> ignoredPlayers;
     private List<String> ignoredPackets;
     private final MonitorManager monitorManager = HoneyPlugin.get().getMonitorManager();
@@ -103,7 +102,6 @@ public class HoneyLogger {
     public void reload(boolean firstCall) {
         this.enabled = ConfigurationOptions.PacketLogger.ENABLED;
         this.detailed = ConfigurationOptions.PacketLogger.DETAILED;
-        this.debug = ConfigurationOptions.PacketLogger.DEBUG;
         this.ignoredPlayers = ConfigurationOptions.PacketLogger.IGNORED_PLAYERS;
         this.ignoredPackets = ConfigurationOptions.PacketLogger.IGNORED_PACKETS;
 
@@ -372,9 +370,5 @@ public class HoneyLogger {
 
     public boolean isEnabled() {
         return enabled;
-    }
-
-    public boolean isDebug() {
-        return debug;
     }
 }
