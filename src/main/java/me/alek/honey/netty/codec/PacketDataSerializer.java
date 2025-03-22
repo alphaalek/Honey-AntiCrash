@@ -13,6 +13,7 @@ import me.alek.honey.netty.codec.validation.CodecContext;
 import me.alek.honey.netty.modelwrappers.WrappedBlockPosition;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.PacketContainer;
+import me.alek.honey.netty.tag.ItemTag;
 import me.alek.honey.netty.tag.nbt.AbstractTag;
 import me.alek.honey.netty.tag.nbt.TagLimiter;
 import me.alek.honey.netty.tag.nbt.visitor.NBTVisitor;
@@ -120,7 +121,15 @@ public class PacketDataSerializer extends ByteBuf {
             return Optional.ofNullable(Types.ITEM_STACK.readRewritable(this, TypeSerializer.TypeContext.TwoArgs.of(visitorFactory, context)))
                     .orElse(Rewritable.noAction(WrappedImmutableItemStack.AIR));
         } catch (DecoderException ex) {
-            throw new StackDecodingException(ex);
+            WrappedImmutableItemStack.ConstProperties properties = (WrappedImmutableItemStack.ConstProperties) context.container().get(CodecContext.REPORT_STACK_CONST_PROPERTIES);
+            WrappedImmutableItemStack stack;
+            if (properties != null) {
+                ItemTag tag = (ItemTag) context.container().get(CodecContext.REPORT_TAG);
+                stack = new WrappedImmutableItemStack(context.protocol(), properties.getType(), properties.getAmount(), properties.getDurability(), tag);
+            } else {
+                stack = null;
+            }
+            throw new StackDecodingException(ex, stack);
         }
     }
 
@@ -134,7 +143,7 @@ public class PacketDataSerializer extends ByteBuf {
             try {
                 CodecTypeValidation.ITEM_STACK.validate(stack.get(), CodecContext.from(this, protocol, protocolCreated));
             } catch (DecoderException ex) {
-                throw new StackDecodingException(ex);
+                throw new StackDecodingException(ex, stack.get());
             }
         }
 

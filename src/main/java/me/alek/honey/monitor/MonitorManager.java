@@ -8,8 +8,6 @@ import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.lang.Lang;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
-import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
 import java.util.*;
@@ -129,7 +127,7 @@ public class MonitorManager {
         }
     }
 
-    public void sendPacketInfo(PacketContainer<?> packetContainer, MonitorSendAt sendAt) {
+    public void sendPacketInfo(PacketContainer<?> packet, SendProperty property) {
         if (this.packetMonitorers.isEmpty()) {
             return;
         }
@@ -141,11 +139,11 @@ public class MonitorManager {
 
             @SuppressWarnings("unchecked")
             IndependentMonitorer<PacketContainer<?>> independentMonitorer = (IndependentMonitorer<PacketContainer<?>>) packetMonitorer;
-            if (!independentMonitorer.getSendAt().equals(sendAt)) {
+            if (!independentMonitorer.getSendProperties().contains(property)) {
                 continue;
             }
 
-            String message = independentMonitorer.getMessage(packetContainer);
+            String message = independentMonitorer.getMessage(packet);
             if (message == null) {
                 continue;
             }

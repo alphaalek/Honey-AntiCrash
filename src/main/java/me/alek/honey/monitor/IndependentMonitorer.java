@@ -1,8 +1,10 @@
 package me.alek.honey.monitor;
 
+import java.util.List;
+
 public interface IndependentMonitorer<T> extends Monitorer {
 
     String getMessage(T input);
 
-    MonitorSendAt getSendAt();
+    List<SendProperty> getSendProperties();
 }

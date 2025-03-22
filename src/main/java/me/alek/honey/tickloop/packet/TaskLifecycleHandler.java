@@ -3,13 +3,12 @@ package me.alek.honey.tickloop.packet;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
-import me.alek.honey.monitor.MonitorSendAt;
+import me.alek.honey.monitor.SendProperty;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketLifecycleTimings;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.HoneyLogger;
 import me.alek.honey.util.protocol.NetProtocol;
 import me.alek.honey.util.statics.NumberUtils;
@@ -168,7 +167,7 @@ public class TaskLifecycleHandler {
         }
 
         if (!PacketTypes.isUnknown(packet.getType())) {
-            monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_SERVER_HANDLE);
+            monitorManager.sendPacketInfo(packet, SendProperty.AFTER_SERVER_HANDLE);
         }
 
         lastHandledPacket = packet;

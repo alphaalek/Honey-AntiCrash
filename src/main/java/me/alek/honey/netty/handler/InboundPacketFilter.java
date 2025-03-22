@@ -11,9 +11,11 @@ import me.alek.honey.HoneyPlayer;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.configuration.PacketLimitHandlerType;
+import me.alek.honey.monitor.SendProperty;
 import me.alek.honey.netty.ChannelCloseInspection;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.StackDecodingException;
+import me.alek.honey.netty.packet.DummyPacketContainer;
 import me.alek.honey.netty.packet.InternalPacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketContainer;
@@ -21,7 +23,6 @@ import me.alek.honey.netty.packet.type.PacketBound;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packet.type.PacketTypes;
-import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.reflection.Reflection;
 import me.alek.honey.validation.HoneyValidation;
@@ -29,7 +30,6 @@ import me.alek.honey.validation.ValidationPipeline;
 import me.alek.honey.validation.ValidationPipelineContext;
 import me.alek.honey.validation.ViolationManagement;
 import me.alek.honey.validation.impl.FloodValidations;
-import org.bukkit.Bukkit;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -216,6 +216,13 @@ public class InboundPacketFilter extends MessageToMessageDecoder<ByteBuf> {
         } catch (StackDecodingException ex) {
             this.packetHandler.filterMark = null;
             MARK.remove();
+
+            if (packet == null) {
+                packet = new DummyPacketContainer.StackDump<>(type, this.player, ex.getStack());
+            } else {
+                packet.cancel();
+            }
+            HoneyPlugin.get().getMonitorManager().sendPacketInfo(packet, SendProperty.ITEM_DUMP);
 
             ViolationManagement management = HoneyPlugin.get().getViolationManagement();
 

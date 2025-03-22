@@ -5,10 +5,26 @@ import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
 import me.alek.honey.util.protocol.NetProtocol;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public interface CodecContext {
 
+    String REPORT_STACK_CONST_PROPERTIES = "report-stack-properties";
+    String REPORT_TAG = "report-tag";
+
+    abstract class Def implements CodecContext {
+
+        private final Map<String, Object> container = new HashMap<>();
+
+        @Override
+        public Map<String, Object> container() {
+            return this.container;
+        }
+    }
+
     static CodecContext from(PacketDataSerializer serializer, NetProtocol protocol, NetProtocol protocolCreated) {
-        return new CodecContext() {
+        return new Def() {
 
             @Override
             public NetProtocol protocol() {
@@ -32,13 +48,15 @@ public interface CodecContext {
         int maxMissingBytes();
     }
 
+    Map<String, Object> container();
+
     NetProtocol protocol();
 
     NetProtocol protocolCreated();
 
     PacketDataSerializer serializer();
 
-    class BookValidationContext<WP extends SourcedWrappedPacket<WP>> implements CodecContext {
+    class BookValidationContext<WP extends SourcedWrappedPacket<WP>> extends Def {
 
         public static <WP extends SourcedWrappedPacket<WP>> BookValidationContext<WP> from(PacketDataSerializer serializer, PacketContainer<WP> packet, boolean signing) {
             return new BookValidationContext<>(serializer, packet, signing);
@@ -78,7 +96,7 @@ public interface CodecContext {
         }
     }
 
-    class StackContextImpl implements CodecContext.Transformer {
+    class StackContextImpl extends Def implements CodecContext.Transformer {
 
         public static class BookEditing extends StackContextImpl {
 

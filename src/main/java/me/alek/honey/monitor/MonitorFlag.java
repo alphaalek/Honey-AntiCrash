@@ -3,6 +3,7 @@ package me.alek.honey.monitor;
 import me.alek.honey.HoneyPlugin;
 import me.alek.honey.monitor.exceptions.WrongMonitorFlagSyntaxException;
 import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
+import me.alek.honey.netty.packet.DummyPacketContainer;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.type.PacketState;
@@ -22,36 +23,40 @@ import java.util.function.Supplier;
 public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
 
     enum Flag {
-        PLAYER("player", "--player [player name]", false, PlayerFlag::new),
-        TYPE("type", "--type [packet type]", false, TypeFlag::new),
-        STATE("state", "--state [packet state]", false, StateFlag::new),
-        CANCELLED("cancelled", "--cancelled", false, CancelledFlag::new),
-        DETAILED("detailed", "--detailed", false, DetailedFlag::new),
-        DUMP_TAG("dump-tag", "--dump-tag", false, DumpTagFlag::new),
-        BYTE_SIZE("bytes", "--bytes", false, BytesFlag::new),
-        ACCUMULATED_BYTE_SIZE("accumulated-bytes", "--accumulated-bytes", false, AccumulatedBytesFlag::new),
-        BYTE_DOUBLE_SEQUENCES("byte-sequences", "--byte-sequences", false, ByteSequenceSFlag::new),
-        DECODE("min-decode", "--min-decode [number (as decimal) (in millis)]", false, DecodeTimingsFlag::new),
-        IN_BETWEEN("min-in-between", "--min-in-between [number (as decimal) (in millis)]", false, InBetweenFlag::new),
-        HONEY_HANDLE("min-honey-handle", "--min-honey-handle [number (as decimal) (in millis)]", true, HoneyHandleTimingsFlag::new),
-        SERVER_HANDLE("min-server-handle", "--min-server-handle [number (as decimal) (in millis)]", true, ServerHandleTimingsFlag::new),
-        NTQ_OAWO("min-ntq-oawo", "--min-ntq-oawo [number (as percentage)]", true, NTQOfAverageWithoutFlag::new),
-        NTQ_OT("min-ntq-ot", "--min-ntq-ot [number (as percentage)]", true, NTQOfTotalFlag::new),
-        STQ_OAWO("min-stq-oawo", "--min-stq-oawo [number (as percentage)]", true, STQOfAverageWithoutFlag::new),
-        STQ_OT("min-stq-ot", "--min-stq-ot [number (as percentage)]", true, STQOfTotalFlag::new),
-        STQ_OHST("min-ohst", "--min-ohst [number (as percentage)]", true, STQOfHalfServerThreadFlag::new),
+        PLAYER("player", "--player [player name]", SendProperty.AFTER_HONEY_HANDLE, PlayerFlag::new),
+        TYPE("type", "--type [packet type]", SendProperty.AFTER_HONEY_HANDLE, TypeFlag::new),
+        STATE("state", "--state [packet state]", SendProperty.AFTER_HONEY_HANDLE, StateFlag::new),
+        CANCELLED("cancelled", "--cancelled", SendProperty.AFTER_HONEY_HANDLE, CancelledFlag::new),
+        DETAILED("detailed", "--detailed", SendProperty.AFTER_HONEY_HANDLE, DetailedFlag::new),
+        DUMP_TAG("dump-tag", "--dump-tag", Arrays.asList(SendProperty.AFTER_HONEY_HANDLE, SendProperty.ITEM_DUMP), DumpTagFlag::new),
+        BYTE_SIZE("bytes", "--bytes", SendProperty.AFTER_HONEY_HANDLE, BytesFlag::new),
+        ACCUMULATED_BYTE_SIZE("accumulated-bytes", "--accumulated-bytes", SendProperty.AFTER_HONEY_HANDLE, AccumulatedBytesFlag::new),
+        BYTE_DOUBLE_SEQUENCES("byte-sequences", "--byte-sequences", SendProperty.AFTER_HONEY_HANDLE, ByteSequenceSFlag::new),
+        DECODE("min-decode", "--min-decode [number (as decimal) (in millis)]", SendProperty.AFTER_HONEY_HANDLE, DecodeTimingsFlag::new),
+        IN_BETWEEN("min-in-between", "--min-in-between [number (as decimal) (in millis)]", SendProperty.AFTER_HONEY_HANDLE, InBetweenFlag::new),
+        HONEY_HANDLE("min-honey-handle", "--min-honey-handle [number (as decimal) (in millis)]", SendProperty.AFTER_SERVER_HANDLE, HoneyHandleTimingsFlag::new),
+        SERVER_HANDLE("min-server-handle", "--min-server-handle [number (as decimal) (in millis)]", SendProperty.AFTER_SERVER_HANDLE, ServerHandleTimingsFlag::new),
+        NTQ_OAWO("min-ntq-oawo", "--min-ntq-oawo [number (as percentage)]", SendProperty.AFTER_SERVER_HANDLE, NTQOfAverageWithoutFlag::new),
+        NTQ_OT("min-ntq-ot", "--min-ntq-ot [number (as percentage)]", SendProperty.AFTER_SERVER_HANDLE, NTQOfTotalFlag::new),
+        STQ_OAWO("min-stq-oawo", "--min-stq-oawo [number (as percentage)]", SendProperty.AFTER_SERVER_HANDLE, STQOfAverageWithoutFlag::new),
+        STQ_OT("min-stq-ot", "--min-stq-ot [number (as percentage)]", SendProperty.AFTER_SERVER_HANDLE, STQOfTotalFlag::new),
+        STQ_OHST("min-ohst", "--min-ohst [number (as percentage)]", SendProperty.AFTER_SERVER_HANDLE, STQOfHalfServerThreadFlag::new),
         ;
 
         private final String name;
         private final String usage;
-        private final boolean hasToBeAfterServerHandle;
+        private final List<SendProperty> sendProperties;
         private final Supplier<MonitorFlag<?>> monitorFlagSupplier;
 
-        Flag(String name, String usage, boolean hasToBeAfterServerHandle, Supplier<MonitorFlag<?>> monitorFlagSupplier) {
+        Flag(String name, String usage, List<SendProperty> sendProperties, Supplier<MonitorFlag<?>> monitorFlagSupplier) {
             this.name = name;
             this.usage = usage;
-            this.hasToBeAfterServerHandle = hasToBeAfterServerHandle;
+            this.sendProperties = sendProperties;
             this.monitorFlagSupplier = monitorFlagSupplier;
+        }
+
+        Flag(String name, String usage, SendProperty property, Supplier<MonitorFlag<?>> monitorFlagSupplier) {
+            this(name, usage, Collections.singletonList(property), monitorFlagSupplier);
         }
 
         public String getName() {
@@ -62,8 +67,8 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
             return this.usage;
         }
 
-        public boolean hasToBeAfterServerHandle() {
-            return hasToBeAfterServerHandle;
+        public List<SendProperty> getSendProperties() {
+            return this.sendProperties;
         }
 
         public MonitorFlag<?> createNew() {
@@ -300,34 +305,40 @@ public interface MonitorFlag<T> extends FlagRunner.Chipstate.Flag<T> {
 
         @Override
         public boolean test(PacketContainer<?> input) {
-            if (input.getInitialByteWrapped() != null) {
-
-                return input.getType() == PacketTypes.Play.Client.CLICK_WINDOW
-                        || input.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION
-                        || input.getType() == PacketTypes.Play.Client.BLOCK_PLACE && input.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)
-                        || input.getType() == PacketTypes.Play.Client.CUSTOM_PAYLOAD && input.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && ((WrappedPlayInCustomPayload) (input.getAnyWrapped())).getPayloadData().isBookChannel()
-                        || input.getType() == PacketTypes.Play.Client.BOOK_EDIT && input.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1);
+            if (input instanceof DummyPacketContainer.StackDump) {
+                return true;
+            } else {
+                if (input.getInitialByteWrapped() != null) {
+                    return input.getType() == PacketTypes.Play.Client.CLICK_WINDOW
+                            || input.getType() == PacketTypes.Play.Client.CREATIVE_INVENTORY_ACTION
+                            || input.getType() == PacketTypes.Play.Client.BLOCK_PLACE && input.getProtocol().isOlderThanOrEqual(NetProtocol.v1_8_8)
+                            || input.getType() == PacketTypes.Play.Client.CUSTOM_PAYLOAD && input.getProtocol().isOlderThanOrEqual(NetProtocol.v1_12_2) && ((WrappedPlayInCustomPayload) (input.getAnyWrapped())).getPayloadData().isBookChannel()
+                            || input.getType() == PacketTypes.Play.Client.BOOK_EDIT && input.getProtocol().isOlderThanOrEqual(NetProtocol.v1_17_1);
+                }
+                return false;
             }
-
-            return false;
         }
 
         @Override
         public void append(PacketContainer<?> input, List<String> data) {
             WrappedImmutableItemStack stack;
-            if (input.getType() == PacketTypes.Play.Client.CUSTOM_PAYLOAD) {
-                WrappedPlayInCustomPayload payload = (WrappedPlayInCustomPayload) input.getAnyWrapped();
-                stack = payload.getPayloadData().getBookChannelItemStack();
-            } else if (input.getType() == PacketTypes.Play.Client.BOOK_EDIT) {
-                WrappedPlayInBookEdit bookEdit = (WrappedPlayInBookEdit) input.getAnyWrapped();
-                stack = bookEdit.getDecodedStack();
+            if (input instanceof DummyPacketContainer.StackDump) {
+                stack = ((DummyPacketContainer.StackDump<?>)input).getStack();
             } else {
-                stack = (WrappedImmutableItemStack)
-                        input.getAnyByteWrapped().getProperties().values().stream()
-                        .filter(Objects::nonNull)
-                        .filter(v -> v instanceof WrappedImmutableItemStack)
-                        .findFirst()
-                        .orElse(null);
+                if (input.getType() == PacketTypes.Play.Client.CUSTOM_PAYLOAD) {
+                    WrappedPlayInCustomPayload payload = (WrappedPlayInCustomPayload) input.getAnyWrapped();
+                    stack = payload.getPayloadData().getBookChannelItemStack();
+                } else if (input.getType() == PacketTypes.Play.Client.BOOK_EDIT) {
+                    WrappedPlayInBookEdit bookEdit = (WrappedPlayInBookEdit) input.getAnyWrapped();
+                    stack = bookEdit.getDecodedStack();
+                } else {
+                    stack = (WrappedImmutableItemStack)
+                            input.getAnyByteWrapped().getProperties().values().stream()
+                                    .filter(Objects::nonNull)
+                                    .filter(v -> v instanceof WrappedImmutableItemStack)
+                                    .findFirst()
+                                    .orElse(null);
+                }
             }
 
             String tag;

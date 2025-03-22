@@ -35,6 +35,30 @@ import java.util.Optional;
 
 public class WrappedImmutableItemStack implements Cloneable {
 
+    public static class ConstProperties {
+        private final ItemType type;
+        private final int amount;
+        private final short durability;
+
+        public ConstProperties(ItemType type, int amount, short durability) {
+            this.type = type;
+            this.amount = amount;
+            this.durability = durability;
+        }
+
+        public ItemType getType() {
+            return this.type;
+        }
+
+        public int getAmount() {
+            return this.amount;
+        }
+
+        public short getDurability() {
+            return this.durability;
+        }
+    }
+
     public static class Serializer implements Rewritable.Serializer<WrappedImmutableItemStack, TypeSerializer.TypeContext.TwoArgs<CodecVisitor.Dynamic<?, ?>, CodecContext>> {
 
         private static final int EMPTY_ID_LEGACY = -1;
@@ -75,8 +99,17 @@ public class WrappedImmutableItemStack implements Cloneable {
                 }
             }
 
+            ItemType type = ItemTypes.getById(protocol.toPECVersion(), id);
+            if (type == null) {
+                return null; // no type found
+            }
+
+            // report const properties for error handling
+            context.getSecond().container().put(CodecContext.REPORT_STACK_CONST_PROPERTIES,
+                    new ConstProperties(type, amount, durability));
+
             try {
-                return WrappedImmutableItemStack.readTag(context.getSecond(), buf, id, amount, durability, context.getFirst());
+                return WrappedImmutableItemStack.readTag(context.getSecond(), buf, type, amount, durability, context.getFirst());
             } catch (DecoderException | IOException ex) {
                 throw new DecoderException("Failed to decode item stack", ex);
             }
@@ -245,13 +278,9 @@ public class WrappedImmutableItemStack implements Cloneable {
         }
     }
 
-    public static Rewritable<WrappedImmutableItemStack> readTag(CodecContext context, PacketDataSerializer serializer, int itemId, int amount, short durability, CodecVisitor.Dynamic<?, ?> visitorFactory) throws IOException {
+    public static Rewritable<WrappedImmutableItemStack> readTag(CodecContext context, PacketDataSerializer serializer, ItemType type, int amount, short durability, CodecVisitor.Dynamic<?, ?> visitorFactory) throws IOException {
         NetProtocol protocol = context.protocol();
         NetProtocol protocolCreated = context.protocolCreated();
-        ItemType type = ItemTypes.getById(protocol.toPECVersion(), itemId);
-        if (type == null) {
-            return null; // no type found
-        }
 
         if (context instanceof CodecContext.Transformer) {
             CodecTypeValidation.ITEM_STACK_PRE_TAG.validate(type, (CodecContext.Transformer) context);
@@ -277,6 +306,7 @@ public class WrappedImmutableItemStack implements Cloneable {
                     .map(AbstractTag::asCompound)
                     .orElse(null);
         }
+        context.container().put(CodecContext.REPORT_TAG, tag);
 
         if (type == ItemTypes.AIR) {
             // done reading this item stack, but just ignore all other components if the type is air
@@ -370,7 +400,7 @@ public class WrappedImmutableItemStack implements Cloneable {
         this(protocol, type, amount, tag);
         this.durability = durability;
 
-        if (protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
+        if (durability != -1 && protocol.isNewerThanOrEqual(NetProtocol.v1_13_2)) {
             throw new UnsupportedOperationException();
         }
     }

@@ -2,31 +2,25 @@ package me.alek.honey.monitor;
 
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packetwrappers.SourcedWrappedPacket;
-import me.alek.honey.netty.packetwrappers.WrappedPacket;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class PacketMonitorer<WP extends SourcedWrappedPacket<WP>> implements IndependentMonitorer<PacketContainer<WP>> {
 
     private final FlagRunner.Env<WP> flags;
-    private final MonitorSendAt sendAt;
+    private final Map<SendProperty, List<MonitorFlag<PacketContainer<WP>>>> linkSendMap = new HashMap<>();
 
     public PacketMonitorer(FlagRunner.Env<WP> flags) {
         this.flags = flags;
 
-        boolean hasToBeAfterServerHandle = false;
         for (MonitorFlag<PacketContainer<WP>> flag : flags.getAllFlags()) {
-            hasToBeAfterServerHandle = Optional.ofNullable(
-                    MonitorFlagParser.getFlag(flag)).map(MonitorFlag.Flag::hasToBeAfterServerHandle).orElse(false);
-
-            if (hasToBeAfterServerHandle) {
-                break;
+            MonitorFlag.Flag litFlag = MonitorFlagParser.getFlag(flag);
+            if (litFlag != null) {
+                for (SendProperty property : litFlag.getSendProperties()) {
+                    this.linkSendMap.computeIfAbsent(property, __ -> new ArrayList<>()).add(flag);
+                }
             }
         }
-
-        sendAt = hasToBeAfterServerHandle ? MonitorSendAt.AFTER_SERVER_HANDLE : MonitorSendAt.AFTER_HONEY_HANDLE;
     }
 
     @Override
@@ -56,7 +50,7 @@ public class PacketMonitorer<WP extends SourcedWrappedPacket<WP>> implements Ind
     }
 
     @Override
-    public MonitorSendAt getSendAt() {
-        return sendAt;
+    public List<SendProperty> getSendProperties() {
+        return new ArrayList<>(this.linkSendMap.keySet());
     }
 }

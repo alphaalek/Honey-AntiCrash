@@ -3,6 +3,7 @@ package me.alek.honey.netty.packet;
 import me.alek.honey.HoneyPlayer;
 import me.alek.honey.netty.codec.PacketDataSerializer;
 import me.alek.honey.netty.codec.Rewritable;
+import me.alek.honey.netty.modelwrappers.WrappedImmutableItemStack;
 import me.alek.honey.netty.packet.type.PacketState;
 import me.alek.honey.netty.packet.type.PacketType;
 import me.alek.honey.netty.packetwrappers.ByteInWrappedPacket;
@@ -15,6 +16,20 @@ import me.alek.honey.util.protocol.NetProtocol;
 import java.util.Optional;
 
 public class DummyPacketContainer<WP extends SourcedWrappedPacket<WP>> extends PacketContainerLifecycle<WP> implements PacketContainer<WP> {
+
+    public static class StackDump<WP extends SourcedWrappedPacket<WP>> extends DummyPacketContainer<WP> {
+
+        private final WrappedImmutableItemStack stack;
+
+        public StackDump(PacketType type, HoneyPlayer player, WrappedImmutableItemStack stack) {
+            super(type, player);
+            this.stack = stack;
+        }
+
+        public WrappedImmutableItemStack getStack() {
+            return this.stack;
+        }
+    }
 
     public static <WP extends SourcedWrappedPacket<WP>> DummyPacketContainer<WP> create(PacketType type, HoneyPlayer player) {
         return new DummyPacketContainer<>(type, player);

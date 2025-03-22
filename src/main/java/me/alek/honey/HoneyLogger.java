@@ -2,7 +2,7 @@ package me.alek.honey;
 
 import me.alek.honey.configuration.ConfigurationOptions;
 import me.alek.honey.monitor.MonitorManager;
-import me.alek.honey.monitor.MonitorSendAt;
+import me.alek.honey.monitor.SendProperty;
 import me.alek.honey.netty.packet.LifecycleState;
 import me.alek.honey.netty.packet.PacketContainer;
 import me.alek.honey.netty.packet.PacketListenerAdapter;
@@ -16,7 +16,6 @@ import me.alek.honey.netty.packetwrappers.WrappedPacket;
 import me.alek.honey.netty.processor.ListenerPriority;
 import me.alek.honey.tracker.Timespan;
 import me.alek.honey.tracker.temp.TempIntervalTracker;
-import me.alek.honey.util.IDRegistry;
 import me.alek.honey.util.counter.DecayingWindowCounter;
 import me.alek.honey.util.statics.NumberUtils;
 
@@ -219,7 +218,7 @@ public class HoneyLogger {
             }
         }
 
-        this.monitorManager.sendPacketInfo(packet, MonitorSendAt.AFTER_HONEY_HANDLE);
+        this.monitorManager.sendPacketInfo(packet, SendProperty.AFTER_HONEY_HANDLE);
     }
 
     public void dumpAutoHeavyPacket(PacketContainer<?> packet) {
